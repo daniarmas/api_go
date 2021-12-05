@@ -1,0 +1,50 @@
+version: "3.7"
+
+services:
+  postgres:
+    image: 192.168.1.2:5000/ownpostgis/ownpostgis:13-3.1-alpine
+    container_name: postgres
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    restart: always
+    environment:
+      # POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_DB: postgres
+      # POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --auth-local=scram-sha-256
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+  minio:
+    image: minio/minio:RELEASE.2021-10-23T03-28-24Z
+    container_name: minio
+    volumes:
+      - miniodata:/data
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: root
+      MINIO_ROOT_PASSWORD: root1234
+    ports:
+      - 9000:9000
+      - 9001:9001
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    volumes:
+      - pgadmin4:/var/lib/pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.net
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - 8080:80
+volumes:
+  postgres:
+  miniodata:
+  pgadmin4:
