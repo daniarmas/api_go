@@ -13,11 +13,7 @@ RUN go mod download
 
 COPY *.go ./
 
-RUN go build
-
-EXPOSE 8080
-
-CMD [ "/api_go" ]
+RUN go build -o /api_go
 
 ##
 ## Deploy
