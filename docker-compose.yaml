@@ -1,22 +1,36 @@
 version: "3.7"
 
 services:
-  postgres:
-    image: 192.168.1.2:5000/ownpostgis/ownpostgis:13-3.1-alpine
-    container_name: postgres
+  cockroach:
+    image: docker.uclv.cu/cockroachdb/cockroach:latest-v21.2
+    container_name: cockroach
     volumes:
-      - postgres:/var/lib/postgresql/data
+      - cockroach:/cockroach/cockroach-data
     ports:
-      - 5432:5432
+      - 26257:26257
+      - 8082:8080
     restart: always
+    # environment:
+    #   # POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    #   POSTGRES_DB: postgres
+    #   # POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --auth-local=scram-sha-256
+    #   POSTGRES_USER: postgres
+    #   POSTGRES_PASSWORD: postgres
+    command: start-single-node --insecure
+  pgweb:
+    container_name: pgweb
+    restart: always
+    image: sosedoff/pgweb:0.11.9
+    ports: 
+      - "8083:8081" 
+    links: 
+      - cockroach:cockroach  # my database container is called postgres, not db
     environment:
-      # POSTGRES_HOST_AUTH_METHOD: scram-sha-256
-      POSTGRES_DB: postgres
-      # POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --auth-local=scram-sha-256
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      - DATABASE_URL=postgres://root:root@cockroach:26257/postgres?sslmode=disable
+    depends_on:
+      - cockroach
   minio:
-    image: minio/minio:RELEASE.2021-10-23T03-28-24Z
+    image: docker.uclv.cu/minio/minio:RELEASE.2021-10-23T03-28-24Z
     container_name: minio
     volumes:
       - miniodata:/data
@@ -33,18 +47,18 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
-    volumes:
-      - pgadmin4:/var/lib/pgadmin
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.net
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - 8080:80
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   container_name: pgadmin
+  #   volumes:
+  #     - pgadmin4:/var/lib/pgadmin
+  #   restart: always
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: admin@admin.net
+  #     PGADMIN_DEFAULT_PASSWORD: admin
+  #   ports:
+  #     - 8080:80
 volumes:
-  postgres:
+  cockroach:
   miniodata:
-  pgadmin4:
+  # pgadmin4:
