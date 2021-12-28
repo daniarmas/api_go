@@ -1,9 +1,11 @@
 syntax = "proto3";
 
+package main;
+
 import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
 
-option go_package = "github.com/daniarmas/api_grpc_go";
+option go_package = "/pkg";
 
 service AuthenticationService {
   rpc CreateVerificationCode (CreateVerificationCodeRequest) returns (google.protobuf.Empty) {}
@@ -34,7 +36,7 @@ service BusinessService {
 service ItemService {
   rpc ListItem (ListItemRequest) returns (ListItemResponse) {}
   rpc GetItem (GetItemRequest) returns (GetItemResponse) {}
-  rpc SearchItem (SearchItemRequest) returns (SearchItemResponse) {}
+  // rpc SearchItem (SearchItemRequest) returns (SearchItemResponse) {}
 }
 
 service UserService {
