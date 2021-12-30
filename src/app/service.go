@@ -10,10 +10,23 @@ type ItemServer struct {
 	itemService service.ItemService
 }
 
+type AuthenticationServer struct {
+	pb.UnimplementedAuthenticationServiceServer
+	authenticationService service.AuthenticationService
+}
+
 func NewItemServer(
 	itemService service.ItemService,
 ) *ItemServer {
 	return &ItemServer{
 		itemService: itemService,
+	}
+}
+
+func NewAuthenticationServer(
+	authenticationService service.AuthenticationService,
+) *AuthenticationServer {
+	return &AuthenticationServer{
+		authenticationService: authenticationService,
 	}
 }

@@ -14,7 +14,7 @@ func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb
 	itemsResponse := make([]*pb.Item, 0, len(items))
 	for _, item := range items {
 		itemsResponse = append(itemsResponse, &pb.Item{
-			Id:                       item.ID,
+			Id:                       item.ID.String(),
 			Name:                     item.Name,
 			Description:              item.Description,
 			Price:                    item.Price,
@@ -38,7 +38,7 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 		return nil, err
 	}
 	return &pb.GetItemResponse{Item: &pb.Item{
-		Id:                       item.ID,
+		Id:                       item.ID.String(),
 		Name:                     item.Name,
 		Description:              item.Description,
 		Price:                    item.Price,

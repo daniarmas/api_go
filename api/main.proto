@@ -10,7 +10,7 @@ option go_package = "/pkg";
 service AuthenticationService {
   rpc CreateVerificationCode (CreateVerificationCodeRequest) returns (google.protobuf.Empty) {}
   // rpc ListVerificationCode (ListVerificationCodeRequest) returns (ListVerificationCodeResponse) {}
-  // rpc GetVerificationCode (GetVerificationCodeRequest) returns (google.protobuf.Empty) {}
+  rpc GetVerificationCode (GetVerificationCodeRequest) returns (google.protobuf.Empty) {}
   // rpc UpdateVerificationCode (UpdateVerificationCodeRequest) returns (UpdateVerificationCodeResponse) {}
   // rpc DeleteVerificationCode (DeleteVerificationCodeRequest) returns (google.protobuf.Empty) {}
 
@@ -280,11 +280,12 @@ message CreateVerificationCodeRequest {
 //   string id = 1;
 // }
 
-// message GetVerificationCodeRequest {
-//   string id = 1;
-//   string code = 2;
-//   google.protobuf.FieldMask fieldMask = 5;
-// }
+message GetVerificationCodeRequest {
+  string code = 1;
+  string email = 2;
+  VerificationCodeType type = 3;
+  google.protobuf.FieldMask fieldMask = 5;
+}
 
 // message GetVerificationCodeResponse {
 //   VerificationCode verificationCode = 1;

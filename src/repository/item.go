@@ -21,7 +21,10 @@ func (i *itemQuery) ListItem() ([]datastruct.Item, error) {
 }
 
 func (i *itemQuery) GetItem(id string) (datastruct.Item, error) {
-	var item datastruct.Item
-	DB.Table("Item").Where("id = ?", id).First(&item)
-	return item, nil
+	var item []datastruct.Item
+	DB.Table("Item").Limit(1).Where("id = ?", id).Find(&item)
+	if len(item) == 0 {
+		return datastruct.Item{}, nil
+	}
+	return item[0], nil
 }

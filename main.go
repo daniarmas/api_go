@@ -27,6 +27,7 @@ func main() {
 	// Register all services
 	dao := repository.NewDAO(db)
 	itemService := service.NewItemService(dao)
+	authenticationService := service.NewAuthenticationService(dao)
 
 	// Starting gRPC server
 	listener, err := net.Listen("tcp", "localhost:8282")
@@ -35,10 +36,13 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
+	// Registring the services
 	pb.RegisterItemServiceServer(grpcServer, app.NewItemServer(
 		itemService,
 	))
-
+	pb.RegisterAuthenticationServiceServer(grpcServer, app.NewAuthenticationServer(
+		authenticationService,
+	))
 	err = grpcServer.Serve(listener)
 	if err != nil {
 		log.Fatalln(err)

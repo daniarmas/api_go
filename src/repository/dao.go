@@ -3,14 +3,18 @@ package repository
 import (
 	"fmt"
 	"log"
+	"os"
+	"time"
 
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type DAO interface {
 	NewItemQuery() ItemQuery
+	NewVerificationCodeQuery() VerificationCodeQuery
 }
 
 type dao struct{}
@@ -36,7 +40,18 @@ func NewDB() (*gorm.DB, error) {
 
 	// Starting a database
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", host, user, password, dbName, port)
-	DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags),
+		logger.Config{
+			SlowThreshold:             time.Millisecond * 200,
+			LogLevel:                  logger.Info,
+			IgnoreRecordNotFoundError: false,
+			Colorful:                  true,
+		},
+	)
+	DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: newLogger,
+	})
 	if err != nil {
 		return nil, err
 		// log.Fatal("Failed to connect database: ", err)
@@ -44,10 +59,10 @@ func NewDB() (*gorm.DB, error) {
 	return DB, nil
 }
 
-// func CloseDB() {
-// 	DB.Close()
-// }
-
 func (d *dao) NewItemQuery() ItemQuery {
 	return &itemQuery{}
+}
+
+func (d *dao) NewVerificationCodeQuery() VerificationCodeQuery {
+	return &verificationCodeQuery{}
 }

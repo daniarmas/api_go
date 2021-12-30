@@ -20,6 +20,8 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthenticationServiceClient interface {
 	CreateVerificationCode(ctx context.Context, in *CreateVerificationCodeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// rpc ListVerificationCode (ListVerificationCodeRequest) returns (ListVerificationCodeResponse) {}
+	GetVerificationCode(ctx context.Context, in *GetVerificationCodeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type authenticationServiceClient struct {
@@ -39,11 +41,22 @@ func (c *authenticationServiceClient) CreateVerificationCode(ctx context.Context
 	return out, nil
 }
 
+func (c *authenticationServiceClient) GetVerificationCode(ctx context.Context, in *GetVerificationCodeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/main.AuthenticationService/GetVerificationCode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthenticationServiceServer is the server API for AuthenticationService service.
 // All implementations must embed UnimplementedAuthenticationServiceServer
 // for forward compatibility
 type AuthenticationServiceServer interface {
 	CreateVerificationCode(context.Context, *CreateVerificationCodeRequest) (*emptypb.Empty, error)
+	// rpc ListVerificationCode (ListVerificationCodeRequest) returns (ListVerificationCodeResponse) {}
+	GetVerificationCode(context.Context, *GetVerificationCodeRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedAuthenticationServiceServer()
 }
 
@@ -53,6 +66,9 @@ type UnimplementedAuthenticationServiceServer struct {
 
 func (UnimplementedAuthenticationServiceServer) CreateVerificationCode(context.Context, *CreateVerificationCodeRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateVerificationCode not implemented")
+}
+func (UnimplementedAuthenticationServiceServer) GetVerificationCode(context.Context, *GetVerificationCodeRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetVerificationCode not implemented")
 }
 func (UnimplementedAuthenticationServiceServer) mustEmbedUnimplementedAuthenticationServiceServer() {}
 
@@ -85,6 +101,24 @@ func _AuthenticationService_CreateVerificationCode_Handler(srv interface{}, ctx 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthenticationService_GetVerificationCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVerificationCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationServiceServer).GetVerificationCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.AuthenticationService/GetVerificationCode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationServiceServer).GetVerificationCode(ctx, req.(*GetVerificationCodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthenticationService_ServiceDesc is the grpc.ServiceDesc for AuthenticationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -95,6 +129,10 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateVerificationCode",
 			Handler:    _AuthenticationService_CreateVerificationCode_Handler,
+		},
+		{
+			MethodName: "GetVerificationCode",
+			Handler:    _AuthenticationService_GetVerificationCode_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
