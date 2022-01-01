@@ -14,10 +14,10 @@ type VerificationCode struct {
 	Code       string         `gorm:"column:code"`
 	Email      string         `gorm:"column:email"`
 	Type       string         `gorm:"column:type"`
-	DeviceId   string         `gorm:"column:deviceId"`
-	CreateTime time.Time      `gorm:"column:createTime"`
-	UpdateTime time.Time      `gorm:"column:updateTime"`
-	DeleteTime gorm.DeletedAt `gorm:"index;column:deleteTime"`
+	DeviceId   string         `gorm:"column:device_id"`
+	CreateTime time.Time      `gorm:"column:create_time"`
+	UpdateTime time.Time      `gorm:"column:update_time"`
+	DeleteTime gorm.DeletedAt `gorm:"index;column:delete_time"`
 }
 
 // Note: Gorm will fail if the function signature

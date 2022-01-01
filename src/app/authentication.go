@@ -14,12 +14,18 @@ import (
 )
 
 func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest) (*gp.Empty, error) {
-	// var st *status.Status
+	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
 	verificationCode := datastruct.VerificationCode{Code: ut.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceId: md.Get("deviceid")[0], CreateTime: time.Now(), UpdateTime: time.Now()}
 	err := m.authenticationService.CreateVerificationCode(&verificationCode)
 	if err != nil {
-		return nil, err
+		switch err.Error() {
+		case "banned user":
+			st = status.New(codes.PermissionDenied, "Banned user")
+		case "banned device":
+			st = status.New(codes.PermissionDenied, "Banned device ")
+		}
+		return nil, st.Err()
 	}
 	return &gp.Empty{}, nil
 }
@@ -29,10 +35,11 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 	md, _ := metadata.FromIncomingContext(ctx)
 	err := m.authenticationService.GetVerificationCode(req.Code, req.Email, req.Type.String(), md.Get("deviceid")[0])
 	if err != nil {
-		if err.Error() == "record not found" {
-			st = status.New(codes.NotFound, "Resource not found")
-		} else {
-			st = status.New(codes.Unknown, "Unknown error")
+		switch err.Error() {
+		case "user banned":
+			st = status.New(codes.NotFound, "User banned")
+		case "device banned":
+			st = status.New(codes.NotFound, "Device banned")
 		}
 		return nil, st.Err()
 	}

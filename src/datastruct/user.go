@@ -14,14 +14,14 @@ type User struct {
 	Email                    string         `gorm:"column:email"`
 	Alias                    string         `gorm:"column:alias"`
 	FullName                 string         `gorm:"column:fullname"`
-	IsLegalAge               bool           `gorm:"column:isLegalAge"`
-	HighQualityPhoto         string         `gorm:"column:highQualityPhoto"`
-	HighQualityPhotoBlurHash string         `gorm:"column:highQualityPhotoBlurHash"`
-	LowQualityPhoto          string         `gorm:"column:lowQualityPhoto"`
-	LowQualityPhotoBlurHash  string         `gorm:"column:lowQualityPhotoBlurHash"`
+	IsLegalAge               bool           `gorm:"column:is_legal_age"`
+	HighQualityPhoto         string         `gorm:"column:highQuality_photo"`
+	HighQualityPhotoBlurHash string         `gorm:"column:highQuality_photoBlurHash"`
+	LowQualityPhoto          string         `gorm:"column:low_quality_photo"`
+	LowQualityPhotoBlurHash  string         `gorm:"column:low_quality_photo_blurhash"`
 	Thumbnail                string         `gorm:"column:thumbnail"`
-	ThumbnailBlurHash        string         `gorm:"column:thumbnailBlurHash"`
-	CreateTime               time.Time      `gorm:"column:createTime"`
-	UpdateTime               time.Time      `gorm:"column:updateTime"`
-	DeleteTime               gorm.DeletedAt `gorm:"index;column:deleteTime"`
+	ThumbnailBlurHash        string         `gorm:"column:thumbnail_blurhash"`
+	CreateTime               time.Time      `gorm:"column:create_time"`
+	UpdateTime               time.Time      `gorm:"column:update_time"`
+	DeleteTime               gorm.DeletedAt `gorm:"index;column:delete_time"`
 }

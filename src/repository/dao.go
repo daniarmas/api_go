@@ -45,7 +45,7 @@ func NewDB() (*gorm.DB, error) {
 		logger.Config{
 			SlowThreshold:             time.Millisecond * 200,
 			LogLevel:                  logger.Info,
-			IgnoreRecordNotFoundError: false,
+			IgnoreRecordNotFoundError: true,
 			Colorful:                  true,
 		},
 	)
