@@ -21,9 +21,15 @@ func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *
 	if err != nil {
 		switch err.Error() {
 		case "banned user":
-			st = status.New(codes.PermissionDenied, "Banned user")
+			st = status.New(codes.PermissionDenied, "User banned")
 		case "banned device":
-			st = status.New(codes.PermissionDenied, "Banned device ")
+			st = status.New(codes.PermissionDenied, "Device banned")
+		case "user not found":
+			st = status.New(codes.NotFound, "User not found")
+		case "user already exists":
+			st = status.New(codes.AlreadyExists, "User already exists")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
 		}
 		return nil, st.Err()
 	}
@@ -39,7 +45,7 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 		case "record not found":
 			st = status.New(codes.NotFound, "Not found")
 		default:
-			st = status.New(codes.Unknown, "Unknown error")
+			st = status.New(codes.Internal, "Internal server error")
 		}
 		return nil, st.Err()
 	}

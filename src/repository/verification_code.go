@@ -18,15 +18,15 @@ func (v *verificationCodeQuery) CreateVerificationCode(verificationCode *datastr
 	var bannedUser []datastruct.BannedUser
 	var bannedDevice []datastruct.BannedDevice
 	var verificationCodeI datastruct.VerificationCode
-	userResult := DB.Table("User").Limit(1).Where("email = ?", verificationCode.Email).Find(&user)
+	DB.Table("User").Limit(1).Where("email = ?", verificationCode.Email).Find(&user)
 	switch verificationCode.Type {
 	case "SignIn", "ChangeUserEmail":
 		if len(user) == 0 {
-			return userResult.Error
+			return errors.New("user not found")
 		}
 	case "SignUp":
 		if len(user) != 0 {
-			return userResult.Error
+			return errors.New("user already exists")
 		}
 	}
 	bannedUserResult := DB.Table("BannedUser").Limit(1).Where("email = ?", verificationCode.Email).Find(&bannedUser)
