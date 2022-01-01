@@ -53,9 +53,11 @@ func (v *verificationCodeQuery) CreateVerificationCode(verificationCode *datastr
 
 func (v *verificationCodeQuery) GetVerificationCode(code string, email string, verificationCodeType string, deviceId string) error {
 	var verificationCode []datastruct.VerificationCode
-	verificationCodeResult := DB.Table("VerificationCode").Where("code = ?", code).Take(&verificationCode)
-	if len(verificationCode) == 0 {
-		return verificationCodeResult.Error
+	err := DB.Table("VerificationCode").Limit(1).Where("code = ?", code).Find(&verificationCode)
+	if err.Error != nil {
+		return err.Error
+	} else if len(verificationCode) == 0 {
+		return errors.New("record not found")
 	}
 	return nil
 }

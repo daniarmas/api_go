@@ -36,10 +36,10 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 	err := m.authenticationService.GetVerificationCode(req.Code, req.Email, req.Type.String(), md.Get("deviceid")[0])
 	if err != nil {
 		switch err.Error() {
-		case "user banned":
-			st = status.New(codes.NotFound, "User banned")
-		case "device banned":
-			st = status.New(codes.NotFound, "Device banned")
+		case "record not found":
+			st = status.New(codes.NotFound, "Not found")
+		default:
+			st = status.New(codes.Unknown, "Unknown error")
 		}
 		return nil, st.Err()
 	}
