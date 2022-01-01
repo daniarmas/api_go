@@ -14,7 +14,7 @@ service AuthenticationService {
   // rpc UpdateVerificationCode (UpdateVerificationCodeRequest) returns (UpdateVerificationCodeResponse) {}
   // rpc DeleteVerificationCode (DeleteVerificationCodeRequest) returns (google.protobuf.Empty) {}
 
-  // rpc SignIn (SignInRequest) returns (SignInResponse) {}
+  rpc SignIn (SignInRequest) returns (SignInResponse) {}
   // rpc SignUp (SignUpRequest) returns (SignUpResponse) {}
   // rpc SignOut (SignOutRequest) returns (google.protobuf.Empty) {}
 
@@ -304,18 +304,18 @@ message GetVerificationCodeRequest {
 //   VerificationCode verificationCode = 1;
 // }
 
-// message SignInRequest {
-//   string email = 1;
-//   string code = 2;
-//   google.protobuf.FieldMask fieldMask = 3;
-// }
+message SignInRequest {
+  string email = 1;
+  string code = 2;
+  google.protobuf.FieldMask fieldMask = 3;
+}
 
-// message SignInResponse {
-//   string refreshToken = 1;
-//   string authorizationToken = 2;
-//   User user = 3;
-//   // Business business = 4;
-// }
+message SignInResponse {
+  string refreshToken = 1;
+  string authorizationToken = 2;
+  User user = 3;
+  // Business business = 4;
+}
 
 // message HostnameRequest {
   
@@ -368,23 +368,22 @@ message GetVerificationCodeRequest {
 //   string updateTime = 7;
 // }
 
-// message User {
-//   string id = 1;
-//   string fullName = 2; 
-//   string alias = 3;
-//   string highQualityPhoto = 4;
-//   string highQualityPhotoBlurHash = 5;
-//   string lowQualityPhoto = 6;
-//   string lowQualityPhotoBlurHash = 7;
-//   string thumbnail = 8;
-//   string thumbnailBlurHash = 9;
-//   repeated UserAddress userAddress = 10;
-//   bool isLegalAge = 11;
-//   string email = 12; 
-//   repeated UserPermission permissions = 13;
-//   string createTime = 14;
-//   string updateTime = 15;
-// }
+message User {
+  string id = 1;
+  string fullName = 2; 
+  string alias = 3;
+  string highQualityPhoto = 4;
+  string highQualityPhotoBlurHash = 5;
+  string lowQualityPhoto = 6;
+  string lowQualityPhotoBlurHash = 7;
+  string thumbnail = 8;
+  string thumbnailBlurHash = 9;
+  repeated UserAddress userAddress = 10;
+  string email = 11; 
+  // repeated UserPermission permissions = 13;
+  string createTime = 12;
+  string updateTime = 13;
+}
 
 // message Business {
 //   string id = 1;
@@ -524,25 +523,25 @@ message ItemPhoto {
 //   string updateTime = 8;
 // }
 
-// message UserAddress {
-//   enum UserAddressType {
-//   UNSPECIFIED = 0;
-//   HOUSE = 1;
-//   APARTAMENT = 2;
-//   }
-//   string id = 1;
-//   string tag = 2;
-//   UserAddressType residenceType = 3;
-//   string buildingNumber = 4;
-//   string houseNumber = 5;
-//   Point coordinates = 6;
-//   string description = 7;
-//   string userFk = 8;
-//   string provinceFk = 9;
-//   string municipalityFk = 10;
-//   string createTime = 11;
-//   string updateTime = 12;
-// }
+message UserAddress {
+  enum UserAddressType {
+  UNSPECIFIED = 0;
+  HOUSE = 1;
+  APARTAMENT = 2;
+  }
+  string id = 1;
+  string tag = 2;
+  UserAddressType residenceType = 3;
+  string buildingNumber = 4;
+  string houseNumber = 5;
+  Point coordinates = 6;
+  string description = 7;
+  string userFk = 8;
+  string provinceFk = 9;
+  string municipalityFk = 10;
+  string createTime = 11;
+  string updateTime = 12;
+}
 
 // message UserPermission {
 //   string id = 1;

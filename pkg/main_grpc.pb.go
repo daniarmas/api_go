@@ -22,6 +22,7 @@ type AuthenticationServiceClient interface {
 	CreateVerificationCode(ctx context.Context, in *CreateVerificationCodeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// rpc ListVerificationCode (ListVerificationCodeRequest) returns (ListVerificationCodeResponse) {}
 	GetVerificationCode(ctx context.Context, in *GetVerificationCodeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (*SignInResponse, error)
 }
 
 type authenticationServiceClient struct {
@@ -50,6 +51,15 @@ func (c *authenticationServiceClient) GetVerificationCode(ctx context.Context, i
 	return out, nil
 }
 
+func (c *authenticationServiceClient) SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (*SignInResponse, error) {
+	out := new(SignInResponse)
+	err := c.cc.Invoke(ctx, "/main.AuthenticationService/SignIn", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthenticationServiceServer is the server API for AuthenticationService service.
 // All implementations must embed UnimplementedAuthenticationServiceServer
 // for forward compatibility
@@ -57,6 +67,7 @@ type AuthenticationServiceServer interface {
 	CreateVerificationCode(context.Context, *CreateVerificationCodeRequest) (*emptypb.Empty, error)
 	// rpc ListVerificationCode (ListVerificationCodeRequest) returns (ListVerificationCodeResponse) {}
 	GetVerificationCode(context.Context, *GetVerificationCodeRequest) (*emptypb.Empty, error)
+	SignIn(context.Context, *SignInRequest) (*SignInResponse, error)
 	mustEmbedUnimplementedAuthenticationServiceServer()
 }
 
@@ -69,6 +80,9 @@ func (UnimplementedAuthenticationServiceServer) CreateVerificationCode(context.C
 }
 func (UnimplementedAuthenticationServiceServer) GetVerificationCode(context.Context, *GetVerificationCodeRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetVerificationCode not implemented")
+}
+func (UnimplementedAuthenticationServiceServer) SignIn(context.Context, *SignInRequest) (*SignInResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SignIn not implemented")
 }
 func (UnimplementedAuthenticationServiceServer) mustEmbedUnimplementedAuthenticationServiceServer() {}
 
@@ -119,6 +133,24 @@ func _AuthenticationService_GetVerificationCode_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthenticationService_SignIn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SignInRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationServiceServer).SignIn(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.AuthenticationService/SignIn",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationServiceServer).SignIn(ctx, req.(*SignInRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthenticationService_ServiceDesc is the grpc.ServiceDesc for AuthenticationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -133,6 +165,10 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetVerificationCode",
 			Handler:    _AuthenticationService_GetVerificationCode_Handler,
+		},
+		{
+			MethodName: "SignIn",
+			Handler:    _AuthenticationService_SignIn_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
