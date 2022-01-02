@@ -21,7 +21,7 @@ func NewAuthenticationService(dao repository.DAO) AuthenticationService {
 }
 
 func (v *authenticationService) CreateVerificationCode(verificationCode *datastruct.VerificationCode) error {
-	user, _ := v.dao.NewUserQuery().GetUser(&datastruct.User{Email: verificationCode.Email})
+	user, _ := v.dao.NewUserQuery().GetUser(&datastruct.User{Email: verificationCode.Email}, &[]string{"id"})
 	switch verificationCode.Type {
 	case "SignIn", "ChangeUserEmail":
 		if len(*user) == 0 {
@@ -32,14 +32,14 @@ func (v *authenticationService) CreateVerificationCode(verificationCode *datastr
 			return errors.New("user already exists")
 		}
 	}
-	bannedUserResult, bannedUserError := v.dao.NewBannedUserQuery().GetBannedUser(&datastruct.BannedUser{Email: verificationCode.Email})
+	bannedUserResult, bannedUserError := v.dao.NewBannedUserQuery().GetBannedUser(&datastruct.BannedUser{Email: verificationCode.Email}, &[]string{"id"})
 	if bannedUserError != nil {
 		return bannedUserError
 	}
 	if len(*bannedUserResult) != 0 {
 		return errors.New("banned user")
 	}
-	bannedDeviceResult, bannedDeviceError := v.dao.NewBannedDeviceQuery().GetBannedDevice(&datastruct.BannedDevice{DeviceId: verificationCode.DeviceId})
+	bannedDeviceResult, bannedDeviceError := v.dao.NewBannedDeviceQuery().GetBannedDevice(&datastruct.BannedDevice{DeviceId: verificationCode.DeviceId}, &[]string{"id"})
 	if bannedDeviceError != nil {
 		return bannedDeviceError
 	}
