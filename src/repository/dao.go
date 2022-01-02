@@ -15,6 +15,9 @@ import (
 type DAO interface {
 	NewItemQuery() ItemQuery
 	NewVerificationCodeQuery() VerificationCodeQuery
+	NewUserQuery() UserQuery
+	NewBannedUserQuery() BannedUserQuery
+	NewBannedDeviceQuery() BannedDeviceQuery
 }
 
 type dao struct{}
@@ -65,4 +68,16 @@ func (d *dao) NewItemQuery() ItemQuery {
 
 func (d *dao) NewVerificationCodeQuery() VerificationCodeQuery {
 	return &verificationCodeQuery{}
+}
+
+func (d *dao) NewUserQuery() UserQuery {
+	return &userQuery{}
+}
+
+func (d *dao) NewBannedUserQuery() BannedUserQuery {
+	return &bannedUserQuery{}
+}
+
+func (d *dao) NewBannedDeviceQuery() BannedDeviceQuery {
+	return &bannedDeviceQuery{}
 }

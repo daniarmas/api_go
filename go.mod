@@ -25,6 +25,7 @@ require (
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
@@ -42,6 +43,7 @@ require (
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.4 // indirect
+	github.com/mennanov/fieldmask-utils v0.5.0
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/spf13/viper v1.10.1
 	golang.org/x/mod v0.5.0 // indirect

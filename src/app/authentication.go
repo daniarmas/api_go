@@ -13,6 +13,13 @@ import (
 	gp "google.golang.org/protobuf/types/known/emptypb"
 )
 
+func naming(s string) string {
+	if s == "foo" {
+		return "Foo"
+	}
+	return s
+}
+
 func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest) (*gp.Empty, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
@@ -37,16 +44,19 @@ func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *
 }
 
 func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.GetVerificationCodeRequest) (*gp.Empty, error) {
+	// FieldMask
+	// userDst := &datastruct.VerificationCode{} // a struct to copy to
+	// mask, _ := fieldmask_utils.MaskFromPaths(req.FieldMask.Paths, naming)
+	// fields := strings.Split(mask.String(), ",")
+	// fieldmask_utils.StructToStruct(mask, req.Email, userDst)
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	err := m.authenticationService.GetVerificationCode(req.Code, req.Email, req.Type.String(), md.Get("deviceid")[0])
+	result, err := m.authenticationService.GetVerificationCode(&datastruct.VerificationCode{Code: req.Code, Email: req.Email, Type: req.Type.String(), DeviceId: md.Get("deviceid")[0]}, &[]string{"id"})
 	if err != nil {
-		switch err.Error() {
-		case "record not found":
-			st = status.New(codes.NotFound, "Not found")
-		default:
-			st = status.New(codes.Internal, "Internal server error")
-		}
+		st = status.New(codes.Internal, "Internal server error")
+		return nil, st.Err()
+	} else if len(*result) == 0 {
+		st = status.New(codes.NotFound, "Not found")
 		return nil, st.Err()
 	}
 	return &gp.Empty{}, nil
