@@ -261,7 +261,6 @@ message GetItemResponse {
 message CreateVerificationCodeRequest {
   string email = 1;
   VerificationCodeType type = 2;
-  google.protobuf.FieldMask fieldMask = 3;
 }
 
 // message CreateVerificationCodeResponse {
@@ -284,7 +283,6 @@ message GetVerificationCodeRequest {
   string code = 1;
   string email = 2;
   VerificationCodeType type = 3;
-  google.protobuf.FieldMask fieldMask = 5;
 }
 
 // message GetVerificationCodeResponse {
@@ -307,7 +305,6 @@ message GetVerificationCodeRequest {
 message SignInRequest {
   string email = 1;
   string code = 2;
-  google.protobuf.FieldMask fieldMask = 3;
 }
 
 message SignInResponse {
