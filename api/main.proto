@@ -15,7 +15,7 @@ service AuthenticationService {
   // rpc DeleteVerificationCode (DeleteVerificationCodeRequest) returns (google.protobuf.Empty) {}
 
   rpc SignIn (SignInRequest) returns (SignInResponse) {}
-  // rpc SignUp (SignUpRequest) returns (SignUpResponse) {}
+  rpc SignUp (SignUpRequest) returns (SignUpResponse) {}
   // rpc SignOut (SignOutRequest) returns (google.protobuf.Empty) {}
 
   // rpc CheckSession (CheckSessionRequest) returns (CheckSessionResponse) {}
@@ -222,20 +222,18 @@ message GetItemResponse {
 //   string objectUrl = 1;
 // }
 
-// message SignUpRequest {
-//   string email = 1;
-//   string alias = 2;
-//   string fullName = 3;
-//   string birthday = 4;
-//   string photo = 5;
-//   string code = 6;
-// }
+message SignUpRequest {
+  string email = 1;
+  string alias = 2;
+  string fullName = 3;
+  string code = 5;
+}
 
-// message SignUpResponse {
-//   string refreshToken = 1;
-//   string authorizationToken = 2;
-//   User user = 3;
-// }
+message SignUpResponse {
+  string refreshToken = 1;
+  string authorizationToken = 2;
+  User user = 3;
+}
 
 // message UserExistsStreamRequest {
 //   string alias = 1;

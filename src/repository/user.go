@@ -8,14 +8,14 @@ import (
 type UserQuery interface {
 	GetUser(tx *gorm.DB, user *datastruct.User, fields *[]string) (*datastruct.User, error)
 	// ListItem() ([]datastruct.Item, error)
-	// CreateItem(answer datastruct.Item) (*int64, error)
+	CreateUser(tx *gorm.DB, user *datastruct.User) (*datastruct.User, error)
 	// UpdateItem(answer datastruct.Item) (*datastruct.Item, error)
 	// DeleteItem(id int64) error
 }
 
 type userQuery struct{}
 
-func (i *userQuery) GetUser(tx *gorm.DB, user *datastruct.User, fields *[]string) (*datastruct.User, error) {
+func (u *userQuery) GetUser(tx *gorm.DB, user *datastruct.User, fields *[]string) (*datastruct.User, error) {
 	var userResult *datastruct.User
 	var result *gorm.DB
 	if fields != nil {
@@ -31,4 +31,12 @@ func (i *userQuery) GetUser(tx *gorm.DB, user *datastruct.User, fields *[]string
 		}
 	}
 	return userResult, nil
+}
+
+func (u *userQuery) CreateUser(tx *gorm.DB, user *datastruct.User) (*datastruct.User, error) {
+	result := tx.Table("User").Create(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return user, nil
 }
