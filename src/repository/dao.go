@@ -18,6 +18,10 @@ type DAO interface {
 	NewUserQuery() UserQuery
 	NewBannedUserQuery() BannedUserQuery
 	NewBannedDeviceQuery() BannedDeviceQuery
+	NewDeviceQuery() DeviceQuery
+	NewRefreshTokenQuery() RefreshTokenQuery
+	NewAuthorizationTokenQuery() AuthorizationTokenQuery
+	NewTokenQuery() TokenQuery
 }
 
 type dao struct{}
@@ -53,7 +57,8 @@ func NewDB() (*gorm.DB, error) {
 		},
 	)
 	DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: newLogger,
+		SkipDefaultTransaction: true,
+		Logger:                 newLogger,
 	})
 	if err != nil {
 		return nil, err
@@ -80,4 +85,20 @@ func (d *dao) NewBannedUserQuery() BannedUserQuery {
 
 func (d *dao) NewBannedDeviceQuery() BannedDeviceQuery {
 	return &bannedDeviceQuery{}
+}
+
+func (d *dao) NewDeviceQuery() DeviceQuery {
+	return &deviceQuery{}
+}
+
+func (d *dao) NewRefreshTokenQuery() RefreshTokenQuery {
+	return &refreshTokenQuery{}
+}
+
+func (d *dao) NewAuthorizationTokenQuery() AuthorizationTokenQuery {
+	return &authorizationTokenQuery{}
+}
+
+func (d *dao) NewTokenQuery() TokenQuery {
+	return &tokenQuery{}
 }

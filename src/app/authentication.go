@@ -61,3 +61,14 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 	}
 	return &gp.Empty{}, nil
 }
+
+func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest) (*pb.SignInResponse, error) {
+	var st *status.Status
+	md, _ := metadata.FromIncomingContext(ctx)
+	result, err := m.authenticationService.SignIn(&datastruct.VerificationCode{Code: req.Code, Email: req.Email, Type: "SignIn", DeviceId: md.Get("deviceid")[0]}, &md)
+	if err != nil {
+		st = status.New(codes.Internal, "Internal server error")
+		return nil, st.Err()
+	}
+	return &pb.SignInResponse{RefreshToken: result.RefreshToken, AuthorizationToken: result.AuthorizationToken, User: &pb.User{Id: result.User.ID.String(), FullName: result.User.FullName, Alias: result.User.Alias, HighQualityPhoto: result.User.HighQualityPhoto, HighQualityPhotoBlurHash: result.User.HighQualityPhotoBlurHash, LowQualityPhoto: result.User.LowQualityPhoto, LowQualityPhotoBlurHash: result.User.LowQualityPhotoBlurHash, Thumbnail: result.User.Thumbnail, ThumbnailBlurHash: result.User.ThumbnailBlurHash, UserAddress: nil, Email: result.User.Email}}, nil
+}

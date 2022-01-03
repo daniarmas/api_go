@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/daniarmas/api_go/src/datastruct"
+	"gorm.io/gorm"
 )
 
 type UserQuery interface {
@@ -16,7 +17,12 @@ type userQuery struct{}
 
 func (i *userQuery) GetUser(user *datastruct.User, fields *[]string) (*[]datastruct.User, error) {
 	var userResult *[]datastruct.User
-	result := DB.Table("User").Limit(1).Where(user).Select(*fields).Find(&userResult)
+	var result *gorm.DB
+	if fields != nil {
+		result = DB.Table("User").Limit(1).Where(user).Select(*fields).Find(&userResult)
+	} else {
+		result = DB.Table("User").Limit(1).Where(user).Find(&userResult)
+	}
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return userResult, nil
