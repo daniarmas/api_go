@@ -2,27 +2,28 @@ package repository
 
 import (
 	"github.com/daniarmas/api_go/src/datastruct"
+	"gorm.io/gorm"
 )
 
 type VerificationCodeQuery interface {
-	GetVerificationCode(verificationCode *datastruct.VerificationCode, fields *[]string) (*[]datastruct.VerificationCode, error)
-	CreateVerificationCode(verificationCode *datastruct.VerificationCode) error
-	DeleteVerificationCode(verificationCode *datastruct.VerificationCode) error
+	GetVerificationCode(tx *gorm.DB, verificationCode *datastruct.VerificationCode, fields *[]string) (*[]datastruct.VerificationCode, error)
+	CreateVerificationCode(tx *gorm.DB, verificationCode *datastruct.VerificationCode) error
+	DeleteVerificationCode(tx *gorm.DB, verificationCode *datastruct.VerificationCode) error
 }
 
 type verificationCodeQuery struct{}
 
-func (v *verificationCodeQuery) CreateVerificationCode(verificationCode *datastruct.VerificationCode) error {
-	result := DB.Table("VerificationCode").Create(&verificationCode)
+func (v *verificationCodeQuery) CreateVerificationCode(tx *gorm.DB, verificationCode *datastruct.VerificationCode) error {
+	result := tx.Table("VerificationCode").Create(&verificationCode)
 	if result.Error != nil {
 		return result.Error
 	}
 	return nil
 }
 
-func (v *verificationCodeQuery) GetVerificationCode(verificationCode *datastruct.VerificationCode, fields *[]string) (*[]datastruct.VerificationCode, error) {
+func (v *verificationCodeQuery) GetVerificationCode(tx *gorm.DB, verificationCode *datastruct.VerificationCode, fields *[]string) (*[]datastruct.VerificationCode, error) {
 	var verificationCodeResult *[]datastruct.VerificationCode
-	result := DB.Table("VerificationCode").Limit(1).Where(verificationCode).Select(*fields).Find(&verificationCodeResult)
+	result := tx.Table("VerificationCode").Limit(1).Where(verificationCode).Select(*fields).Find(&verificationCodeResult)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return verificationCodeResult, nil
@@ -33,9 +34,9 @@ func (v *verificationCodeQuery) GetVerificationCode(verificationCode *datastruct
 	return verificationCodeResult, nil
 }
 
-func (v *verificationCodeQuery) DeleteVerificationCode(verificationCode *datastruct.VerificationCode) error {
+func (v *verificationCodeQuery) DeleteVerificationCode(tx *gorm.DB, verificationCode *datastruct.VerificationCode) error {
 	var verificationCodeResult *[]datastruct.VerificationCode
-	result := DB.Table("VerificationCode").Where(verificationCode).Delete(&verificationCodeResult)
+	result := tx.Table("VerificationCode").Where(verificationCode).Delete(&verificationCodeResult)
 	if result.Error != nil {
 		return result.Error
 	}

@@ -2,29 +2,30 @@ package repository
 
 import (
 	"github.com/daniarmas/api_go/src/datastruct"
+	"gorm.io/gorm"
 )
 
 type RefreshTokenQuery interface {
 	// GetDevice(device *datastruct.Device, fields *[]string) (*[]datastruct.Device, error)
 	// ListItem() ([]datastruct.Item, error)
-	CreateRefreshToken(refreshToken *datastruct.RefreshToken) (*datastruct.RefreshToken, error)
+	CreateRefreshToken(tx *gorm.DB, refreshToken *datastruct.RefreshToken) (*datastruct.RefreshToken, error)
 	// UpdateDevice(device *datastruct.Device) error
-	DeleteRefreshToken(refreshToken *datastruct.RefreshToken) error
+	DeleteRefreshToken(tx *gorm.DB, refreshToken *datastruct.RefreshToken) error
 }
 
 type refreshTokenQuery struct{}
 
-func (v *refreshTokenQuery) CreateRefreshToken(refreshToken *datastruct.RefreshToken) (*datastruct.RefreshToken, error) {
-	result := DB.Table("RefreshToken").Create(&refreshToken)
+func (v *refreshTokenQuery) CreateRefreshToken(tx *gorm.DB, refreshToken *datastruct.RefreshToken) (*datastruct.RefreshToken, error) {
+	result := tx.Table("RefreshToken").Create(&refreshToken)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return refreshToken, nil
 }
 
-func (r *refreshTokenQuery) DeleteRefreshToken(refreshToken *datastruct.RefreshToken) error {
+func (r *refreshTokenQuery) DeleteRefreshToken(tx *gorm.DB, refreshToken *datastruct.RefreshToken) error {
 	var refreshTokenResult *[]datastruct.RefreshToken
-	result := DB.Table("RefreshToken").Where(refreshToken).Delete(&refreshTokenResult)
+	result := tx.Table("RefreshToken").Where(refreshToken).Delete(&refreshTokenResult)
 	if result.Error != nil {
 		return result.Error
 	}

@@ -6,7 +6,7 @@ import (
 )
 
 type UserQuery interface {
-	GetUser(user *datastruct.User, fields *[]string) (*[]datastruct.User, error)
+	GetUser(tx *gorm.DB, user *datastruct.User, fields *[]string) (*[]datastruct.User, error)
 	// ListItem() ([]datastruct.Item, error)
 	// CreateItem(answer datastruct.Item) (*int64, error)
 	// UpdateItem(answer datastruct.Item) (*datastruct.Item, error)
@@ -15,13 +15,13 @@ type UserQuery interface {
 
 type userQuery struct{}
 
-func (i *userQuery) GetUser(user *datastruct.User, fields *[]string) (*[]datastruct.User, error) {
+func (i *userQuery) GetUser(tx *gorm.DB, user *datastruct.User, fields *[]string) (*[]datastruct.User, error) {
 	var userResult *[]datastruct.User
 	var result *gorm.DB
 	if fields != nil {
-		result = DB.Table("User").Limit(1).Where(user).Select(*fields).Find(&userResult)
+		result = tx.Table("User").Limit(1).Where(user).Select(*fields).Find(&userResult)
 	} else {
-		result = DB.Table("User").Limit(1).Where(user).Find(&userResult)
+		result = tx.Table("User").Limit(1).Where(user).Find(&userResult)
 	}
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {

@@ -2,10 +2,11 @@ package repository
 
 import (
 	"github.com/daniarmas/api_go/src/datastruct"
+	"gorm.io/gorm"
 )
 
 type BannedDeviceQuery interface {
-	GetBannedDevice(bannedDevice *datastruct.BannedDevice, fields *[]string) (*[]datastruct.BannedDevice, error)
+	GetBannedDevice(tx *gorm.DB, bannedDevice *datastruct.BannedDevice, fields *[]string) (*[]datastruct.BannedDevice, error)
 	// ListItem() ([]datastruct.Item, error)
 	// CreateItem(answer datastruct.Item) (*int64, error)
 	// UpdateItem(answer datastruct.Item) (*datastruct.Item, error)
@@ -14,9 +15,9 @@ type BannedDeviceQuery interface {
 
 type bannedDeviceQuery struct{}
 
-func (i *bannedDeviceQuery) GetBannedDevice(bannedDevice *datastruct.BannedDevice, fields *[]string) (*[]datastruct.BannedDevice, error) {
+func (i *bannedDeviceQuery) GetBannedDevice(tx *gorm.DB, bannedDevice *datastruct.BannedDevice, fields *[]string) (*[]datastruct.BannedDevice, error) {
 	var bannedDeviceResult *[]datastruct.BannedDevice
-	result := DB.Table("BannedDevice").Limit(1).Where(bannedDevice).Select(*fields).Find(&bannedDeviceResult)
+	result := tx.Table("BannedDevice").Limit(1).Where(bannedDevice).Select(*fields).Find(&bannedDeviceResult)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return bannedDeviceResult, nil

@@ -55,7 +55,7 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 	if err != nil {
 		st = status.New(codes.Internal, "Internal server error")
 		return nil, st.Err()
-	} else if len(*result) == 0 {
+	} else if result == nil {
 		st = status.New(codes.NotFound, "Not found")
 		return nil, st.Err()
 	}
@@ -67,7 +67,18 @@ func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest
 	md, _ := metadata.FromIncomingContext(ctx)
 	result, err := m.authenticationService.SignIn(&datastruct.VerificationCode{Code: req.Code, Email: req.Email, Type: "SignIn", DeviceId: md.Get("deviceid")[0]}, &md)
 	if err != nil {
-		st = status.New(codes.Internal, "Internal server error")
+		switch err.Error() {
+		case "verification code not found":
+			st = status.New(codes.NotFound, "VerificationCode Not found")
+		case "user not found":
+			st = status.New(codes.NotFound, "User not found")
+		case "user banned":
+			st = status.New(codes.PermissionDenied, "User banned")
+		case "device banned":
+			st = status.New(codes.PermissionDenied, "Device banned")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
 		return nil, st.Err()
 	}
 	return &pb.SignInResponse{RefreshToken: result.RefreshToken, AuthorizationToken: result.AuthorizationToken, User: &pb.User{Id: result.User.ID.String(), FullName: result.User.FullName, Alias: result.User.Alias, HighQualityPhoto: result.User.HighQualityPhoto, HighQualityPhotoBlurHash: result.User.HighQualityPhotoBlurHash, LowQualityPhoto: result.User.LowQualityPhoto, LowQualityPhotoBlurHash: result.User.LowQualityPhotoBlurHash, Thumbnail: result.User.Thumbnail, ThumbnailBlurHash: result.User.ThumbnailBlurHash, UserAddress: nil, Email: result.User.Email}}, nil
