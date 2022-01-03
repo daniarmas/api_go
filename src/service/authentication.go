@@ -29,11 +29,11 @@ func (v *authenticationService) CreateVerificationCode(verificationCode *datastr
 		user, _ := v.dao.NewUserQuery().GetUser(tx, &datastruct.User{Email: verificationCode.Email}, &[]string{"id"})
 		switch verificationCode.Type {
 		case "SignIn", "ChangeUserEmail":
-			if len(*user) == 0 {
+			if user == nil {
 				return errors.New("user not found")
 			}
 		case "SignUp":
-			if len(*user) != 0 {
+			if user != nil {
 				return errors.New("user already exists")
 			}
 		}
@@ -41,14 +41,14 @@ func (v *authenticationService) CreateVerificationCode(verificationCode *datastr
 		if bannedUserError != nil {
 			return bannedUserError
 		}
-		if len(*bannedUserResult) != 0 {
+		if *bannedUserResult != (datastruct.BannedUser{}) {
 			return errors.New("banned user")
 		}
 		bannedDeviceResult, bannedDeviceError := v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &datastruct.BannedDevice{DeviceId: verificationCode.DeviceId}, &[]string{"id"})
 		if bannedDeviceError != nil {
 			return bannedDeviceError
 		}
-		if len(*bannedDeviceResult) != 0 {
+		if *bannedDeviceResult != (datastruct.BannedDevice{}) {
 			return errors.New("banned device")
 		}
 		v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &datastruct.VerificationCode{Email: verificationCode.Email, Type: verificationCode.Type, DeviceId: verificationCode.DeviceId})
@@ -79,10 +79,10 @@ func (v *authenticationService) GetVerificationCode(verificationCode *datastruct
 }
 
 func (v *authenticationService) SignIn(verificationCode *datastruct.VerificationCode, metadata *metadata.MD) (*dto.SignIn, error) {
-	var verificationCodeRes *[]datastruct.VerificationCode
-	var userRes *[]datastruct.User
-	var bannedUserRes *[]datastruct.BannedUser
-	var bannedDeviceRes *[]datastruct.BannedDevice
+	var verificationCodeRes *datastruct.VerificationCode
+	var userRes *datastruct.User
+	var bannedUserRes *datastruct.BannedUser
+	var bannedDeviceRes *datastruct.BannedDevice
 	var deviceRes *datastruct.Device
 	var verificationCodeErr, userErr, bannedUserErr, bannedDeviceErr, deviceErr, refreshTokenErr, authorizationTokenErr, jwtRefreshTokenErr, jwtAuthorizationTokenErr error
 	var refreshTokenRes *datastruct.RefreshToken
@@ -92,25 +92,25 @@ func (v *authenticationService) SignIn(verificationCode *datastruct.Verification
 		verificationCodeRes, verificationCodeErr = v.dao.NewVerificationCodeQuery().GetVerificationCode(tx, &datastruct.VerificationCode{Email: verificationCode.Email, Code: verificationCode.Code, DeviceId: verificationCode.DeviceId, Type: "SignIn"}, &[]string{"id"})
 		if verificationCodeErr != nil {
 			return verificationCodeErr
-		} else if len(*verificationCodeRes) == 0 {
+		} else if *verificationCodeRes == (datastruct.VerificationCode{}) {
 			return errors.New("verification code not found")
 		}
 		userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &datastruct.User{Email: verificationCode.Email}, nil)
 		if userErr != nil {
 			return userErr
-		} else if len(*userRes) == 0 {
+		} else if *userRes == (datastruct.User{}) {
 			return errors.New("user not found")
 		}
 		bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &datastruct.BannedUser{Email: verificationCode.Email}, &[]string{"id"})
 		if bannedUserErr != nil {
 			return bannedUserErr
-		} else if len(*bannedUserRes) != 0 {
+		} else if *bannedUserRes != (datastruct.BannedUser{}) {
 			return errors.New("user banned")
 		}
 		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &datastruct.BannedDevice{DeviceId: verificationCode.DeviceId}, &[]string{"id"})
 		if bannedDeviceErr != nil {
 			return bannedDeviceErr
-		} else if len(*bannedDeviceRes) != 0 {
+		} else if *bannedDeviceRes != (datastruct.BannedDevice{}) {
 			return errors.New("device banned")
 		}
 		deleteVerificationCodeErr := v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &datastruct.VerificationCode{Email: verificationCode.Email, Type: "SignIn", DeviceId: verificationCode.DeviceId})
@@ -120,26 +120,26 @@ func (v *authenticationService) SignIn(verificationCode *datastruct.Verification
 		deviceRes, deviceErr = v.dao.NewDeviceQuery().GetDevice(tx, &datastruct.Device{DeviceId: verificationCode.DeviceId}, &[]string{"id"})
 		if deviceErr != nil {
 			return deviceErr
-		} else if deviceRes == nil {
+		} else if *deviceRes == (datastruct.Device{}) {
 			deviceRes, deviceErr = v.dao.NewDeviceQuery().CreateDevice(tx, &datastruct.Device{DeviceId: verificationCode.DeviceId, Platform: metadata.Get("platform")[0], SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0], Model: metadata.Get("model")[0]})
 			if deviceErr != nil {
 				return deviceErr
 			}
-		} else if deviceRes != nil {
+		} else if *deviceRes != (datastruct.Device{}) {
 			_, deviceErr := v.dao.NewDeviceQuery().UpdateDevice(tx, &datastruct.Device{DeviceId: verificationCode.DeviceId}, &datastruct.Device{DeviceId: verificationCode.DeviceId, Platform: metadata.Get("platform")[0], SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0], Model: metadata.Get("model")[0]})
 			if deviceErr != nil {
 				return deviceErr
 			}
 		}
-		deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &datastruct.RefreshToken{UserFk: (*userRes)[0].ID, DeviceFk: deviceRes.ID})
+		deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &datastruct.RefreshToken{UserFk: userRes.ID, DeviceFk: deviceRes.ID})
 		if deleteRefreshTokenErr != nil {
 			return deleteRefreshTokenErr
 		}
-		refreshTokenRes, refreshTokenErr = v.dao.NewRefreshTokenQuery().CreateRefreshToken(tx, &datastruct.RefreshToken{UserFk: (*userRes)[0].ID, DeviceFk: deviceRes.ID})
+		refreshTokenRes, refreshTokenErr = v.dao.NewRefreshTokenQuery().CreateRefreshToken(tx, &datastruct.RefreshToken{UserFk: userRes.ID, DeviceFk: deviceRes.ID})
 		if refreshTokenErr != nil {
 			return refreshTokenErr
 		}
-		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().CreateAuthorizationToken(tx, &datastruct.AuthorizationToken{RefreshTokenFk: refreshTokenRes.ID, UserFk: (*userRes)[0].ID, DeviceFk: deviceRes.ID, App: metadata.Get("app")[0], AppVersion: metadata.Get("appversion")[0]})
+		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().CreateAuthorizationToken(tx, &datastruct.AuthorizationToken{RefreshTokenFk: refreshTokenRes.ID, UserFk: userRes.ID, DeviceFk: deviceRes.ID, App: metadata.Get("app")[0], AppVersion: metadata.Get("appversion")[0]})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
@@ -158,5 +158,5 @@ func (v *authenticationService) SignIn(verificationCode *datastruct.Verification
 	if err != nil {
 		return nil, err
 	}
-	return &dto.SignIn{AuthorizationToken: *jwtAuthorizationTokenRes, RefreshToken: *jwtRefreshTokenRes, User: (*userRes)[0]}, nil
+	return &dto.SignIn{AuthorizationToken: *jwtAuthorizationTokenRes, RefreshToken: *jwtRefreshTokenRes, User: *userRes}, nil
 }

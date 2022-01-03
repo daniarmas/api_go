@@ -6,7 +6,7 @@ import (
 )
 
 type BannedDeviceQuery interface {
-	GetBannedDevice(tx *gorm.DB, bannedDevice *datastruct.BannedDevice, fields *[]string) (*[]datastruct.BannedDevice, error)
+	GetBannedDevice(tx *gorm.DB, bannedDevice *datastruct.BannedDevice, fields *[]string) (*datastruct.BannedDevice, error)
 	// ListItem() ([]datastruct.Item, error)
 	// CreateItem(answer datastruct.Item) (*int64, error)
 	// UpdateItem(answer datastruct.Item) (*datastruct.Item, error)
@@ -15,8 +15,8 @@ type BannedDeviceQuery interface {
 
 type bannedDeviceQuery struct{}
 
-func (i *bannedDeviceQuery) GetBannedDevice(tx *gorm.DB, bannedDevice *datastruct.BannedDevice, fields *[]string) (*[]datastruct.BannedDevice, error) {
-	var bannedDeviceResult *[]datastruct.BannedDevice
+func (i *bannedDeviceQuery) GetBannedDevice(tx *gorm.DB, bannedDevice *datastruct.BannedDevice, fields *[]string) (*datastruct.BannedDevice, error) {
+	var bannedDeviceResult *datastruct.BannedDevice
 	result := tx.Table("BannedDevice").Limit(1).Where(bannedDevice).Select(*fields).Find(&bannedDeviceResult)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {

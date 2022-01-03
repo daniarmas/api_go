@@ -6,7 +6,7 @@ import (
 )
 
 type VerificationCodeQuery interface {
-	GetVerificationCode(tx *gorm.DB, verificationCode *datastruct.VerificationCode, fields *[]string) (*[]datastruct.VerificationCode, error)
+	GetVerificationCode(tx *gorm.DB, verificationCode *datastruct.VerificationCode, fields *[]string) (*datastruct.VerificationCode, error)
 	CreateVerificationCode(tx *gorm.DB, verificationCode *datastruct.VerificationCode) error
 	DeleteVerificationCode(tx *gorm.DB, verificationCode *datastruct.VerificationCode) error
 }
@@ -21,8 +21,8 @@ func (v *verificationCodeQuery) CreateVerificationCode(tx *gorm.DB, verification
 	return nil
 }
 
-func (v *verificationCodeQuery) GetVerificationCode(tx *gorm.DB, verificationCode *datastruct.VerificationCode, fields *[]string) (*[]datastruct.VerificationCode, error) {
-	var verificationCodeResult *[]datastruct.VerificationCode
+func (v *verificationCodeQuery) GetVerificationCode(tx *gorm.DB, verificationCode *datastruct.VerificationCode, fields *[]string) (*datastruct.VerificationCode, error) {
+	var verificationCodeResult *datastruct.VerificationCode
 	result := tx.Table("VerificationCode").Limit(1).Where(verificationCode).Select(*fields).Find(&verificationCodeResult)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
