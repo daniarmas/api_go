@@ -4,7 +4,6 @@
 ## Build
 ##
 FROM golang:1.17-buster AS build
-
 WORKDIR /app
 
 COPY go.mod ./
@@ -21,12 +20,13 @@ RUN go build -o /api_go
 ##
 FROM gcr.io/distroless/base-debian10
 
-WORKDIR /
+WORKDIR /app
 
-COPY --from=build /api_go /api_go
+COPY --from=build /api_go /app/api_go
+COPY --from=build ./app/app.env /app/
 
-EXPOSE 8080
+EXPOSE 22210
 
 USER nonroot:nonroot
 
-ENTRYPOINT ["/api_go"]
+ENTRYPOINT ["/app/api_go"]
