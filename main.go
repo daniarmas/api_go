@@ -15,35 +15,28 @@ import (
 )
 
 func main() {
-	// fmt.Println(runtime.NumCPU())
 	// Load config file
 	config, err := repository.NewConfig()
 	if err != nil {
 		log.Fatal("cannot load config:", err)
 	}
-	// config, err := utils.LoadConfig(".")
-	// if err != nil {
-	// 	log.Fatal("cannot load config:", err)
-	// }
-
 	// DB
 	db, err := repository.NewDB(config)
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 		return
 	}
-
 	// Register all services
 	dao := repository.NewDAO(db, config)
 	itemService := service.NewItemService(dao)
 	authenticationService := service.NewAuthenticationService(dao)
 
 	// Starting gRPC server
-	listener, err := net.Listen("tcp", "localhost:8282")
+	address := fmt.Sprintf("0.0.0.0:%s", config.ApiPort)
+	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		log.Fatalln(err)
 	}
-
 	grpcServer := grpc.NewServer()
 	// Registring the services
 	pb.RegisterItemServiceServer(grpcServer, app.NewItemServer(
