@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/spf13/viper"
+	"github.com/daniarmas/api_go/utils"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -27,23 +27,28 @@ type DAO interface {
 type dao struct{}
 
 var DB *gorm.DB
+var Config *utils.Config
 
-func NewDAO(db *gorm.DB) DAO {
+func NewDAO(db *gorm.DB, config *utils.Config) DAO {
 	DB = db
+	Config = config
 	return &dao{}
 }
 
-func NewDB() (*gorm.DB, error) {
-	viper.SetConfigFile(".env")
-	err := viper.ReadInConfig()
+func NewConfig() (*utils.Config, error) {
+	Config, err := utils.LoadConfig(".")
 	if err != nil {
-		log.Fatalf("Error while reading config file %s", err)
+		return nil, err
 	}
-	host := viper.Get("DB_HOST").(string)
-	port := viper.Get("DB_PORT").(string)
-	user := viper.Get("DB_USER").(string)
-	dbName := viper.Get("DB_DATABASE").(string)
-	password := viper.Get("DB_PASSWORD").(string)
+	return &Config, nil
+}
+
+func NewDB(config *utils.Config) (*gorm.DB, error) {
+	host := config.DBHost
+	port := config.DBPort
+	user := config.DBUser
+	dbName := config.DBDatabase
+	password := config.DBPassword
 
 	// Starting a database
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", host, user, password, dbName, port)
@@ -62,7 +67,6 @@ func NewDB() (*gorm.DB, error) {
 	})
 	if err != nil {
 		return nil, err
-		// log.Fatal("Failed to connect database: ", err)
 	}
 	return DB, nil
 }

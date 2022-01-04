@@ -10,12 +10,6 @@ services:
       - 26257:26257
       - 8082:8080
     restart: always
-    # environment:
-    #   # POSTGRES_HOST_AUTH_METHOD: scram-sha-256
-    #   POSTGRES_DB: postgres
-    #   # POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --auth-local=scram-sha-256
-    #   POSTGRES_USER: postgres
-    #   POSTGRES_PASSWORD: postgres
     command: start-single-node --insecure
   pgweb:
     container_name: pgweb
