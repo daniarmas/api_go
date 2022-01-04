@@ -11,7 +11,8 @@ COPY go.mod ./
 COPY go.sum ./
 RUN go mod download
 
-COPY *.go ./
+# COPY *.go ./
+COPY . .
 
 RUN go build -o /api_go
 

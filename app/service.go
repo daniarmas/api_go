@@ -2,7 +2,7 @@ package app
 
 import (
 	pb "github.com/daniarmas/api_go/pkg"
-	"github.com/daniarmas/api_go/src/service"
+	"github.com/daniarmas/api_go/service"
 )
 
 type ItemServer struct {

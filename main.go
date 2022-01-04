@@ -8,9 +8,9 @@ import (
 
 	// "runtime"
 	pb "github.com/daniarmas/api_go/pkg"
-	"github.com/daniarmas/api_go/src/app"
-	"github.com/daniarmas/api_go/src/repository"
-	"github.com/daniarmas/api_go/src/service"
+	"github.com/daniarmas/api_go/app"
+	"github.com/daniarmas/api_go/repository"
+	"github.com/daniarmas/api_go/service"
 	"google.golang.org/grpc"
 )
 

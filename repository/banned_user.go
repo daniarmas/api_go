@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/daniarmas/api_go/src/datastruct"
+	"github.com/daniarmas/api_go/datastruct"
 	"gorm.io/gorm"
 )
 
