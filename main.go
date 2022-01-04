@@ -7,8 +7,8 @@ import (
 	"net"
 
 	// "runtime"
-	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/app"
+	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/service"
 	"google.golang.org/grpc"
@@ -16,16 +16,25 @@ import (
 
 func main() {
 	// fmt.Println(runtime.NumCPU())
+	// Load config file
+	config, err := repository.NewConfig()
+	if err != nil {
+		log.Fatal("cannot load config:", err)
+	}
+	// config, err := utils.LoadConfig(".")
+	// if err != nil {
+	// 	log.Fatal("cannot load config:", err)
+	// }
 
 	// DB
-	db, err := repository.NewDB()
+	db, err := repository.NewDB(config)
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 		return
 	}
 
 	// Register all services
-	dao := repository.NewDAO(db)
+	dao := repository.NewDAO(db, config)
 	itemService := service.NewItemService(dao)
 	authenticationService := service.NewAuthenticationService(dao)
 

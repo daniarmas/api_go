@@ -2,7 +2,6 @@ package repository
 
 import (
 	"github.com/golang-jwt/jwt"
-	"github.com/spf13/viper"
 )
 
 type TokenQuery interface {
@@ -13,12 +12,12 @@ type TokenQuery interface {
 type tokenQuery struct{}
 
 func (v *tokenQuery) CreateJwtRefreshToken(refreshTokenFk *string) (*string, error) {
-	hmacSampleSecret := viper.Get("JWT_SECRET").(string)
+	hmacSecret := Config.JwtSecret
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"refreshTokenFk": *refreshTokenFk,
 	})
 	// Sign and get the complete encoded token as a string using the secret
-	tokenString, err := token.SignedString([]byte(hmacSampleSecret))
+	tokenString, err := token.SignedString([]byte(hmacSecret))
 	if err != nil {
 		return nil, err
 	}
@@ -26,12 +25,12 @@ func (v *tokenQuery) CreateJwtRefreshToken(refreshTokenFk *string) (*string, err
 }
 
 func (r *tokenQuery) CreateJwtAuthorizationToken(authorizationTokenFk *string) (*string, error) {
-	hmacSampleSecret := viper.Get("JWT_SECRET").(string)
+	hmacSecret := Config.JwtSecret
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"authorizationTokenFk": *authorizationTokenFk,
 	})
 	// Sign and get the complete encoded token as a string using the secret
-	tokenString, err := token.SignedString([]byte(hmacSampleSecret))
+	tokenString, err := token.SignedString([]byte(hmacSecret))
 	if err != nil {
 		return nil, err
 	}
