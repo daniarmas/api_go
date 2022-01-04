@@ -3,9 +3,9 @@ package service
 import (
 	"errors"
 
-	"github.com/daniarmas/api_go/src/datastruct"
-	"github.com/daniarmas/api_go/src/dto"
-	"github.com/daniarmas/api_go/src/repository"
+	"github.com/daniarmas/api_go/datastruct"
+	"github.com/daniarmas/api_go/dto"
+	"github.com/daniarmas/api_go/repository"
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
 )

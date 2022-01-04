@@ -5,8 +5,8 @@ import (
 	"time"
 
 	pb "github.com/daniarmas/api_go/pkg"
-	"github.com/daniarmas/api_go/src/datastruct"
-	ut "github.com/daniarmas/api_go/src/utils"
+	"github.com/daniarmas/api_go/datastruct"
+	ut "github.com/daniarmas/api_go/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"

@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/daniarmas/api_go/src/datastruct"
-	"github.com/daniarmas/api_go/src/repository"
+	"github.com/daniarmas/api_go/datastruct"
+	"github.com/daniarmas/api_go/repository"
 )
 
 type ItemService interface {
