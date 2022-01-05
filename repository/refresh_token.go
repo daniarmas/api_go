@@ -6,7 +6,7 @@ import (
 )
 
 type RefreshTokenQuery interface {
-	// GetDevice(device *datastruct.Device, fields *[]string) (*[]datastruct.Device, error)
+	GetRefreshToken(tx *gorm.DB, refreshToken *datastruct.RefreshToken, fields *[]string) (*datastruct.RefreshToken, error)
 	// ListItem() ([]datastruct.Item, error)
 	CreateRefreshToken(tx *gorm.DB, refreshToken *datastruct.RefreshToken) (*datastruct.RefreshToken, error)
 	// UpdateDevice(device *datastruct.Device) error
@@ -30,4 +30,22 @@ func (r *refreshTokenQuery) DeleteRefreshToken(tx *gorm.DB, refreshToken *datast
 		return result.Error
 	}
 	return nil
+}
+
+func (r *refreshTokenQuery) GetRefreshToken(tx *gorm.DB, refreshToken *datastruct.RefreshToken, fields *[]string) (*datastruct.RefreshToken, error) {
+	var refreshTokenResult *datastruct.RefreshToken
+	var result *gorm.DB
+	if fields != nil {
+		result = tx.Table("RefreshToken").Limit(1).Where(refreshToken).Select(*fields).Find(&refreshTokenResult)
+	} else {
+		result = tx.Table("RefreshToken").Limit(1).Where(refreshToken).Find(&refreshTokenResult)
+	}
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return refreshTokenResult, nil
+		} else {
+			return nil, result.Error
+		}
+	}
+	return refreshTokenResult, nil
 }
