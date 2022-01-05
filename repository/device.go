@@ -37,7 +37,7 @@ func (v *deviceQuery) CreateDevice(tx *gorm.DB, device *datastruct.Device) (*dat
 }
 
 func (v *deviceQuery) UpdateDevice(tx *gorm.DB, where *datastruct.Device, device *datastruct.Device) (*datastruct.Device, error) {
-	result := tx.Table("Device").Where(where).Save(&device)
+	result := tx.Table("Device").Where(where).Updates(&device)
 	if result.Error != nil {
 		return nil, result.Error
 	}

@@ -120,3 +120,31 @@ func (m *AuthenticationServer) UserExists(ctx context.Context, req *pb.UserExist
 	}
 	return &gp.Empty{}, nil
 }
+
+func (m *AuthenticationServer) CheckSession(ctx context.Context, req *gp.Empty) (*pb.CheckSessionResponse, error) {
+	var st *status.Status
+	md, _ := metadata.FromIncomingContext(ctx)
+	result, err := m.authenticationService.CheckSession(&md)
+	if err != nil {
+		switch err.Error() {
+		case "unauthenticated":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "user not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "user banned":
+			st = status.New(codes.PermissionDenied, "User Banned")
+		case "device banned":
+			st = status.New(codes.PermissionDenied, "Device Banned")
+		case "authorizationtoken expired":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return &pb.CheckSessionResponse{IpAddresses: *result}, nil
+}

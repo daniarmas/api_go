@@ -23,6 +23,7 @@ type AuthenticationServiceClient interface {
 	GetVerificationCode(ctx context.Context, in *GetVerificationCodeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (*SignInResponse, error)
 	SignUp(ctx context.Context, in *SignUpRequest, opts ...grpc.CallOption) (*SignUpResponse, error)
+	CheckSession(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CheckSessionResponse, error)
 	UserExists(ctx context.Context, in *UserExistsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -70,6 +71,15 @@ func (c *authenticationServiceClient) SignUp(ctx context.Context, in *SignUpRequ
 	return out, nil
 }
 
+func (c *authenticationServiceClient) CheckSession(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CheckSessionResponse, error) {
+	out := new(CheckSessionResponse)
+	err := c.cc.Invoke(ctx, "/main.AuthenticationService/CheckSession", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authenticationServiceClient) UserExists(ctx context.Context, in *UserExistsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/main.AuthenticationService/UserExists", in, out, opts...)
@@ -87,6 +97,7 @@ type AuthenticationServiceServer interface {
 	GetVerificationCode(context.Context, *GetVerificationCodeRequest) (*emptypb.Empty, error)
 	SignIn(context.Context, *SignInRequest) (*SignInResponse, error)
 	SignUp(context.Context, *SignUpRequest) (*SignUpResponse, error)
+	CheckSession(context.Context, *emptypb.Empty) (*CheckSessionResponse, error)
 	UserExists(context.Context, *UserExistsRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedAuthenticationServiceServer()
 }
@@ -106,6 +117,9 @@ func (UnimplementedAuthenticationServiceServer) SignIn(context.Context, *SignInR
 }
 func (UnimplementedAuthenticationServiceServer) SignUp(context.Context, *SignUpRequest) (*SignUpResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SignUp not implemented")
+}
+func (UnimplementedAuthenticationServiceServer) CheckSession(context.Context, *emptypb.Empty) (*CheckSessionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckSession not implemented")
 }
 func (UnimplementedAuthenticationServiceServer) UserExists(context.Context, *UserExistsRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserExists not implemented")
@@ -195,6 +209,24 @@ func _AuthenticationService_SignUp_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthenticationService_CheckSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationServiceServer).CheckSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.AuthenticationService/CheckSession",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationServiceServer).CheckSession(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AuthenticationService_UserExists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UserExistsRequest)
 	if err := dec(in); err != nil {
@@ -235,6 +267,10 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SignUp",
 			Handler:    _AuthenticationService_SignUp_Handler,
+		},
+		{
+			MethodName: "CheckSession",
+			Handler:    _AuthenticationService_CheckSession_Handler,
 		},
 		{
 			MethodName: "UserExists",

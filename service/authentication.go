@@ -6,6 +6,7 @@ import (
 	"github.com/daniarmas/api_go/datastruct"
 	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/repository"
+	"github.com/google/uuid"
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
 )
@@ -16,6 +17,7 @@ type AuthenticationService interface {
 	SignIn(verificationCode *datastruct.VerificationCode, metadata *metadata.MD) (*dto.SignIn, error)
 	SignUp(fullname *string, alias *string, verificationCode *datastruct.VerificationCode, metadata *metadata.MD) (*dto.SignIn, error)
 	UserExists(email *string) error
+	CheckSession(metadata *metadata.MD) (*[]string, error)
 }
 
 type authenticationService struct {
@@ -221,7 +223,6 @@ func (v *authenticationService) SignUp(fullname *string, alias *string, verifica
 		if createUserErr != nil {
 			return createUserErr
 		}
-		// here
 		deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &datastruct.RefreshToken{UserFk: userRes.ID, DeviceFk: deviceRes.ID})
 		if deleteRefreshTokenErr != nil {
 			return deleteRefreshTokenErr
@@ -268,4 +269,100 @@ func (v *authenticationService) UserExists(email *string) error {
 		return errors.New("user already exists")
 	}
 	return nil
+}
+
+func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, error) {
+	var userRes *datastruct.User
+	var bannedUserRes *datastruct.BannedUser
+	var bannedDeviceRes *datastruct.BannedDevice
+	var deviceRes *datastruct.Device
+	var bannedDeviceErr, deviceErr, userErr, bannedUserErr error
+	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+		if len(metadata.Get("authorization")) != 0 && metadata.Get("authorization")[0] != "" {
+			deviceRes, deviceErr = v.dao.NewDeviceQuery().GetDevice(tx, &datastruct.Device{DeviceId: metadata.Get("deviceid")[0]}, &[]string{"id"})
+			if deviceErr != nil {
+				return deviceErr
+			} else if *deviceRes == (datastruct.Device{}) {
+				deviceRes, deviceErr = v.dao.NewDeviceQuery().CreateDevice(tx, &datastruct.Device{DeviceId: metadata.Get("deviceid")[0], Platform: metadata.Get("platform")[0], SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0], Model: metadata.Get("model")[0]})
+				if deviceErr != nil {
+					return deviceErr
+				}
+			} else if *deviceRes != (datastruct.Device{}) {
+				_, deviceErr := v.dao.NewDeviceQuery().UpdateDevice(tx, &datastruct.Device{DeviceId: metadata.Get("deviceid")[0]}, &datastruct.Device{SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0]})
+				if deviceErr != nil {
+					return deviceErr
+				}
+			}
+			bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &datastruct.BannedDevice{DeviceId: metadata.Get("deviceid")[0]}, &[]string{"id"})
+			if bannedDeviceErr != nil {
+				return bannedDeviceErr
+			} else if *bannedDeviceRes != (datastruct.BannedDevice{}) {
+				return errors.New("device banned")
+			}
+			authorizationTokenParseRes, authorizationTokenParseErr := v.dao.NewTokenQuery().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
+			if authorizationTokenParseErr != nil {
+				switch authorizationTokenParseErr.Error() {
+				case "Token is expired":
+					return errors.New("authorizationtoken expired")
+				case "signature is invalid":
+					return errors.New("signature is invalid")
+				case "token contains an invalid number of segments":
+					return errors.New("token contains an invalid number of segments")
+				default:
+					return authorizationTokenParseErr
+				}
+			}
+			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &datastruct.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk", "refresh_token_fk"})
+			if authorizationTokenErr != nil {
+				return authorizationTokenErr
+			} else if *authorizationTokenRes == (datastruct.AuthorizationToken{}) {
+				return errors.New("unauthenticated")
+			}
+			refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &datastruct.RefreshToken{ID: authorizationTokenRes.RefreshTokenFk}, &[]string{"id"})
+			if refreshTokenErr != nil {
+				return refreshTokenErr
+			} else if *refreshTokenRes == (datastruct.RefreshToken{}) {
+				return errors.New("unauthenticated")
+			}
+			userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &datastruct.User{ID: authorizationTokenRes.UserFk}, &[]string{"id"})
+			if userErr != nil {
+				return userErr
+			} else if *userRes == (datastruct.User{}) {
+				return errors.New("user not found")
+			}
+			bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &datastruct.BannedUser{UserFk: authorizationTokenRes.UserFk}, &[]string{"id"})
+			if bannedUserErr != nil {
+				return bannedUserErr
+			} else if *bannedUserRes != (datastruct.BannedUser{}) {
+				return errors.New("user banned")
+			}
+			return nil
+		} else {
+			deviceRes, deviceErr = v.dao.NewDeviceQuery().GetDevice(tx, &datastruct.Device{DeviceId: metadata.Get("deviceid")[0]}, &[]string{"id"})
+			if deviceErr != nil {
+				return deviceErr
+			} else if *deviceRes == (datastruct.Device{}) {
+				deviceRes, deviceErr = v.dao.NewDeviceQuery().CreateDevice(tx, &datastruct.Device{DeviceId: metadata.Get("deviceid")[0], Platform: metadata.Get("platform")[0], SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0], Model: metadata.Get("model")[0]})
+				if deviceErr != nil {
+					return deviceErr
+				}
+			} else if *deviceRes != (datastruct.Device{}) {
+				_, deviceErr := v.dao.NewDeviceQuery().UpdateDevice(tx, &datastruct.Device{DeviceId: metadata.Get("deviceid")[0]}, &datastruct.Device{SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0]})
+				if deviceErr != nil {
+					return deviceErr
+				}
+			}
+			bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &datastruct.BannedDevice{DeviceId: metadata.Get("deviceid")[0]}, &[]string{"id"})
+			if bannedDeviceErr != nil {
+				return bannedDeviceErr
+			} else if *bannedDeviceRes != (datastruct.BannedDevice{}) {
+				return errors.New("device banned")
+			}
+			return nil
+		}
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &[]string{}, nil
 }

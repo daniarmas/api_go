@@ -15,7 +15,7 @@ service AuthenticationService {
   rpc SignUp (SignUpRequest) returns (SignUpResponse) {}
   // rpc SignOut (SignOutRequest) returns (google.protobuf.Empty) {}
 
-  // rpc CheckSession (CheckSessionRequest) returns (CheckSessionResponse) {}
+  rpc CheckSession (google.protobuf.Empty) returns (CheckSessionResponse) {}
 
   // rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse) {}
 
@@ -243,14 +243,9 @@ message UserExistsRequest {
   string email = 1;
 }
 
-// message CheckSessionResponse {
-//   repeated string ipAddresses = 1;
-// }
-
-// message CheckSessionRequest {
-//   string refreshToken = 1;
-//   string authorizationToken = 2;
-// }
+message CheckSessionResponse {
+  repeated string ipAddresses = 1;
+}
 
 message CreateVerificationCodeRequest {
   string email = 1;
