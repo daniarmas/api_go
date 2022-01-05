@@ -13,7 +13,7 @@ service AuthenticationService {
 
   rpc SignIn (SignInRequest) returns (SignInResponse) {}
   rpc SignUp (SignUpRequest) returns (SignUpResponse) {}
-  // rpc SignOut (SignOutRequest) returns (google.protobuf.Empty) {}
+  rpc SignOut (SignOutRequest) returns (google.protobuf.Empty) {}
 
   rpc CheckSession (google.protobuf.Empty) returns (CheckSessionResponse) {}
 
@@ -133,10 +133,10 @@ service ItemService {
 //   repeated Session sessions = 1;
 // }
 
-// message SignOutRequest {
-//   bool all = 1;
-//   string authorizationTokenFk = 2;
-// }
+message SignOutRequest {
+  bool all = 1;
+  string authorizationTokenFk = 2;
+}
  
 // message RefreshTokenRequest {
 //   string refreshToken = 1;
