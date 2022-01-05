@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/datastruct"
+	pb "github.com/daniarmas/api_go/pkg"
 	ut "github.com/daniarmas/api_go/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -104,4 +104,19 @@ func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest
 		return nil, st.Err()
 	}
 	return &pb.SignUpResponse{RefreshToken: result.RefreshToken, AuthorizationToken: result.AuthorizationToken, User: &pb.User{Id: result.User.ID.String(), FullName: result.User.FullName, Alias: result.User.Alias, HighQualityPhoto: result.User.HighQualityPhoto, HighQualityPhotoBlurHash: result.User.HighQualityPhotoBlurHash, LowQualityPhoto: result.User.LowQualityPhoto, LowQualityPhotoBlurHash: result.User.LowQualityPhotoBlurHash, Thumbnail: result.User.Thumbnail, ThumbnailBlurHash: result.User.ThumbnailBlurHash, UserAddress: nil, Email: result.User.Email}}, nil
+}
+
+func (m *AuthenticationServer) UserExists(ctx context.Context, req *pb.UserExistsRequest) (*gp.Empty, error) {
+	var st *status.Status
+	err := m.authenticationService.UserExists(&req.Email)
+	if err != nil {
+		switch err.Error() {
+		case "user already exists":
+			st = status.New(codes.AlreadyExists, "User already exists")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return &gp.Empty{}, nil
 }
