@@ -9,10 +9,7 @@ option go_package = "/pkg";
 
 service AuthenticationService {
   rpc CreateVerificationCode (CreateVerificationCodeRequest) returns (google.protobuf.Empty) {}
-  // rpc ListVerificationCode (ListVerificationCodeRequest) returns (ListVerificationCodeResponse) {}
   rpc GetVerificationCode (GetVerificationCodeRequest) returns (google.protobuf.Empty) {}
-  // rpc UpdateVerificationCode (UpdateVerificationCodeRequest) returns (UpdateVerificationCodeResponse) {}
-  // rpc DeleteVerificationCode (DeleteVerificationCodeRequest) returns (google.protobuf.Empty) {}
 
   rpc SignIn (SignInRequest) returns (SignInResponse) {}
   rpc SignUp (SignUpRequest) returns (SignUpResponse) {}
@@ -22,8 +19,7 @@ service AuthenticationService {
 
   // rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse) {}
 
-  // rpc UserExists (UserExistsRequest) returns (google.protobuf.Empty) {}
-  // rpc UserExistsStream (stream UserExistsStreamRequest) returns (stream UserExistsStreamResponse) {}
+  rpc UserExists (UserExistsRequest) returns (google.protobuf.Empty) {}
 
   // rpc ListSession (ListSessionRequest) returns (ListSessionResponse) {}
 }
@@ -243,9 +239,9 @@ message SignUpResponse {
 //   bool isValid = 1;
 // }
 
-// message UserExistsRequest {
-//   string email = 1;
-// }
+message UserExistsRequest {
+  string email = 1;
+}
 
 // message CheckSessionResponse {
 //   repeated string ipAddresses = 1;
