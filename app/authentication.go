@@ -135,6 +135,12 @@ func (m *AuthenticationServer) CheckSession(ctx context.Context, req *gp.Empty) 
 			st = status.New(codes.PermissionDenied, "User Banned")
 		case "device banned":
 			st = status.New(codes.PermissionDenied, "Device Banned")
+		case "authorizationtoken expired":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}

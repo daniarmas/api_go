@@ -301,7 +301,16 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 			}
 			authorizationTokenParseRes, authorizationTokenParseErr := v.dao.NewTokenQuery().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
 			if authorizationTokenParseErr != nil {
-				return authorizationTokenParseErr
+				switch authorizationTokenParseErr.Error() {
+				case "Token is expired":
+					return errors.New("authorizationtoken expired")
+				case "signature is invalid":
+					return errors.New("signature is invalid")
+				case "token contains an invalid number of segments":
+					return errors.New("token contains an invalid number of segments")
+				default:
+					return authorizationTokenParseErr
+				}
 			}
 			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &datastruct.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk", "refresh_token_fk"})
 			if authorizationTokenErr != nil {

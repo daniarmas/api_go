@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/golang-jwt/jwt"
 )
@@ -18,8 +19,9 @@ type tokenQuery struct{}
 
 func (v *tokenQuery) CreateJwtRefreshToken(refreshTokenFk *string) (*string, error) {
 	hmacSecret := []byte(Config.JwtSecret)
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"refreshTokenFk": *refreshTokenFk,
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
+		ExpiresAt: time.Now().Add(time.Hour * 720).Unix(),
+		Subject:   *refreshTokenFk,
 	})
 	// Sign and get the complete encoded token as a string using the secret
 	tokenString, err := token.SignedString(hmacSecret)
@@ -31,8 +33,9 @@ func (v *tokenQuery) CreateJwtRefreshToken(refreshTokenFk *string) (*string, err
 
 func (r *tokenQuery) CreateJwtAuthorizationToken(authorizationTokenFk *string) (*string, error) {
 	hmacSecret := []byte(Config.JwtSecret)
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"authorizationTokenFk": *authorizationTokenFk,
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
+		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
+		Subject:   *authorizationTokenFk,
 	})
 	// Sign and get the complete encoded token as a string using the secret
 	tokenString, err := token.SignedString(hmacSecret)
@@ -58,8 +61,10 @@ func (r *tokenQuery) ParseJwtRefreshToken(tokenValue *string) (*string, error) {
 		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
 		return hmacSecret, nil
 	})
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		data := fmt.Sprintf("%s", claims["refreshTokenFk"])
+	if err != nil {
+		return nil, err
+	} else if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		data := fmt.Sprintf("%s", claims["sub"])
 		return &data, nil
 	} else {
 		return nil, err
@@ -82,8 +87,10 @@ func (r *tokenQuery) ParseJwtAuthorizationToken(tokenValue *string) (*string, er
 		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
 		return hmacSecret, nil
 	})
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		data := fmt.Sprintf("%s", claims["authorizationTokenFk"])
+	if err != nil {
+		return nil, err
+	} else if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		data := fmt.Sprintf("%s", claims["sub"])
 		return &data, nil
 	} else {
 		return nil, err
