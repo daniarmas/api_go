@@ -15,6 +15,7 @@ type AuthenticationService interface {
 	GetVerificationCode(verificationCode *datastruct.VerificationCode, fields *[]string) (*datastruct.VerificationCode, error)
 	SignIn(verificationCode *datastruct.VerificationCode, metadata *metadata.MD) (*dto.SignIn, error)
 	SignUp(fullname *string, alias *string, verificationCode *datastruct.VerificationCode, metadata *metadata.MD) (*dto.SignIn, error)
+	UserExists(email *string) error
 }
 
 type authenticationService struct {
@@ -249,4 +250,22 @@ func (v *authenticationService) SignUp(fullname *string, alias *string, verifica
 		return nil, err
 	}
 	return &dto.SignIn{AuthorizationToken: *jwtAuthorizationTokenRes, RefreshToken: *jwtRefreshTokenRes, User: *createUserRes}, nil
+}
+
+func (v *authenticationService) UserExists(email *string) error {
+	var userRes *datastruct.User
+	var userErr error
+	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+		userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &datastruct.User{Email: *email}, &[]string{"id"})
+		if userErr != nil {
+			return userErr
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	} else if *userRes != (datastruct.User{}) {
+		return errors.New("user already exists")
+	}
+	return nil
 }
