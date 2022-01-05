@@ -20,10 +20,10 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthenticationServiceClient interface {
 	CreateVerificationCode(ctx context.Context, in *CreateVerificationCodeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// rpc ListVerificationCode (ListVerificationCodeRequest) returns (ListVerificationCodeResponse) {}
 	GetVerificationCode(ctx context.Context, in *GetVerificationCodeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (*SignInResponse, error)
 	SignUp(ctx context.Context, in *SignUpRequest, opts ...grpc.CallOption) (*SignUpResponse, error)
+	UserExists(ctx context.Context, in *UserExistsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type authenticationServiceClient struct {
@@ -70,15 +70,24 @@ func (c *authenticationServiceClient) SignUp(ctx context.Context, in *SignUpRequ
 	return out, nil
 }
 
+func (c *authenticationServiceClient) UserExists(ctx context.Context, in *UserExistsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/main.AuthenticationService/UserExists", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthenticationServiceServer is the server API for AuthenticationService service.
 // All implementations must embed UnimplementedAuthenticationServiceServer
 // for forward compatibility
 type AuthenticationServiceServer interface {
 	CreateVerificationCode(context.Context, *CreateVerificationCodeRequest) (*emptypb.Empty, error)
-	// rpc ListVerificationCode (ListVerificationCodeRequest) returns (ListVerificationCodeResponse) {}
 	GetVerificationCode(context.Context, *GetVerificationCodeRequest) (*emptypb.Empty, error)
 	SignIn(context.Context, *SignInRequest) (*SignInResponse, error)
 	SignUp(context.Context, *SignUpRequest) (*SignUpResponse, error)
+	UserExists(context.Context, *UserExistsRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedAuthenticationServiceServer()
 }
 
@@ -97,6 +106,9 @@ func (UnimplementedAuthenticationServiceServer) SignIn(context.Context, *SignInR
 }
 func (UnimplementedAuthenticationServiceServer) SignUp(context.Context, *SignUpRequest) (*SignUpResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SignUp not implemented")
+}
+func (UnimplementedAuthenticationServiceServer) UserExists(context.Context, *UserExistsRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserExists not implemented")
 }
 func (UnimplementedAuthenticationServiceServer) mustEmbedUnimplementedAuthenticationServiceServer() {}
 
@@ -183,6 +195,24 @@ func _AuthenticationService_SignUp_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthenticationService_UserExists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserExistsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationServiceServer).UserExists(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.AuthenticationService/UserExists",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationServiceServer).UserExists(ctx, req.(*UserExistsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthenticationService_ServiceDesc is the grpc.ServiceDesc for AuthenticationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -205,6 +235,10 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SignUp",
 			Handler:    _AuthenticationService_SignUp_Handler,
+		},
+		{
+			MethodName: "UserExists",
+			Handler:    _AuthenticationService_UserExists_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
