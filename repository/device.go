@@ -17,7 +17,7 @@ type deviceQuery struct{}
 
 func (i *deviceQuery) GetDevice(tx *gorm.DB, device *datastruct.Device, fields *[]string) (*datastruct.Device, error) {
 	var deviceResult *datastruct.Device
-	result := tx.Table("Device").Limit(1).Where(device).Select(*fields).Find(&deviceResult)
+	result := tx.Limit(1).Where(device).Select(*fields).Find(&deviceResult)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return deviceResult, nil
@@ -29,7 +29,7 @@ func (i *deviceQuery) GetDevice(tx *gorm.DB, device *datastruct.Device, fields *
 }
 
 func (v *deviceQuery) CreateDevice(tx *gorm.DB, device *datastruct.Device) (*datastruct.Device, error) {
-	result := tx.Table("Device").Create(&device)
+	result := tx.Create(&device)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -37,7 +37,7 @@ func (v *deviceQuery) CreateDevice(tx *gorm.DB, device *datastruct.Device) (*dat
 }
 
 func (v *deviceQuery) UpdateDevice(tx *gorm.DB, where *datastruct.Device, device *datastruct.Device) (*datastruct.Device, error) {
-	result := tx.Table("Device").Where(where).Updates(&device)
+	result := tx.Where(where).Updates(&device)
 	if result.Error != nil {
 		return nil, result.Error
 	}

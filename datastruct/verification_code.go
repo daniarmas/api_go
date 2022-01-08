@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const VerificationCodeTableName = "VerificationCode"
+const VerificationCodeTableName = "verification_code"
 
 func (VerificationCode) TableName() string {
 	return VerificationCodeTableName

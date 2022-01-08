@@ -16,13 +16,13 @@ type itemQuery struct{}
 
 func (i *itemQuery) ListItem() ([]datastruct.Item, error) {
 	var items []datastruct.Item
-	DB.Table("Item").Limit(10).Find(&items)
+	DB.Limit(10).Find(&items)
 	return items, nil
 }
 
 func (i *itemQuery) GetItem(id string) (datastruct.Item, error) {
 	var item []datastruct.Item
-	DB.Table("Item").Limit(1).Where("id = ?", id).Find(&item)
+	DB.Limit(1).Where("id = ?", id).Find(&item)
 	if len(item) == 0 {
 		return datastruct.Item{}, nil
 	}

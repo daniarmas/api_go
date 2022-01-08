@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const UserTableName = "User"
+const UserTableName = "user"
 
 func (User) TableName() string {
 	return UserTableName

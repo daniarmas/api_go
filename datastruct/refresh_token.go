@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const RefreshTokenTableName = "RefreshToken"
+const RefreshTokenTableName = "refresh_token"
 
 func (RefreshToken) TableName() string {
 	return RefreshTokenTableName
