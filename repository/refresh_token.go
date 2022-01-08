@@ -37,9 +37,9 @@ func (r *refreshTokenQuery) GetRefreshToken(tx *gorm.DB, refreshToken *datastruc
 	var refreshTokenResult *datastruct.RefreshToken
 	var result *gorm.DB
 	if fields != nil {
-		result = tx.Table("RefreshToken").Limit(1).Where(refreshToken).Select(*fields).Find(&refreshTokenResult)
+		result = tx.Limit(1).Where(refreshToken).Select(*fields).Find(&refreshTokenResult)
 	} else {
-		result = tx.Table("RefreshToken").Limit(1).Where(refreshToken).Find(&refreshTokenResult)
+		result = tx.Limit(1).Where(refreshToken).Find(&refreshTokenResult)
 	}
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {

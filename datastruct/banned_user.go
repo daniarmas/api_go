@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const BannedUserTableName = "BannedUser"
+const BannedUserTableName = "banned_user"
 
 func (BannedUser) TableName() string {
 	return BannedUserTableName

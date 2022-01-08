@@ -26,6 +26,7 @@ type AuthenticationServiceClient interface {
 	SignOut(ctx context.Context, in *SignOutRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	CheckSession(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CheckSessionResponse, error)
 	UserExists(ctx context.Context, in *UserExistsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ListSession(ctx context.Context, in *ListSessionRequest, opts ...grpc.CallOption) (*ListSessionResponse, error)
 }
 
 type authenticationServiceClient struct {
@@ -99,6 +100,15 @@ func (c *authenticationServiceClient) UserExists(ctx context.Context, in *UserEx
 	return out, nil
 }
 
+func (c *authenticationServiceClient) ListSession(ctx context.Context, in *ListSessionRequest, opts ...grpc.CallOption) (*ListSessionResponse, error) {
+	out := new(ListSessionResponse)
+	err := c.cc.Invoke(ctx, "/main.AuthenticationService/ListSession", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthenticationServiceServer is the server API for AuthenticationService service.
 // All implementations must embed UnimplementedAuthenticationServiceServer
 // for forward compatibility
@@ -110,6 +120,7 @@ type AuthenticationServiceServer interface {
 	SignOut(context.Context, *SignOutRequest) (*emptypb.Empty, error)
 	CheckSession(context.Context, *emptypb.Empty) (*CheckSessionResponse, error)
 	UserExists(context.Context, *UserExistsRequest) (*emptypb.Empty, error)
+	ListSession(context.Context, *ListSessionRequest) (*ListSessionResponse, error)
 	mustEmbedUnimplementedAuthenticationServiceServer()
 }
 
@@ -137,6 +148,9 @@ func (UnimplementedAuthenticationServiceServer) CheckSession(context.Context, *e
 }
 func (UnimplementedAuthenticationServiceServer) UserExists(context.Context, *UserExistsRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserExists not implemented")
+}
+func (UnimplementedAuthenticationServiceServer) ListSession(context.Context, *ListSessionRequest) (*ListSessionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListSession not implemented")
 }
 func (UnimplementedAuthenticationServiceServer) mustEmbedUnimplementedAuthenticationServiceServer() {}
 
@@ -277,6 +291,24 @@ func _AuthenticationService_UserExists_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthenticationService_ListSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationServiceServer).ListSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.AuthenticationService/ListSession",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationServiceServer).ListSession(ctx, req.(*ListSessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthenticationService_ServiceDesc is the grpc.ServiceDesc for AuthenticationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -311,6 +343,10 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UserExists",
 			Handler:    _AuthenticationService_UserExists_Handler,
+		},
+		{
+			MethodName: "ListSession",
+			Handler:    _AuthenticationService_ListSession_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

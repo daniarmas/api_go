@@ -19,6 +19,7 @@ type AuthenticationService interface {
 	SignOut(all *bool, authorizationTokenFk *string, metadata *metadata.MD) error
 	UserExists(email *string) error
 	CheckSession(metadata *metadata.MD) (*[]string, error)
+	ListSession(metadata *metadata.MD) (*[]datastruct.Session, error)
 }
 
 type authenticationService struct {
@@ -485,4 +486,39 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenFk *string,
 		return err
 	}
 	return nil
+}
+
+func (v *authenticationService) ListSession(metadata *metadata.MD) (*[]datastruct.Session, error) {
+	var listSessionRes *[]datastruct.Session
+	var listSessionErr error
+	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+		authorizationTokenParseRes, authorizationTokenParseErr := v.dao.NewTokenQuery().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &datastruct.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+		if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		} else if *authorizationTokenRes == (datastruct.AuthorizationToken{}) {
+			return errors.New("unauthenticated")
+		}
+		listSessionRes, listSessionErr = v.dao.NewSessionQuery().ListSession(tx, &datastruct.Session{UserFk: authorizationTokenRes.UserFk}, nil)
+		if listSessionErr != nil {
+			return listSessionErr
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return listSessionRes, nil
 }
