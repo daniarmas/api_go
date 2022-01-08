@@ -16,6 +16,7 @@ type AuthenticationService interface {
 	GetVerificationCode(verificationCode *datastruct.VerificationCode, fields *[]string) (*datastruct.VerificationCode, error)
 	SignIn(verificationCode *datastruct.VerificationCode, metadata *metadata.MD) (*dto.SignIn, error)
 	SignUp(fullname *string, alias *string, verificationCode *datastruct.VerificationCode, metadata *metadata.MD) (*dto.SignIn, error)
+	SignOut(all *bool, authorizationTokenFk *string, metadata *metadata.MD) error
 	UserExists(email *string) error
 	CheckSession(metadata *metadata.MD) (*[]string, error)
 }
@@ -135,9 +136,15 @@ func (v *authenticationService) SignIn(verificationCode *datastruct.Verification
 				return deviceErr
 			}
 		}
-		deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &datastruct.RefreshToken{UserFk: userRes.ID, DeviceFk: deviceRes.ID})
+		deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &datastruct.RefreshToken{UserFk: userRes.ID, DeviceFk: deviceRes.ID}, &[]string{"id"})
 		if deleteRefreshTokenErr != nil {
 			return deleteRefreshTokenErr
+		}
+		if len(*deleteRefreshTokenRes) != 0 {
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &datastruct.AuthorizationToken{RefreshTokenFk: (*deleteRefreshTokenRes)[0].ID})
+			if deleteAuthorizationTokenErr != nil {
+				return deleteAuthorizationTokenErr
+			}
 		}
 		refreshTokenRes, refreshTokenErr = v.dao.NewRefreshTokenQuery().CreateRefreshToken(tx, &datastruct.RefreshToken{UserFk: userRes.ID, DeviceFk: deviceRes.ID})
 		if refreshTokenErr != nil {
@@ -223,9 +230,15 @@ func (v *authenticationService) SignUp(fullname *string, alias *string, verifica
 		if createUserErr != nil {
 			return createUserErr
 		}
-		deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &datastruct.RefreshToken{UserFk: userRes.ID, DeviceFk: deviceRes.ID})
+		deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &datastruct.RefreshToken{UserFk: userRes.ID, DeviceFk: deviceRes.ID}, &[]string{"id"})
 		if deleteRefreshTokenErr != nil {
 			return deleteRefreshTokenErr
+		}
+		if len(*deleteRefreshTokenRes) != 0 {
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &datastruct.AuthorizationToken{RefreshTokenFk: (*deleteRefreshTokenRes)[0].ID})
+			if deleteAuthorizationTokenErr != nil {
+				return deleteAuthorizationTokenErr
+			}
 		}
 		refreshTokenRes, refreshTokenErr = v.dao.NewRefreshTokenQuery().CreateRefreshToken(tx, &datastruct.RefreshToken{UserFk: createUserRes.ID, DeviceFk: deviceRes.ID})
 		if refreshTokenErr != nil {
@@ -365,4 +378,111 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 		return nil, err
 	}
 	return &[]string{}, nil
+}
+
+func (v *authenticationService) SignOut(all *bool, authorizationTokenFk *string, metadata *metadata.MD) error {
+	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+		if *all {
+			authorizationTokenParseRes, authorizationTokenParseErr := v.dao.NewTokenQuery().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
+			if authorizationTokenParseErr != nil {
+				switch authorizationTokenParseErr.Error() {
+				case "Token is expired":
+					return errors.New("authorizationtoken expired")
+				case "signature is invalid":
+					return errors.New("signature is invalid")
+				case "token contains an invalid number of segments":
+					return errors.New("token contains an invalid number of segments")
+				default:
+					return authorizationTokenParseErr
+				}
+			}
+			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &datastruct.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+			if authorizationTokenErr != nil {
+				return authorizationTokenErr
+			} else if *authorizationTokenRes == (datastruct.AuthorizationToken{}) {
+				return errors.New("unauthenticated")
+			}
+			var refreshTokenIds []string
+			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &datastruct.RefreshToken{UserFk: authorizationTokenRes.UserFk}, &[]string{"id"})
+			if deleteRefreshTokenErr != nil {
+				return deleteRefreshTokenErr
+			}
+			for _, e := range *deleteRefreshTokenRes {
+				refreshTokenIds = append(refreshTokenIds, e.ID.String())
+			}
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationTokenIn(tx, "refresh_token_fk IN ?", &refreshTokenIds)
+			if deleteAuthorizationTokenErr != nil {
+				return deleteAuthorizationTokenErr
+			}
+			return nil
+		} else if *authorizationTokenFk != "" {
+			authorizationTokenParseRes, authorizationTokenParseErr := v.dao.NewTokenQuery().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
+			if authorizationTokenParseErr != nil {
+				switch authorizationTokenParseErr.Error() {
+				case "Token is expired":
+					return errors.New("authorizationtoken expired")
+				case "signature is invalid":
+					return errors.New("signature is invalid")
+				case "token contains an invalid number of segments":
+					return errors.New("token contains an invalid number of segments")
+				default:
+					return authorizationTokenParseErr
+				}
+			}
+			authorizationTokenByReqRes, authorizationTokenByReqErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &datastruct.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenFk)}, &[]string{"id", "user_fk", "device_fk"})
+			if authorizationTokenByReqErr != nil {
+				return authorizationTokenByReqErr
+			}
+			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &datastruct.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+			if authorizationTokenErr != nil {
+				return authorizationTokenErr
+			} else if *authorizationTokenRes == (datastruct.AuthorizationToken{}) {
+				return errors.New("unauthenticated")
+			} else if authorizationTokenRes.UserFk != authorizationTokenByReqRes.UserFk {
+				return errors.New("permission denied")
+			}
+			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &datastruct.RefreshToken{UserFk: authorizationTokenByReqRes.UserFk, DeviceFk: authorizationTokenByReqRes.DeviceFk}, &[]string{"id"})
+			if deleteRefreshTokenErr != nil {
+				return deleteRefreshTokenErr
+			}
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &datastruct.AuthorizationToken{RefreshTokenFk: (*deleteRefreshTokenRes)[0].ID})
+			if deleteAuthorizationTokenErr != nil {
+				return deleteAuthorizationTokenErr
+			}
+			return nil
+		} else {
+			authorizationTokenParseRes, authorizationTokenParseErr := v.dao.NewTokenQuery().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
+			if authorizationTokenParseErr != nil {
+				switch authorizationTokenParseErr.Error() {
+				case "Token is expired":
+					return errors.New("authorizationtoken expired")
+				case "signature is invalid":
+					return errors.New("signature is invalid")
+				case "token contains an invalid number of segments":
+					return errors.New("token contains an invalid number of segments")
+				default:
+					return authorizationTokenParseErr
+				}
+			}
+			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &datastruct.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk", "device_fk"})
+			if authorizationTokenErr != nil {
+				return authorizationTokenErr
+			} else if *authorizationTokenRes == (datastruct.AuthorizationToken{}) {
+				return errors.New("unauthenticated")
+			}
+			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &datastruct.RefreshToken{UserFk: authorizationTokenRes.UserFk, DeviceFk: authorizationTokenRes.DeviceFk}, &[]string{"id"})
+			if deleteRefreshTokenErr != nil {
+				return deleteRefreshTokenErr
+			}
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &datastruct.AuthorizationToken{RefreshTokenFk: (*deleteRefreshTokenRes)[0].ID})
+			if deleteAuthorizationTokenErr != nil {
+				return deleteAuthorizationTokenErr
+			}
+			return nil
+		}
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }

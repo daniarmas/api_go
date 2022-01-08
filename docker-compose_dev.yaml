@@ -1,23 +1,6 @@
 version: "3.7"
 
 services:
-  api:
-    image: danielarmasjuarez/api:v0.4.0
-    container_name: api
-    ports:
-      - 22210:22210
-    restart: always
-    environment:
-      DB_USER: root               
-      DB_PASSWORD: root            
-      DB_DATABASE: postgres
-      DB_PORT: 26257             
-      DB_HOST: cockroach               
-      API_PORT: 22210
-      PROMETHEUS_PUSHGATEWAY: http://localhost:9091/
-      JWT_SECRET: O8pzXjp4QMk4cAD60dHeoOnxdVsDc9
-    depends_on:
-      - cockroach
   cockroach:
     image: docker.uclv.cu/cockroachdb/cockroach:latest-v21.2
     container_name: cockroach
