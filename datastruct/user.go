@@ -7,7 +7,11 @@ import (
 	"gorm.io/gorm"
 )
 
-const UserTableName = "user"
+const UserTableName = "User"
+
+func (User) TableName() string {
+	return UserTableName
+}
 
 type User struct {
 	ID                       uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`

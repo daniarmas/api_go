@@ -9,6 +9,10 @@ import (
 
 const RefreshTokenTableName = "RefreshToken"
 
+func (RefreshToken) TableName() string {
+	return RefreshTokenTableName
+}
+
 type RefreshToken struct {
 	ID         uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
 	UserFk     uuid.UUID      `gorm:"column:user_fk"`

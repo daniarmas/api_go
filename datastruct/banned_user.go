@@ -7,7 +7,11 @@ import (
 	"gorm.io/gorm"
 )
 
-const BannedUserTableName = "item"
+const BannedUserTableName = "BannedUser"
+
+func (BannedUser) TableName() string {
+	return BannedUserTableName
+}
 
 type BannedUser struct {
 	ID                            uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`

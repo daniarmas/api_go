@@ -7,7 +7,11 @@ import (
 	"gorm.io/gorm"
 )
 
-const VerificationCodeTableName = "verification_code"
+const VerificationCodeTableName = "VerificationCode"
+
+func (VerificationCode) TableName() string {
+	return VerificationCodeTableName
+}
 
 type VerificationCode struct {
 	ID         uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`

@@ -9,6 +9,10 @@ import (
 
 const BannedDeviceTableName = "BannedDevice"
 
+func (BannedDevice) TableName() string {
+	return BannedDeviceTableName
+}
+
 type BannedDevice struct {
 	ID                            uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Description                   string         `gorm:"column:description"`
