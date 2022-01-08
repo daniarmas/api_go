@@ -21,7 +21,7 @@ service AuthenticationService {
 
   rpc UserExists (UserExistsRequest) returns (google.protobuf.Empty) {}
 
-  // rpc ListSession (ListSessionRequest) returns (ListSessionResponse) {}
+  rpc ListSession (ListSessionRequest) returns (ListSessionResponse) {}
 }
 
 // service BusinessService {
@@ -125,13 +125,13 @@ service ItemService {
 //   User user = 1;
 // }
 
-// message ListSessionRequest {
-//   google.protobuf.FieldMask fieldMask = 1;
-// }
+message ListSessionRequest {
+  google.protobuf.FieldMask fieldMask = 1;
+}
 
-// message ListSessionResponse {
-//   repeated Session sessions = 1;
-// }
+message ListSessionResponse {
+  repeated Session sessions = 1;
+}
 
 message SignOutRequest {
   bool all = 1;
@@ -478,15 +478,15 @@ message ItemPhoto {
 //   string updateTime = 9;
 // }
 
-// message Session {
-//   string id = 1;
-//   PlatformType platform = 2;
-//   string systemVersion = 3;
-//   string model = 4;
-//   AppType app = 5;
-//   string appVersion = 6;
-//   bool actual = 7;
-// }
+message Session {
+  string id = 1;
+  PlatformType platform = 2;
+  string systemVersion = 3;
+  string model = 4;
+  AppType app = 5;
+  string appVersion = 6;
+  bool actual = 7;
+}
 
 // message RefreshToken {
 //   string id = 1;
@@ -581,17 +581,17 @@ enum ItemStatusType {
 //   BusinessUnavailable = 2;
 // }
 
-// enum PlatformType {
-//   PlatformTypeUnspecified = 0;
-//   IOS = 1;
-//   Android = 2;
-// }
+enum PlatformType {
+  PlatformTypeUnspecified = 0;
+  IOS = 1;
+  Android = 2;
+}
 
-// enum AppType  {
-//   AppTypeUnspecified = 0;
-//   App = 1;
-//   BusinessApp = 2;
-// }
+enum AppType  {
+  AppTypeUnspecified = 0;
+  App = 1;
+  BusinessApp = 2;
+}
 
 // enum OrderStatusType {
 //   OrderStatusTypeUnspecified = 0; 
