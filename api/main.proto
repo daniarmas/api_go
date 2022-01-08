@@ -485,7 +485,7 @@ message Session {
   string model = 4;
   AppType app = 5;
   string appVersion = 6;
-  bool actual = 7;
+  string deviceId = 7;
 }
 
 // message RefreshToken {
