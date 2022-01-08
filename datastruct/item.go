@@ -2,7 +2,11 @@ package datastruct
 
 import "github.com/google/uuid"
 
-const ItemTableName = "item"
+const ItemTableName = "Item"
+
+func (Item) TableName() string {
+	return ItemTableName
+}
 
 type Item struct {
 	ID                       uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`

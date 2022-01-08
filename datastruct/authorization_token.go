@@ -7,7 +7,15 @@ import (
 	"gorm.io/gorm"
 )
 
-const AuthorizationTokenTableName = "RefreshToken"
+type Tabler interface {
+	TableName() string
+}
+
+func (AuthorizationToken) TableName() string {
+	return AuthorizationTokenTableName
+}
+
+const AuthorizationTokenTableName = "AuthorizationToken"
 
 type AuthorizationToken struct {
 	ID             uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`

@@ -7,7 +7,11 @@ import (
 	"gorm.io/gorm"
 )
 
-const DeviceTableName = "item"
+const DeviceTableName = "Device"
+
+func (Device) TableName() string {
+	return DeviceTableName
+}
 
 type Device struct {
 	ID                       uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
