@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const BannedDeviceTableName = "BannedDevice"
+const BannedDeviceTableName = "banned_device"
 
 func (BannedDevice) TableName() string {
 	return BannedDeviceTableName

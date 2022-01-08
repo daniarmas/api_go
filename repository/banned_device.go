@@ -17,7 +17,7 @@ type bannedDeviceQuery struct{}
 
 func (i *bannedDeviceQuery) GetBannedDevice(tx *gorm.DB, bannedDevice *datastruct.BannedDevice, fields *[]string) (*datastruct.BannedDevice, error) {
 	var bannedDeviceResult *datastruct.BannedDevice
-	result := tx.Table("BannedDevice").Limit(1).Where(bannedDevice).Select(*fields).Find(&bannedDeviceResult)
+	result := tx.Limit(1).Where(bannedDevice).Select(*fields).Find(&bannedDeviceResult)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return bannedDeviceResult, nil

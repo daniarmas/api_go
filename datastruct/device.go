@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const DeviceTableName = "Device"
+const DeviceTableName = "device"
 
 func (Device) TableName() string {
 	return DeviceTableName

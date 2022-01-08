@@ -2,7 +2,7 @@ package datastruct
 
 import "github.com/google/uuid"
 
-const ItemTableName = "Item"
+const ItemTableName = "item"
 
 func (Item) TableName() string {
 	return ItemTableName
