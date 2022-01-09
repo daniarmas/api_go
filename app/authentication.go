@@ -174,3 +174,29 @@ func (m *AuthenticationServer) SignOut(ctx context.Context, req *pb.SignOutReque
 	}
 	return &gp.Empty{}, nil
 }
+
+func (m *AuthenticationServer) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.RefreshTokenResponse, error) {
+	var st *status.Status
+	md, _ := metadata.FromIncomingContext(ctx)
+	result, err := m.authenticationService.RefreshToken(&req.RefreshToken, &md)
+	if err != nil {
+		switch err.Error() {
+		case "unauthenticated":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "permission denied":
+			st = status.New(codes.PermissionDenied, "Permission denied")
+		case "user not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "refreshtoken expired":
+			st = status.New(codes.Unauthenticated, "RefreshToken expired")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "RefreshToken invalid")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "RefreshToken invalid")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return &pb.RefreshTokenResponse{RefreshToken: result.RefreshToken, AuthorizationToken: result.AuthorizationToken}, nil
+}
