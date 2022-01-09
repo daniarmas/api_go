@@ -20,6 +20,7 @@ type AuthenticationService interface {
 	UserExists(email *string) error
 	CheckSession(metadata *metadata.MD) (*[]string, error)
 	ListSession(metadata *metadata.MD) (*[]datastruct.Session, error)
+	RefreshToken(refreshToken *string, metadata *metadata.MD) (*dto.RefreshToken, error)
 }
 
 type authenticationService struct {
@@ -521,4 +522,81 @@ func (v *authenticationService) ListSession(metadata *metadata.MD) (*[]datastruc
 		return nil, err
 	}
 	return listSessionRes, nil
+}
+
+func (v *authenticationService) RefreshToken(refreshToken *string, metadata *metadata.MD) (*dto.RefreshToken, error) {
+	var jwtAuthorizationTokenRes, jwtRefreshTokenRes *string
+	var jwtAuthorizationTokenErr, jwtRefreshTokenErr error
+	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+		refreshTokenParseRes, refreshTokenParseErr := v.dao.NewTokenQuery().ParseJwtRefreshToken(refreshToken)
+		if refreshTokenParseErr != nil {
+			switch refreshTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("refreshtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return refreshTokenParseErr
+			}
+		}
+		refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &datastruct.RefreshToken{ID: uuid.MustParse(*refreshTokenParseRes)}, &[]string{"id", "user_fk", "device_fk"})
+		if refreshTokenErr != nil {
+			return refreshTokenErr
+		} else if *refreshTokenRes == (datastruct.RefreshToken{}) {
+			return errors.New("unauthenticated")
+		}
+		userRes, userErr := v.dao.NewUserQuery().GetUser(tx, &datastruct.User{ID: refreshTokenRes.UserFk}, &[]string{"id"})
+		if userErr != nil {
+			return userErr
+		} else if *userRes == (datastruct.User{}) {
+			return errors.New("user not found")
+		}
+		deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &datastruct.RefreshToken{ID: refreshTokenRes.ID}, &[]string{"id"})
+		if deleteRefreshTokenErr != nil {
+			return deleteRefreshTokenErr
+		}
+		_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &datastruct.AuthorizationToken{RefreshTokenFk: (*deleteRefreshTokenRes)[0].ID})
+		if deleteAuthorizationTokenErr != nil {
+			return deleteAuthorizationTokenErr
+		}
+		deviceRes, deviceErr := v.dao.NewDeviceQuery().GetDevice(tx, &datastruct.Device{DeviceId: metadata.Get("deviceid")[0]}, &[]string{"id"})
+		if deviceErr != nil {
+			return deviceErr
+		} else if *deviceRes == (datastruct.Device{}) {
+			deviceRes, deviceErr = v.dao.NewDeviceQuery().CreateDevice(tx, &datastruct.Device{DeviceId: metadata.Get("deviceid")[0], Platform: metadata.Get("platform")[0], SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0], Model: metadata.Get("model")[0]})
+			if deviceErr != nil {
+				return deviceErr
+			}
+		} else if *deviceRes != (datastruct.Device{}) {
+			_, deviceErr := v.dao.NewDeviceQuery().UpdateDevice(tx, &datastruct.Device{DeviceId: metadata.Get("deviceid")[0]}, &datastruct.Device{SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0]})
+			if deviceErr != nil {
+				return deviceErr
+			}
+		}
+		refreshTokenRes, refreshTokenErr = v.dao.NewRefreshTokenQuery().CreateRefreshToken(tx, &datastruct.RefreshToken{UserFk: userRes.ID, DeviceFk: deviceRes.ID})
+		if refreshTokenErr != nil {
+			return refreshTokenErr
+		}
+		authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().CreateAuthorizationToken(tx, &datastruct.AuthorizationToken{RefreshTokenFk: refreshTokenRes.ID, UserFk: userRes.ID, DeviceFk: deviceRes.ID, App: metadata.Get("app")[0], AppVersion: metadata.Get("appversion")[0]})
+		if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		}
+		authorizationTokenId := authorizationTokenRes.ID.String()
+		refreshTokenId := refreshTokenRes.ID.String()
+		jwtRefreshTokenRes, jwtRefreshTokenErr = v.dao.NewTokenQuery().CreateJwtRefreshToken(&refreshTokenId)
+		if jwtRefreshTokenErr != nil {
+			return jwtRefreshTokenErr
+		}
+		jwtAuthorizationTokenRes, jwtAuthorizationTokenErr = v.dao.NewTokenQuery().CreateJwtAuthorizationToken(&authorizationTokenId)
+		if jwtAuthorizationTokenErr != nil {
+			return jwtAuthorizationTokenErr
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &dto.RefreshToken{RefreshToken: *jwtRefreshTokenRes, AuthorizationToken: *jwtAuthorizationTokenRes}, nil
 }
