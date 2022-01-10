@@ -23,6 +23,7 @@ type DAO interface {
 	NewAuthorizationTokenQuery() AuthorizationTokenQuery
 	NewTokenQuery() TokenQuery
 	NewSessionQuery() SessionQuery
+	NewBusinessQuery() BusinessQuery
 }
 
 type dao struct{}
@@ -110,4 +111,8 @@ func (d *dao) NewTokenQuery() TokenQuery {
 
 func (d *dao) NewSessionQuery() SessionQuery {
 	return &sessionQuery{}
+}
+
+func (d *dao) NewBusinessQuery() BusinessQuery {
+	return &businessQuery{}
 }

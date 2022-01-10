@@ -1,7 +1,7 @@
 package dto
 
 type FeedResponse struct {
-  Businesses []Business
+  Businesses *[]Business
   IsCache bool
   SearchMunicipalityType string 
   NextPage int32 

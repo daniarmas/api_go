@@ -386,7 +386,7 @@ message Business {
   string thumbnailBlurHash = 12;
   bool isOpen = 13;
   double deliveryPrice = 14;
-  repeated Polygon polygon = 15;
+  repeated double polygon = 15;
   Point coordinates = 16;
   int32 leadDayTime = 17;
   int32 leadHoursTime = 18;
