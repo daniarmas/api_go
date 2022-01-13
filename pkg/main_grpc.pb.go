@@ -389,6 +389,92 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 	Metadata: "main.proto",
 }
 
+// BusinessServiceClient is the client API for BusinessService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type BusinessServiceClient interface {
+	Feed(ctx context.Context, in *FeedRequest, opts ...grpc.CallOption) (*FeedResponse, error)
+}
+
+type businessServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewBusinessServiceClient(cc grpc.ClientConnInterface) BusinessServiceClient {
+	return &businessServiceClient{cc}
+}
+
+func (c *businessServiceClient) Feed(ctx context.Context, in *FeedRequest, opts ...grpc.CallOption) (*FeedResponse, error) {
+	out := new(FeedResponse)
+	err := c.cc.Invoke(ctx, "/main.BusinessService/Feed", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// BusinessServiceServer is the server API for BusinessService service.
+// All implementations must embed UnimplementedBusinessServiceServer
+// for forward compatibility
+type BusinessServiceServer interface {
+	Feed(context.Context, *FeedRequest) (*FeedResponse, error)
+	mustEmbedUnimplementedBusinessServiceServer()
+}
+
+// UnimplementedBusinessServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedBusinessServiceServer struct {
+}
+
+func (UnimplementedBusinessServiceServer) Feed(context.Context, *FeedRequest) (*FeedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Feed not implemented")
+}
+func (UnimplementedBusinessServiceServer) mustEmbedUnimplementedBusinessServiceServer() {}
+
+// UnsafeBusinessServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to BusinessServiceServer will
+// result in compilation errors.
+type UnsafeBusinessServiceServer interface {
+	mustEmbedUnimplementedBusinessServiceServer()
+}
+
+func RegisterBusinessServiceServer(s grpc.ServiceRegistrar, srv BusinessServiceServer) {
+	s.RegisterService(&BusinessService_ServiceDesc, srv)
+}
+
+func _BusinessService_Feed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FeedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusinessServiceServer).Feed(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.BusinessService/Feed",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusinessServiceServer).Feed(ctx, req.(*FeedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// BusinessService_ServiceDesc is the grpc.ServiceDesc for BusinessService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var BusinessService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "main.BusinessService",
+	HandlerType: (*BusinessServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Feed",
+			Handler:    _BusinessService_Feed_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "main.proto",
+}
+
 // ItemServiceClient is the client API for ItemService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.

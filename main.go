@@ -30,6 +30,7 @@ func main() {
 	dao := repository.NewDAO(db, config)
 	itemService := service.NewItemService(dao)
 	authenticationService := service.NewAuthenticationService(dao)
+	businessService := service.NewBusinessService(dao)
 
 	// Starting gRPC server
 	address := fmt.Sprintf("0.0.0.0:%s", config.ApiPort)
@@ -44,6 +45,9 @@ func main() {
 	))
 	pb.RegisterAuthenticationServiceServer(grpcServer, app.NewAuthenticationServer(
 		authenticationService,
+	))
+	pb.RegisterBusinessServiceServer(grpcServer, app.NewBusinessServer(
+		businessService,
 	))
 	err = grpcServer.Serve(listener)
 	if err != nil {

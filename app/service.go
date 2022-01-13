@@ -15,6 +15,11 @@ type AuthenticationServer struct {
 	authenticationService service.AuthenticationService
 }
 
+type BusinessServer struct {
+	pb.UnimplementedBusinessServiceServer
+	businessService service.BusinessService
+}
+
 func NewItemServer(
 	itemService service.ItemService,
 ) *ItemServer {
@@ -28,5 +33,13 @@ func NewAuthenticationServer(
 ) *AuthenticationServer {
 	return &AuthenticationServer{
 		authenticationService: authenticationService,
+	}
+}
+
+func NewBusinessServer(
+	businessService service.BusinessService,
+) *BusinessServer {
+	return &BusinessServer{
+		businessService: businessService,
 	}
 }
