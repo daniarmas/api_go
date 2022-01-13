@@ -240,7 +240,7 @@ message SignUpResponse {
 // }
 
 message UserExistsRequest {
-  string email = 1;
+  string alias = 1;
 }
 
 message CheckSessionResponse {
