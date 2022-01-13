@@ -24,10 +24,10 @@ service AuthenticationService {
   rpc ListSession (ListSessionRequest) returns (ListSessionResponse) {}
 }
 
-// service BusinessService {
-//   rpc Feed (FeedRequest) returns (FeedResponse) {}
-//   rpc GetBusiness (GetBusinessRequest) returns (GetBusinessResponse) {}
-// }
+service BusinessService {
+  rpc Feed (FeedRequest) returns (FeedResponse) {}
+  // rpc GetBusiness (GetBusinessRequest) returns (GetBusinessResponse) {}
+}
 
 service ItemService {
   rpc ListItem (ListItemRequest) returns (ListItemResponse) {}
@@ -185,21 +185,21 @@ message GetItemResponse {
   Item item = 1;
 }
 
-// message FeedRequest {
-//   Point location = 1;
-//   string provinceFk = 2;
-//   string municipalityFk = 3;
-//   SearchMunicipalityType searchMunicipalityType = 4;
-//   int32 nextPage = 5;
-//   google.protobuf.FieldMask fieldMask = 6;
-// }
+message FeedRequest {
+  Point location = 1;
+  string provinceFk = 2;
+  string municipalityFk = 3;
+  SearchMunicipalityType searchMunicipalityType = 4;
+  int32 nextPage = 5;
+  google.protobuf.FieldMask fieldMask = 6;
+}
 
-// message FeedResponse {
-//   repeated Business businesses = 1;
-//   bool isCache = 2;
-//   SearchMunicipalityType searchMunicipalityType = 3;
-//   int32 nextPage = 4;
-// }
+message FeedResponse {
+  repeated Business businesses = 1;
+  bool isCache = 2;
+  SearchMunicipalityType searchMunicipalityType = 3;
+  int32 nextPage = 4;
+}
 
 // message GetBusinessRequest {
 //   string id = 1;
@@ -371,35 +371,35 @@ message User {
   string updateTime = 13;
 }
 
-// message Business {
-//   string id = 1;
-//   string name = 2;
-//   string description = 3;
-//   string address = 4;
-//   string phone = 5;
-//   string email = 6;
-//   string highQualityPhoto = 7;
-//   string highQualityPhotoBlurHash = 8;
-//   string lowQualityPhoto = 9;
-//   string lowQualityPhotoBlurHash = 10;
-//   string thumbnail = 11;
-//   string thumbnailBlurHash = 12;
-//   bool isOpen = 13;
-//   double deliveryPrice = 14;
-//   repeated Polygon polygon = 15;
-//   Point coordinates = 16;
-//   int32 leadDayTime = 17;
-//   int32 leadHoursTime = 18;
-//   int32 leadMinutesTime = 19;
-//   bool toPickUp = 20;
-//   bool homeDelivery = 21;
-//   string businessBrandFk = 22;
-//   string provinceFk = 23;
-//   string municipalityFk = 24;
-//   double distance = 25;
-//   BusinessStatusType status = 26;
-//   int32 cursor = 27;
-// }
+message Business {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string address = 4;
+  string phone = 5;
+  string email = 6;
+  string highQualityPhoto = 7;
+  string highQualityPhotoBlurHash = 8;
+  string lowQualityPhoto = 9;
+  string lowQualityPhotoBlurHash = 10;
+  string thumbnail = 11;
+  string thumbnailBlurHash = 12;
+  bool isOpen = 13;
+  double deliveryPrice = 14;
+  repeated double polygon = 15;
+  Point coordinates = 16;
+  int32 leadDayTime = 17;
+  int32 leadHoursTime = 18;
+  int32 leadMinutesTime = 19;
+  bool toPickUp = 20;
+  bool homeDelivery = 21;
+  string businessBrandFk = 22;
+  string provinceFk = 23;
+  string municipalityFk = 24;
+  double distance = 25;
+  BusinessStatusType status = 26;
+  int32 cursor = 27;
+}
 
 message Item {
   string id = 1;
@@ -539,9 +539,9 @@ message UserAddress {
 //   string updateTime = 7;
 // }
 
-// message Polygon {
-//   repeated double coordinates = 1;
-// }
+message Polygon {
+  repeated double coordinates = 1;
+}
 
 // message VerificationCode {
 //   string id = 1;
@@ -555,11 +555,11 @@ message UserAddress {
 
 // // Enums
 
-// enum SearchMunicipalityType {
-//   SearchMunicipalityTypeUnspecified = 0;
-//   More = 1;
-//   NoMore = 2;
-// }
+enum SearchMunicipalityType {
+  SearchMunicipalityTypeUnspecified = 0;
+  More = 1;
+  NoMore = 2;
+}
 
 enum VerificationCodeType {
   VerificationCodeTypeUnspecified = 0;
@@ -575,11 +575,11 @@ enum ItemStatusType {
   Deprecated = 3;
 }
 
-// enum BusinessStatusType {
-//   BusinessStatusTypeUnspecified = 0;
-//   BusinessAvailable = 1;
-//   BusinessUnavailable = 2;
-// }
+enum BusinessStatusType {
+  BusinessStatusTypeUnspecified = 0;
+  BusinessAvailable = 1;
+  BusinessUnavailable = 2;
+}
 
 enum PlatformType {
   PlatformTypeUnspecified = 0;
