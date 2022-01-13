@@ -23,3 +23,9 @@ type BannedDevice struct {
 	UpdateTime                    time.Time      `gorm:"column:update_time"`
 	DeleteTime                    gorm.DeletedAt `gorm:"index;column:delete_time"`
 }
+
+func (i *BannedDevice) BeforeCreate(tx *gorm.DB) (err error) {
+	i.CreateTime = time.Now()
+	i.UpdateTime = time.Now()
+	return
+}
