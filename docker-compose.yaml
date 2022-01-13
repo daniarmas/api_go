@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   api:
-    image: danielarmasjuarez/api:v0.6.0
+    image: danielarmasjuarez/api:v0.7.0
     container_name: api
     ports:
       - 22210:22210
