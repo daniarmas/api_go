@@ -154,8 +154,6 @@ message SearchItemRequest {
   string provinceFk = 3;
   string municipalityFk = 4;
   SearchMunicipalityType searchMunicipalityType = 5;
-  Point location = 6;
-  google.protobuf.FieldMask fieldMask = 7;
 }
 
 message SearchItemResponse {
@@ -429,8 +427,7 @@ message SearchItem {
   ItemStatusType status = 4;
   string thumbnail = 5;
   string thumbnailBlurHash = 6;
-  string businessName = 7;
-  int32 cursor = 8;
+  int32 cursor = 7;
 }
 
 message ItemPhoto {

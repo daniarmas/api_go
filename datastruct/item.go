@@ -28,6 +28,7 @@ type Item struct {
 	Thumbnail                string         `gorm:"column:thumbnail"`
 	ThumbnailBlurHash        string         `gorm:"column:thumbnail_blurhash"`
 	Cursor                   int64          `gorm:"column:cursor"`
+	Status                   string         `gorm:"column:status"`
 	CreateTime               time.Time      `gorm:"column:create_time"`
 	UpdateTime               time.Time      `gorm:"column:update_time"`
 	DeleteTime               gorm.DeletedAt `gorm:"index;column:delete_time"`
