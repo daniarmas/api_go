@@ -23,7 +23,7 @@ func (b *businessQuery) Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, p
 	} else {
 		where = fmt.Sprintf("WHERE cursor > %v AND province_fk = '%v' AND municipality_fk = '%v'", cursor, provinceFk, municipalityFk)
 	}
-	query := fmt.Sprintf("SELECT id, name, description, address, phone, email, high_quality_photo, high_quality_photo_blurhash, low_quality_photo, low_quality_photo_blurhash, thumbnail, thumbnail_blurhash, delivery_price, is_open, lead_day_time, lead_hours_time, lead_minutes_time, home_delivery, to_pick_up, business_brand_fk, province_fk, municipality_fk, cursor, ST_AsEWKB(business.coordinates) AS coordinates, ST_AsEWKB(business.polygon) AS polygon, ST_Contains(business.polygon, ST_GeomFromText(%v, 4326)) as is_in_range FROM business %v ORDER BY cursor asc LIMIT 6;", point, where)
+	query := fmt.Sprintf("SELECT id, name, address, high_quality_photo, high_quality_photo_blurhash, low_quality_photo, low_quality_photo_blurhash, delivery_price, is_open, home_delivery, to_pick_up, cursor, ST_AsEWKB(business.coordinates) AS coordinates, ST_AsEWKB(business.polygon) AS polygon, ST_Contains(business.polygon, ST_GeomFromText(%v, 4326)) as is_in_range FROM business %v ORDER BY cursor asc LIMIT 6;", point, where)
 	err := tx.Raw(query).Scan(&businessResult).Error
 	if err != nil {
 		return nil, err
