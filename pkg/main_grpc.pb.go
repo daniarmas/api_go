@@ -394,6 +394,7 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BusinessServiceClient interface {
 	Feed(ctx context.Context, in *FeedRequest, opts ...grpc.CallOption) (*FeedResponse, error)
+	GetBusiness(ctx context.Context, in *GetBusinessRequest, opts ...grpc.CallOption) (*GetBusinessResponse, error)
 }
 
 type businessServiceClient struct {
@@ -413,11 +414,21 @@ func (c *businessServiceClient) Feed(ctx context.Context, in *FeedRequest, opts 
 	return out, nil
 }
 
+func (c *businessServiceClient) GetBusiness(ctx context.Context, in *GetBusinessRequest, opts ...grpc.CallOption) (*GetBusinessResponse, error) {
+	out := new(GetBusinessResponse)
+	err := c.cc.Invoke(ctx, "/main.BusinessService/GetBusiness", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BusinessServiceServer is the server API for BusinessService service.
 // All implementations must embed UnimplementedBusinessServiceServer
 // for forward compatibility
 type BusinessServiceServer interface {
 	Feed(context.Context, *FeedRequest) (*FeedResponse, error)
+	GetBusiness(context.Context, *GetBusinessRequest) (*GetBusinessResponse, error)
 	mustEmbedUnimplementedBusinessServiceServer()
 }
 
@@ -427,6 +438,9 @@ type UnimplementedBusinessServiceServer struct {
 
 func (UnimplementedBusinessServiceServer) Feed(context.Context, *FeedRequest) (*FeedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Feed not implemented")
+}
+func (UnimplementedBusinessServiceServer) GetBusiness(context.Context, *GetBusinessRequest) (*GetBusinessResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBusiness not implemented")
 }
 func (UnimplementedBusinessServiceServer) mustEmbedUnimplementedBusinessServiceServer() {}
 
@@ -459,6 +473,24 @@ func _BusinessService_Feed_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BusinessService_GetBusiness_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBusinessRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusinessServiceServer).GetBusiness(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.BusinessService/GetBusiness",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusinessServiceServer).GetBusiness(ctx, req.(*GetBusinessRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BusinessService_ServiceDesc is the grpc.ServiceDesc for BusinessService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -469,6 +501,10 @@ var BusinessService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Feed",
 			Handler:    _BusinessService_Feed_Handler,
+		},
+		{
+			MethodName: "GetBusiness",
+			Handler:    _BusinessService_GetBusiness_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

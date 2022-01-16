@@ -26,7 +26,7 @@ service AuthenticationService {
 
 service BusinessService {
   rpc Feed (FeedRequest) returns (FeedResponse) {}
-  // rpc GetBusiness (GetBusinessRequest) returns (GetBusinessResponse) {}
+  rpc GetBusiness (GetBusinessRequest) returns (GetBusinessResponse) {}
 }
 
 service ItemService {
@@ -199,14 +199,15 @@ message FeedResponse {
   int32 nextPage = 4;
 }
 
-// message GetBusinessRequest {
-//   string id = 1;
-//   google.protobuf.FieldMask fieldMask = 2;
-// }
+message GetBusinessRequest {
+  string id = 1;
+  google.protobuf.FieldMask fieldMask = 2;
+}
 
-// message GetBusinessResponse {
-//   Business business = 1;
-// }
+message GetBusinessResponse {
+  Business business = 1;
+  repeated Item items = 2;
+}
 
 // message GetPresignedPutUserAvatarRequest {
 //   string objectName = 1;
