@@ -21,3 +21,9 @@ type RefreshToken struct {
 	UpdateTime time.Time      `gorm:"column:update_time"`
 	DeleteTime gorm.DeletedAt `gorm:"index;column:delete_time"`
 }
+
+func (r *RefreshToken) BeforeCreate(tx *gorm.DB) (err error) {
+	r.CreateTime = time.Now()
+	r.UpdateTime = time.Now()
+	return
+}

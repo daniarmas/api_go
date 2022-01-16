@@ -32,7 +32,7 @@ service BusinessService {
 service ItemService {
   rpc ListItem (ListItemRequest) returns (ListItemResponse) {}
   rpc GetItem (GetItemRequest) returns (GetItemResponse) {}
-  // rpc SearchItem (SearchItemRequest) returns (SearchItemResponse) {}
+  rpc SearchItem (SearchItemRequest) returns (SearchItemResponse) {}
 }
 
 // service UserService {
@@ -148,21 +148,19 @@ message RefreshTokenResponse {
   string authorizationToken = 2;
 }
 
-// message SearchItemRequest {
-//   int32 nextPage = 1;
-//   string name = 2;
-//   string provinceFk = 3;
-//   string municipalityFk = 4;
-//   SearchMunicipalityType searchMunicipalityType = 5;
-//   Point location = 6;
-//   google.protobuf.FieldMask fieldMask = 7;
-// }
+message SearchItemRequest {
+  int32 nextPage = 1;
+  string name = 2;
+  string provinceFk = 3;
+  string municipalityFk = 4;
+  SearchMunicipalityType searchMunicipalityType = 5;
+}
 
-// message SearchItemResponse {
-//   repeated SearchItem items = 1;
-//   SearchMunicipalityType searchMunicipalityType = 2;
-//   int32 nextPage = 3;
-// }
+message SearchItemResponse {
+  repeated SearchItem items = 1;
+  SearchMunicipalityType searchMunicipalityType = 2;
+  int32 nextPage = 3;
+}
 
 message ListItemRequest {
   string nextPage = 1;
@@ -240,7 +238,7 @@ message SignUpResponse {
 // }
 
 message UserExistsRequest {
-  string email = 1;
+  string alias = 1;
 }
 
 message CheckSessionResponse {
@@ -422,16 +420,15 @@ message Item {
   int32 cursor = 18;
 }
 
-// message SearchItem {
-//   string id = 1;
-//   string name = 2;
-//   double price = 3;
-//   ItemStatusType status = 4;
-//   string thumbnail = 5;
-//   string thumbnailBlurHash = 6;
-//   string businessName = 7;
-//   int32 cursor = 8;
-// }
+message SearchItem {
+  string id = 1;
+  string name = 2;
+  double price = 3;
+  ItemStatusType status = 4;
+  string thumbnail = 5;
+  string thumbnailBlurHash = 6;
+  int32 cursor = 7;
+}
 
 message ItemPhoto {
   string id = 1;

@@ -108,7 +108,7 @@ func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest
 
 func (m *AuthenticationServer) UserExists(ctx context.Context, req *pb.UserExistsRequest) (*gp.Empty, error) {
 	var st *status.Status
-	err := m.authenticationService.UserExists(&req.Email)
+	err := m.authenticationService.UserExists(&req.Alias)
 	if err != nil {
 		switch err.Error() {
 		case "user already exists":
