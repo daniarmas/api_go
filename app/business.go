@@ -61,3 +61,27 @@ func (m *BusinessServer) Feed(ctx context.Context, req *pb.FeedRequest) (*pb.Fee
 	}
 	return &pb.FeedResponse{Businesses: itemsResponse}, nil
 }
+
+func (m *BusinessServer) GetBusiness(ctx context.Context, req *pb.GetBusinessRequest) (*pb.GetBusinessResponse, error) {
+	var st *status.Status
+	business, err := m.businessService.GetBusiness(ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, req.Id)
+	if err != nil {
+		switch err.Error() {
+		case "banned user":
+			st = status.New(codes.PermissionDenied, "User banned")
+		case "banned device":
+			st = status.New(codes.PermissionDenied, "Device banned")
+		case "business not found":
+			st = status.New(codes.NotFound, "Business not found")
+		case "user already exists":
+			st = status.New(codes.AlreadyExists, "User already exists")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &pb.GetBusinessResponse{Business: &pb.Business{Id: business.ID.String(), Name: business.Name, Description: business.Description, Address: business.Address, Phone: business.Phone, Email: business.Email, HighQualityPhoto: business.HighQualityPhoto, HighQualityPhotoBlurHash: business.HighQualityPhotoBlurHash, LowQualityPhoto: business.LowQualityPhoto, LowQualityPhotoBlurHash: business.LowQualityPhotoBlurHash, Thumbnail: business.Thumbnail, ThumbnailBlurHash: business.ThumbnailBlurHash, IsOpen: business.IsOpen, ToPickUp: business.ToPickUp, DeliveryPrice: float64(business.DeliveryPrice), HomeDelivery: business.HomeDelivery, ProvinceFk: business.ProvinceFk.String(), MunicipalityFk: business.MunicipalityFk.String(), BusinessBrandFk: business.BusinessBrandFk.String()}, Items: nil}, nil
+}

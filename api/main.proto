@@ -201,7 +201,8 @@ message FeedResponse {
 
 message GetBusinessRequest {
   string id = 1;
-  google.protobuf.FieldMask fieldMask = 2;
+  Point location = 2;
+  google.protobuf.FieldMask fieldMask = 3;
 }
 
 message GetBusinessResponse {

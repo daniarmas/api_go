@@ -1,17 +1,17 @@
 package service
 
 import (
-	// "fmt"
-
 	"github.com/daniarmas/api_go/datastruct"
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
+	"github.com/twpayne/go-geom/encoding/ewkb"
 	"gorm.io/gorm"
 )
 
 type BusinessService interface {
 	Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse, error)
+	GetBusiness(coordinates ewkb.Point, id string) (*datastruct.Business, error)
 }
 
 type businessService struct {
@@ -128,4 +128,20 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 	}
 	response.Businesses = &businessReturn
 	return &response, nil
+}
+
+func (v *businessService) GetBusiness(coordinates ewkb.Point, id string) (*datastruct.Business, error) {
+	var businessRes *datastruct.Business
+	var businessErr error
+	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+		businessRes, businessErr = v.dao.NewBusinessQuery().GetBusiness(tx, coordinates, id)
+		if businessErr != nil {
+			return businessErr
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return businessRes, nil
 }
