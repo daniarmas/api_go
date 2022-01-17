@@ -165,7 +165,8 @@ message SearchItemResponse {
 message ListItemRequest {
   string nextPage = 1;
   string businessFk = 2;
-  google.protobuf.FieldMask fieldMask = 3;
+  string itemCategoryFk = 3;
+  google.protobuf.FieldMask fieldMask = 4;
 }
 
 message ListItemResponse {
