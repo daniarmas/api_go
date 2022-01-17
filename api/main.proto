@@ -207,7 +207,6 @@ message GetBusinessRequest {
 
 message GetBusinessResponse {
   Business business = 1;
-  repeated Item items = 2;
 }
 
 // message GetPresignedPutUserAvatarRequest {
