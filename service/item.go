@@ -26,7 +26,15 @@ func NewItemService(dao repository.DAO) ItemService {
 }
 
 func (i *itemService) ListItem() ([]datastruct.Item, error) {
-	items, err := i.dao.NewItemQuery().ListItem()
+	var items []datastruct.Item
+	var itemsErr error
+	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+		items, itemsErr = i.dao.NewItemQuery().ListItem(tx)
+		if itemsErr != nil {
+			return itemsErr
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
