@@ -19,6 +19,7 @@ type Business struct {
 	Thumbnail                string
 	ThumbnailBlurHash        string
 	IsOpen                   bool
+	IsInRange                bool
 	DeliveryPrice            float32
 	Coordinates              ewkb.Point
 	Polygon                  ewkb.Polygon
