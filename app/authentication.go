@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/daniarmas/api_go/datastruct"
+	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
 	ut "github.com/daniarmas/api_go/utils"
 	"google.golang.org/grpc/codes"
@@ -23,7 +23,7 @@ import (
 func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest) (*gp.Empty, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	verificationCode := datastruct.VerificationCode{Code: ut.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceId: md.Get("deviceid")[0], CreateTime: time.Now(), UpdateTime: time.Now()}
+	verificationCode := models.VerificationCode{Code: ut.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceId: md.Get("deviceid")[0], CreateTime: time.Now(), UpdateTime: time.Now()}
 	err := m.authenticationService.CreateVerificationCode(&verificationCode)
 	if err != nil {
 		switch err.Error() {
@@ -51,7 +51,7 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 	// fieldmask_utils.StructToStruct(mask, req.Email, userDst)
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	result, err := m.authenticationService.GetVerificationCode(&datastruct.VerificationCode{Code: req.Code, Email: req.Email, Type: req.Type.String(), DeviceId: md.Get("deviceid")[0]}, &[]string{"id"})
+	result, err := m.authenticationService.GetVerificationCode(&models.VerificationCode{Code: req.Code, Email: req.Email, Type: req.Type.String(), DeviceId: md.Get("deviceid")[0]}, &[]string{"id"})
 	if err != nil {
 		st = status.New(codes.Internal, "Internal server error")
 		return nil, st.Err()
@@ -65,7 +65,7 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest) (*pb.SignInResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	result, err := m.authenticationService.SignIn(&datastruct.VerificationCode{Code: req.Code, Email: req.Email, Type: "SignIn", DeviceId: md.Get("deviceid")[0]}, &md)
+	result, err := m.authenticationService.SignIn(&models.VerificationCode{Code: req.Code, Email: req.Email, Type: "SignIn", DeviceId: md.Get("deviceid")[0]}, &md)
 	if err != nil {
 		switch err.Error() {
 		case "verification code not found":
@@ -87,7 +87,7 @@ func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest
 func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest) (*pb.SignUpResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	result, err := m.authenticationService.SignUp(&req.FullName, &req.Alias, &datastruct.VerificationCode{Code: req.Code, Email: req.Email, Type: "SignIn", DeviceId: md.Get("deviceid")[0]}, &md)
+	result, err := m.authenticationService.SignUp(&req.FullName, &req.Alias, &models.VerificationCode{Code: req.Code, Email: req.Email, Type: "SignIn", DeviceId: md.Get("deviceid")[0]}, &md)
 	if err != nil {
 		switch err.Error() {
 		case "verification code not found":
@@ -108,7 +108,7 @@ func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest
 
 func (m *AuthenticationServer) UserExists(ctx context.Context, req *pb.UserExistsRequest) (*gp.Empty, error) {
 	var st *status.Status
-	err := m.authenticationService.UserExists(&req.Email)
+	err := m.authenticationService.UserExists(&req.Alias)
 	if err != nil {
 		switch err.Error() {
 		case "user already exists":

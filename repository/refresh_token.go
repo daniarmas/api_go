@@ -1,22 +1,22 @@
 package repository
 
 import (
-	"github.com/daniarmas/api_go/datastruct"
+	"github.com/daniarmas/api_go/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type RefreshTokenQuery interface {
-	GetRefreshToken(tx *gorm.DB, refreshToken *datastruct.RefreshToken, fields *[]string) (*datastruct.RefreshToken, error)
-	// ListRefreshToken(tx *gorm.DB, refreshToken *datastruct.RefreshToken, fields *[]string) (*[]datastruct.RefreshToken, error)
-	CreateRefreshToken(tx *gorm.DB, refreshToken *datastruct.RefreshToken) (*datastruct.RefreshToken, error)
-	// UpdateDevice(device *datastruct.Device) error
-	DeleteRefreshToken(tx *gorm.DB, refreshToken *datastruct.RefreshToken, fields *[]string) (*[]datastruct.RefreshToken, error)
+	GetRefreshToken(tx *gorm.DB, refreshToken *models.RefreshToken, fields *[]string) (*models.RefreshToken, error)
+	// ListRefreshToken(tx *gorm.DB, refreshToken *models.RefreshToken, fields *[]string) (*[]models.RefreshToken, error)
+	CreateRefreshToken(tx *gorm.DB, refreshToken *models.RefreshToken) (*models.RefreshToken, error)
+	// UpdateDevice(device *models.Device) error
+	DeleteRefreshToken(tx *gorm.DB, refreshToken *models.RefreshToken, fields *[]string) (*[]models.RefreshToken, error)
 }
 
 type refreshTokenQuery struct{}
 
-func (v *refreshTokenQuery) CreateRefreshToken(tx *gorm.DB, refreshToken *datastruct.RefreshToken) (*datastruct.RefreshToken, error) {
+func (v *refreshTokenQuery) CreateRefreshToken(tx *gorm.DB, refreshToken *models.RefreshToken) (*models.RefreshToken, error) {
 	result := tx.Create(&refreshToken)
 	if result.Error != nil {
 		return nil, result.Error
@@ -24,8 +24,8 @@ func (v *refreshTokenQuery) CreateRefreshToken(tx *gorm.DB, refreshToken *datast
 	return refreshToken, nil
 }
 
-func (r *refreshTokenQuery) DeleteRefreshToken(tx *gorm.DB, refreshToken *datastruct.RefreshToken, fields *[]string) (*[]datastruct.RefreshToken, error) {
-	var refreshTokenResultSlice *[]datastruct.RefreshToken
+func (r *refreshTokenQuery) DeleteRefreshToken(tx *gorm.DB, refreshToken *models.RefreshToken, fields *[]string) (*[]models.RefreshToken, error) {
+	var refreshTokenResultSlice *[]models.RefreshToken
 	result := tx.Clauses(clause.Returning{}).Where(refreshToken).Delete(&refreshTokenResultSlice)
 	if result.Error != nil {
 		return nil, result.Error
@@ -33,8 +33,8 @@ func (r *refreshTokenQuery) DeleteRefreshToken(tx *gorm.DB, refreshToken *datast
 	return refreshTokenResultSlice, nil
 }
 
-func (r *refreshTokenQuery) GetRefreshToken(tx *gorm.DB, refreshToken *datastruct.RefreshToken, fields *[]string) (*datastruct.RefreshToken, error) {
-	var refreshTokenResult *datastruct.RefreshToken
+func (r *refreshTokenQuery) GetRefreshToken(tx *gorm.DB, refreshToken *models.RefreshToken, fields *[]string) (*models.RefreshToken, error) {
+	var refreshTokenResult *models.RefreshToken
 	var result *gorm.DB
 	if fields != nil {
 		result = tx.Limit(1).Where(refreshToken).Select(*fields).Find(&refreshTokenResult)
@@ -51,8 +51,8 @@ func (r *refreshTokenQuery) GetRefreshToken(tx *gorm.DB, refreshToken *datastruc
 	return refreshTokenResult, nil
 }
 
-// func (r *refreshTokenQuery) ListRefreshToken(tx *gorm.DB, refreshToken *datastruct.RefreshToken, fields *[]string) (*[]datastruct.RefreshToken, error) {
-// 	var refreshTokenResult *[]datastruct.RefreshToken
+// func (r *refreshTokenQuery) ListRefreshToken(tx *gorm.DB, refreshToken *models.RefreshToken, fields *[]string) (*[]models.RefreshToken, error) {
+// 	var refreshTokenResult *[]models.RefreshToken
 // 	var result *gorm.DB
 // 	if fields != nil {
 // 		result = tx.Table("RefreshToken").Where(refreshToken).Select(*fields).Find(&refreshTokenResult)

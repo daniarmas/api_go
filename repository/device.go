@@ -1,22 +1,22 @@
 package repository
 
 import (
-	"github.com/daniarmas/api_go/datastruct"
+	"github.com/daniarmas/api_go/models"
 	"gorm.io/gorm"
 )
 
 type DeviceQuery interface {
-	GetDevice(tx *gorm.DB, device *datastruct.Device, fields *[]string) (*datastruct.Device, error)
-	// ListItem() ([]datastruct.Item, error)
-	CreateDevice(tx *gorm.DB, device *datastruct.Device) (*datastruct.Device, error)
-	UpdateDevice(tx *gorm.DB, where *datastruct.Device, device *datastruct.Device) (*datastruct.Device, error)
+	GetDevice(tx *gorm.DB, device *models.Device, fields *[]string) (*models.Device, error)
+	// ListItem() ([]models.Item, error)
+	CreateDevice(tx *gorm.DB, device *models.Device) (*models.Device, error)
+	UpdateDevice(tx *gorm.DB, where *models.Device, device *models.Device) (*models.Device, error)
 	// DeleteItem(id int64) error
 }
 
 type deviceQuery struct{}
 
-func (i *deviceQuery) GetDevice(tx *gorm.DB, device *datastruct.Device, fields *[]string) (*datastruct.Device, error) {
-	var deviceResult *datastruct.Device
+func (i *deviceQuery) GetDevice(tx *gorm.DB, device *models.Device, fields *[]string) (*models.Device, error) {
+	var deviceResult *models.Device
 	result := tx.Limit(1).Where(device).Select(*fields).Find(&deviceResult)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
@@ -28,7 +28,7 @@ func (i *deviceQuery) GetDevice(tx *gorm.DB, device *datastruct.Device, fields *
 	return deviceResult, nil
 }
 
-func (v *deviceQuery) CreateDevice(tx *gorm.DB, device *datastruct.Device) (*datastruct.Device, error) {
+func (v *deviceQuery) CreateDevice(tx *gorm.DB, device *models.Device) (*models.Device, error) {
 	result := tx.Create(&device)
 	if result.Error != nil {
 		return nil, result.Error
@@ -36,7 +36,7 @@ func (v *deviceQuery) CreateDevice(tx *gorm.DB, device *datastruct.Device) (*dat
 	return device, nil
 }
 
-func (v *deviceQuery) UpdateDevice(tx *gorm.DB, where *datastruct.Device, device *datastruct.Device) (*datastruct.Device, error) {
+func (v *deviceQuery) UpdateDevice(tx *gorm.DB, where *models.Device, device *models.Device) (*models.Device, error) {
 	result := tx.Where(where).Updates(&device)
 	if result.Error != nil {
 		return nil, result.Error
