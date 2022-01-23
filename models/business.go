@@ -42,6 +42,8 @@ type Business struct {
 	MunicipalityFk           uuid.UUID              `gorm:"column:municipality_fk"`
 	BusinessBrandFk          uuid.UUID              `gorm:"column:business_brand_fk"`
 	BusinessItemCategory     []BusinessItemCategory `gorm:"foreignKey:BusinessFk"`
+	Status                   string                 `gorm:"column:status"`
+	Distance                 float64                `gorm:"column:distance"`
 	CreateTime               time.Time              `gorm:"column:create_time"`
 	UpdateTime               time.Time              `gorm:"column:update_time"`
 	DeleteTime               gorm.DeletedAt         `gorm:"index;column:delete_time"`

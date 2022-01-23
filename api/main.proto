@@ -188,16 +188,17 @@ message FeedRequest {
   Point location = 1;
   string provinceFk = 2;
   string municipalityFk = 3;
-  SearchMunicipalityType searchMunicipalityType = 4;
-  int32 nextPage = 5;
-  google.protobuf.FieldMask fieldMask = 6;
+  bool toPickUp = 4;
+  bool homeDelivery = 5;
+  SearchMunicipalityType searchMunicipalityType = 6;
+  int32 nextPage = 7;
+  google.protobuf.FieldMask fieldMask = 8;
 }
 
 message FeedResponse {
   repeated Business businesses = 1;
-  bool isCache = 2;
-  SearchMunicipalityType searchMunicipalityType = 3;
-  int32 nextPage = 4;
+  SearchMunicipalityType searchMunicipalityType = 2;
+  int32 nextPage = 3;
 }
 
 message GetBusinessRequest {
@@ -400,6 +401,7 @@ message Business {
   double distance = 25;
   BusinessStatusType status = 26;
   int32 cursor = 27;
+  bool isInRange = 28;
 }
 
 message Item {
@@ -587,7 +589,7 @@ enum ItemStatusType {
 enum BusinessStatusType {
   BusinessStatusTypeUnspecified = 0;
   BusinessAvailable = 1;
-  BusinessUnavailable = 2;
+  BusinessItemCategoryNull = 2;
 }
 
 enum PlatformType {
