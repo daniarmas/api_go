@@ -205,9 +205,7 @@ message FeedResponse {
 message GetBusinessRequest {
   string id = 1;
   Point location = 2;
-  bool toPickUp = 3;
-  bool homeDelivery = 4;
-  google.protobuf.FieldMask fieldMask = 5;
+  google.protobuf.FieldMask fieldMask = 3;
 }
 
 message GetBusinessResponse {
@@ -404,6 +402,7 @@ message Business {
   double distance = 25;
   BusinessStatusType status = 26;
   int32 cursor = 27;
+  bool isInRange = 28;
 }
 
 message Item {

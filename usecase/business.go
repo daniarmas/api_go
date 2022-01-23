@@ -1,18 +1,17 @@
 package usecase
 
 import (
-	"github.com/daniarmas/api_go/models"
 	"github.com/daniarmas/api_go/dto"
+	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/google/uuid"
-	"github.com/twpayne/go-geom/encoding/ewkb"
 	"gorm.io/gorm"
 )
 
 type BusinessService interface {
 	Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse, error)
-	GetBusiness(coordinates ewkb.Point, id string) (*dto.GetBusinessResponse, error)
+	GetBusiness(request *dto.GetBusinessRequest) (*dto.GetBusinessResponse, error)
 }
 
 type businessService struct {
@@ -122,6 +121,7 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 			ToPickUp:                 e.ToPickUp,
 			HomeDelivery:             e.HomeDelivery,
 			BusinessBrandFk:          e.BusinessBrandFk,
+			IsInRange:                e.IsInRange,
 			ProvinceFk:               e.ProvinceFk,
 			Cursor:                   int32(e.Cursor),
 			MunicipalityFk:           e.MunicipalityFk,
@@ -131,16 +131,16 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 	return &response, nil
 }
 
-func (v *businessService) GetBusiness(coordinates ewkb.Point, id string) (*dto.GetBusinessResponse, error) {
+func (v *businessService) GetBusiness(request *dto.GetBusinessRequest) (*dto.GetBusinessResponse, error) {
 	var businessRes *models.Business
 	var itemCategoryRes *[]models.BusinessItemCategory
 	var businessErr, itemCategoryErr error
 	err := repository.DB.Transaction(func(tx *gorm.DB) error {
-		businessRes, businessErr = v.dao.NewBusinessQuery().GetBusiness(tx, coordinates, id)
+		businessRes, businessErr = v.dao.NewBusinessQuery().GetBusiness(tx, &models.Business{Coordinates: request.Coordinates, ID: uuid.MustParse(request.Id)})
 		if businessErr != nil {
 			return businessErr
 		}
-		itemCategoryRes, itemCategoryErr = v.dao.NewItemCategoryQuery().ListItemCategory(tx, &models.BusinessItemCategory{BusinessFk: uuid.MustParse(id)})
+		itemCategoryRes, itemCategoryErr = v.dao.NewItemCategoryQuery().ListItemCategory(tx, &models.BusinessItemCategory{BusinessFk: uuid.MustParse(request.Id)})
 		if itemCategoryErr != nil {
 			return itemCategoryErr
 		}
