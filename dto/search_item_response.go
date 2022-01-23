@@ -1,9 +1,9 @@
 package dto
 
-import "github.com/daniarmas/api_go/datastruct"
+import "github.com/daniarmas/api_go/models"
 
 type SearchItemResponse struct {
-	Items                  *[]datastruct.Item
+	Items                  *[]models.Item
 	SearchMunicipalityType string
 	NextPage               int32
 }

@@ -1,8 +1,8 @@
 package dto
 
-import "github.com/daniarmas/api_go/datastruct"
+import "github.com/daniarmas/api_go/models"
 
 type GetBusinessResponse struct {
-	Business     *datastruct.Business
-	ItemCategory *[]datastruct.BusinessItemCategory
+	Business     *models.Business
+	ItemCategory *[]models.BusinessItemCategory
 }

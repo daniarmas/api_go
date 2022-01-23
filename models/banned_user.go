@@ -1,4 +1,4 @@
-package datastruct
+package models
 
 import (
 	"time"
@@ -7,18 +7,18 @@ import (
 	"gorm.io/gorm"
 )
 
-const BannedDeviceTableName = "banned_device"
+const BannedUserTableName = "banned_user"
 
-func (BannedDevice) TableName() string {
-	return BannedDeviceTableName
+func (BannedUser) TableName() string {
+	return BannedUserTableName
 }
 
-type BannedDevice struct {
+type BannedUser struct {
 	ID                            uuid.UUID          `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Description                   string             `gorm:"column:description;not null"`
-	DeviceId                      string             `gorm:"column:device_id;not null"`
-	DeviceFk                      uuid.UUID          `gorm:"column:device_fk;not null"`
-	Device                        Device             `gorm:"foreignKey:DeviceFk"`
+	UserFk                        uuid.UUID          `gorm:"column:user_fk;not null"`
+	User                          User               `gorm:"foreignKey:UserFk"`
+	Email                         string             `gorm:"column:email;not null"`
 	ModeratorAuthorizationTokenFk uuid.UUID          `gorm:"column:moderator_authorization_token_fk;not null"`
 	AuthorizationToken            AuthorizationToken `gorm:"foreignKey:ModeratorAuthorizationTokenFk"`
 	CreateTime                    time.Time          `gorm:"column:create_time;not null"`
@@ -26,7 +26,7 @@ type BannedDevice struct {
 	DeleteTime                    gorm.DeletedAt     `gorm:"index;column:delete_time"`
 }
 
-func (i *BannedDevice) BeforeCreate(tx *gorm.DB) (err error) {
+func (i *BannedUser) BeforeCreate(tx *gorm.DB) (err error) {
 	i.CreateTime = time.Now()
 	i.UpdateTime = time.Now()
 	return

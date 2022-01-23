@@ -1,4 +1,4 @@
-package datastruct
+package models
 
 import (
 	"time"
@@ -7,14 +7,15 @@ import (
 	"gorm.io/gorm"
 )
 
-const DeviceTableName = "device"
-
-func (Device) TableName() string {
-	return DeviceTableName
-}
-
-type Device struct {
+type Session struct {
 	ID                       uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
+	RefreshTokenFk           uuid.UUID      `gorm:"type:uuid;column:refresh_token_fk;not null"`
+	UserFk                   uuid.UUID      `gorm:"column:user_fk;not null"`
+	User                     User           `gorm:"foreignKey:UserFk"`
+	DeviceFk                 uuid.UUID      `gorm:"column:device_fk;not null"`
+	Device                   Device         `gorm:"foreignKey:DeviceFk"`
+	App                      string         `gorm:"column:app;not null"`
+	AppVersion               string         `gorm:"column:app_version;not null"`
 	Platform                 string         `gorm:"column:platform;not null"`
 	SystemVersion            string         `gorm:"column:system_version;not null"`
 	DeviceId                 string         `gorm:"column:device_id;not null"`
@@ -23,10 +24,4 @@ type Device struct {
 	CreateTime               time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime               time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime               gorm.DeletedAt `gorm:"index;column:delete_time"`
-}
-
-func (i *Device) BeforeCreate(tx *gorm.DB) (err error) {
-	i.CreateTime = time.Now()
-	i.UpdateTime = time.Now()
-	return
 }

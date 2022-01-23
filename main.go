@@ -8,7 +8,7 @@ import (
 	"github.com/daniarmas/api_go/app"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
-	"github.com/daniarmas/api_go/service"
+	"github.com/daniarmas/api_go/usecase"
 	"google.golang.org/grpc"
 )
 
@@ -26,9 +26,9 @@ func main() {
 	}
 	// Register all services
 	dao := repository.NewDAO(db, config)
-	itemService := service.NewItemService(dao)
-	authenticationService := service.NewAuthenticationService(dao)
-	businessService := service.NewBusinessService(dao)
+	itemService := usecase.NewItemService(dao)
+	authenticationService := usecase.NewAuthenticationService(dao)
+	businessService := usecase.NewBusinessService(dao)
 
 	// Starting gRPC server
 	address := fmt.Sprintf("0.0.0.0:%s", config.ApiPort)

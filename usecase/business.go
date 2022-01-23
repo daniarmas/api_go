@@ -1,7 +1,7 @@
-package service
+package usecase
 
 import (
-	"github.com/daniarmas/api_go/datastruct"
+	"github.com/daniarmas/api_go/models"
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
@@ -24,8 +24,8 @@ func NewBusinessService(dao repository.DAO) BusinessService {
 }
 
 func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse, error) {
-	var businessRes *[]datastruct.Business
-	var businessResAdd *[]datastruct.Business
+	var businessRes *[]models.Business
+	var businessResAdd *[]models.Business
 	var businessErr, businessErrAdd error
 	var response dto.FeedResponse
 	if feedRequest.SearchMunicipalityType == pb.SearchMunicipalityType_More.String() {
@@ -132,15 +132,15 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 }
 
 func (v *businessService) GetBusiness(coordinates ewkb.Point, id string) (*dto.GetBusinessResponse, error) {
-	var businessRes *datastruct.Business
-	var itemCategoryRes *[]datastruct.BusinessItemCategory
+	var businessRes *models.Business
+	var itemCategoryRes *[]models.BusinessItemCategory
 	var businessErr, itemCategoryErr error
 	err := repository.DB.Transaction(func(tx *gorm.DB) error {
 		businessRes, businessErr = v.dao.NewBusinessQuery().GetBusiness(tx, coordinates, id)
 		if businessErr != nil {
 			return businessErr
 		}
-		itemCategoryRes, itemCategoryErr = v.dao.NewItemCategoryQuery().ListItemCategory(tx, &datastruct.BusinessItemCategory{BusinessFk: uuid.MustParse(id)})
+		itemCategoryRes, itemCategoryErr = v.dao.NewItemCategoryQuery().ListItemCategory(tx, &models.BusinessItemCategory{BusinessFk: uuid.MustParse(id)})
 		if itemCategoryErr != nil {
 			return itemCategoryErr
 		}
