@@ -2,26 +2,26 @@ package app
 
 import (
 	pb "github.com/daniarmas/api_go/pkg"
-	"github.com/daniarmas/api_go/service"
+	"github.com/daniarmas/api_go/usecase"
 )
 
 type ItemServer struct {
 	pb.UnimplementedItemServiceServer
-	itemService service.ItemService
+	itemService usecase.ItemService
 }
 
 type AuthenticationServer struct {
 	pb.UnimplementedAuthenticationServiceServer
-	authenticationService service.AuthenticationService
+	authenticationService usecase.AuthenticationService
 }
 
 type BusinessServer struct {
 	pb.UnimplementedBusinessServiceServer
-	businessService service.BusinessService
+	businessService usecase.BusinessService
 }
 
 func NewItemServer(
-	itemService service.ItemService,
+	itemService usecase.ItemService,
 ) *ItemServer {
 	return &ItemServer{
 		itemService: itemService,
@@ -29,7 +29,7 @@ func NewItemServer(
 }
 
 func NewAuthenticationServer(
-	authenticationService service.AuthenticationService,
+	authenticationService usecase.AuthenticationService,
 ) *AuthenticationServer {
 	return &AuthenticationServer{
 		authenticationService: authenticationService,
@@ -37,7 +37,7 @@ func NewAuthenticationServer(
 }
 
 func NewBusinessServer(
-	businessService service.BusinessService,
+	businessService usecase.BusinessService,
 ) *BusinessServer {
 	return &BusinessServer{
 		businessService: businessService,

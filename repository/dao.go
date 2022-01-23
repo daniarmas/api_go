@@ -24,6 +24,7 @@ type DAO interface {
 	NewTokenQuery() TokenQuery
 	NewSessionQuery() SessionQuery
 	NewBusinessQuery() BusinessQuery
+	NewItemCategoryQuery() ItemCategoryQuery
 }
 
 type dao struct{}
@@ -115,4 +116,8 @@ func (d *dao) NewSessionQuery() SessionQuery {
 
 func (d *dao) NewBusinessQuery() BusinessQuery {
 	return &businessQuery{}
+}
+
+func (d *dao) NewItemCategoryQuery() ItemCategoryQuery {
+	return &itemCategoryQuery{}
 }

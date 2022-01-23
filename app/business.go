@@ -61,3 +61,38 @@ func (m *BusinessServer) Feed(ctx context.Context, req *pb.FeedRequest) (*pb.Fee
 	}
 	return &pb.FeedResponse{Businesses: itemsResponse}, nil
 }
+
+func (m *BusinessServer) GetBusiness(ctx context.Context, req *pb.GetBusinessRequest) (*pb.GetBusinessResponse, error) {
+	var st *status.Status
+	getBusiness, err := m.businessService.GetBusiness(ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, req.Id)
+	if err != nil {
+		switch err.Error() {
+		case "banned user":
+			st = status.New(codes.PermissionDenied, "User banned")
+		case "banned device":
+			st = status.New(codes.PermissionDenied, "Device banned")
+		case "business not found":
+			st = status.New(codes.NotFound, "Business not found")
+		case "user already exists":
+			st = status.New(codes.AlreadyExists, "User already exists")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	if err != nil {
+		return nil, err
+	}
+	itemsCategoryResponse := make([]*pb.ItemCategory, 0, len(*getBusiness.ItemCategory))
+	for _, e := range *getBusiness.ItemCategory {
+		itemsCategoryResponse = append(itemsCategoryResponse, &pb.ItemCategory{
+			Id:         e.ID.String(),
+			Name:       e.Name,
+			BusinessFk: e.BusinessFk.String(),
+			Index:      e.Index,
+			CreateTime: e.CreateTime.String(),
+			UpdateTime: e.UpdateTime.String(),
+		})
+	}
+	return &pb.GetBusinessResponse{Business: &pb.Business{Id: getBusiness.Business.ID.String(), Name: getBusiness.Business.Name, Description: getBusiness.Business.Description, Address: getBusiness.Business.Address, Phone: getBusiness.Business.Phone, Email: getBusiness.Business.Email, HighQualityPhoto: getBusiness.Business.HighQualityPhoto, HighQualityPhotoBlurHash: getBusiness.Business.HighQualityPhotoBlurHash, LowQualityPhoto: getBusiness.Business.LowQualityPhoto, LowQualityPhotoBlurHash: getBusiness.Business.LowQualityPhotoBlurHash, Thumbnail: getBusiness.Business.Thumbnail, ThumbnailBlurHash: getBusiness.Business.ThumbnailBlurHash, IsOpen: getBusiness.Business.IsOpen, ToPickUp: getBusiness.Business.ToPickUp, DeliveryPrice: float64(getBusiness.Business.DeliveryPrice), HomeDelivery: getBusiness.Business.HomeDelivery, ProvinceFk: getBusiness.Business.ProvinceFk.String(), MunicipalityFk: getBusiness.Business.MunicipalityFk.String(), BusinessBrandFk: getBusiness.Business.BusinessBrandFk.String()}, ItemCategory: itemsCategoryResponse}, nil
+}
