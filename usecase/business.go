@@ -29,7 +29,7 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 	var response dto.FeedResponse
 	if feedRequest.SearchMunicipalityType == pb.SearchMunicipalityType_More.String() {
 		err := repository.DB.Transaction(func(tx *gorm.DB) error {
-			businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceFk, feedRequest.MunicipalityFk, feedRequest.NextPage, false)
+			businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceFk, feedRequest.MunicipalityFk, feedRequest.NextPage, false, feedRequest.HomeDelivery, feedRequest.ToPickUp)
 			if businessErr != nil {
 				return businessErr
 			}
@@ -45,7 +45,7 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 		} else if len(*businessRes) <= 5 && len(*businessRes) != 0 {
 			length := 5 - len(*businessRes)
 			err := repository.DB.Transaction(func(tx *gorm.DB) error {
-				businessResAdd, businessErrAdd = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, int32(length), feedRequest.ProvinceFk, feedRequest.MunicipalityFk, 0, true)
+				businessResAdd, businessErrAdd = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, int32(length), feedRequest.ProvinceFk, feedRequest.MunicipalityFk, 0, true, feedRequest.HomeDelivery, feedRequest.ToPickUp)
 				if businessErrAdd != nil {
 					return businessErrAdd
 				}
@@ -54,15 +54,17 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 			if err != nil {
 				return nil, err
 			}
-			if len(*businessResAdd) > length {
-				*businessResAdd = (*businessResAdd)[:len(*businessResAdd)-1]
+			if businessResAdd != nil {
+				if len(*businessResAdd) > length {
+					*businessResAdd = (*businessResAdd)[:len(*businessResAdd)-1]
+				}
+				*businessRes = append(*businessRes, *businessResAdd...)
 			}
-			*businessRes = append(*businessRes, *businessResAdd...)
 			response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
 			response.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore.String()
 		} else if len(*businessRes) == 0 {
 			err := repository.DB.Transaction(func(tx *gorm.DB) error {
-				businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceFk, feedRequest.MunicipalityFk, 0, true)
+				businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceFk, feedRequest.MunicipalityFk, 0, true, feedRequest.HomeDelivery, feedRequest.ToPickUp)
 				if businessErr != nil {
 					return businessErr
 				}
@@ -79,7 +81,7 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 		}
 	} else {
 		err := repository.DB.Transaction(func(tx *gorm.DB) error {
-			businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceFk, feedRequest.MunicipalityFk, feedRequest.NextPage, true)
+			businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceFk, feedRequest.MunicipalityFk, feedRequest.NextPage, true, feedRequest.HomeDelivery, feedRequest.ToPickUp)
 			if businessErr != nil {
 				return businessErr
 			}
@@ -88,44 +90,49 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 		if err != nil {
 			return nil, err
 		}
-		if len(*businessRes) > 5 {
+		if businessRes != nil && len(*businessRes) > 5 {
 			*businessRes = (*businessRes)[:len(*businessRes)-1]
 			response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
-		} else if len(*businessRes) <= 5 && len(*businessRes) != 0 {
+		} else if businessRes != nil && len(*businessRes) <= 5 && len(*businessRes) != 0 {
 			response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
+		} else {
+			response.NextPage = feedRequest.NextPage
 		}
 		response.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore.String()
 	}
-	businessReturn := make([]dto.Business, 0, len(*businessRes))
-	for _, e := range *businessRes {
-		businessReturn = append(businessReturn, dto.Business{
-			ID:                       e.ID,
-			Name:                     e.Name,
-			Description:              e.Description,
-			Address:                  e.Address,
-			Phone:                    e.Phone,
-			Email:                    e.Email,
-			HighQualityPhoto:         e.HighQualityPhoto,
-			HighQualityPhotoBlurHash: e.HighQualityPhotoBlurHash,
-			LowQualityPhoto:          e.LowQualityPhoto,
-			LowQualityPhotoBlurHash:  e.LowQualityPhotoBlurHash,
-			Thumbnail:                e.Thumbnail,
-			ThumbnailBlurHash:        e.ThumbnailBlurHash,
-			IsOpen:                   e.IsOpen,
-			DeliveryPrice:            e.DeliveryPrice,
-			Coordinates:              e.Coordinates,
-			Polygon:                  e.Polygon,
-			LeadDayTime:              e.LeadDayTime,
-			LeadHoursTime:            e.LeadHoursTime,
-			LeadMinutesTime:          e.LeadMinutesTime,
-			ToPickUp:                 e.ToPickUp,
-			HomeDelivery:             e.HomeDelivery,
-			BusinessBrandFk:          e.BusinessBrandFk,
-			IsInRange:                e.IsInRange,
-			ProvinceFk:               e.ProvinceFk,
-			Cursor:                   int32(e.Cursor),
-			MunicipalityFk:           e.MunicipalityFk,
-		})
+	var businessReturn []dto.Business
+	if businessRes != nil {
+		businessReturn = make([]dto.Business, 0, len(*businessRes))
+		for _, e := range *businessRes {
+			businessReturn = append(businessReturn, dto.Business{
+				ID:                       e.ID,
+				Name:                     e.Name,
+				Description:              e.Description,
+				Address:                  e.Address,
+				Phone:                    e.Phone,
+				Email:                    e.Email,
+				HighQualityPhoto:         e.HighQualityPhoto,
+				HighQualityPhotoBlurHash: e.HighQualityPhotoBlurHash,
+				LowQualityPhoto:          e.LowQualityPhoto,
+				LowQualityPhotoBlurHash:  e.LowQualityPhotoBlurHash,
+				Thumbnail:                e.Thumbnail,
+				ThumbnailBlurHash:        e.ThumbnailBlurHash,
+				IsOpen:                   e.IsOpen,
+				DeliveryPrice:            e.DeliveryPrice,
+				// Coordinates:              e.Coordinates,
+				// Polygon:                  e.Polygon,
+				LeadDayTime:              e.LeadDayTime,
+				LeadHoursTime:            e.LeadHoursTime,
+				LeadMinutesTime:          e.LeadMinutesTime,
+				ToPickUp:                 e.ToPickUp,
+				HomeDelivery:             e.HomeDelivery,
+				BusinessBrandFk:          e.BusinessBrandFk,
+				// IsInRange:                e.IsInRange,
+				ProvinceFk:               e.ProvinceFk,
+				Cursor:                   int32(e.Cursor),
+				MunicipalityFk:           e.MunicipalityFk,
+			})
+		}
 	}
 	response.Businesses = &businessReturn
 	return &response, nil

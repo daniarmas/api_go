@@ -5,6 +5,7 @@ import (
 
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
+	"github.com/daniarmas/api_go/utils"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	"google.golang.org/grpc/codes"
@@ -13,7 +14,7 @@ import (
 
 func (m *BusinessServer) Feed(ctx context.Context, req *pb.FeedRequest) (*pb.FeedResponse, error) {
 	var st *status.Status
-	business, err := m.businessService.Feed(&dto.FeedRequest{Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, ProvinceFk: req.ProvinceFk, MunicipalityFk: req.MunicipalityFk, NextPage: req.NextPage, SearchMunicipalityType: req.SearchMunicipalityType.String()})
+	feedBusiness, err := m.businessService.Feed(&dto.FeedRequest{Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, ProvinceFk: req.ProvinceFk, MunicipalityFk: req.MunicipalityFk, HomeDelivery: req.HomeDelivery, ToPickUp: req.ToPickUp, NextPage: req.NextPage, SearchMunicipalityType: req.SearchMunicipalityType.String()})
 	if err != nil {
 		switch err.Error() {
 		case "banned user":
@@ -29,8 +30,8 @@ func (m *BusinessServer) Feed(ctx context.Context, req *pb.FeedRequest) (*pb.Fee
 		}
 		return nil, st.Err()
 	}
-	itemsResponse := make([]*pb.Business, 0, len(*business.Businesses))
-	for _, e := range *business.Businesses {
+	itemsResponse := make([]*pb.Business, 0, len(*feedBusiness.Businesses))
+	for _, e := range *feedBusiness.Businesses {
 		itemsResponse = append(itemsResponse, &pb.Business{
 			Id:                       e.ID.String(),
 			Name:                     e.Name,
@@ -45,21 +46,22 @@ func (m *BusinessServer) Feed(ctx context.Context, req *pb.FeedRequest) (*pb.Fee
 			Phone:                    e.Address,
 			Email:                    e.Email,
 			IsOpen:                   e.IsOpen,
+			IsInRange:                e.IsInRange,
 			DeliveryPrice:            float64(e.DeliveryPrice),
 			Coordinates:              &pb.Point{Latitude: e.Coordinates.Coords()[0], Longitude: e.Coordinates.Coords()[1]},
-			Polygon:                  e.Polygon.FlatCoords(),
-			LeadDayTime:              e.LeadDayTime,
-			LeadHoursTime:            e.LeadHoursTime,
-			LeadMinutesTime:          e.LeadMinutesTime,
-			ToPickUp:                 e.ToPickUp,
-			HomeDelivery:             e.HomeDelivery,
-			BusinessBrandFk:          e.BusinessBrandFk.String(),
-			ProvinceFk:               e.ProvinceFk.String(),
-			MunicipalityFk:           e.MunicipalityFk.String(),
-			Cursor:                   e.Cursor,
+			// Polygon:                  e.Polygon.FlatCoords(),
+			LeadDayTime:     e.LeadDayTime,
+			LeadHoursTime:   e.LeadHoursTime,
+			LeadMinutesTime: e.LeadMinutesTime,
+			ToPickUp:        e.ToPickUp,
+			HomeDelivery:    e.HomeDelivery,
+			BusinessBrandFk: e.BusinessBrandFk.String(),
+			ProvinceFk:      e.ProvinceFk.String(),
+			MunicipalityFk:  e.MunicipalityFk.String(),
+			Cursor:          e.Cursor,
 		})
 	}
-	return &pb.FeedResponse{Businesses: itemsResponse}, nil
+	return &pb.FeedResponse{Businesses: itemsResponse, SearchMunicipalityType: *utils.ParseSearchMunicipalityType(feedBusiness.SearchMunicipalityType), NextPage: feedBusiness.NextPage}, nil
 }
 
 func (m *BusinessServer) GetBusiness(ctx context.Context, req *pb.GetBusinessRequest) (*pb.GetBusinessResponse, error) {

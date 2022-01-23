@@ -197,9 +197,8 @@ message FeedRequest {
 
 message FeedResponse {
   repeated Business businesses = 1;
-  bool isCache = 2;
-  SearchMunicipalityType searchMunicipalityType = 3;
-  int32 nextPage = 4;
+  SearchMunicipalityType searchMunicipalityType = 2;
+  int32 nextPage = 3;
 }
 
 message GetBusinessRequest {
