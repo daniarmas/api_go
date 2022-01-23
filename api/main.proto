@@ -589,7 +589,7 @@ enum ItemStatusType {
 enum BusinessStatusType {
   BusinessStatusTypeUnspecified = 0;
   BusinessAvailable = 1;
-  BusinessUnavailable = 2;
+  BusinessItemCategoryNull = 2;
 }
 
 enum PlatformType {

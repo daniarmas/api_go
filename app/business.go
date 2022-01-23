@@ -46,19 +46,16 @@ func (m *BusinessServer) Feed(ctx context.Context, req *pb.FeedRequest) (*pb.Fee
 			Phone:                    e.Address,
 			Email:                    e.Email,
 			IsOpen:                   e.IsOpen,
-			IsInRange:                e.IsInRange,
 			DeliveryPrice:            float64(e.DeliveryPrice),
-			Coordinates:              &pb.Point{Latitude: e.Coordinates.Coords()[0], Longitude: e.Coordinates.Coords()[1]},
-			// Polygon:                  e.Polygon.FlatCoords(),
-			LeadDayTime:     e.LeadDayTime,
-			LeadHoursTime:   e.LeadHoursTime,
-			LeadMinutesTime: e.LeadMinutesTime,
-			ToPickUp:        e.ToPickUp,
-			HomeDelivery:    e.HomeDelivery,
-			BusinessBrandFk: e.BusinessBrandFk.String(),
-			ProvinceFk:      e.ProvinceFk.String(),
-			MunicipalityFk:  e.MunicipalityFk.String(),
-			Cursor:          e.Cursor,
+			LeadDayTime:              e.LeadDayTime,
+			LeadHoursTime:            e.LeadHoursTime,
+			LeadMinutesTime:          e.LeadMinutesTime,
+			ToPickUp:                 e.ToPickUp,
+			HomeDelivery:             e.HomeDelivery,
+			BusinessBrandFk:          e.BusinessBrandFk.String(),
+			ProvinceFk:               e.ProvinceFk.String(),
+			MunicipalityFk:           e.MunicipalityFk.String(),
+			Cursor:                   e.Cursor,
 		})
 	}
 	return &pb.FeedResponse{Businesses: itemsResponse, SearchMunicipalityType: *utils.ParseSearchMunicipalityType(feedBusiness.SearchMunicipalityType), NextPage: feedBusiness.NextPage}, nil
@@ -96,5 +93,5 @@ func (m *BusinessServer) GetBusiness(ctx context.Context, req *pb.GetBusinessReq
 			UpdateTime: e.UpdateTime.String(),
 		})
 	}
-	return &pb.GetBusinessResponse{Business: &pb.Business{Id: getBusiness.Business.ID.String(), Name: getBusiness.Business.Name, Description: getBusiness.Business.Description, Address: getBusiness.Business.Address, Phone: getBusiness.Business.Phone, Email: getBusiness.Business.Email, HighQualityPhoto: getBusiness.Business.HighQualityPhoto, HighQualityPhotoBlurHash: getBusiness.Business.HighQualityPhotoBlurHash, LowQualityPhoto: getBusiness.Business.LowQualityPhoto, LowQualityPhotoBlurHash: getBusiness.Business.LowQualityPhotoBlurHash, Thumbnail: getBusiness.Business.Thumbnail, ThumbnailBlurHash: getBusiness.Business.ThumbnailBlurHash, IsOpen: getBusiness.Business.IsOpen, ToPickUp: getBusiness.Business.ToPickUp, DeliveryPrice: float64(getBusiness.Business.DeliveryPrice), HomeDelivery: getBusiness.Business.HomeDelivery, ProvinceFk: getBusiness.Business.ProvinceFk.String(), MunicipalityFk: getBusiness.Business.MunicipalityFk.String(), BusinessBrandFk: getBusiness.Business.BusinessBrandFk.String(), IsInRange: getBusiness.Business.IsInRange}, ItemCategory: itemsCategoryResponse}, nil
+	return &pb.GetBusinessResponse{Business: &pb.Business{Id: getBusiness.Business.ID.String(), Name: getBusiness.Business.Name, Description: getBusiness.Business.Description, Address: getBusiness.Business.Address, Phone: getBusiness.Business.Phone, Email: getBusiness.Business.Email, HighQualityPhoto: getBusiness.Business.HighQualityPhoto, HighQualityPhotoBlurHash: getBusiness.Business.HighQualityPhotoBlurHash, LowQualityPhoto: getBusiness.Business.LowQualityPhoto, LowQualityPhotoBlurHash: getBusiness.Business.LowQualityPhotoBlurHash, Thumbnail: getBusiness.Business.Thumbnail, ThumbnailBlurHash: getBusiness.Business.ThumbnailBlurHash, IsOpen: getBusiness.Business.IsOpen, ToPickUp: getBusiness.Business.ToPickUp, DeliveryPrice: float64(getBusiness.Business.DeliveryPrice), HomeDelivery: getBusiness.Business.HomeDelivery, ProvinceFk: getBusiness.Business.ProvinceFk.String(), MunicipalityFk: getBusiness.Business.MunicipalityFk.String(), BusinessBrandFk: getBusiness.Business.BusinessBrandFk.String(), IsInRange: getBusiness.Business.IsInRange, Polygon: getBusiness.Business.Polygon.FlatCoords(), Coordinates: &pb.Point{Latitude: getBusiness.Business.Coordinates.Coords()[1], Longitude: getBusiness.Business.Coordinates.Coords()[0]}, Distance: getBusiness.Business.Distance}, ItemCategory: itemsCategoryResponse}, nil
 }
