@@ -1,12 +1,10 @@
 package main
 
 import (
-	// "fmt"
 	"fmt"
 	"log"
 	"net"
 
-	// "runtime"
 	"github.com/daniarmas/api_go/app"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"

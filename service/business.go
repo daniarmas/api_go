@@ -5,13 +5,14 @@ import (
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
+	"github.com/google/uuid"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	"gorm.io/gorm"
 )
 
 type BusinessService interface {
 	Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse, error)
-	GetBusiness(coordinates ewkb.Point, id string) (*datastruct.Business, error)
+	GetBusiness(coordinates ewkb.Point, id string) (*dto.GetBusinessResponse, error)
 }
 
 type businessService struct {
@@ -130,18 +131,23 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 	return &response, nil
 }
 
-func (v *businessService) GetBusiness(coordinates ewkb.Point, id string) (*datastruct.Business, error) {
+func (v *businessService) GetBusiness(coordinates ewkb.Point, id string) (*dto.GetBusinessResponse, error) {
 	var businessRes *datastruct.Business
-	var businessErr error
+	var itemCategoryRes *[]datastruct.BusinessItemCategory
+	var businessErr, itemCategoryErr error
 	err := repository.DB.Transaction(func(tx *gorm.DB) error {
 		businessRes, businessErr = v.dao.NewBusinessQuery().GetBusiness(tx, coordinates, id)
 		if businessErr != nil {
 			return businessErr
+		}
+		itemCategoryRes, itemCategoryErr = v.dao.NewItemCategoryQuery().ListItemCategory(tx, &datastruct.BusinessItemCategory{BusinessFk: uuid.MustParse(id)})
+		if itemCategoryErr != nil {
+			return itemCategoryErr
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return businessRes, nil
+	return &dto.GetBusinessResponse{Business: businessRes, ItemCategory: itemCategoryRes}, nil
 }

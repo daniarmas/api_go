@@ -5,12 +5,13 @@ import (
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type ItemService interface {
 	GetItem(id string) (*datastruct.Item, error)
-	ListItem() ([]datastruct.Item, error)
+	ListItem(itemRequest *dto.ListItemRequest) (*[]datastruct.Item, error)
 	SearchItem(name string, provinceFk string, municipalityFk string, cursor int64, searchMunicipalityType string) (*dto.SearchItemResponse, error)
 	// CreateItem(answer datastruct.Item) (*int64, error)
 	// UpdateItem(answer datastruct.Item) (*datastruct.Item, error)
@@ -25,20 +26,27 @@ func NewItemService(dao repository.DAO) ItemService {
 	return &itemService{dao: dao}
 }
 
-func (i *itemService) ListItem() ([]datastruct.Item, error) {
+func (i *itemService) ListItem(itemRequest *dto.ListItemRequest) (*[]datastruct.Item, error) {
 	var items []datastruct.Item
 	var itemsErr error
 	err := repository.DB.Transaction(func(tx *gorm.DB) error {
-		items, itemsErr = i.dao.NewItemQuery().ListItem(tx)
-		if itemsErr != nil {
-			return itemsErr
+		if itemRequest.BusinessFk != "" && itemRequest.BusinessItemCategoryFk == "" {
+			items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &datastruct.Item{BusinessFk: uuid.MustParse(itemRequest.BusinessFk)})
+			if itemsErr != nil {
+				return itemsErr
+			}
+		} else if itemRequest.BusinessFk != "" && itemRequest.BusinessItemCategoryFk != "" {
+			items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &datastruct.Item{BusinessFk: uuid.MustParse(itemRequest.BusinessFk), BusinessItemCategoryFk: uuid.MustParse(itemRequest.BusinessItemCategoryFk)})
+			if itemsErr != nil {
+				return itemsErr
+			}
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return items, nil
+	return &items, nil
 }
 
 func (i *itemService) GetItem(id string) (*datastruct.Item, error) {

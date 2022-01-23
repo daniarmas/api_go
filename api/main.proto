@@ -208,6 +208,7 @@ message GetBusinessRequest {
 
 message GetBusinessResponse {
   Business business = 1;
+  repeated ItemCategory itemCategory = 2;
 }
 
 // message GetPresignedPutUserAvatarRequest {
@@ -420,6 +421,15 @@ message Item {
   string createTime = 16;
   string updateTime = 17;
   int32 cursor = 18;
+}
+
+message ItemCategory {
+  string id = 1;
+  string name = 2;
+  int32 index = 3;
+  string businessFk = 4;
+  string createTime = 5;
+  string updateTime = 6;
 }
 
 message SearchItem {

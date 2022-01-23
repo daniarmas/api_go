@@ -40,8 +40,6 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.4 // indirect
-	github.com/paulsmith/gogeos v0.1.2
-	github.com/spatial-go/geoos v1.0.4
 	github.com/spf13/viper v1.10.1
 	github.com/twpayne/go-geom v1.4.1
 	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f // indirect

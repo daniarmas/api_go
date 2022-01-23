@@ -7,7 +7,7 @@ import (
 
 type ItemQuery interface {
 	GetItem(id string) (datastruct.Item, error)
-	ListItem(tx *gorm.DB) ([]datastruct.Item, error)
+	ListItem(tx *gorm.DB, where *datastruct.Item) ([]datastruct.Item, error)
 	SearchItem(tx *gorm.DB, name string, provinceFk string, municipalityFk string, cursor int64, municipalityNotEqual bool, limit int64) (*[]datastruct.Item, error)
 	// CreateItem(answer datastruct.Item) (*int64, error)
 	// UpdateItem(answer datastruct.Item) (*datastruct.Item, error)
@@ -16,9 +16,9 @@ type ItemQuery interface {
 
 type itemQuery struct{}
 
-func (i *itemQuery) ListItem(tx *gorm.DB) ([]datastruct.Item, error) {
+func (i *itemQuery) ListItem(tx *gorm.DB, where *datastruct.Item) ([]datastruct.Item, error) {
 	var items []datastruct.Item
-	result := tx.Limit(10).Find(&items)
+	result := tx.Limit(10).Where(where).Find(&items)
 	if result.Error != nil {
 		return nil, result.Error
 	}

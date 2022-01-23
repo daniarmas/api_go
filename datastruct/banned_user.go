@@ -14,14 +14,16 @@ func (BannedUser) TableName() string {
 }
 
 type BannedUser struct {
-	ID                            uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
-	Description                   string         `gorm:"column:description"`
-	UserFk                        uuid.UUID      `gorm:"column:user_fk"`
-	Email                         string         `gorm:"column:email"`
-	ModeratorAuthorizationTokenFk uuid.UUID      `gorm:"column:moderator_authorization_token_fk"`
-	CreateTime                    time.Time      `gorm:"column:create_time"`
-	UpdateTime                    time.Time      `gorm:"column:update_time"`
-	DeleteTime                    gorm.DeletedAt `gorm:"index;column:delete_time"`
+	ID                            uuid.UUID          `gorm:"type:uuid;default:uuid_generate_v4()"`
+	Description                   string             `gorm:"column:description;not null"`
+	UserFk                        uuid.UUID          `gorm:"column:user_fk;not null"`
+	User                          User               `gorm:"foreignKey:UserFk"`
+	Email                         string             `gorm:"column:email;not null"`
+	ModeratorAuthorizationTokenFk uuid.UUID          `gorm:"column:moderator_authorization_token_fk;not null"`
+	AuthorizationToken            AuthorizationToken `gorm:"foreignKey:ModeratorAuthorizationTokenFk"`
+	CreateTime                    time.Time          `gorm:"column:create_time;not null"`
+	UpdateTime                    time.Time          `gorm:"column:update_time;not null"`
+	DeleteTime                    gorm.DeletedAt     `gorm:"index;column:delete_time"`
 }
 
 func (i *BannedUser) BeforeCreate(tx *gorm.DB) (err error) {
