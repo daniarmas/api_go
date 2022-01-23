@@ -188,9 +188,11 @@ message FeedRequest {
   Point location = 1;
   string provinceFk = 2;
   string municipalityFk = 3;
-  SearchMunicipalityType searchMunicipalityType = 4;
-  int32 nextPage = 5;
-  google.protobuf.FieldMask fieldMask = 6;
+  bool toPickUp = 4;
+  bool homeDelivery = 5;
+  SearchMunicipalityType searchMunicipalityType = 6;
+  int32 nextPage = 7;
+  google.protobuf.FieldMask fieldMask = 8;
 }
 
 message FeedResponse {
@@ -203,7 +205,9 @@ message FeedResponse {
 message GetBusinessRequest {
   string id = 1;
   Point location = 2;
-  google.protobuf.FieldMask fieldMask = 3;
+  bool toPickUp = 3;
+  bool homeDelivery = 4;
+  google.protobuf.FieldMask fieldMask = 5;
 }
 
 message GetBusinessResponse {
