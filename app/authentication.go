@@ -210,8 +210,12 @@ func (m *AuthenticationServer) ListSession(ctx context.Context, req *pb.ListSess
 		}
 		return nil, st.Err()
 	}
-	sessions := make([]*pb.Session, 0, len(*result))
-	for _, e := range *result {
+	sessions := make([]*pb.Session, 0, len(*result.Sessions))
+	for _, e := range *result.Sessions {
+		var actual bool = false
+		if e.DeviceFk == result.ActualDeviceId {
+			actual = true
+		}
 		sessions = append(sessions, &pb.Session{
 			Id:            e.ID.String(),
 			Platform:      *utils.ParsePlatformType(&e.Platform),
@@ -220,6 +224,7 @@ func (m *AuthenticationServer) ListSession(ctx context.Context, req *pb.ListSess
 			App:           *utils.ParseAppType(&e.App),
 			AppVersion:    e.AppVersion,
 			DeviceId:      e.DeviceId,
+			Actual:        actual,
 		})
 	}
 	return &pb.ListSessionResponse{Sessions: sessions}, nil
