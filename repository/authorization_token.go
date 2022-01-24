@@ -1,23 +1,23 @@
 package repository
 
 import (
-	"github.com/daniarmas/api_go/datastruct"
+	"github.com/daniarmas/api_go/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type AuthorizationTokenQuery interface {
-	GetAuthorizationToken(tx *gorm.DB, authorizationToken *datastruct.AuthorizationToken, fields *[]string) (*datastruct.AuthorizationToken, error)
-	// ListItem() ([]datastruct.Item, error)
-	CreateAuthorizationToken(tx *gorm.DB, authorizationToken *datastruct.AuthorizationToken) (*datastruct.AuthorizationToken, error)
-	// UpdateDevice(device *datastruct.Device) error
-	DeleteAuthorizationToken(tx *gorm.DB, authorizationToken *datastruct.AuthorizationToken) (*[]datastruct.AuthorizationToken, error)
-	DeleteAuthorizationTokenIn(tx *gorm.DB, where string, ids *[]string) (*[]datastruct.AuthorizationToken, error)
+	GetAuthorizationToken(tx *gorm.DB, authorizationToken *models.AuthorizationToken, fields *[]string) (*models.AuthorizationToken, error)
+	// ListItem() ([]models.Item, error)
+	CreateAuthorizationToken(tx *gorm.DB, authorizationToken *models.AuthorizationToken) (*models.AuthorizationToken, error)
+	// UpdateDevice(device *models.Device) error
+	DeleteAuthorizationToken(tx *gorm.DB, authorizationToken *models.AuthorizationToken) (*[]models.AuthorizationToken, error)
+	DeleteAuthorizationTokenIn(tx *gorm.DB, where string, ids *[]string) (*[]models.AuthorizationToken, error)
 }
 
 type authorizationTokenQuery struct{}
 
-func (v *authorizationTokenQuery) CreateAuthorizationToken(tx *gorm.DB, authorizationToken *datastruct.AuthorizationToken) (*datastruct.AuthorizationToken, error) {
+func (v *authorizationTokenQuery) CreateAuthorizationToken(tx *gorm.DB, authorizationToken *models.AuthorizationToken) (*models.AuthorizationToken, error) {
 	result := tx.Create(&authorizationToken)
 	if result.Error != nil {
 		return nil, result.Error
@@ -25,8 +25,8 @@ func (v *authorizationTokenQuery) CreateAuthorizationToken(tx *gorm.DB, authoriz
 	return authorizationToken, nil
 }
 
-func (r *authorizationTokenQuery) DeleteAuthorizationTokenIn(tx *gorm.DB, where string, ids *[]string) (*[]datastruct.AuthorizationToken, error) {
-	var authorizationTokenResult *[]datastruct.AuthorizationToken
+func (r *authorizationTokenQuery) DeleteAuthorizationTokenIn(tx *gorm.DB, where string, ids *[]string) (*[]models.AuthorizationToken, error) {
+	var authorizationTokenResult *[]models.AuthorizationToken
 	result := tx.Clauses(clause.Returning{}).Where(where, *ids).Delete(&authorizationTokenResult)
 	if result.Error != nil {
 		return nil, result.Error
@@ -34,8 +34,8 @@ func (r *authorizationTokenQuery) DeleteAuthorizationTokenIn(tx *gorm.DB, where 
 	return authorizationTokenResult, nil
 }
 
-func (r *authorizationTokenQuery) DeleteAuthorizationToken(tx *gorm.DB, authorizationToken *datastruct.AuthorizationToken) (*[]datastruct.AuthorizationToken, error) {
-	var authorizationTokenResult *[]datastruct.AuthorizationToken
+func (r *authorizationTokenQuery) DeleteAuthorizationToken(tx *gorm.DB, authorizationToken *models.AuthorizationToken) (*[]models.AuthorizationToken, error) {
+	var authorizationTokenResult *[]models.AuthorizationToken
 	result := tx.Clauses(clause.Returning{}).Where(authorizationToken).Delete(&authorizationTokenResult)
 	if result.Error != nil {
 		return nil, result.Error
@@ -43,8 +43,8 @@ func (r *authorizationTokenQuery) DeleteAuthorizationToken(tx *gorm.DB, authoriz
 	return authorizationTokenResult, nil
 }
 
-func (v *authorizationTokenQuery) GetAuthorizationToken(tx *gorm.DB, authorizationToken *datastruct.AuthorizationToken, fields *[]string) (*datastruct.AuthorizationToken, error) {
-	var authorizationTokenResult *datastruct.AuthorizationToken
+func (v *authorizationTokenQuery) GetAuthorizationToken(tx *gorm.DB, authorizationToken *models.AuthorizationToken, fields *[]string) (*models.AuthorizationToken, error) {
+	var authorizationTokenResult *models.AuthorizationToken
 	var result *gorm.DB
 	if fields != nil {
 		result = tx.Limit(1).Where(authorizationToken).Select(*fields).Find(&authorizationTokenResult)

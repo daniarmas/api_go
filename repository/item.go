@@ -1,38 +1,41 @@
 package repository
 
 import (
-	"github.com/daniarmas/api_go/datastruct"
+	"github.com/daniarmas/api_go/models"
 	"gorm.io/gorm"
 )
 
 type ItemQuery interface {
-	GetItem(id string) (datastruct.Item, error)
-	ListItem() ([]datastruct.Item, error)
-	SearchItem(tx *gorm.DB, name string, provinceFk string, municipalityFk string, cursor int64, municipalityNotEqual bool, limit int64) (*[]datastruct.Item, error)
-	// CreateItem(answer datastruct.Item) (*int64, error)
-	// UpdateItem(answer datastruct.Item) (*datastruct.Item, error)
+	GetItem(id string) (models.Item, error)
+	ListItem(tx *gorm.DB, where *models.Item) ([]models.Item, error)
+	SearchItem(tx *gorm.DB, name string, provinceFk string, municipalityFk string, cursor int64, municipalityNotEqual bool, limit int64) (*[]models.Item, error)
+	// CreateItem(answer models.Item) (*int64, error)
+	// UpdateItem(answer models.Item) (*models.Item, error)
 	// DeleteItem(id int64) error
 }
 
 type itemQuery struct{}
 
-func (i *itemQuery) ListItem() ([]datastruct.Item, error) {
-	var items []datastruct.Item
-	DB.Limit(10).Find(&items)
+func (i *itemQuery) ListItem(tx *gorm.DB, where *models.Item) ([]models.Item, error) {
+	var items []models.Item
+	result := tx.Limit(10).Where(where).Find(&items)
+	if result.Error != nil {
+		return nil, result.Error
+	}
 	return items, nil
 }
 
-func (i *itemQuery) GetItem(id string) (datastruct.Item, error) {
-	var item []datastruct.Item
+func (i *itemQuery) GetItem(id string) (models.Item, error) {
+	var item []models.Item
 	DB.Limit(1).Where("id = ?", id).Find(&item)
 	if len(item) == 0 {
-		return datastruct.Item{}, nil
+		return models.Item{}, nil
 	}
 	return item[0], nil
 }
 
-func (i *itemQuery) SearchItem(tx *gorm.DB, name string, provinceFk string, municipalityFk string, cursor int64, municipalityNotEqual bool, limit int64) (*[]datastruct.Item, error) {
-	var items []datastruct.Item
+func (i *itemQuery) SearchItem(tx *gorm.DB, name string, provinceFk string, municipalityFk string, cursor int64, municipalityNotEqual bool, limit int64) (*[]models.Item, error) {
+	var items []models.Item
 	var result *gorm.DB
 	where := "%" + name + "%"
 	if municipalityNotEqual {
