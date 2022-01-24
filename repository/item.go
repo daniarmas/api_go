@@ -29,7 +29,7 @@ func (i *itemQuery) ListItem(tx *gorm.DB, where *models.Item) (*[]models.Item, e
 
 func (i *itemQuery) GetItem(tx *gorm.DB, id string) (*models.Item, error) {
 	var item *models.Item
-	result := DB.Where("id = ?", id).Take(&item)
+	result := DB.Preload("ItemPhoto").Where("item.id = ?", id).Take(&item)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

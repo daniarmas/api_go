@@ -51,6 +51,21 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 		}
 		return nil, st.Err()
 	}
+	itemPhotos := make([]*pb.ItemPhoto, 0, len(item.ItemPhoto))
+	for _, e := range item.ItemPhoto {
+		itemPhotos = append(itemPhotos, &pb.ItemPhoto{
+			Id:                       e.ID.String(),
+			ItemFk:                   e.ItemFk.String(),
+			HighQualityPhoto:         e.HighQualityPhoto,
+			HighQualityPhotoBlurHash: e.HighQualityPhotoBlurHash,
+			LowQualityPhoto:          e.LowQualityPhoto,
+			LowQualityPhotoBlurHash:  e.LowQualityPhotoBlurHash,
+			Thumbnail:                e.Thumbnail,
+			ThumbnailBlurHash:        e.ThumbnailBlurHash,
+			CreateTime:               e.CreateTime.String(),
+			UpdateTime:               e.UpdateTime.String(),
+		})
+	}
 	return &pb.GetItemResponse{Item: &pb.Item{
 		Id:                       item.ID.String(),
 		Name:                     item.Name,
@@ -68,7 +83,7 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 		CreateTime:               item.CreateTime.String(),
 		UpdateTime:               item.UpdateTime.String(),
 		Cursor:                   item.Cursor,
-		
+		Photos:                   itemPhotos,
 	}}, nil
 }
 
