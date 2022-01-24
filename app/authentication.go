@@ -13,13 +13,6 @@ import (
 	gp "google.golang.org/protobuf/types/known/emptypb"
 )
 
-// func naming(s string) string {
-// 	if s == "foo" {
-// 		return "Foo"
-// 	}
-// 	return s
-// }
-
 func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest) (*gp.Empty, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)

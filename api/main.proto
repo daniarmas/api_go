@@ -423,6 +423,7 @@ message Item {
   string createTime = 16;
   string updateTime = 17;
   int32 cursor = 18;
+  bool isInRange = 19;
 }
 
 message ItemCategory {

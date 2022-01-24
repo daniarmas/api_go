@@ -6,6 +6,8 @@ import (
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/utils"
+	"github.com/twpayne/go-geom"
+	"github.com/twpayne/go-geom/encoding/ewkb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -40,9 +42,31 @@ func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb
 }
 
 func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.GetItemResponse, error) {
-	item, err := m.itemService.GetItem(req.Id)
+	var st *status.Status
+	item, err := m.itemService.GetItem(&dto.GetItemRequest{Id: req.Id, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}})
 	if err != nil {
-		return nil, err
+		switch err.Error() {
+		case "record not found":
+			st = status.New(codes.NotFound, "Item not found")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	itemPhotos := make([]*pb.ItemPhoto, 0, len(item.ItemPhoto))
+	for _, e := range item.ItemPhoto {
+		itemPhotos = append(itemPhotos, &pb.ItemPhoto{
+			Id:                       e.ID.String(),
+			ItemFk:                   e.ItemFk.String(),
+			HighQualityPhoto:         e.HighQualityPhoto,
+			HighQualityPhotoBlurHash: e.HighQualityPhotoBlurHash,
+			LowQualityPhoto:          e.LowQualityPhoto,
+			LowQualityPhotoBlurHash:  e.LowQualityPhotoBlurHash,
+			Thumbnail:                e.Thumbnail,
+			ThumbnailBlurHash:        e.ThumbnailBlurHash,
+			CreateTime:               e.CreateTime.String(),
+			UpdateTime:               e.UpdateTime.String(),
+		})
 	}
 	return &pb.GetItemResponse{Item: &pb.Item{
 		Id:                       item.ID.String(),
@@ -58,6 +82,11 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 		LowQualityPhotoBlurHash:  item.LowQualityPhotoBlurHash,
 		Thumbnail:                item.Thumbnail,
 		ThumbnailBlurHash:        item.ThumbnailBlurHash,
+		CreateTime:               item.CreateTime.String(),
+		UpdateTime:               item.UpdateTime.String(),
+		Cursor:                   item.Cursor,
+		Photos:                   itemPhotos,
+		IsInRange:                item.IsInRange,
 	}}, nil
 }
 
