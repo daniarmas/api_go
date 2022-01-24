@@ -6,6 +6,7 @@ import (
 
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
+	"github.com/daniarmas/api_go/utils"
 	ut "github.com/daniarmas/api_go/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -190,4 +191,36 @@ func (m *AuthenticationServer) RefreshToken(ctx context.Context, req *pb.Refresh
 		return nil, st.Err()
 	}
 	return &pb.RefreshTokenResponse{RefreshToken: result.RefreshToken, AuthorizationToken: result.AuthorizationToken}, nil
+}
+
+func (m *AuthenticationServer) ListSession(ctx context.Context, req *pb.ListSessionRequest) (*pb.ListSessionResponse, error) {
+	var st *status.Status
+	md, _ := metadata.FromIncomingContext(ctx)
+	result, err := m.authenticationService.ListSession(&md)
+	if err != nil {
+		switch err.Error() {
+		case "authorizationtoken expired":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "RefreshToken invalid")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "RefreshToken invalid")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	sessions := make([]*pb.Session, 0, len(*result))
+	for _, e := range *result {
+		sessions = append(sessions, &pb.Session{
+			Id:            e.ID.String(),
+			Platform:      *utils.ParsePlatformType(&e.Platform),
+			SystemVersion: e.SystemVersion,
+			Model:         e.Model,
+			App:           *utils.ParseAppType(&e.App),
+			AppVersion:    e.AppVersion,
+			DeviceId:      e.DeviceId,
+		})
+	}
+	return &pb.ListSessionResponse{Sessions: sessions}, nil
 }
