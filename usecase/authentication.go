@@ -19,7 +19,7 @@ type AuthenticationService interface {
 	SignOut(all *bool, authorizationTokenFk *string, metadata *metadata.MD) error
 	UserExists(alias *string) error
 	CheckSession(metadata *metadata.MD) (*[]string, error)
-	ListSession(metadata *metadata.MD) (*[]models.Session, error)
+	ListSession(metadata *metadata.MD) (*dto.ListSessionResponse, error)
 	RefreshToken(refreshToken *string, metadata *metadata.MD) (*dto.RefreshToken, error)
 }
 
@@ -489,8 +489,10 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenFk *string,
 	return nil
 }
 
-func (v *authenticationService) ListSession(metadata *metadata.MD) (*[]models.Session, error) {
+func (v *authenticationService) ListSession(metadata *metadata.MD) (*dto.ListSessionResponse, error) {
 	var listSessionRes *[]models.Session
+	var authorizationTokenRes *models.AuthorizationToken
+	var authorizationTokenErr error
 	var listSessionErr error
 	err := repository.DB.Transaction(func(tx *gorm.DB) error {
 		authorizationTokenParseRes, authorizationTokenParseErr := v.dao.NewTokenQuery().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
@@ -506,7 +508,7 @@ func (v *authenticationService) ListSession(metadata *metadata.MD) (*[]models.Se
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk", "device_fk"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if *authorizationTokenRes == (models.AuthorizationToken{}) {
@@ -521,7 +523,7 @@ func (v *authenticationService) ListSession(metadata *metadata.MD) (*[]models.Se
 	if err != nil {
 		return nil, err
 	}
-	return listSessionRes, nil
+	return &dto.ListSessionResponse{Sessions: listSessionRes, ActualDeviceId: authorizationTokenRes.DeviceFk}, nil
 }
 
 func (v *authenticationService) RefreshToken(refreshToken *string, metadata *metadata.MD) (*dto.RefreshToken, error) {
