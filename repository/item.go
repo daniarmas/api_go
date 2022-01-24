@@ -1,12 +1,14 @@
 package repository
 
 import (
+	"errors"
+
 	"github.com/daniarmas/api_go/models"
 	"gorm.io/gorm"
 )
 
 type ItemQuery interface {
-	GetItem(id string) (models.Item, error)
+	GetItem(tx *gorm.DB, id string) (*models.Item, error)
 	ListItem(tx *gorm.DB, where *models.Item) (*[]models.Item, error)
 	SearchItem(tx *gorm.DB, name string, provinceFk string, municipalityFk string, cursor int64, municipalityNotEqual bool, limit int64) (*[]models.Item, error)
 	// CreateItem(answer models.Item) (*int64, error)
@@ -25,13 +27,17 @@ func (i *itemQuery) ListItem(tx *gorm.DB, where *models.Item) (*[]models.Item, e
 	return &items, nil
 }
 
-func (i *itemQuery) GetItem(id string) (models.Item, error) {
-	var item []models.Item
-	DB.Limit(1).Where("id = ?", id).Find(&item)
-	if len(item) == 0 {
-		return models.Item{}, nil
+func (i *itemQuery) GetItem(tx *gorm.DB, id string) (*models.Item, error) {
+	var item *models.Item
+	result := DB.Where("id = ?", id).Take(&item)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("record not found")
+		} else {
+			return nil, result.Error
+		}
 	}
-	return item[0], nil
+	return item, nil
 }
 
 func (i *itemQuery) SearchItem(tx *gorm.DB, name string, provinceFk string, municipalityFk string, cursor int64, municipalityNotEqual bool, limit int64) (*[]models.Item, error) {

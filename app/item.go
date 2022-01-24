@@ -40,9 +40,16 @@ func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb
 }
 
 func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.GetItemResponse, error) {
-	item, err := m.itemService.GetItem(req.Id)
+	var st *status.Status
+	item, err := m.itemService.GetItem(&dto.GetItemRequest{Id: req.Id})
 	if err != nil {
-		return nil, err
+		switch err.Error() {
+		case "record not found":
+			st = status.New(codes.NotFound, "Item not found")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
 	}
 	return &pb.GetItemResponse{Item: &pb.Item{
 		Id:                       item.ID.String(),
