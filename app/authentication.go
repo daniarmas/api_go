@@ -4,9 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/daniarmas/api_go/datastruct"
+	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
-	"github.com/daniarmas/api_go/utils"
 	ut "github.com/daniarmas/api_go/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -14,17 +13,10 @@ import (
 	gp "google.golang.org/protobuf/types/known/emptypb"
 )
 
-// func naming(s string) string {
-// 	if s == "foo" {
-// 		return "Foo"
-// 	}
-// 	return s
-// }
-
 func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest) (*gp.Empty, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	verificationCode := datastruct.VerificationCode{Code: ut.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceId: md.Get("deviceid")[0], CreateTime: time.Now(), UpdateTime: time.Now()}
+	verificationCode := models.VerificationCode{Code: ut.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceId: md.Get("deviceid")[0], CreateTime: time.Now(), UpdateTime: time.Now()}
 	err := m.authenticationService.CreateVerificationCode(&verificationCode)
 	if err != nil {
 		switch err.Error() {
@@ -45,20 +37,18 @@ func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *
 }
 
 func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.GetVerificationCodeRequest) (*gp.Empty, error) {
-	// FieldMask
-	// userDst := &datastruct.VerificationCode{} // a struct to copy to
-	// mask, _ := fieldmask_utils.MaskFromPaths(req.FieldMask.Paths, naming)
-	// fields := strings.Split(mask.String(), ",")
-	// fieldmask_utils.StructToStruct(mask, req.Email, userDst)
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	result, err := m.authenticationService.GetVerificationCode(&datastruct.VerificationCode{Code: req.Code, Email: req.Email, Type: req.Type.String(), DeviceId: md.Get("deviceid")[0]}, &[]string{"id"})
+	_, err := m.authenticationService.GetVerificationCode(&models.VerificationCode{Code: req.Code, Email: req.Email, Type: req.Type.String(), DeviceId: md.Get("deviceid")[0]}, &[]string{"id"})
 	if err != nil {
-		st = status.New(codes.Internal, "Internal server error")
-		return nil, st.Err()
-	} else if result == nil {
-		st = status.New(codes.NotFound, "Not found")
-		return nil, st.Err()
+		switch err.Error() {
+		case "record not found":
+			st = status.New(codes.NotFound, "Not found")
+			return nil, st.Err()
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+			return nil, st.Err()
+		}
 	}
 	return &gp.Empty{}, nil
 }
@@ -66,7 +56,7 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest) (*pb.SignInResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	result, err := m.authenticationService.SignIn(&datastruct.VerificationCode{Code: req.Code, Email: req.Email, Type: "SignIn", DeviceId: md.Get("deviceid")[0]}, &md)
+	result, err := m.authenticationService.SignIn(&models.VerificationCode{Code: req.Code, Email: req.Email, Type: "SignIn", DeviceId: md.Get("deviceid")[0]}, &md)
 	if err != nil {
 		switch err.Error() {
 		case "verification code not found":
@@ -88,7 +78,7 @@ func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest
 func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest) (*pb.SignUpResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	result, err := m.authenticationService.SignUp(&req.FullName, &req.Alias, &datastruct.VerificationCode{Code: req.Code, Email: req.Email, Type: "SignIn", DeviceId: md.Get("deviceid")[0]}, &md)
+	result, err := m.authenticationService.SignUp(&req.FullName, &req.Alias, &models.VerificationCode{Code: req.Code, Email: req.Email, Type: "SignIn", DeviceId: md.Get("deviceid")[0]}, &md)
 	if err != nil {
 		switch err.Error() {
 		case "verification code not found":
@@ -109,7 +99,7 @@ func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest
 
 func (m *AuthenticationServer) UserExists(ctx context.Context, req *pb.UserExistsRequest) (*gp.Empty, error) {
 	var st *status.Status
-	err := m.authenticationService.UserExists(&req.Email)
+	err := m.authenticationService.UserExists(&req.Alias)
 	if err != nil {
 		switch err.Error() {
 		case "user already exists":
@@ -176,36 +166,28 @@ func (m *AuthenticationServer) SignOut(ctx context.Context, req *pb.SignOutReque
 	return &gp.Empty{}, nil
 }
 
-func (m *AuthenticationServer) ListSession(ctx context.Context, req *pb.ListSessionRequest) (*pb.ListSessionResponse, error) {
+func (m *AuthenticationServer) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.RefreshTokenResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	result, err := m.authenticationService.ListSession(&md)
+	result, err := m.authenticationService.RefreshToken(&req.RefreshToken, &md)
 	if err != nil {
 		switch err.Error() {
 		case "unauthenticated":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "permission denied":
+			st = status.New(codes.PermissionDenied, "Permission denied")
+		case "user not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "refreshtoken expired":
+			st = status.New(codes.Unauthenticated, "RefreshToken expired")
 		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+			st = status.New(codes.Unauthenticated, "RefreshToken invalid")
 		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+			st = status.New(codes.Unauthenticated, "RefreshToken invalid")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
 		return nil, st.Err()
 	}
-	sessionResponse := make([]*pb.Session, 0, len(*result))
-	for _, session := range *result {
-		sessionResponse = append(sessionResponse, &pb.Session{
-			Id:            session.ID.String(),
-			Platform:      *utils.ParsePlatformType(&session.Platform),
-			SystemVersion: session.SystemVersion,
-			Model:         session.Model,
-			App:           *utils.ParseAppType(&session.App),
-			AppVersion:    session.AppVersion,
-			DeviceId:      session.DeviceId,
-		})
-	}
-	return &pb.ListSessionResponse{Sessions: sessionResponse}, nil
+	return &pb.RefreshTokenResponse{RefreshToken: result.RefreshToken, AuthorizationToken: result.AuthorizationToken}, nil
 }

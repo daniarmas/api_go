@@ -23,6 +23,8 @@ type DAO interface {
 	NewAuthorizationTokenQuery() AuthorizationTokenQuery
 	NewTokenQuery() TokenQuery
 	NewSessionQuery() SessionQuery
+	NewBusinessQuery() BusinessQuery
+	NewItemCategoryQuery() ItemCategoryQuery
 }
 
 type dao struct{}
@@ -58,7 +60,7 @@ func NewDB(config *utils.Config) (*gorm.DB, error) {
 		logger.Config{
 			SlowThreshold:             time.Millisecond * 200,
 			LogLevel:                  logger.Info,
-			IgnoreRecordNotFoundError: true,
+			IgnoreRecordNotFoundError: false,
 			Colorful:                  true,
 		},
 	)
@@ -110,4 +112,12 @@ func (d *dao) NewTokenQuery() TokenQuery {
 
 func (d *dao) NewSessionQuery() SessionQuery {
 	return &sessionQuery{}
+}
+
+func (d *dao) NewBusinessQuery() BusinessQuery {
+	return &businessQuery{}
+}
+
+func (d *dao) NewItemCategoryQuery() ItemCategoryQuery {
+	return &itemCategoryQuery{}
 }

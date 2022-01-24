@@ -3,16 +3,22 @@ package app
 import (
 	"context"
 
+	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
+	"github.com/daniarmas/api_go/utils"
+	"github.com/twpayne/go-geom"
+	"github.com/twpayne/go-geom/encoding/ewkb"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb.ListItemResponse, error) {
-	items, err := m.itemService.ListItem()
+	listItemsResponse, err := m.itemService.ListItem(&dto.ListItemRequest{BusinessFk: req.BusinessFk, BusinessItemCategoryFk: req.ItemCategoryFk, NextPage: req.NextPage})
 	if err != nil {
 		return nil, err
 	}
-	itemsResponse := make([]*pb.Item, 0, len(items))
-	for _, item := range items {
+	itemsResponse := make([]*pb.Item, 0, len(listItemsResponse.Items))
+	for _, item := range listItemsResponse.Items {
 		itemsResponse = append(itemsResponse, &pb.Item{
 			Id:                       item.ID.String(),
 			Name:                     item.Name,
@@ -27,15 +33,40 @@ func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb
 			LowQualityPhotoBlurHash:  item.LowQualityPhotoBlurHash,
 			Thumbnail:                item.Thumbnail,
 			ThumbnailBlurHash:        item.ThumbnailBlurHash,
+			CreateTime:               item.CreateTime.String(),
+			UpdateTime:               item.UpdateTime.String(),
+			Cursor:                   int32(item.Cursor),
 		})
 	}
-	return &pb.ListItemResponse{Items: itemsResponse}, nil
+	return &pb.ListItemResponse{Items: itemsResponse, NextPage: listItemsResponse.NextPage}, nil
 }
 
 func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.GetItemResponse, error) {
-	item, err := m.itemService.GetItem(req.Id)
+	var st *status.Status
+	item, err := m.itemService.GetItem(&dto.GetItemRequest{Id: req.Id, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}})
 	if err != nil {
-		return nil, err
+		switch err.Error() {
+		case "record not found":
+			st = status.New(codes.NotFound, "Item not found")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	itemPhotos := make([]*pb.ItemPhoto, 0, len(item.ItemPhoto))
+	for _, e := range item.ItemPhoto {
+		itemPhotos = append(itemPhotos, &pb.ItemPhoto{
+			Id:                       e.ID.String(),
+			ItemFk:                   e.ItemFk.String(),
+			HighQualityPhoto:         e.HighQualityPhoto,
+			HighQualityPhotoBlurHash: e.HighQualityPhotoBlurHash,
+			LowQualityPhoto:          e.LowQualityPhoto,
+			LowQualityPhotoBlurHash:  e.LowQualityPhotoBlurHash,
+			Thumbnail:                e.Thumbnail,
+			ThumbnailBlurHash:        e.ThumbnailBlurHash,
+			CreateTime:               e.CreateTime.String(),
+			UpdateTime:               e.UpdateTime.String(),
+		})
 	}
 	return &pb.GetItemResponse{Item: &pb.Item{
 		Id:                       item.ID.String(),
@@ -51,5 +82,35 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 		LowQualityPhotoBlurHash:  item.LowQualityPhotoBlurHash,
 		Thumbnail:                item.Thumbnail,
 		ThumbnailBlurHash:        item.ThumbnailBlurHash,
+		CreateTime:               item.CreateTime.String(),
+		UpdateTime:               item.UpdateTime.String(),
+		Cursor:                   item.Cursor,
+		Photos:                   itemPhotos,
+		IsInRange:                item.IsInRange,
 	}}, nil
+}
+
+func (m *ItemServer) SearchItem(ctx context.Context, req *pb.SearchItemRequest) (*pb.SearchItemResponse, error) {
+	var st *status.Status
+	response, err := m.itemService.SearchItem(req.Name, req.ProvinceFk, req.MunicipalityFk, int64(req.NextPage), req.SearchMunicipalityType.String())
+	if err != nil {
+		switch err.Error() {
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	itemsResponse := make([]*pb.SearchItem, 0, len(*response.Items))
+	for _, e := range *response.Items {
+		itemsResponse = append(itemsResponse, &pb.SearchItem{
+			Id:                e.ID.String(),
+			Name:              e.Name,
+			Thumbnail:         e.Thumbnail,
+			ThumbnailBlurHash: e.ThumbnailBlurHash,
+			Price:             e.Price,
+			Cursor:            int32(e.Cursor),
+			Status:            *utils.ParseItemStatusType(&e.Status),
+		})
+	}
+	return &pb.SearchItemResponse{Items: itemsResponse, NextPage: response.NextPage, SearchMunicipalityType: *utils.ParseSearchMunicipalityType(response.SearchMunicipalityType)}, nil
 }

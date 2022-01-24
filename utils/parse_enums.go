@@ -21,3 +21,25 @@ func ParseAppType(tp *string) *pb.AppType {
 		return pb.AppType_AppTypeUnspecified.Enum()
 	}
 }
+
+func ParseItemStatusType(tp *string) *pb.ItemStatusType {
+	if *tp == "Available" {
+		return pb.ItemStatusType_Available.Enum()
+	} else if *tp == "Unavailable" {
+		return pb.ItemStatusType_Unavailable.Enum()
+	} else if *tp == "Deprecated" {
+		return pb.ItemStatusType_Deprecated.Enum()
+	} else {
+		return pb.ItemStatusType_ItemStatusTypeUnspecified.Enum()
+	}
+}
+
+func ParseSearchMunicipalityType(tp string) *pb.SearchMunicipalityType {
+	if tp == "More" {
+		return pb.SearchMunicipalityType_More.Enum()
+	} else if tp == "NoMore" {
+		return pb.SearchMunicipalityType_NoMore.Enum()
+	} else {
+		return pb.SearchMunicipalityType_SearchMunicipalityTypeUnspecified.Enum()
+	}
+}

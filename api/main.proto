@@ -17,22 +17,22 @@ service AuthenticationService {
 
   rpc CheckSession (google.protobuf.Empty) returns (CheckSessionResponse) {}
 
-  // rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse) {}
+  rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse) {}
 
   rpc UserExists (UserExistsRequest) returns (google.protobuf.Empty) {}
 
   rpc ListSession (ListSessionRequest) returns (ListSessionResponse) {}
 }
 
-// service BusinessService {
-//   rpc Feed (FeedRequest) returns (FeedResponse) {}
-//   rpc GetBusiness (GetBusinessRequest) returns (GetBusinessResponse) {}
-// }
+service BusinessService {
+  rpc Feed (FeedRequest) returns (FeedResponse) {}
+  rpc GetBusiness (GetBusinessRequest) returns (GetBusinessResponse) {}
+}
 
 service ItemService {
   rpc ListItem (ListItemRequest) returns (ListItemResponse) {}
   rpc GetItem (GetItemRequest) returns (GetItemResponse) {}
-  // rpc SearchItem (SearchItemRequest) returns (SearchItemResponse) {}
+  rpc SearchItem (SearchItemRequest) returns (SearchItemResponse) {}
 }
 
 // service UserService {
@@ -138,41 +138,40 @@ message SignOutRequest {
   string authorizationTokenFk = 2;
 }
  
-// message RefreshTokenRequest {
-//   string refreshToken = 1;
-//   google.protobuf.FieldMask fieldMask = 2;
-// }
+message RefreshTokenRequest {
+  string refreshToken = 1;
+  google.protobuf.FieldMask fieldMask = 2;
+}
 
-// message RefreshTokenResponse {
-//   string refreshToken = 1;
-//   string authorizationToken = 2;
-// }
+message RefreshTokenResponse {
+  string refreshToken = 1;
+  string authorizationToken = 2;
+}
 
-// message SearchItemRequest {
-//   int32 nextPage = 1;
-//   string name = 2;
-//   string provinceFk = 3;
-//   string municipalityFk = 4;
-//   SearchMunicipalityType searchMunicipalityType = 5;
-//   Point location = 6;
-//   google.protobuf.FieldMask fieldMask = 7;
-// }
+message SearchItemRequest {
+  int32 nextPage = 1;
+  string name = 2;
+  string provinceFk = 3;
+  string municipalityFk = 4;
+  SearchMunicipalityType searchMunicipalityType = 5;
+}
 
-// message SearchItemResponse {
-//   repeated SearchItem items = 1;
-//   SearchMunicipalityType searchMunicipalityType = 2;
-//   int32 nextPage = 3;
-// }
+message SearchItemResponse {
+  repeated SearchItem items = 1;
+  SearchMunicipalityType searchMunicipalityType = 2;
+  int32 nextPage = 3;
+}
 
 message ListItemRequest {
-  string nextPage = 1;
+  int32 nextPage = 1;
   string businessFk = 2;
-  google.protobuf.FieldMask fieldMask = 3;
+  string itemCategoryFk = 3;
+  google.protobuf.FieldMask fieldMask = 4;
 }
 
 message ListItemResponse {
   repeated Item items = 1;
-  string nextPage = 2;
+  int32 nextPage = 2;
 }
 
 message GetItemRequest {
@@ -185,30 +184,33 @@ message GetItemResponse {
   Item item = 1;
 }
 
-// message FeedRequest {
-//   Point location = 1;
-//   string provinceFk = 2;
-//   string municipalityFk = 3;
-//   SearchMunicipalityType searchMunicipalityType = 4;
-//   int32 nextPage = 5;
-//   google.protobuf.FieldMask fieldMask = 6;
-// }
+message FeedRequest {
+  Point location = 1;
+  string provinceFk = 2;
+  string municipalityFk = 3;
+  bool toPickUp = 4;
+  bool homeDelivery = 5;
+  SearchMunicipalityType searchMunicipalityType = 6;
+  int32 nextPage = 7;
+  google.protobuf.FieldMask fieldMask = 8;
+}
 
-// message FeedResponse {
-//   repeated Business businesses = 1;
-//   bool isCache = 2;
-//   SearchMunicipalityType searchMunicipalityType = 3;
-//   int32 nextPage = 4;
-// }
+message FeedResponse {
+  repeated Business businesses = 1;
+  SearchMunicipalityType searchMunicipalityType = 2;
+  int32 nextPage = 3;
+}
 
-// message GetBusinessRequest {
-//   string id = 1;
-//   google.protobuf.FieldMask fieldMask = 2;
-// }
+message GetBusinessRequest {
+  string id = 1;
+  Point location = 2;
+  google.protobuf.FieldMask fieldMask = 3;
+}
 
-// message GetBusinessResponse {
-//   Business business = 1;
-// }
+message GetBusinessResponse {
+  Business business = 1;
+  repeated ItemCategory itemCategory = 2;
+}
 
 // message GetPresignedPutUserAvatarRequest {
 //   string objectName = 1;
@@ -240,7 +242,7 @@ message SignUpResponse {
 // }
 
 message UserExistsRequest {
-  string email = 1;
+  string alias = 1;
 }
 
 message CheckSessionResponse {
@@ -371,35 +373,36 @@ message User {
   string updateTime = 13;
 }
 
-// message Business {
-//   string id = 1;
-//   string name = 2;
-//   string description = 3;
-//   string address = 4;
-//   string phone = 5;
-//   string email = 6;
-//   string highQualityPhoto = 7;
-//   string highQualityPhotoBlurHash = 8;
-//   string lowQualityPhoto = 9;
-//   string lowQualityPhotoBlurHash = 10;
-//   string thumbnail = 11;
-//   string thumbnailBlurHash = 12;
-//   bool isOpen = 13;
-//   double deliveryPrice = 14;
-//   repeated Polygon polygon = 15;
-//   Point coordinates = 16;
-//   int32 leadDayTime = 17;
-//   int32 leadHoursTime = 18;
-//   int32 leadMinutesTime = 19;
-//   bool toPickUp = 20;
-//   bool homeDelivery = 21;
-//   string businessBrandFk = 22;
-//   string provinceFk = 23;
-//   string municipalityFk = 24;
-//   double distance = 25;
-//   BusinessStatusType status = 26;
-//   int32 cursor = 27;
-// }
+message Business {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string address = 4;
+  string phone = 5;
+  string email = 6;
+  string highQualityPhoto = 7;
+  string highQualityPhotoBlurHash = 8;
+  string lowQualityPhoto = 9;
+  string lowQualityPhotoBlurHash = 10;
+  string thumbnail = 11;
+  string thumbnailBlurHash = 12;
+  bool isOpen = 13;
+  double deliveryPrice = 14;
+  repeated double polygon = 15;
+  Point coordinates = 16;
+  int32 leadDayTime = 17;
+  int32 leadHoursTime = 18;
+  int32 leadMinutesTime = 19;
+  bool toPickUp = 20;
+  bool homeDelivery = 21;
+  string businessBrandFk = 22;
+  string provinceFk = 23;
+  string municipalityFk = 24;
+  double distance = 25;
+  BusinessStatusType status = 26;
+  int32 cursor = 27;
+  bool isInRange = 28;
+}
 
 message Item {
   string id = 1;
@@ -420,18 +423,27 @@ message Item {
   string createTime = 16;
   string updateTime = 17;
   int32 cursor = 18;
+  bool isInRange = 19;
 }
 
-// message SearchItem {
-//   string id = 1;
-//   string name = 2;
-//   double price = 3;
-//   ItemStatusType status = 4;
-//   string thumbnail = 5;
-//   string thumbnailBlurHash = 6;
-//   string businessName = 7;
-//   int32 cursor = 8;
-// }
+message ItemCategory {
+  string id = 1;
+  string name = 2;
+  int32 index = 3;
+  string businessFk = 4;
+  string createTime = 5;
+  string updateTime = 6;
+}
+
+message SearchItem {
+  string id = 1;
+  string name = 2;
+  double price = 3;
+  ItemStatusType status = 4;
+  string thumbnail = 5;
+  string thumbnailBlurHash = 6;
+  int32 cursor = 7;
+}
 
 message ItemPhoto {
   string id = 1;
@@ -539,9 +551,9 @@ message UserAddress {
 //   string updateTime = 7;
 // }
 
-// message Polygon {
-//   repeated double coordinates = 1;
-// }
+message Polygon {
+  repeated double coordinates = 1;
+}
 
 // message VerificationCode {
 //   string id = 1;
@@ -555,11 +567,11 @@ message UserAddress {
 
 // // Enums
 
-// enum SearchMunicipalityType {
-//   SearchMunicipalityTypeUnspecified = 0;
-//   More = 1;
-//   NoMore = 2;
-// }
+enum SearchMunicipalityType {
+  SearchMunicipalityTypeUnspecified = 0;
+  More = 1;
+  NoMore = 2;
+}
 
 enum VerificationCodeType {
   VerificationCodeTypeUnspecified = 0;
@@ -575,11 +587,11 @@ enum ItemStatusType {
   Deprecated = 3;
 }
 
-// enum BusinessStatusType {
-//   BusinessStatusTypeUnspecified = 0;
-//   BusinessAvailable = 1;
-//   BusinessUnavailable = 2;
-// }
+enum BusinessStatusType {
+  BusinessStatusTypeUnspecified = 0;
+  BusinessAvailable = 1;
+  BusinessItemCategoryNull = 2;
+}
 
 enum PlatformType {
   PlatformTypeUnspecified = 0;
