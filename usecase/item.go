@@ -10,7 +10,7 @@ import (
 )
 
 type ItemService interface {
-	GetItem(request *dto.GetItemRequest) (*models.Item, error)
+	GetItem(request *dto.GetItemRequest) (*models.ItemBusiness, error)
 	ListItem(itemRequest *dto.ListItemRequest) (*dto.ListItemResponse, error)
 	SearchItem(name string, provinceFk string, municipalityFk string, cursor int64, searchMunicipalityType string) (*dto.SearchItemResponse, error)
 	// CreateItem(answer models.Item) (*int64, error)
@@ -62,11 +62,11 @@ func (i *itemService) ListItem(itemRequest *dto.ListItemRequest) (*dto.ListItemR
 	return &listItemResponse, nil
 }
 
-func (i *itemService) GetItem(request *dto.GetItemRequest) (*models.Item, error) {
-	var item *models.Item
+func (i *itemService) GetItem(request *dto.GetItemRequest) (*models.ItemBusiness, error) {
+	var item *models.ItemBusiness
 	var itemErr error
 	err := repository.DB.Transaction(func(tx *gorm.DB) error {
-		item, itemErr = i.dao.NewItemQuery().GetItem(tx, request.Id)
+		item, itemErr = i.dao.NewItemQuery().GetItem(tx, request.Id, request.Location)
 		if itemErr != nil {
 			return itemErr
 		}

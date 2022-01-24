@@ -6,6 +6,8 @@ import (
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/utils"
+	"github.com/twpayne/go-geom"
+	"github.com/twpayne/go-geom/encoding/ewkb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -41,7 +43,7 @@ func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb
 
 func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.GetItemResponse, error) {
 	var st *status.Status
-	item, err := m.itemService.GetItem(&dto.GetItemRequest{Id: req.Id})
+	item, err := m.itemService.GetItem(&dto.GetItemRequest{Id: req.Id, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}})
 	if err != nil {
 		switch err.Error() {
 		case "record not found":
@@ -84,6 +86,7 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 		UpdateTime:               item.UpdateTime.String(),
 		Cursor:                   item.Cursor,
 		Photos:                   itemPhotos,
+		IsInRange:                item.IsInRange,
 	}}, nil
 }
 
