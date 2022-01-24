@@ -31,7 +31,11 @@ func (i *itemService) ListItem(itemRequest *dto.ListItemRequest) (*[]models.Item
 	var itemsErr error
 	err := repository.DB.Transaction(func(tx *gorm.DB) error {
 		if itemRequest.BusinessFk != "" && itemRequest.BusinessItemCategoryFk == "" {
-			items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &models.Item{BusinessFk: uuid.MustParse(itemRequest.BusinessFk)})
+			itemCategoryRes, itemCategoryErr := i.dao.NewItemCategoryQuery().GetItemCategory(tx, &models.BusinessItemCategory{Index: 0, BusinessFk: uuid.MustParse(itemRequest.BusinessFk)})
+			if itemCategoryErr != nil {
+				return itemCategoryErr
+			}
+			items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &models.Item{BusinessFk: uuid.MustParse(itemRequest.BusinessFk), BusinessItemCategoryFk: itemCategoryRes.ID})
 			if itemsErr != nil {
 				return itemsErr
 			}
