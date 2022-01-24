@@ -11,12 +11,12 @@ import (
 )
 
 func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb.ListItemResponse, error) {
-	items, err := m.itemService.ListItem(&dto.ListItemRequest{BusinessFk: req.BusinessFk, BusinessItemCategoryFk: req.ItemCategoryFk, NextPage: req.NextPage})
+	listItemsResponse, err := m.itemService.ListItem(&dto.ListItemRequest{BusinessFk: req.BusinessFk, BusinessItemCategoryFk: req.ItemCategoryFk, NextPage: req.NextPage})
 	if err != nil {
 		return nil, err
 	}
-	itemsResponse := make([]*pb.Item, 0, len(*items))
-	for _, item := range *items {
+	itemsResponse := make([]*pb.Item, 0, len(listItemsResponse.Items))
+	for _, item := range listItemsResponse.Items {
 		itemsResponse = append(itemsResponse, &pb.Item{
 			Id:                       item.ID.String(),
 			Name:                     item.Name,
@@ -36,7 +36,7 @@ func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb
 			Cursor:                   int32(item.Cursor),
 		})
 	}
-	return &pb.ListItemResponse{Items: itemsResponse}, nil
+	return &pb.ListItemResponse{Items: itemsResponse, NextPage: listItemsResponse.NextPage}, nil
 }
 
 func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.GetItemResponse, error) {
