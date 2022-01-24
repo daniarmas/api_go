@@ -35,9 +35,10 @@ service ItemService {
   rpc SearchItem (SearchItemRequest) returns (SearchItemResponse) {}
 }
 
-// service UserService {
-//   rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse) {}
-// }
+service UserService {
+  rpc GetUser (google.protobuf.Empty) returns (GetUserResponse) {}
+  // rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse) {}
+}
 
 // service OrderService {
 //   rpc ListOrder (ListOrderRequest) returns (ListOrderResponse) {}
@@ -51,14 +52,6 @@ service ItemService {
 
 // service ObjectStorageService {
 //   rpc GetPresignedPutObjectUserAvatar (GetPresignedPutUserAvatarRequest) returns (GetPresignedPutUserAvatarResponse) {}
-// }
-
-/**
- * Service for get the hostname.
- */
-// service HostnameService {
-//   /// Get the hostname.
-//   rpc hostname(HostnameRequest) returns (HostnameResponse) {}
 // }
 
 // service Health {
@@ -124,6 +117,10 @@ service ItemService {
 // message UpdateUserResponse {
 //   User user = 1;
 // }
+
+message GetUserResponse {
+  User user = 1;
+}
 
 message ListSessionRequest {
   google.protobuf.FieldMask fieldMask = 1;
@@ -275,10 +272,6 @@ message GetVerificationCodeRequest {
   string email = 2;
   VerificationCodeType type = 3;
 }
-
-// message GetVerificationCodeResponse {
-//   VerificationCode verificationCode = 1;
-// }
 
 // message UpdateVerificationCodeRequest {
 //   string id = 1;
@@ -478,18 +471,6 @@ message ItemPhoto {
 //   string updateTime = 7;
 // }
 
-// message AuthorizationToken {
-//   string id = 1;
-//   string refreshTokenFk = 2;
-//   string deviceFk = 3;
-//   string userFk = 4;
-//   bool valid = 5;
-//   AppType app = 6;
-//   string appVersion = 7;
-//   string createTime = 8;
-//   string updateTime = 9;
-// }
-
 message Session {
   string id = 1;
   PlatformType platform = 2;
@@ -500,16 +481,6 @@ message Session {
   string deviceId = 7;
   bool actual = 8;
 }
-
-// message RefreshToken {
-//   string id = 1;
-//   string userFk = 2;
-//   string deviceFk = 3;
-//   bool valid = 4;
-//   string expirationTime = 5;
-//   string createTime = 6;
-//   string updateTime = 7;
-// }
 
 // message Device {
 //   string id = 1;
@@ -555,16 +526,6 @@ message UserAddress {
 message Polygon {
   repeated double coordinates = 1;
 }
-
-// message VerificationCode {
-//   string id = 1;
-//   string code = 2;
-//   string email = 3;
-//   VerificationCodeType type = 4;
-//   string deviceId = 5;
-//   string createTime = 6;
-//   string updateTime = 7;
-// }
 
 // // Enums
 
