@@ -18,7 +18,7 @@ type itemQuery struct{}
 
 func (i *itemQuery) ListItem(tx *gorm.DB, where *models.Item) ([]models.Item, error) {
 	var items []models.Item
-	result := tx.Limit(10).Where(where).Find(&items)
+	result := tx.Limit(11).Where(where).Find(&items)
 	if result.Error != nil {
 		return nil, result.Error
 	}
