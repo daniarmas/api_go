@@ -11,7 +11,7 @@ import (
 
 type ItemService interface {
 	GetItem(id string) (*models.Item, error)
-	ListItem(itemRequest *dto.ListItemRequest) (*[]models.Item, error)
+	ListItem(itemRequest *dto.ListItemRequest) (*dto.ListItemResponse, error)
 	SearchItem(name string, provinceFk string, municipalityFk string, cursor int64, searchMunicipalityType string) (*dto.SearchItemResponse, error)
 	// CreateItem(answer models.Item) (*int64, error)
 	// UpdateItem(answer models.Item) (*models.Item, error)
@@ -26,8 +26,9 @@ func NewItemService(dao repository.DAO) ItemService {
 	return &itemService{dao: dao}
 }
 
-func (i *itemService) ListItem(itemRequest *dto.ListItemRequest) (*[]models.Item, error) {
-	var items []models.Item
+func (i *itemService) ListItem(itemRequest *dto.ListItemRequest) (*dto.ListItemResponse, error) {
+	var items *[]models.Item
+	var listItemResponse dto.ListItemResponse
 	var itemsErr error
 	err := repository.DB.Transaction(func(tx *gorm.DB) error {
 		if itemRequest.BusinessFk != "" && itemRequest.BusinessItemCategoryFk == "" {
@@ -35,9 +36,16 @@ func (i *itemService) ListItem(itemRequest *dto.ListItemRequest) (*[]models.Item
 			if itemCategoryErr != nil {
 				return itemCategoryErr
 			}
-			items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &models.Item{BusinessFk: uuid.MustParse(itemRequest.BusinessFk), BusinessItemCategoryFk: itemCategoryRes.ID})
+			items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &models.Item{BusinessFk: uuid.MustParse(itemRequest.BusinessFk), BusinessItemCategoryFk: itemCategoryRes.ID, Cursor: itemRequest.NextPage})
 			if itemsErr != nil {
 				return itemsErr
+			} else if len(*items) > 10 {
+				*items = (*items)[:len(*items)-1]
+				listItemResponse.NextPage = (*items)[len(*items)-1].Cursor
+			} else if len(*items) == 0 {
+				listItemResponse.NextPage = itemRequest.NextPage
+			} else {
+				listItemResponse.NextPage = (*items)[len(*items)-1].Cursor
 			}
 		} else if itemRequest.BusinessFk != "" && itemRequest.BusinessItemCategoryFk != "" {
 			items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &models.Item{BusinessFk: uuid.MustParse(itemRequest.BusinessFk), BusinessItemCategoryFk: uuid.MustParse(itemRequest.BusinessItemCategoryFk)})
@@ -50,7 +58,8 @@ func (i *itemService) ListItem(itemRequest *dto.ListItemRequest) (*[]models.Item
 	if err != nil {
 		return nil, err
 	}
-	return &items, nil
+	listItemResponse.Items = *items
+	return &listItemResponse, nil
 }
 
 func (i *itemService) GetItem(id string) (*models.Item, error) {

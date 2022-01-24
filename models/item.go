@@ -28,7 +28,7 @@ type Item struct {
 	LowQualityPhotoBlurHash  string         `gorm:"column:low_quality_photo_blurhash;not null"`
 	Thumbnail                string         `gorm:"column:thumbnail;not null"`
 	ThumbnailBlurHash        string         `gorm:"column:thumbnail_blurhash;not null"`
-	Cursor                   int64          `gorm:"column:cursor"`
+	Cursor                   int32          `gorm:"column:cursor"`
 	Status                   string         `gorm:"column:status;not null"`
 	CreateTime               time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime               time.Time      `gorm:"column:update_time;not null"`

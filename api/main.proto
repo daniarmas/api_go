@@ -163,7 +163,7 @@ message SearchItemResponse {
 }
 
 message ListItemRequest {
-  string nextPage = 1;
+  int32 nextPage = 1;
   string businessFk = 2;
   string itemCategoryFk = 3;
   google.protobuf.FieldMask fieldMask = 4;
@@ -171,7 +171,7 @@ message ListItemRequest {
 
 message ListItemResponse {
   repeated Item items = 1;
-  string nextPage = 2;
+  int32 nextPage = 2;
 }
 
 message GetItemRequest {
