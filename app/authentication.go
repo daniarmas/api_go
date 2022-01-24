@@ -44,20 +44,18 @@ func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *
 }
 
 func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.GetVerificationCodeRequest) (*gp.Empty, error) {
-	// FieldMask
-	// userDst := &datastruct.VerificationCode{} // a struct to copy to
-	// mask, _ := fieldmask_utils.MaskFromPaths(req.FieldMask.Paths, naming)
-	// fields := strings.Split(mask.String(), ",")
-	// fieldmask_utils.StructToStruct(mask, req.Email, userDst)
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	result, err := m.authenticationService.GetVerificationCode(&models.VerificationCode{Code: req.Code, Email: req.Email, Type: req.Type.String(), DeviceId: md.Get("deviceid")[0]}, &[]string{"id"})
+	_, err := m.authenticationService.GetVerificationCode(&models.VerificationCode{Code: req.Code, Email: req.Email, Type: req.Type.String(), DeviceId: md.Get("deviceid")[0]}, &[]string{"id"})
 	if err != nil {
-		st = status.New(codes.Internal, "Internal server error")
-		return nil, st.Err()
-	} else if result == nil {
-		st = status.New(codes.NotFound, "Not found")
-		return nil, st.Err()
+		switch err.Error() {
+		case "record not found":
+			st = status.New(codes.NotFound, "Not found")
+			return nil, st.Err()
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+			return nil, st.Err()
+		}
 	}
 	return &gp.Empty{}, nil
 }

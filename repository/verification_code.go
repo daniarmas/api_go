@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"errors"
+
 	"github.com/daniarmas/api_go/models"
 	"gorm.io/gorm"
 )
@@ -23,10 +25,10 @@ func (v *verificationCodeQuery) CreateVerificationCode(tx *gorm.DB, verification
 
 func (v *verificationCodeQuery) GetVerificationCode(tx *gorm.DB, verificationCode *models.VerificationCode, fields *[]string) (*models.VerificationCode, error) {
 	var verificationCodeResult *models.VerificationCode
-	result := tx.Limit(1).Where(verificationCode).Select(*fields).Find(&verificationCodeResult)
+	result := tx.Where(verificationCode).Select(*fields).Take(&verificationCodeResult)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
-			return verificationCodeResult, nil
+			return nil, errors.New("record not found")
 		} else {
 			return nil, result.Error
 		}
