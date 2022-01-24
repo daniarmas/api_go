@@ -7,7 +7,7 @@ import (
 
 type ItemQuery interface {
 	GetItem(id string) (models.Item, error)
-	ListItem(tx *gorm.DB, where *models.Item) ([]models.Item, error)
+	ListItem(tx *gorm.DB, where *models.Item) (*[]models.Item, error)
 	SearchItem(tx *gorm.DB, name string, provinceFk string, municipalityFk string, cursor int64, municipalityNotEqual bool, limit int64) (*[]models.Item, error)
 	// CreateItem(answer models.Item) (*int64, error)
 	// UpdateItem(answer models.Item) (*models.Item, error)
@@ -16,13 +16,13 @@ type ItemQuery interface {
 
 type itemQuery struct{}
 
-func (i *itemQuery) ListItem(tx *gorm.DB, where *models.Item) ([]models.Item, error) {
+func (i *itemQuery) ListItem(tx *gorm.DB, where *models.Item) (*[]models.Item, error) {
 	var items []models.Item
-	result := tx.Limit(11).Where(where).Find(&items)
+	result := tx.Limit(11).Where("business_fk = ? AND business_item_category_fk = ? AND cursor > ?", where.BusinessFk, where.BusinessItemCategoryFk, where.Cursor).Order("cursor asc").Find(&items)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return items, nil
+	return &items, nil
 }
 
 func (i *itemQuery) GetItem(id string) (models.Item, error) {
