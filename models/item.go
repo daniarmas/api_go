@@ -18,6 +18,7 @@ type Item struct {
 	Name                     string         `gorm:"column:name;not null"`
 	Description              string         `gorm:"column:description"`
 	Price                    float64        `gorm:"column:price;not null"`
+	ItemPhoto                []ItemPhoto    `gorm:"foreignKey:ItemFk"`
 	Availability             int64          `gorm:"column:availability;not null"`
 	BusinessFk               uuid.UUID      `gorm:"column:business_fk;not null"`
 	Business                 Business       `gorm:"foreignKey:BusinessFk"`
