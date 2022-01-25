@@ -19,14 +19,6 @@ type DAO interface {
 	NewObjectStorageDatasource() ObjectStorageDatasource
 }
 
-// MakeBucketOptions holds all options to tweak bucket creation
-type MakeBucketOptions struct {
-	// Bucket location
-	Region string
-	// Enable object locking
-	ObjectLocking bool
-}
-
 type dao struct{}
 
 var DB *gorm.DB
