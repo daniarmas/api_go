@@ -33,7 +33,7 @@ func (i *itemQuery) GetItem(tx *gorm.DB, id string, point ewkb.Point) (*models.I
 	var item *models.ItemBusiness
 	p := fmt.Sprintf("'POINT(%v %v)'", point.Point.Coords()[1], point.Point.Coords()[0])
 	s := fmt.Sprintf("item.id, item.name, item.description, item.price, item.status, item.availability, item.business_fk, item.business_item_category_fk, item.high_quality_photo, item.high_quality_photo_blurhash, item.low_quality_photo, item.low_quality_photo_blurhash, item.thumbnail, item.thumbnail_blurhash, item.create_time, item.update_time, item.cursor, ST_Contains(business.polygon, ST_GeomFromText(%s, 4326)) as is_in_range", p)
-	result := DB.Model(&models.Item{}).Preload("ItemPhoto").Select(s).Joins("left join business on business.id = item.business_fk").Where("item.id = ?", id).Take(&item)
+	result := tx.Model(&models.Item{}).Preload("ItemPhoto").Select(s).Joins("left join business on business.id = item.business_fk").Where("item.id = ?", id).Take(&item)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

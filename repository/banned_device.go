@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"errors"
+
 	"github.com/daniarmas/api_go/models"
 	"gorm.io/gorm"
 )
@@ -17,10 +19,10 @@ type bannedDeviceQuery struct{}
 
 func (i *bannedDeviceQuery) GetBannedDevice(tx *gorm.DB, bannedDevice *models.BannedDevice, fields *[]string) (*models.BannedDevice, error) {
 	var bannedDeviceResult *models.BannedDevice
-	result := tx.Limit(1).Where(bannedDevice).Select(*fields).Find(&bannedDeviceResult)
+	result := tx.Where(bannedDevice).Select(*fields).Take(&bannedDeviceResult)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
-			return bannedDeviceResult, nil
+			return nil, errors.New("record not found")
 		} else {
 			return nil, result.Error
 		}

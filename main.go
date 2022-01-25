@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/daniarmas/api_go/app"
+	"github.com/daniarmas/api_go/datasource"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/usecase"
@@ -13,17 +14,25 @@ import (
 )
 
 func main() {
-	// Load config file
-	config, err := repository.NewConfig()
+	// Configurations
+	config, err := datasource.NewConfig()
 	if err != nil {
 		log.Fatal("cannot load config:", err)
 	}
-	// DB
-	db, err := repository.NewDB(config)
+	// Database
+	db, err := datasource.NewDB(config)
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 		return
 	}
+	// ObjectStorageServer
+	objectStorage, objectStorageErr := datasource.NewMinioClient(config)
+	if objectStorageErr != nil {
+		log.Fatalf("Error connecting to minio: %v", objectStorageErr)
+	}
+	// Datasource
+	datasourceDao := datasource.NewDAO(db, config, objectStorage)
+	fmt.Println(datasourceDao)
 	// Register all services
 	dao := repository.NewDAO(db, config)
 	itemService := usecase.NewItemService(dao)

@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
@@ -28,7 +29,7 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 	var businessErr, businessErrAdd error
 	var response dto.FeedResponse
 	if feedRequest.SearchMunicipalityType == pb.SearchMunicipalityType_More.String() {
-		err := repository.DB.Transaction(func(tx *gorm.DB) error {
+		err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 			businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceFk, feedRequest.MunicipalityFk, feedRequest.NextPage, false, feedRequest.HomeDelivery, feedRequest.ToPickUp)
 			if businessErr != nil {
 				return businessErr
@@ -44,7 +45,7 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 			response.SearchMunicipalityType = pb.SearchMunicipalityType_More.String()
 		} else if len(*businessRes) <= 5 && len(*businessRes) != 0 {
 			length := 5 - len(*businessRes)
-			err := repository.DB.Transaction(func(tx *gorm.DB) error {
+			err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 				businessResAdd, businessErrAdd = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, int32(length), feedRequest.ProvinceFk, feedRequest.MunicipalityFk, 0, true, feedRequest.HomeDelivery, feedRequest.ToPickUp)
 				if businessErrAdd != nil {
 					return businessErrAdd
@@ -63,7 +64,7 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 			response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
 			response.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore.String()
 		} else if len(*businessRes) == 0 {
-			err := repository.DB.Transaction(func(tx *gorm.DB) error {
+			err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 				businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceFk, feedRequest.MunicipalityFk, 0, true, feedRequest.HomeDelivery, feedRequest.ToPickUp)
 				if businessErr != nil {
 					return businessErr
@@ -80,7 +81,7 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 			}
 		}
 	} else {
-		err := repository.DB.Transaction(func(tx *gorm.DB) error {
+		err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 			businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceFk, feedRequest.MunicipalityFk, feedRequest.NextPage, true, feedRequest.HomeDelivery, feedRequest.ToPickUp)
 			if businessErr != nil {
 				return businessErr
@@ -139,7 +140,7 @@ func (v *businessService) GetBusiness(request *dto.GetBusinessRequest) (*dto.Get
 	var businessRes *models.Business
 	var itemCategoryRes *[]models.BusinessItemCategory
 	var businessErr, itemCategoryErr error
-	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 		businessRes, businessErr = v.dao.NewBusinessQuery().GetBusiness(tx, &models.Business{Coordinates: request.Coordinates, ID: uuid.MustParse(request.Id)})
 		if businessErr != nil {
 			return businessErr

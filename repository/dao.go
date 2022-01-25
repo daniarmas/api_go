@@ -1,15 +1,8 @@
 package repository
 
 import (
-	"fmt"
-	"log"
-	"os"
-	"time"
-
 	"github.com/daniarmas/api_go/utils"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 type DAO interface {
@@ -29,50 +22,48 @@ type DAO interface {
 
 type dao struct{}
 
-var DB *gorm.DB
 var Config *utils.Config
 
 func NewDAO(db *gorm.DB, config *utils.Config) DAO {
-	DB = db
-	Config = config
+		Config = config
 	return &dao{}
 }
 
-func NewConfig() (*utils.Config, error) {
-	Config, err := utils.LoadConfig(".")
-	if err != nil {
-		return nil, err
-	}
-	return &Config, nil
-}
+// func NewConfig() (*utils.Config, error) {
+// 	Config, err := utils.LoadConfig(".")
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &Config, nil
+// }
 
-func NewDB(config *utils.Config) (*gorm.DB, error) {
-	host := config.DBHost
-	port := config.DBPort
-	user := config.DBUser
-	dbName := config.DBDatabase
-	password := config.DBPassword
+// func NewDB(config *utils.Config) (*gorm.DB, error) {
+// 	host := config.DBHost
+// 	port := config.DBPort
+// 	user := config.DBUser
+// 	dbName := config.DBDatabase
+// 	password := config.DBPassword
 
-	// Starting a database
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", host, user, password, dbName, port)
-	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags),
-		logger.Config{
-			SlowThreshold:             time.Millisecond * 200,
-			LogLevel:                  logger.Info,
-			IgnoreRecordNotFoundError: false,
-			Colorful:                  true,
-		},
-	)
-	DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		SkipDefaultTransaction: true,
-		Logger:                 newLogger,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return DB, nil
-}
+// 	// Starting a database
+// 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", host, user, password, dbName, port)
+// 	newLogger := logger.New(
+// 		log.New(os.Stdout, "\r\n", log.LstdFlags),
+// 		logger.Config{
+// 			SlowThreshold:             time.Millisecond * 200,
+// 			LogLevel:                  logger.Info,
+// 			IgnoreRecordNotFoundError: false,
+// 			Colorful:                  true,
+// 		},
+// 	)
+// 	DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+// 		SkipDefaultTransaction: true,
+// 		Logger:                 newLogger,
+// 	})
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return DB, nil
+// }
 
 func (d *dao) NewItemQuery() ItemQuery {
 	return &itemQuery{}
