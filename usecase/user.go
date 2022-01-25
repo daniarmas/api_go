@@ -45,7 +45,7 @@ func (i *userService) GetUser(metadata *metadata.MD) (*models.User, error) {
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		user, userErr = i.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserFk}, nil)
+		user, userErr = i.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{ID: authorizationTokenRes.UserFk}, nil)
 		if userErr != nil {
 			return userErr
 		}

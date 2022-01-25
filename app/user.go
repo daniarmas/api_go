@@ -17,6 +17,8 @@ func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.GetUserRes
 	getUserResponse, err := m.userService.GetUser(&md)
 	if err != nil {
 		switch err.Error() {
+		case "authorizationtoken not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "authorizationtoken expired":
 			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
 		case "signature is invalid":

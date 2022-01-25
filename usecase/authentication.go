@@ -33,16 +33,14 @@ func NewAuthenticationService(dao repository.DAO) AuthenticationService {
 
 func (v *authenticationService) CreateVerificationCode(verificationCode *models.VerificationCode) error {
 	err := repository.DB.Transaction(func(tx *gorm.DB) error {
-		user, _ := v.dao.NewUserQuery().GetUser(tx, &models.User{Email: verificationCode.Email}, &[]string{"id"})
-		switch verificationCode.Type {
-		case "SignIn", "ChangeUserEmail":
-			if user == nil {
+		_, userErr := v.dao.NewUserQuery().GetUser(tx, &models.User{Email: verificationCode.Email})
+		if userErr != nil {
+			if userErr.Error() == "record not found" && (verificationCode.Type == "SignIn" || verificationCode.Type == "ChangeUserEmail") {
 				return errors.New("user not found")
-			}
-		case "SignUp":
-			if user != nil {
+			} else if userErr.Error() == "record not found" && verificationCode.Type == "SignUp" {
 				return errors.New("user already exists")
 			}
+			return userErr
 		}
 		bannedUserResult, bannedUserError := v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: verificationCode.Email}, &[]string{"id"})
 		if bannedUserError != nil {
@@ -102,7 +100,7 @@ func (v *authenticationService) SignIn(verificationCode *models.VerificationCode
 		} else if *verificationCodeRes == (models.VerificationCode{}) {
 			return errors.New("verification code not found")
 		}
-		userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &models.User{Email: verificationCode.Email}, nil)
+		userRes, userErr = v.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{Email: verificationCode.Email}, nil)
 		if userErr != nil {
 			return userErr
 		} else if userRes == nil {
@@ -192,7 +190,7 @@ func (v *authenticationService) SignUp(fullname *string, alias *string, verifica
 		} else if *verificationCodeRes == (models.VerificationCode{}) {
 			return errors.New("verification code not found")
 		}
-		userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &models.User{Email: verificationCode.Email}, nil)
+		userRes, userErr = v.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{Email: verificationCode.Email}, nil)
 		if userErr != nil {
 			return userErr
 		} else if userRes != nil {
@@ -272,7 +270,7 @@ func (v *authenticationService) UserExists(alias *string) error {
 	var userRes *models.User
 	var userErr error
 	err := repository.DB.Transaction(func(tx *gorm.DB) error {
-		userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &models.User{Alias: *alias}, &[]string{"id"})
+		userRes, userErr = v.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{Alias: *alias}, &[]string{"id"})
 		if userErr != nil {
 			return userErr
 		}
@@ -339,7 +337,7 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 			} else if refreshTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserFk}, &[]string{"id"})
+			userRes, userErr = v.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{ID: authorizationTokenRes.UserFk}, &[]string{"id"})
 			if userErr != nil {
 				return userErr
 			} else if userRes == nil {
@@ -549,7 +547,7 @@ func (v *authenticationService) RefreshToken(refreshToken *string, metadata *met
 		} else if refreshTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		userRes, userErr := v.dao.NewUserQuery().GetUser(tx, &models.User{ID: refreshTokenRes.UserFk}, &[]string{"id"})
+		userRes, userErr := v.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{ID: refreshTokenRes.UserFk}, &[]string{"id"})
 		if userErr != nil {
 			return userErr
 		} else if userRes == nil {

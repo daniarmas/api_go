@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"errors"
+
 	"github.com/daniarmas/api_go/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -51,7 +53,7 @@ func (v *authorizationTokenQuery) GetAuthorizationToken(tx *gorm.DB, authorizati
 	}
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
-			return authorizationTokenResult, nil
+			return nil, errors.New("authorizationtoken not found")
 		} else {
 			return nil, result.Error
 		}
