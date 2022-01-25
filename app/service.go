@@ -10,6 +10,11 @@ type ItemServer struct {
 	itemService usecase.ItemService
 }
 
+type UserServer struct {
+	pb.UnimplementedUserServiceServer
+	userService usecase.UserService
+}
+
 type AuthenticationServer struct {
 	pb.UnimplementedAuthenticationServiceServer
 	authenticationService usecase.AuthenticationService
@@ -25,6 +30,14 @@ func NewItemServer(
 ) *ItemServer {
 	return &ItemServer{
 		itemService: itemService,
+	}
+}
+
+func NewUserServer(
+	userService usecase.UserService,
+) *UserServer {
+	return &UserServer{
+		userService: userService,
 	}
 }
 

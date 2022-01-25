@@ -33,29 +33,27 @@ func NewAuthenticationService(dao repository.DAO) AuthenticationService {
 
 func (v *authenticationService) CreateVerificationCode(verificationCode *models.VerificationCode) error {
 	err := repository.DB.Transaction(func(tx *gorm.DB) error {
-		user, _ := v.dao.NewUserQuery().GetUser(tx, &models.User{Email: verificationCode.Email}, &[]string{"id"})
-		switch verificationCode.Type {
-		case "SignIn", "ChangeUserEmail":
-			if *user == (models.User{}) {
+		_, userErr := v.dao.NewUserQuery().GetUser(tx, &models.User{Email: verificationCode.Email})
+		if userErr != nil {
+			if userErr.Error() == "record not found" && (verificationCode.Type == "SignIn" || verificationCode.Type == "ChangeUserEmail") {
 				return errors.New("user not found")
-			}
-		case "SignUp":
-			if *user != (models.User{}) {
+			} else if userErr.Error() == "record not found" && verificationCode.Type == "SignUp" {
 				return errors.New("user already exists")
 			}
+			return userErr
 		}
 		bannedUserResult, bannedUserError := v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: verificationCode.Email}, &[]string{"id"})
 		if bannedUserError != nil {
 			return bannedUserError
 		}
-		if *bannedUserResult != (models.BannedUser{}) {
+		if bannedUserResult != nil {
 			return errors.New("banned user")
 		}
 		bannedDeviceResult, bannedDeviceError := v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceId: verificationCode.DeviceId}, &[]string{"id"})
 		if bannedDeviceError != nil {
 			return bannedDeviceError
 		}
-		if *bannedDeviceResult != (models.BannedDevice{}) {
+		if bannedDeviceResult != nil {
 			return errors.New("banned device")
 		}
 		v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{Email: verificationCode.Email, Type: verificationCode.Type, DeviceId: verificationCode.DeviceId})
@@ -102,22 +100,22 @@ func (v *authenticationService) SignIn(verificationCode *models.VerificationCode
 		} else if *verificationCodeRes == (models.VerificationCode{}) {
 			return errors.New("verification code not found")
 		}
-		userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &models.User{Email: verificationCode.Email}, nil)
+		userRes, userErr = v.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{Email: verificationCode.Email}, nil)
 		if userErr != nil {
 			return userErr
-		} else if *userRes == (models.User{}) {
+		} else if userRes == nil {
 			return errors.New("user not found")
 		}
 		bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: verificationCode.Email}, &[]string{"id"})
 		if bannedUserErr != nil {
 			return bannedUserErr
-		} else if *bannedUserRes != (models.BannedUser{}) {
+		} else if bannedUserRes != nil {
 			return errors.New("user banned")
 		}
 		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceId: verificationCode.DeviceId}, &[]string{"id"})
 		if bannedDeviceErr != nil {
 			return bannedDeviceErr
-		} else if *bannedDeviceRes != (models.BannedDevice{}) {
+		} else if bannedDeviceRes != nil {
 			return errors.New("device banned")
 		}
 		deleteVerificationCodeErr := v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{Email: verificationCode.Email, Type: "SignIn", DeviceId: verificationCode.DeviceId})
@@ -192,22 +190,22 @@ func (v *authenticationService) SignUp(fullname *string, alias *string, verifica
 		} else if *verificationCodeRes == (models.VerificationCode{}) {
 			return errors.New("verification code not found")
 		}
-		userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &models.User{Email: verificationCode.Email}, nil)
+		userRes, userErr = v.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{Email: verificationCode.Email}, nil)
 		if userErr != nil {
 			return userErr
-		} else if *userRes != (models.User{}) {
+		} else if userRes != nil {
 			return errors.New("user exists")
 		}
 		bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: verificationCode.Email}, &[]string{"id"})
 		if bannedUserErr != nil {
 			return bannedUserErr
-		} else if *bannedUserRes != (models.BannedUser{}) {
+		} else if bannedUserRes != nil {
 			return errors.New("user banned")
 		}
 		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceId: verificationCode.DeviceId}, &[]string{"id"})
 		if bannedDeviceErr != nil {
 			return bannedDeviceErr
-		} else if *bannedDeviceRes != (models.BannedDevice{}) {
+		} else if bannedDeviceRes != nil {
 			return errors.New("device banned")
 		}
 		deleteVerificationCodeErr := v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{Email: verificationCode.Email, Type: "SignIn", DeviceId: verificationCode.DeviceId})
@@ -272,7 +270,7 @@ func (v *authenticationService) UserExists(alias *string) error {
 	var userRes *models.User
 	var userErr error
 	err := repository.DB.Transaction(func(tx *gorm.DB) error {
-		userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &models.User{Alias: *alias}, &[]string{"id"})
+		userRes, userErr = v.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{Alias: *alias}, &[]string{"id"})
 		if userErr != nil {
 			return userErr
 		}
@@ -280,7 +278,7 @@ func (v *authenticationService) UserExists(alias *string) error {
 	})
 	if err != nil {
 		return err
-	} else if *userRes != (models.User{}) {
+	} else if userRes != nil {
 		return errors.New("user already exists")
 	}
 	return nil
@@ -311,7 +309,7 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 			bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceId: metadata.Get("deviceid")[0]}, &[]string{"id"})
 			if bannedDeviceErr != nil {
 				return bannedDeviceErr
-			} else if *bannedDeviceRes != (models.BannedDevice{}) {
+			} else if bannedDeviceRes != nil {
 				return errors.New("device banned")
 			}
 			authorizationTokenParseRes, authorizationTokenParseErr := v.dao.NewTokenQuery().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
@@ -330,25 +328,25 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk", "refresh_token_fk"})
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
-			} else if *authorizationTokenRes == (models.AuthorizationToken{}) {
+			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
 			refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &models.RefreshToken{ID: authorizationTokenRes.RefreshTokenFk}, &[]string{"id"})
 			if refreshTokenErr != nil {
 				return refreshTokenErr
-			} else if *refreshTokenRes == (models.RefreshToken{}) {
+			} else if refreshTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserFk}, &[]string{"id"})
+			userRes, userErr = v.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{ID: authorizationTokenRes.UserFk}, &[]string{"id"})
 			if userErr != nil {
 				return userErr
-			} else if *userRes == (models.User{}) {
+			} else if userRes == nil {
 				return errors.New("user not found")
 			}
 			bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{UserFk: authorizationTokenRes.UserFk}, &[]string{"id"})
 			if bannedUserErr != nil {
 				return bannedUserErr
-			} else if *bannedUserRes != (models.BannedUser{}) {
+			} else if bannedUserRes != nil {
 				return errors.New("user banned")
 			}
 			return nil
@@ -370,7 +368,7 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 			bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceId: metadata.Get("deviceid")[0]}, &[]string{"id"})
 			if bannedDeviceErr != nil {
 				return bannedDeviceErr
-			} else if *bannedDeviceRes != (models.BannedDevice{}) {
+			} else if bannedDeviceRes != nil {
 				return errors.New("device banned")
 			}
 			return nil
@@ -401,7 +399,7 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenFk *string,
 			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
-			} else if *authorizationTokenRes == (models.AuthorizationToken{}) {
+			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
 			var refreshTokenIds []string
@@ -438,7 +436,7 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenFk *string,
 			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
-			} else if *authorizationTokenRes == (models.AuthorizationToken{}) {
+			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			} else if authorizationTokenRes.UserFk != authorizationTokenByReqRes.UserFk {
 				return errors.New("permission denied")
@@ -469,7 +467,7 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenFk *string,
 			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk", "device_fk"})
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
-			} else if *authorizationTokenRes == (models.AuthorizationToken{}) {
+			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
 			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserFk: authorizationTokenRes.UserFk, DeviceFk: authorizationTokenRes.DeviceFk}, &[]string{"id"})
@@ -511,7 +509,7 @@ func (v *authenticationService) ListSession(metadata *metadata.MD) (*dto.ListSes
 		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk", "device_fk"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
-		} else if *authorizationTokenRes == (models.AuthorizationToken{}) {
+		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
 		listSessionRes, listSessionErr = v.dao.NewSessionQuery().ListSession(tx, &models.Session{UserFk: authorizationTokenRes.UserFk}, nil)
@@ -546,13 +544,13 @@ func (v *authenticationService) RefreshToken(refreshToken *string, metadata *met
 		refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &models.RefreshToken{ID: uuid.MustParse(*refreshTokenParseRes)}, &[]string{"id", "user_fk", "device_fk"})
 		if refreshTokenErr != nil {
 			return refreshTokenErr
-		} else if *refreshTokenRes == (models.RefreshToken{}) {
+		} else if refreshTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		userRes, userErr := v.dao.NewUserQuery().GetUser(tx, &models.User{ID: refreshTokenRes.UserFk}, &[]string{"id"})
+		userRes, userErr := v.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{ID: refreshTokenRes.UserFk}, &[]string{"id"})
 		if userErr != nil {
 			return userErr
-		} else if *userRes == (models.User{}) {
+		} else if userRes == nil {
 			return errors.New("user not found")
 		}
 		deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{ID: refreshTokenRes.ID}, &[]string{"id"})

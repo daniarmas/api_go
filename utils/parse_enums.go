@@ -43,3 +43,13 @@ func ParseSearchMunicipalityType(tp string) *pb.SearchMunicipalityType {
 		return pb.SearchMunicipalityType_SearchMunicipalityTypeUnspecified.Enum()
 	}
 }
+
+func ParseResidenceType(tp string) *pb.UserAddress_UserAddressType {
+	if tp == "House" {
+		return pb.UserAddress_HOUSE.Enum()
+	} else if tp == "Apartament" {
+		return pb.UserAddress_APARTAMENT.Enum()
+	} else {
+		return pb.UserAddress_UNSPECIFIED.Enum()
+	}
+}

@@ -29,6 +29,7 @@ func main() {
 	itemService := usecase.NewItemService(dao)
 	authenticationService := usecase.NewAuthenticationService(dao)
 	businessService := usecase.NewBusinessService(dao)
+	userService := usecase.NewUserService(dao)
 
 	// Starting gRPC server
 	address := fmt.Sprintf("0.0.0.0:%s", config.ApiPort)
@@ -46,6 +47,9 @@ func main() {
 	))
 	pb.RegisterBusinessServiceServer(grpcServer, app.NewBusinessServer(
 		businessService,
+	))
+	pb.RegisterUserServiceServer(grpcServer, app.NewUserServer(
+		userService,
 	))
 	err = grpcServer.Serve(listener)
 	if err != nil {

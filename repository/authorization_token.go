@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"errors"
+
 	"github.com/daniarmas/api_go/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -8,9 +10,7 @@ import (
 
 type AuthorizationTokenQuery interface {
 	GetAuthorizationToken(tx *gorm.DB, authorizationToken *models.AuthorizationToken, fields *[]string) (*models.AuthorizationToken, error)
-	// ListItem() ([]models.Item, error)
 	CreateAuthorizationToken(tx *gorm.DB, authorizationToken *models.AuthorizationToken) (*models.AuthorizationToken, error)
-	// UpdateDevice(device *models.Device) error
 	DeleteAuthorizationToken(tx *gorm.DB, authorizationToken *models.AuthorizationToken) (*[]models.AuthorizationToken, error)
 	DeleteAuthorizationTokenIn(tx *gorm.DB, where string, ids *[]string) (*[]models.AuthorizationToken, error)
 }
@@ -47,13 +47,13 @@ func (v *authorizationTokenQuery) GetAuthorizationToken(tx *gorm.DB, authorizati
 	var authorizationTokenResult *models.AuthorizationToken
 	var result *gorm.DB
 	if fields != nil {
-		result = tx.Limit(1).Where(authorizationToken).Select(*fields).Find(&authorizationTokenResult)
+		result = tx.Where(authorizationToken).Select(*fields).Take(&authorizationTokenResult)
 	} else {
-		result = tx.Limit(1).Where(authorizationToken).Find(&authorizationTokenResult)
+		result = tx.Where(authorizationToken).Take(&authorizationTokenResult)
 	}
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
-			return authorizationTokenResult, nil
+			return nil, errors.New("authorizationtoken not found")
 		} else {
 			return nil, result.Error
 		}
