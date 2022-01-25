@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
@@ -30,7 +31,7 @@ func (i *itemService) ListItem(itemRequest *dto.ListItemRequest) (*dto.ListItemR
 	var items *[]models.Item
 	var listItemResponse dto.ListItemResponse
 	var itemsErr error
-	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 		if itemRequest.BusinessFk != "" && itemRequest.BusinessItemCategoryFk == "" {
 			itemCategoryRes, itemCategoryErr := i.dao.NewItemCategoryQuery().GetItemCategory(tx, &models.BusinessItemCategory{Index: 0, BusinessFk: uuid.MustParse(itemRequest.BusinessFk)})
 			if itemCategoryErr != nil {
@@ -65,7 +66,7 @@ func (i *itemService) ListItem(itemRequest *dto.ListItemRequest) (*dto.ListItemR
 func (i *itemService) GetItem(request *dto.GetItemRequest) (*models.ItemBusiness, error) {
 	var item *models.ItemBusiness
 	var itemErr error
-	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 		item, itemErr = i.dao.NewItemQuery().GetItem(tx, request.Id, request.Location)
 		if itemErr != nil {
 			return itemErr
@@ -82,7 +83,7 @@ func (i *itemService) SearchItem(name string, provinceFk string, municipalityFk 
 	var response *[]models.Item
 	var searchItemResponse dto.SearchItemResponse
 	var responseErr error
-	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 		if searchMunicipalityType == "More" {
 			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, name, provinceFk, municipalityFk, cursor, false, 10)
 			if responseErr != nil {

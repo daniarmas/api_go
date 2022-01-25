@@ -3,6 +3,7 @@ package usecase
 import (
 	"errors"
 
+	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/google/uuid"
@@ -25,7 +26,7 @@ func NewUserService(dao repository.DAO) UserService {
 func (i *userService) GetUser(metadata *metadata.MD) (*models.User, error) {
 	var user *models.User
 	var userErr error
-	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 		authorizationTokenParseRes, authorizationTokenParseErr := i.dao.NewTokenQuery().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
