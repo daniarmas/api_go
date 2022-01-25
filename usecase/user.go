@@ -42,7 +42,7 @@ func (i *userService) GetUser(metadata *metadata.MD) (*models.User, error) {
 		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
-		} else if *authorizationTokenRes == (models.AuthorizationToken{}) {
+		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
 		user, userErr = i.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserFk}, nil)

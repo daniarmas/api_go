@@ -4,6 +4,7 @@ import (
 	"context"
 
 	pb "github.com/daniarmas/api_go/pkg"
+	"github.com/daniarmas/api_go/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -13,7 +14,7 @@ import (
 func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.GetUserResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	user, err := m.userService.GetUser(&md)
+	getUserResponse, err := m.userService.GetUser(&md)
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken expired":
@@ -27,18 +28,36 @@ func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.GetUserRes
 		}
 		return nil, st.Err()
 	}
+	userAddress := make([]*pb.UserAddress, 0, len(getUserResponse.UserAddress))
+	for _, e := range getUserResponse.UserAddress {
+		userAddress = append(userAddress, &pb.UserAddress{
+			Id:             e.ID.String(),
+			Tag:            e.Tag,
+			ResidenceType:  *utils.ParseResidenceType(e.ResidenceType),
+			BuildingNumber: e.BuildingNumber,
+			HouseNumber:    e.HouseNumber,
+			Coordinates:    &pb.Point{Latitude: e.Coordinates.Coords()[0], Longitude: e.Coordinates.Coords()[1]},
+			Description:    e.Description,
+			UserFk:         e.UserFk.String(),
+			ProvinceFk:     e.ProvinceFk.String(),
+			MunicipalityFk: e.MunicipalityFk.String(),
+			CreateTime:     e.CreateTime.String(),
+			UpdateTime:     e.UpdateTime.String(),
+		})
+	}
 	return &pb.GetUserResponse{User: &pb.User{
-		Id:                       user.ID.String(),
-		FullName:                 user.FullName,
-		Alias:                    user.Alias,
-		HighQualityPhoto:         user.HighQualityPhoto,
-		HighQualityPhotoBlurHash: user.HighQualityPhotoBlurHash,
-		LowQualityPhoto:          user.LowQualityPhoto,
-		LowQualityPhotoBlurHash:  user.LowQualityPhotoBlurHash,
-		Thumbnail:                user.Thumbnail,
-		ThumbnailBlurHash:        user.ThumbnailBlurHash,
-		Email:                    user.Email,
-		CreateTime:               user.CreateTime.String(),
-		UpdateTime:               user.UpdateTime.String(),
+		Id:                       getUserResponse.ID.String(),
+		FullName:                 getUserResponse.FullName,
+		Alias:                    getUserResponse.Alias,
+		HighQualityPhoto:         getUserResponse.HighQualityPhoto,
+		HighQualityPhotoBlurHash: getUserResponse.HighQualityPhotoBlurHash,
+		LowQualityPhoto:          getUserResponse.LowQualityPhoto,
+		LowQualityPhotoBlurHash:  getUserResponse.LowQualityPhotoBlurHash,
+		Thumbnail:                getUserResponse.Thumbnail,
+		ThumbnailBlurHash:        getUserResponse.ThumbnailBlurHash,
+		Email:                    getUserResponse.Email,
+		UserAddress:              userAddress,
+		CreateTime:               getUserResponse.CreateTime.String(),
+		UpdateTime:               getUserResponse.UpdateTime.String(),
 	}}, nil
 }
