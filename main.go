@@ -32,13 +32,12 @@ func main() {
 	}
 	// Datasource
 	datasourceDao := datasource.NewDAO(db, config, objectStorage)
-	fmt.Println(datasourceDao)
 	// Register all services
-	dao := repository.NewDAO(db, config)
-	itemService := usecase.NewItemService(dao)
-	authenticationService := usecase.NewAuthenticationService(dao)
-	businessService := usecase.NewBusinessService(dao)
-	userService := usecase.NewUserService(dao)
+	repositoryDao := repository.NewDAO(db, config, datasourceDao)
+	itemService := usecase.NewItemService(repositoryDao)
+	authenticationService := usecase.NewAuthenticationService(repositoryDao)
+	businessService := usecase.NewBusinessService(repositoryDao)
+	userService := usecase.NewUserService(repositoryDao)
 
 	// Starting gRPC server
 	address := fmt.Sprintf("0.0.0.0:%s", config.ApiPort)
