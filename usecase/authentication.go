@@ -160,11 +160,11 @@ func (v *authenticationService) SignIn(verificationCode *models.VerificationCode
 		}
 		authorizationTokenId := authorizationTokenRes.ID.String()
 		refreshTokenId := refreshTokenRes.ID.String()
-		jwtRefreshTokenRes, jwtRefreshTokenErr = v.dao.NewTokenQuery().CreateJwtRefreshToken(&refreshTokenId)
+		jwtRefreshTokenRes, jwtRefreshTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtRefreshToken(&refreshTokenId)
 		if jwtRefreshTokenErr != nil {
 			return jwtRefreshTokenErr
 		}
-		jwtAuthorizationTokenRes, jwtAuthorizationTokenErr = v.dao.NewTokenQuery().CreateJwtAuthorizationToken(&authorizationTokenId)
+		jwtAuthorizationTokenRes, jwtAuthorizationTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtAuthorizationToken(&authorizationTokenId)
 		if jwtAuthorizationTokenErr != nil {
 			return jwtAuthorizationTokenErr
 		}
@@ -254,11 +254,11 @@ func (v *authenticationService) SignUp(fullname *string, alias *string, verifica
 		}
 		authorizationTokenId := authorizationTokenRes.ID.String()
 		refreshTokenId := refreshTokenRes.ID.String()
-		jwtRefreshTokenRes, jwtRefreshTokenErr = v.dao.NewTokenQuery().CreateJwtRefreshToken(&refreshTokenId)
+		jwtRefreshTokenRes, jwtRefreshTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtRefreshToken(&refreshTokenId)
 		if jwtRefreshTokenErr != nil {
 			return jwtRefreshTokenErr
 		}
-		jwtAuthorizationTokenRes, jwtAuthorizationTokenErr = v.dao.NewTokenQuery().CreateJwtAuthorizationToken(&authorizationTokenId)
+		jwtAuthorizationTokenRes, jwtAuthorizationTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtAuthorizationToken(&authorizationTokenId)
 		if jwtAuthorizationTokenErr != nil {
 			return jwtAuthorizationTokenErr
 		}
@@ -316,7 +316,7 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 			} else if bannedDeviceRes != nil {
 				return errors.New("device banned")
 			}
-			authorizationTokenParseRes, authorizationTokenParseErr := v.dao.NewTokenQuery().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
+			authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
 			if authorizationTokenParseErr != nil {
 				switch authorizationTokenParseErr.Error() {
 				case "Token is expired":
@@ -387,7 +387,7 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 func (v *authenticationService) SignOut(all *bool, authorizationTokenFk *string, metadata *metadata.MD) error {
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 		if *all {
-			authorizationTokenParseRes, authorizationTokenParseErr := v.dao.NewTokenQuery().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
+			authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
 			if authorizationTokenParseErr != nil {
 				switch authorizationTokenParseErr.Error() {
 				case "Token is expired":
@@ -420,7 +420,7 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenFk *string,
 			}
 			return nil
 		} else if *authorizationTokenFk != "" {
-			authorizationTokenParseRes, authorizationTokenParseErr := v.dao.NewTokenQuery().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
+			authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
 			if authorizationTokenParseErr != nil {
 				switch authorizationTokenParseErr.Error() {
 				case "Token is expired":
@@ -455,7 +455,7 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenFk *string,
 			}
 			return nil
 		} else {
-			authorizationTokenParseRes, authorizationTokenParseErr := v.dao.NewTokenQuery().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
+			authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
 			if authorizationTokenParseErr != nil {
 				switch authorizationTokenParseErr.Error() {
 				case "Token is expired":
@@ -497,7 +497,7 @@ func (v *authenticationService) ListSession(metadata *metadata.MD) (*dto.ListSes
 	var authorizationTokenErr error
 	var listSessionErr error
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		authorizationTokenParseRes, authorizationTokenParseErr := v.dao.NewTokenQuery().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
+		authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
 			case "Token is expired":
@@ -532,7 +532,7 @@ func (v *authenticationService) RefreshToken(refreshToken *string, metadata *met
 	var jwtAuthorizationTokenRes, jwtRefreshTokenRes *string
 	var jwtAuthorizationTokenErr, jwtRefreshTokenErr error
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		refreshTokenParseRes, refreshTokenParseErr := v.dao.NewTokenQuery().ParseJwtRefreshToken(refreshToken)
+		refreshTokenParseRes, refreshTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtRefreshToken(refreshToken)
 		if refreshTokenParseErr != nil {
 			switch refreshTokenParseErr.Error() {
 			case "Token is expired":
@@ -589,11 +589,11 @@ func (v *authenticationService) RefreshToken(refreshToken *string, metadata *met
 		}
 		authorizationTokenId := authorizationTokenRes.ID.String()
 		refreshTokenId := refreshTokenRes.ID.String()
-		jwtRefreshTokenRes, jwtRefreshTokenErr = v.dao.NewTokenQuery().CreateJwtRefreshToken(&refreshTokenId)
+		jwtRefreshTokenRes, jwtRefreshTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtRefreshToken(&refreshTokenId)
 		if jwtRefreshTokenErr != nil {
 			return jwtRefreshTokenErr
 		}
-		jwtAuthorizationTokenRes, jwtAuthorizationTokenErr = v.dao.NewTokenQuery().CreateJwtAuthorizationToken(&authorizationTokenId)
+		jwtAuthorizationTokenRes, jwtAuthorizationTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtAuthorizationToken(&authorizationTokenId)
 		if jwtAuthorizationTokenErr != nil {
 			return jwtAuthorizationTokenErr
 		}

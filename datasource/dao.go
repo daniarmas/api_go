@@ -17,6 +17,7 @@ import (
 
 type DAO interface {
 	NewObjectStorageDatasource() ObjectStorageDatasource
+	NewJwtTokenDatasource() JwtTokenDatasource
 }
 
 type dao struct{}
@@ -105,7 +106,7 @@ func NewMinioClient(config *utils.Config) (*minio.Client, error) {
 		return nil, userAvatarErr
 	}
 	if !userAvatarRes {
-		err = minioClient.MakeBucket(context.Background(), config.UsersBulkName, minio.MakeBucketOptions{Region: "us-east-1", ObjectLocking: true})
+		err = minioClient.MakeBucket(context.Background(), config.UsersBulkName, minio.MakeBucketOptions{ObjectLocking: false})
 		if err != nil {
 			return nil, err
 		}
@@ -171,4 +172,8 @@ func NewDB(config *utils.Config) (*gorm.DB, error) {
 
 func (d *dao) NewObjectStorageDatasource() ObjectStorageDatasource {
 	return &objectStorageDatasource{Minio: MinioClient}
+}
+
+func (d *dao) NewJwtTokenDatasource() JwtTokenDatasource {
+	return &jwtTokenDatasource{}
 }

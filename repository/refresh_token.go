@@ -8,9 +8,7 @@ import (
 
 type RefreshTokenQuery interface {
 	GetRefreshToken(tx *gorm.DB, refreshToken *models.RefreshToken, fields *[]string) (*models.RefreshToken, error)
-	// ListRefreshToken(tx *gorm.DB, refreshToken *models.RefreshToken, fields *[]string) (*[]models.RefreshToken, error)
 	CreateRefreshToken(tx *gorm.DB, refreshToken *models.RefreshToken) (*models.RefreshToken, error)
-	// UpdateDevice(device *models.Device) error
 	DeleteRefreshToken(tx *gorm.DB, refreshToken *models.RefreshToken, fields *[]string) (*[]models.RefreshToken, error)
 }
 
@@ -50,21 +48,3 @@ func (r *refreshTokenQuery) GetRefreshToken(tx *gorm.DB, refreshToken *models.Re
 	}
 	return refreshTokenResult, nil
 }
-
-// func (r *refreshTokenQuery) ListRefreshToken(tx *gorm.DB, refreshToken *models.RefreshToken, fields *[]string) (*[]models.RefreshToken, error) {
-// 	var refreshTokenResult *[]models.RefreshToken
-// 	var result *gorm.DB
-// 	if fields != nil {
-// 		result = tx.Table("RefreshToken").Where(refreshToken).Select(*fields).Find(&refreshTokenResult)
-// 	} else {
-// 		result = tx.Table("RefreshToken").Where(refreshToken).Find(&refreshTokenResult)
-// 	}
-// 	if result.Error != nil {
-// 		if result.Error.Error() == "record not found" {
-// 			return refreshTokenResult, nil
-// 		} else {
-// 			return nil, result.Error
-// 		}
-// 	}
-// 	return refreshTokenResult, nil
-// }
