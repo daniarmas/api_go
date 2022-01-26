@@ -20,6 +20,7 @@ type DAO interface {
 	NewJwtTokenDatasource() JwtTokenDatasource
 	NewVerificationCodeDatasource() VerificationCodeDatasource
 	NewUserDatasource() UserDatasource
+	NewRefreshTokenDatasource() RefreshTokenDatasource
 }
 
 type dao struct{}
@@ -186,4 +187,8 @@ func (d *dao) NewVerificationCodeDatasource() VerificationCodeDatasource {
 
 func (d *dao) NewUserDatasource() UserDatasource {
 	return &userDatasource{}
+}
+
+func (d *dao) NewRefreshTokenDatasource() RefreshTokenDatasource {
+	return &refreshTokenDatasource{}
 }
