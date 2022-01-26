@@ -3,6 +3,7 @@ package usecase
 import (
 	"errors"
 
+	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/models"
 	"github.com/daniarmas/api_go/repository"
@@ -32,7 +33,7 @@ func NewAuthenticationService(dao repository.DAO) AuthenticationService {
 }
 
 func (v *authenticationService) CreateVerificationCode(verificationCode *models.VerificationCode) error {
-	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 		_, userErr := v.dao.NewUserQuery().GetUser(tx, &models.User{Email: verificationCode.Email})
 		if userErr != nil {
 			if userErr.Error() == "record not found" && (verificationCode.Type == "SignIn" || verificationCode.Type == "ChangeUserEmail") {
@@ -43,14 +44,14 @@ func (v *authenticationService) CreateVerificationCode(verificationCode *models.
 			return userErr
 		}
 		bannedUserResult, bannedUserError := v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: verificationCode.Email}, &[]string{"id"})
-		if bannedUserError != nil {
+		if bannedUserError != nil && bannedUserError.Error() != "record not found" {
 			return bannedUserError
 		}
 		if bannedUserResult != nil {
 			return errors.New("banned user")
 		}
 		bannedDeviceResult, bannedDeviceError := v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceId: verificationCode.DeviceId}, &[]string{"id"})
-		if bannedDeviceError != nil {
+		if bannedDeviceError != nil && bannedUserError.Error() != "record not found" {
 			return bannedDeviceError
 		}
 		if bannedDeviceResult != nil {
@@ -70,7 +71,7 @@ func (v *authenticationService) CreateVerificationCode(verificationCode *models.
 }
 
 func (v *authenticationService) GetVerificationCode(verificationCode *models.VerificationCode, fields *[]string) (*models.VerificationCode, error) {
-	txErr := repository.DB.Transaction(func(tx *gorm.DB) error {
+	txErr := datasource.DB.Transaction(func(tx *gorm.DB) error {
 		_, err := v.dao.NewVerificationCodeQuery().GetVerificationCode(tx, verificationCode, fields)
 		if err != nil {
 			return err
@@ -93,27 +94,30 @@ func (v *authenticationService) SignIn(verificationCode *models.VerificationCode
 	var refreshTokenRes *models.RefreshToken
 	var authorizationTokenRes *models.AuthorizationToken
 	var jwtAuthorizationTokenRes, jwtRefreshTokenRes *string
-	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 		verificationCodeRes, verificationCodeErr = v.dao.NewVerificationCodeQuery().GetVerificationCode(tx, &models.VerificationCode{Email: verificationCode.Email, Code: verificationCode.Code, DeviceId: verificationCode.DeviceId, Type: "SignIn"}, &[]string{"id"})
 		if verificationCodeErr != nil {
 			return verificationCodeErr
 		} else if *verificationCodeRes == (models.VerificationCode{}) {
 			return errors.New("verification code not found")
 		}
-		userRes, userErr = v.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{Email: verificationCode.Email}, nil)
+		userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &models.User{Email: verificationCode.Email})
 		if userErr != nil {
-			return userErr
-		} else if userRes == nil {
-			return errors.New("user not found")
+			switch userErr.Error() {
+			case "record not found":
+				return errors.New("user not found")
+			default:
+				return userErr
+			}
 		}
 		bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: verificationCode.Email}, &[]string{"id"})
-		if bannedUserErr != nil {
+		if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
 			return bannedUserErr
 		} else if bannedUserRes != nil {
 			return errors.New("user banned")
 		}
 		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceId: verificationCode.DeviceId}, &[]string{"id"})
-		if bannedDeviceErr != nil {
+		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
 			return bannedDeviceErr
 		} else if bannedDeviceRes != nil {
 			return errors.New("device banned")
@@ -123,14 +127,14 @@ func (v *authenticationService) SignIn(verificationCode *models.VerificationCode
 			return deleteVerificationCodeErr
 		}
 		deviceRes, deviceErr = v.dao.NewDeviceQuery().GetDevice(tx, &models.Device{DeviceId: verificationCode.DeviceId}, &[]string{"id"})
-		if deviceErr != nil {
+		if deviceErr != nil && deviceErr.Error() != "record not found" {
 			return deviceErr
-		} else if *deviceRes == (models.Device{}) {
+		} else if deviceRes == nil {
 			deviceRes, deviceErr = v.dao.NewDeviceQuery().CreateDevice(tx, &models.Device{DeviceId: verificationCode.DeviceId, Platform: metadata.Get("platform")[0], SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0], Model: metadata.Get("model")[0]})
 			if deviceErr != nil {
 				return deviceErr
 			}
-		} else if *deviceRes != (models.Device{}) {
+		} else {
 			_, deviceErr := v.dao.NewDeviceQuery().UpdateDevice(tx, &models.Device{DeviceId: verificationCode.DeviceId}, &models.Device{DeviceId: verificationCode.DeviceId, Platform: metadata.Get("platform")[0], SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0], Model: metadata.Get("model")[0]})
 			if deviceErr != nil {
 				return deviceErr
@@ -183,7 +187,7 @@ func (v *authenticationService) SignUp(fullname *string, alias *string, verifica
 	var authorizationTokenRes *models.AuthorizationToken
 	var createUserRes *models.User
 	var jwtAuthorizationTokenRes, jwtRefreshTokenRes *string
-	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 		verificationCodeRes, verificationCodeErr = v.dao.NewVerificationCodeQuery().GetVerificationCode(tx, &models.VerificationCode{Email: verificationCode.Email, Code: verificationCode.Code, DeviceId: verificationCode.DeviceId, Type: "SignUp"}, &[]string{"id"})
 		if verificationCodeErr != nil {
 			return verificationCodeErr
@@ -269,7 +273,7 @@ func (v *authenticationService) SignUp(fullname *string, alias *string, verifica
 func (v *authenticationService) UserExists(alias *string) error {
 	var userRes *models.User
 	var userErr error
-	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 		userRes, userErr = v.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{Alias: *alias}, &[]string{"id"})
 		if userErr != nil {
 			return userErr
@@ -290,7 +294,7 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 	var bannedDeviceRes *models.BannedDevice
 	var deviceRes *models.Device
 	var bannedDeviceErr, deviceErr, userErr, bannedUserErr error
-	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 		if len(metadata.Get("authorization")) != 0 && metadata.Get("authorization")[0] != "" {
 			deviceRes, deviceErr = v.dao.NewDeviceQuery().GetDevice(tx, &models.Device{DeviceId: metadata.Get("deviceid")[0]}, &[]string{"id"})
 			if deviceErr != nil {
@@ -381,7 +385,7 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 }
 
 func (v *authenticationService) SignOut(all *bool, authorizationTokenFk *string, metadata *metadata.MD) error {
-	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 		if *all {
 			authorizationTokenParseRes, authorizationTokenParseErr := v.dao.NewTokenQuery().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
 			if authorizationTokenParseErr != nil {
@@ -492,7 +496,7 @@ func (v *authenticationService) ListSession(metadata *metadata.MD) (*dto.ListSes
 	var authorizationTokenRes *models.AuthorizationToken
 	var authorizationTokenErr error
 	var listSessionErr error
-	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 		authorizationTokenParseRes, authorizationTokenParseErr := v.dao.NewTokenQuery().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
@@ -527,7 +531,7 @@ func (v *authenticationService) ListSession(metadata *metadata.MD) (*dto.ListSes
 func (v *authenticationService) RefreshToken(refreshToken *string, metadata *metadata.MD) (*dto.RefreshToken, error) {
 	var jwtAuthorizationTokenRes, jwtRefreshTokenRes *string
 	var jwtAuthorizationTokenErr, jwtRefreshTokenErr error
-	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 		refreshTokenParseRes, refreshTokenParseErr := v.dao.NewTokenQuery().ParseJwtRefreshToken(refreshToken)
 		if refreshTokenParseErr != nil {
 			switch refreshTokenParseErr.Error() {
