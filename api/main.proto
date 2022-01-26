@@ -37,7 +37,7 @@ service ItemService {
 
 service UserService {
   rpc GetUser (google.protobuf.Empty) returns (GetUserResponse) {}
-  // rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse) {}
+  rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse) {}
 }
 
 // service OrderService {
@@ -98,25 +98,25 @@ service UserService {
 //   string nextPage = 2;
 // }
 
-// message UpdateUserRequest {
-//   google.protobuf.FieldMask fieldMask = 1;
-//   google.protobuf.FieldMask updateMask = 2;
-//   string id = 3;
-//   string email = 4;
-//   string alias = 5;
-//   string fullName = 6;
-//   string thumbnail = 7;
-//   string thumbnailBlurHash = 8;
-//   string highQualityPhoto = 9;
-//   string highQualityPhotoBlurHash = 10;
-//   string lowQualityPhoto = 11;
-//   string lowQualityPhotoBlurHash = 12;
-//   string code = 13;
-// }
+message UpdateUserRequest {
+  google.protobuf.FieldMask fieldMask = 1;
+  google.protobuf.FieldMask updateMask = 2;
+  string id = 3;
+  string email = 4;
+  string alias = 5;
+  string fullName = 6;
+  string thumbnail = 7;
+  string thumbnailBlurHash = 8;
+  string highQualityPhoto = 9;
+  string highQualityPhotoBlurHash = 10;
+  string lowQualityPhoto = 11;
+  string lowQualityPhotoBlurHash = 12;
+  string code = 13;
+}
 
-// message UpdateUserResponse {
-//   User user = 1;
-// }
+message UpdateUserResponse {
+  User user = 1;
+}
 
 message GetUserResponse {
   User user = 1;
