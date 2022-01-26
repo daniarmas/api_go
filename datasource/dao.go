@@ -17,6 +17,17 @@ import (
 
 type DAO interface {
 	NewObjectStorageDatasource() ObjectStorageDatasource
+	NewJwtTokenDatasource() JwtTokenDatasource
+	NewVerificationCodeDatasource() VerificationCodeDatasource
+	NewUserDatasource() UserDatasource
+	NewRefreshTokenDatasource() RefreshTokenDatasource
+	NewAuthorizationTokenDatasource() AuthorizationTokenDatasource
+	NewItemDatasource() ItemDatasource
+	NewItemCategoryDatasource() ItemCategoryDatasource
+	NewDeviceDatasource() DeviceDatasource
+	NewBusinessDatasource() BusinessDatasource
+	NewBannedUserDatasource() BannedUserDatasource
+	NewBannedDeviceDatasource() BannedDeviceDatasource
 }
 
 type dao struct{}
@@ -105,7 +116,7 @@ func NewMinioClient(config *utils.Config) (*minio.Client, error) {
 		return nil, userAvatarErr
 	}
 	if !userAvatarRes {
-		err = minioClient.MakeBucket(context.Background(), config.UsersBulkName, minio.MakeBucketOptions{Region: "us-east-1", ObjectLocking: true})
+		err = minioClient.MakeBucket(context.Background(), config.UsersBulkName, minio.MakeBucketOptions{ObjectLocking: false})
 		if err != nil {
 			return nil, err
 		}
@@ -171,4 +182,48 @@ func NewDB(config *utils.Config) (*gorm.DB, error) {
 
 func (d *dao) NewObjectStorageDatasource() ObjectStorageDatasource {
 	return &objectStorageDatasource{Minio: MinioClient}
+}
+
+func (d *dao) NewJwtTokenDatasource() JwtTokenDatasource {
+	return &jwtTokenDatasource{}
+}
+
+func (d *dao) NewVerificationCodeDatasource() VerificationCodeDatasource {
+	return &verificationCodeDatasource{}
+}
+
+func (d *dao) NewUserDatasource() UserDatasource {
+	return &userDatasource{}
+}
+
+func (d *dao) NewRefreshTokenDatasource() RefreshTokenDatasource {
+	return &refreshTokenDatasource{}
+}
+
+func (d *dao) NewAuthorizationTokenDatasource() AuthorizationTokenDatasource {
+	return &authorizationTokenDatasource{}
+}
+
+func (d *dao) NewItemDatasource() ItemDatasource {
+	return &itemDatasource{}
+}
+
+func (d *dao) NewItemCategoryDatasource() ItemCategoryDatasource {
+	return &itemCategoryDatasource{}
+}
+
+func (d *dao) NewDeviceDatasource() DeviceDatasource {
+	return &deviceDatasource{}
+}
+
+func (d *dao) NewBusinessDatasource() BusinessDatasource {
+	return &businessDatasource{}
+}
+
+func (d *dao) NewBannedUserDatasource() BannedUserDatasource {
+	return &bannedUserDatasource{}
+}
+
+func (d *dao) NewBannedDeviceDatasource() BannedDeviceDatasource {
+	return &bannedDeviceDatasource{}
 }

@@ -1,11 +1,8 @@
 package repository
 
 import (
-	"errors"
-
 	"github.com/daniarmas/api_go/models"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type AuthorizationTokenQuery interface {
@@ -18,45 +15,33 @@ type AuthorizationTokenQuery interface {
 type authorizationTokenQuery struct{}
 
 func (v *authorizationTokenQuery) CreateAuthorizationToken(tx *gorm.DB, authorizationToken *models.AuthorizationToken) (*models.AuthorizationToken, error) {
-	result := tx.Create(&authorizationToken)
-	if result.Error != nil {
-		return nil, result.Error
+	result, err := Datasource.NewAuthorizationTokenDatasource().CreateAuthorizationToken(tx, authorizationToken)
+	if err != nil {
+		return nil, err
 	}
-	return authorizationToken, nil
+	return result, nil
 }
 
 func (r *authorizationTokenQuery) DeleteAuthorizationTokenIn(tx *gorm.DB, where string, ids *[]string) (*[]models.AuthorizationToken, error) {
-	var authorizationTokenResult *[]models.AuthorizationToken
-	result := tx.Clauses(clause.Returning{}).Where(where, *ids).Delete(&authorizationTokenResult)
-	if result.Error != nil {
-		return nil, result.Error
+	result, err := Datasource.NewAuthorizationTokenDatasource().DeleteAuthorizationTokenIn(tx, where, ids)
+	if err != nil {
+		return nil, err
 	}
-	return authorizationTokenResult, nil
+	return result, nil
 }
 
 func (r *authorizationTokenQuery) DeleteAuthorizationToken(tx *gorm.DB, authorizationToken *models.AuthorizationToken) (*[]models.AuthorizationToken, error) {
-	var authorizationTokenResult *[]models.AuthorizationToken
-	result := tx.Clauses(clause.Returning{}).Where(authorizationToken).Delete(&authorizationTokenResult)
-	if result.Error != nil {
-		return nil, result.Error
+	result, err := Datasource.NewAuthorizationTokenDatasource().DeleteAuthorizationToken(tx, authorizationToken)
+	if err != nil {
+		return nil, err
 	}
-	return authorizationTokenResult, nil
+	return result, nil
 }
 
 func (v *authorizationTokenQuery) GetAuthorizationToken(tx *gorm.DB, authorizationToken *models.AuthorizationToken, fields *[]string) (*models.AuthorizationToken, error) {
-	var authorizationTokenResult *models.AuthorizationToken
-	var result *gorm.DB
-	if fields != nil {
-		result = tx.Where(authorizationToken).Select(*fields).Take(&authorizationTokenResult)
-	} else {
-		result = tx.Where(authorizationToken).Take(&authorizationTokenResult)
+	result, err := Datasource.NewAuthorizationTokenDatasource().GetAuthorizationToken(tx, authorizationToken, fields)
+	if err != nil {
+		return nil, err
 	}
-	if result.Error != nil {
-		if result.Error.Error() == "record not found" {
-			return nil, errors.New("authorizationtoken not found")
-		} else {
-			return nil, result.Error
-		}
-	}
-	return authorizationTokenResult, nil
+	return result, nil
 }

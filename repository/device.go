@@ -1,51 +1,38 @@
 package repository
 
 import (
-	"errors"
-
 	"github.com/daniarmas/api_go/models"
 	"gorm.io/gorm"
 )
 
 type DeviceQuery interface {
 	GetDevice(tx *gorm.DB, device *models.Device, fields *[]string) (*models.Device, error)
-	// ListItem() ([]models.Item, error)
 	CreateDevice(tx *gorm.DB, device *models.Device) (*models.Device, error)
 	UpdateDevice(tx *gorm.DB, where *models.Device, device *models.Device) (*models.Device, error)
-	// DeleteItem(id int64) error
 }
 
 type deviceQuery struct{}
 
-func (i *deviceQuery) GetDevice(tx *gorm.DB, device *models.Device, fields *[]string) (*models.Device, error) {
-	var deviceResult *models.Device
-	result := tx.Where(device).Select(*fields).Take(&deviceResult)
-	if result.Error != nil {
-		if result.Error.Error() == "record not found" {
-			return nil, errors.New("record not found")
-		} else {
-			return nil, result.Error
-		}
+func (i *deviceQuery) GetDevice(tx *gorm.DB, where *models.Device, fields *[]string) (*models.Device, error) {
+	result, err := Datasource.NewDeviceDatasource().GetDevice(tx, where, fields)
+	if err != nil {
+		return nil, err
 	}
-	return deviceResult, nil
+	return result, err
 }
 
-func (v *deviceQuery) CreateDevice(tx *gorm.DB, device *models.Device) (*models.Device, error) {
-	result := tx.Create(&device)
-	if result.Error != nil {
-		return nil, result.Error
+func (v *deviceQuery) CreateDevice(tx *gorm.DB, data *models.Device) (*models.Device, error) {
+	result, err := Datasource.NewDeviceDatasource().CreateDevice(tx, data)
+	if err != nil {
+		return nil, err
 	}
-	return device, nil
+	return result, err
 }
 
-func (v *deviceQuery) UpdateDevice(tx *gorm.DB, where *models.Device, device *models.Device) (*models.Device, error) {
-	result := tx.Where(where).Updates(&device)
-	if result.Error != nil {
-		if result.Error.Error() == "record not found" {
-			return nil, errors.New("record not found")
-		} else {
-			return nil, result.Error
-		}
+func (v *deviceQuery) UpdateDevice(tx *gorm.DB, where *models.Device, data *models.Device) (*models.Device, error) {
+	result, err := Datasource.NewDeviceDatasource().UpdateDevice(tx, where, data)
+	if err != nil {
+		return nil, err
 	}
-	return device, nil
+	return result, err
 }

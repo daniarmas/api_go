@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/utils"
 	"gorm.io/gorm"
 )
@@ -14,7 +15,6 @@ type DAO interface {
 	NewDeviceQuery() DeviceQuery
 	NewRefreshTokenQuery() RefreshTokenQuery
 	NewAuthorizationTokenQuery() AuthorizationTokenQuery
-	NewTokenQuery() TokenQuery
 	NewSessionQuery() SessionQuery
 	NewBusinessQuery() BusinessQuery
 	NewItemCategoryQuery() ItemCategoryQuery
@@ -23,9 +23,11 @@ type DAO interface {
 type dao struct{}
 
 var Config *utils.Config
+var Datasource datasource.DAO
 
-func NewDAO(db *gorm.DB, config *utils.Config) DAO {
-		Config = config
+func NewDAO(db *gorm.DB, config *utils.Config, datasourceDao datasource.DAO) DAO {
+	Config = config
+	Datasource = datasourceDao
 	return &dao{}
 }
 
@@ -95,10 +97,6 @@ func (d *dao) NewRefreshTokenQuery() RefreshTokenQuery {
 
 func (d *dao) NewAuthorizationTokenQuery() AuthorizationTokenQuery {
 	return &authorizationTokenQuery{}
-}
-
-func (d *dao) NewTokenQuery() TokenQuery {
-	return &tokenQuery{}
 }
 
 func (d *dao) NewSessionQuery() SessionQuery {

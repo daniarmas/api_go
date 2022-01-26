@@ -27,7 +27,7 @@ func (i *userService) GetUser(metadata *metadata.MD) (*models.User, error) {
 	var user *models.User
 	var userErr error
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		authorizationTokenParseRes, authorizationTokenParseErr := i.dao.NewTokenQuery().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
+		authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
 			case "Token is expired":

@@ -1,4 +1,4 @@
-package repository
+package datasource
 
 import (
 	"errors"
@@ -8,16 +8,16 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-type TokenQuery interface {
+type JwtTokenDatasource interface {
 	CreateJwtRefreshToken(refreshTokenFk *string) (*string, error)
 	CreateJwtAuthorizationToken(authorizationTokenFk *string) (*string, error)
 	ParseJwtRefreshToken(tokenValue *string) (*string, error)
 	ParseJwtAuthorizationToken(tokenValue *string) (*string, error)
 }
 
-type tokenQuery struct{}
+type jwtTokenDatasource struct{}
 
-func (v *tokenQuery) CreateJwtRefreshToken(refreshTokenFk *string) (*string, error) {
+func (v *jwtTokenDatasource) CreateJwtRefreshToken(refreshTokenFk *string) (*string, error) {
 	hmacSecret := []byte(Config.JwtSecret)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		ExpiresAt: time.Now().Add(time.Hour * 720).Unix(),
@@ -31,7 +31,7 @@ func (v *tokenQuery) CreateJwtRefreshToken(refreshTokenFk *string) (*string, err
 	return &tokenString, nil
 }
 
-func (r *tokenQuery) CreateJwtAuthorizationToken(authorizationTokenFk *string) (*string, error) {
+func (r *jwtTokenDatasource) CreateJwtAuthorizationToken(authorizationTokenFk *string) (*string, error) {
 	hmacSecret := []byte(Config.JwtSecret)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
@@ -45,7 +45,7 @@ func (r *tokenQuery) CreateJwtAuthorizationToken(authorizationTokenFk *string) (
 	return &tokenString, nil
 }
 
-func (r *tokenQuery) ParseJwtRefreshToken(tokenValue *string) (*string, error) {
+func (r *jwtTokenDatasource) ParseJwtRefreshToken(tokenValue *string) (*string, error) {
 	hmacSecret := []byte(Config.JwtSecret)
 	// Parse takes the token string and a function for looking up the key. The latter is especially
 	// useful if you use multiple keys for your application.  The standard is to use 'kid' in the
@@ -71,7 +71,7 @@ func (r *tokenQuery) ParseJwtRefreshToken(tokenValue *string) (*string, error) {
 	}
 }
 
-func (r *tokenQuery) ParseJwtAuthorizationToken(tokenValue *string) (*string, error) {
+func (r *jwtTokenDatasource) ParseJwtAuthorizationToken(tokenValue *string) (*string, error) {
 	hmacSecret := []byte(Config.JwtSecret)
 	// Parse takes the token string and a function for looking up the key. The latter is especially
 	// useful if you use multiple keys for your application.  The standard is to use 'kid' in the
