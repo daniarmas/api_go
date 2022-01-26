@@ -24,6 +24,7 @@ type DAO interface {
 	NewAuthorizationTokenDatasource() AuthorizationTokenDatasource
 	NewItemDatasource() ItemDatasource
 	NewItemCategoryDatasource() ItemCategoryDatasource
+	NewDeviceDatasource() DeviceDatasource
 }
 
 type dao struct{}
@@ -206,4 +207,8 @@ func (d *dao) NewItemDatasource() ItemDatasource {
 
 func (d *dao) NewItemCategoryDatasource() ItemCategoryDatasource {
 	return &itemCategoryDatasource{}
+}
+
+func (d *dao) NewDeviceDatasource() DeviceDatasource {
+	return &deviceDatasource{}
 }
