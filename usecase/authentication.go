@@ -96,10 +96,10 @@ func (v *authenticationService) SignIn(verificationCode *models.VerificationCode
 	var jwtAuthorizationTokenRes, jwtRefreshTokenRes *string
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 		verificationCodeRes, verificationCodeErr = v.dao.NewVerificationCodeQuery().GetVerificationCode(tx, &models.VerificationCode{Email: verificationCode.Email, Code: verificationCode.Code, DeviceId: verificationCode.DeviceId, Type: "SignIn"}, &[]string{"id"})
-		if verificationCodeErr != nil {
-			return verificationCodeErr
-		} else if *verificationCodeRes == (models.VerificationCode{}) {
+		if verificationCodeErr != nil && verificationCodeErr.Error() == "record not found" {
 			return errors.New("verification code not found")
+		} else if verificationCodeRes == nil {
+			return verificationCodeErr
 		}
 		userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &models.User{Email: verificationCode.Email})
 		if userErr != nil {

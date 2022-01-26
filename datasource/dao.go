@@ -18,6 +18,7 @@ import (
 type DAO interface {
 	NewObjectStorageDatasource() ObjectStorageDatasource
 	NewJwtTokenDatasource() JwtTokenDatasource
+	NewVerificationCodeDatasource() VerificationCodeDatasource
 }
 
 type dao struct{}
@@ -176,4 +177,8 @@ func (d *dao) NewObjectStorageDatasource() ObjectStorageDatasource {
 
 func (d *dao) NewJwtTokenDatasource() JwtTokenDatasource {
 	return &jwtTokenDatasource{}
+}
+
+func (d *dao) NewVerificationCodeDatasource() VerificationCodeDatasource {
+	return &verificationCodeDatasource{}
 }
