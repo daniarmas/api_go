@@ -64,7 +64,7 @@ func (i *userService) UpdateUser(request *dto.UpdateUserRequest) (*dto.UpdateUse
 	var updatedUserRes *models.User
 	var updatedUserErr error
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		if request.Email != "" {
+		if request.Email != "" && request.Code != "" {
 			authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&request.Metadata.Get("authorization")[0])
 			if authorizationTokenParseErr != nil {
 				switch authorizationTokenParseErr.Error() {
@@ -99,6 +99,43 @@ func (i *userService) UpdateUser(request *dto.UpdateUserRequest) (*dto.UpdateUse
 				return deleteVerificationCodeErr
 			}
 			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: userRes.ID}, &models.User{Email: request.Email})
+			if updatedUserErr != nil {
+				return updatedUserErr
+			}
+
+		} else if request.Alias != "" {
+			authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&request.Metadata.Get("authorization")[0])
+			if authorizationTokenParseErr != nil {
+				switch authorizationTokenParseErr.Error() {
+				case "Token is expired":
+					return errors.New("authorizationtoken expired")
+				case "signature is invalid":
+					return errors.New("signature is invalid")
+				case "token contains an invalid number of segments":
+					return errors.New("token contains an invalid number of segments")
+				default:
+					return authorizationTokenParseErr
+				}
+			}
+			authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+			if authorizationTokenErr != nil {
+				return authorizationTokenErr
+			} else if authorizationTokenRes == nil {
+				return errors.New("unauthenticated")
+			}
+			user, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserFk})
+			if userErr != nil && userErr.Error() == "record not found" {
+				return errors.New("unauthenticated")
+			} else if userErr != nil {
+				return userErr
+			}
+			alias, aliasErr := i.dao.NewUserQuery().GetUser(tx, &models.User{Alias: request.Alias})
+			if aliasErr != nil && aliasErr.Error() != "record not found" {
+				return aliasErr
+			} else if alias != nil && aliasErr == nil {
+				return errors.New("user already exist")
+			}
+			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: user.ID}, &models.User{Alias: request.Alias})
 			if updatedUserErr != nil {
 				return updatedUserErr
 			}

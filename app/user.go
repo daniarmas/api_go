@@ -79,6 +79,8 @@ func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) 
 			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
 		case "token contains an invalid number of segments":
 			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "user already exist":
+			st = status.New(codes.AlreadyExists, "User already exists")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
