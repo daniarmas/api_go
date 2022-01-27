@@ -30,3 +30,8 @@ func (i *Device) BeforeCreate(tx *gorm.DB) (err error) {
 	i.UpdateTime = time.Now()
 	return
 }
+
+func (u *Device) BeforeUpdate(tx *gorm.DB) (err error) {
+	u.UpdateTime = time.Now()
+	return
+}

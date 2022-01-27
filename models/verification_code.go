@@ -34,3 +34,8 @@ func (vc *VerificationCode) BeforeCreate(tx *gorm.DB) (err error) {
 	vc.UpdateTime = time.Now()
 	return
 }
+
+func (u *VerificationCode) BeforeUpdate(tx *gorm.DB) (err error) {
+	u.UpdateTime = time.Now()
+	return
+}
