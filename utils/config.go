@@ -18,6 +18,7 @@ type Config struct {
 	BusinessAvatarBulkName             string `mapstructure:"BUSINESS_AVATAR_BULK_NAME"`
 	ItemsBulkName                      string `mapstructure:"ITEMS_BULK_NAME"`
 	UsersBulkName                      string `mapstructure:"USERS_BULK_NAME"`
+	UsersDeleteObjectsBulkName         string `mapstructure:"USERS_DELETE_OBJECTS_BULK_NAME"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

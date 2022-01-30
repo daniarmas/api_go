@@ -35,3 +35,8 @@ func (u *UserAddress) BeforeCreate(tx *gorm.DB) (err error) {
 	u.UpdateTime = time.Now()
 	return
 }
+
+func (u *UserAddress) BeforeUpdate(tx *gorm.DB) (err error) {
+	u.UpdateTime = time.Now()
+	return
+}
