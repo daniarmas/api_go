@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"errors"
 
 	"github.com/daniarmas/api_go/datasource"
@@ -140,6 +141,74 @@ func (i *userService) UpdateUser(request *dto.UpdateUserRequest) (*dto.UpdateUse
 				return updatedUserErr
 			}
 
+		} else if request.HighQualityPhotoObject != "" && request.HighQualityPhotoBlurHash != "" && request.LowQualityPhotoObject != "" && request.LowQualityPhotoBlurHash != "" && request.ThumbnailObject != "" && request.ThumbnailBlurHash != "" {
+			authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&request.Metadata.Get("authorization")[0])
+			if authorizationTokenParseErr != nil {
+				switch authorizationTokenParseErr.Error() {
+				case "Token is expired":
+					return errors.New("authorizationtoken expired")
+				case "signature is invalid":
+					return errors.New("signature is invalid")
+				case "token contains an invalid number of segments":
+					return errors.New("token contains an invalid number of segments")
+				default:
+					return authorizationTokenParseErr
+				}
+			}
+			authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+			if authorizationTokenErr != nil {
+				return authorizationTokenErr
+			} else if authorizationTokenRes == nil {
+				return errors.New("unauthenticated")
+			}
+			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserFk})
+			if userErr != nil {
+				return userErr
+			}
+			_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.UsersBulkName, request.HighQualityPhotoObject)
+			if hqErr != nil {
+				return hqErr
+			}
+			_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.UsersBulkName, request.LowQualityPhotoObject)
+			if lqErr != nil {
+				return lqErr
+			}
+			_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.UsersBulkName, request.ThumbnailObject)
+			if tnErr != nil {
+				return tnErr
+			}
+			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: userRes.ID}, &models.User{HighQualityPhotoObject: request.HighQualityPhotoObject, HighQualityPhotoBlurHash: request.HighQualityPhotoBlurHash, HighQualityPhoto: datasource.Config.UsersBulkName + "/" + request.HighQualityPhotoObject, LowQualityPhoto: datasource.Config.UsersBulkName + "/" + request.LowQualityPhotoObject, LowQualityPhotoBlurHash: request.LowQualityPhotoBlurHash, LowQualityPhotoObject: request.LowQualityPhotoObject, Thumbnail: datasource.Config.UsersBulkName + "/" + request.ThumbnailObject, ThumbnailObject: request.ThumbnailObject, ThumbnailBlurHash: request.ThumbnailBlurHash})
+			if updatedUserErr != nil {
+				return updatedUserErr
+			}
+		} else if request.FullName != "" {
+			authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&request.Metadata.Get("authorization")[0])
+			if authorizationTokenParseErr != nil {
+				switch authorizationTokenParseErr.Error() {
+				case "Token is expired":
+					return errors.New("authorizationtoken expired")
+				case "signature is invalid":
+					return errors.New("signature is invalid")
+				case "token contains an invalid number of segments":
+					return errors.New("token contains an invalid number of segments")
+				default:
+					return authorizationTokenParseErr
+				}
+			}
+			authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+			if authorizationTokenErr != nil {
+				return authorizationTokenErr
+			} else if authorizationTokenRes == nil {
+				return errors.New("unauthenticated")
+			}
+			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserFk})
+			if userErr != nil {
+				return userErr
+			}
+			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: userRes.ID}, &models.User{FullName: request.FullName})
+			if updatedUserErr != nil {
+				return updatedUserErr
+			}
 		}
 		return nil
 	})

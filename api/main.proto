@@ -54,10 +54,6 @@ service UserService {
 //   rpc GetPresignedPutObjectUserAvatar (GetPresignedPutUserAvatarRequest) returns (GetPresignedPutUserAvatarResponse) {}
 // }
 
-// service Health {
-//   rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
-// }
-
 // Request & Response Message
 
 // message GetOrderRequest {
@@ -104,11 +100,11 @@ message UpdateUserRequest {
   string email = 3;
   string alias = 4;
   string fullName = 5;
-  string thumbnail = 6;
+  string thumbnailObject = 6;
   string thumbnailBlurHash = 7;
-  string highQualityPhoto = 8;
+  string highQualityPhotoObject = 8;
   string highQualityPhotoBlurHash = 9;
-  string lowQualityPhoto = 10;
+  string lowQualityPhotoObject = 10;
   string lowQualityPhotoBlurHash = 11;
   string code = 12;
 }

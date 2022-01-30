@@ -7,11 +7,11 @@ type UpdateUserRequest struct {
 	Email                    string
 	Alias                    string
 	FullName                 string
-	Thumbnail                string
+	ThumbnailObject          string
 	ThumbnailBlurHash        string
-	HighQualityPhoto         string
+	HighQualityPhotoObject   string
 	HighQualityPhotoBlurHash string
-	LowQualityPhoto          string
+	LowQualityPhotoObject    string
 	LowQualityPhotoBlurHash  string
 	Code                     string
 	Metadata                 *metadata.MD

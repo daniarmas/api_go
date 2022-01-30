@@ -47,10 +47,13 @@ type ItemBusiness struct {
 	Business                 Business       `gorm:"foreignKey:BusinessFk"`
 	BusinessItemCategoryFk   uuid.UUID      `gorm:"column:business_item_category_fk;not null"`
 	HighQualityPhoto         string         `gorm:"column:high_quality_photo;not null"`
+	HighQualityPhotoObject   string         `gorm:"column:high_quality_photo_object;not null"`
 	HighQualityPhotoBlurHash string         `gorm:"column:high_quality_photo_blurhash;not null"`
 	LowQualityPhoto          string         `gorm:"column:low_quality_photo;not null"`
+	LowQualityPhotoObject    string         `gorm:"column:low_quality_photo_object;not null"`
 	LowQualityPhotoBlurHash  string         `gorm:"column:low_quality_photo_blurhash;not null"`
 	Thumbnail                string         `gorm:"column:thumbnail;not null"`
+	ThumbnailObject          string         `gorm:"column:thumbnail_object;not null"`
 	ThumbnailBlurHash        string         `gorm:"column:thumbnail_blurhash;not null"`
 	Cursor                   int32          `gorm:"column:cursor"`
 	IsInRange                bool           `gorm:"column:is_in_range"`

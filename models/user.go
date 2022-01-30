@@ -20,12 +20,15 @@ type User struct {
 	Alias                    string         `gorm:"column:alias;not null"`
 	FullName                 string         `gorm:"column:fullname;not null"`
 	IsLegalAge               bool           `gorm:"column:is_legal_age;not null"`
-	HighQualityPhoto         string         `gorm:"column:high_quality_photo"`
-	HighQualityPhotoBlurHash string         `gorm:"column:high_quality_photo_blurhash"`
-	LowQualityPhoto          string         `gorm:"column:low_quality_photo"`
-	LowQualityPhotoBlurHash  string         `gorm:"column:low_quality_photo_blurhash"`
-	Thumbnail                string         `gorm:"column:thumbnail"`
-	ThumbnailBlurHash        string         `gorm:"column:thumbnail_blurhash"`
+	HighQualityPhoto         string         `gorm:"column:high_quality_photo;not null"`
+	HighQualityPhotoObject   string         `gorm:"column:high_quality_photo_object;not null"`
+	HighQualityPhotoBlurHash string         `gorm:"column:high_quality_photo_blurhash;not null"`
+	LowQualityPhoto          string         `gorm:"column:low_quality_photo;not null"`
+	LowQualityPhotoObject    string         `gorm:"column:low_quality_photo_object;not null"`
+	LowQualityPhotoBlurHash  string         `gorm:"column:low_quality_photo_blurhash;not null"`
+	Thumbnail                string         `gorm:"column:thumbnail;not null"`
+	ThumbnailObject          string         `gorm:"column:thumbnail_object;not null"`
+	ThumbnailBlurHash        string         `gorm:"column:thumbnail_blurhash;not null"`
 	CreateTime               time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime               time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime               gorm.DeletedAt `gorm:"index;column:delete_time"`

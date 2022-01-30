@@ -68,7 +68,7 @@ func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.GetUserRes
 func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	updateUserResponse, err := m.userService.UpdateUser(&dto.UpdateUserRequest{Metadata: &md, Email: req.Email, Alias: req.Alias, FullName: req.FullName, Thumbnail: req.Thumbnail, ThumbnailBlurHash: req.ThumbnailBlurHash, HighQualityPhoto: req.HighQualityPhoto, HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash, LowQualityPhoto: req.LowQualityPhoto, LowQualityPhotoBlurHash: req.LowQualityPhotoBlurHash, Code: req.Code})
+	updateUserResponse, err := m.userService.UpdateUser(&dto.UpdateUserRequest{Metadata: &md, Email: req.Email, Alias: req.Alias, FullName: req.FullName, ThumbnailObject: req.ThumbnailObject, ThumbnailBlurHash: req.ThumbnailBlurHash, HighQualityPhotoObject: req.HighQualityPhotoObject, HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash, LowQualityPhotoObject: req.LowQualityPhotoObject, LowQualityPhotoBlurHash: req.LowQualityPhotoBlurHash, Code: req.Code})
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
