@@ -45,10 +45,10 @@ service UserService {
 //   rpc GetOrder (GetOrderRequest) returns (GetOrderResponse) {}
 // }
 
-// service CartItemService {
-//   rpc ListCartItem (ListCartItemRequest) returns (ListCartItemResponse) {}
-//   rpc GetCartItem (GetCartItemRequest) returns (GetCartItemResponse) {}
-// }
+service CartItemService {
+  rpc ListCartItem (ListCartItemRequest) returns (ListCartItemResponse) {}
+  // rpc GetCartItem (GetCartItemRequest) returns (GetCartItemResponse) {}
+}
 
 // service ObjectStorageService {
 //   rpc GetPresignedPutObjectUserAvatar (GetPresignedPutUserAvatarRequest) returns (GetPresignedPutUserAvatarResponse) {}
@@ -84,15 +84,15 @@ service UserService {
 //   Item item = 1;
 // }
 
-// message ListCartItemRequest {
-//   string nextPage = 1;
-//   google.protobuf.FieldMask fieldMask = 2;
-// }
+message ListCartItemRequest {
+  string nextPage = 1;
+  google.protobuf.FieldMask fieldMask = 2;
+}
 
-// message ListCartItemResponse {
-//   repeated Item items = 1;
-//   string nextPage = 2;
-// }
+message ListCartItemResponse {
+  repeated Item items = 1;
+  string nextPage = 2;
+}
 
 message UpdateUserRequest {
   google.protobuf.FieldMask fieldMask = 1;

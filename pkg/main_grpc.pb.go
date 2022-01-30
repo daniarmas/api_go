@@ -794,3 +794,89 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "main.proto",
 }
+
+// CartItemServiceClient is the client API for CartItemService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type CartItemServiceClient interface {
+	ListCartItem(ctx context.Context, in *ListCartItemRequest, opts ...grpc.CallOption) (*ListCartItemResponse, error)
+}
+
+type cartItemServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewCartItemServiceClient(cc grpc.ClientConnInterface) CartItemServiceClient {
+	return &cartItemServiceClient{cc}
+}
+
+func (c *cartItemServiceClient) ListCartItem(ctx context.Context, in *ListCartItemRequest, opts ...grpc.CallOption) (*ListCartItemResponse, error) {
+	out := new(ListCartItemResponse)
+	err := c.cc.Invoke(ctx, "/main.CartItemService/ListCartItem", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CartItemServiceServer is the server API for CartItemService service.
+// All implementations must embed UnimplementedCartItemServiceServer
+// for forward compatibility
+type CartItemServiceServer interface {
+	ListCartItem(context.Context, *ListCartItemRequest) (*ListCartItemResponse, error)
+	mustEmbedUnimplementedCartItemServiceServer()
+}
+
+// UnimplementedCartItemServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedCartItemServiceServer struct {
+}
+
+func (UnimplementedCartItemServiceServer) ListCartItem(context.Context, *ListCartItemRequest) (*ListCartItemResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListCartItem not implemented")
+}
+func (UnimplementedCartItemServiceServer) mustEmbedUnimplementedCartItemServiceServer() {}
+
+// UnsafeCartItemServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to CartItemServiceServer will
+// result in compilation errors.
+type UnsafeCartItemServiceServer interface {
+	mustEmbedUnimplementedCartItemServiceServer()
+}
+
+func RegisterCartItemServiceServer(s grpc.ServiceRegistrar, srv CartItemServiceServer) {
+	s.RegisterService(&CartItemService_ServiceDesc, srv)
+}
+
+func _CartItemService_ListCartItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCartItemRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CartItemServiceServer).ListCartItem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.CartItemService/ListCartItem",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CartItemServiceServer).ListCartItem(ctx, req.(*ListCartItemRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// CartItemService_ServiceDesc is the grpc.ServiceDesc for CartItemService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var CartItemService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "main.CartItemService",
+	HandlerType: (*CartItemServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListCartItem",
+			Handler:    _CartItemService_ListCartItem_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "main.proto",
+}
