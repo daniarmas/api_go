@@ -21,12 +21,15 @@ type Business struct {
 	Address                  string                 `gorm:"column:address"`
 	Phone                    string                 `gorm:"column:phone"`
 	Email                    string                 `gorm:"column:email"`
-	HighQualityPhoto         string                 `gorm:"column:high_quality_photo"`
-	HighQualityPhotoBlurHash string                 `gorm:"column:high_quality_photo_blurhash"`
-	LowQualityPhoto          string                 `gorm:"column:low_quality_photo"`
-	LowQualityPhotoBlurHash  string                 `gorm:"column:low_quality_photo_blurhash"`
-	Thumbnail                string                 `gorm:"column:thumbnail"`
-	ThumbnailBlurHash        string                 `gorm:"column:thumbnail_blurhash"`
+	HighQualityPhoto         string                 `gorm:"column:high_quality_photo;not null"`
+	HighQualityPhotoObject   string                 `gorm:"column:high_quality_photo_object;not null"`
+	HighQualityPhotoBlurHash string                 `gorm:"column:high_quality_photo_blurhash;not null"`
+	LowQualityPhoto          string                 `gorm:"column:low_quality_photo;not null"`
+	LowQualityPhotoObject    string                 `gorm:"column:low_quality_photo_object;not null"`
+	LowQualityPhotoBlurHash  string                 `gorm:"column:low_quality_photo_blurhash;not null"`
+	Thumbnail                string                 `gorm:"column:thumbnail;not null"`
+	ThumbnailObject          string                 `gorm:"column:thumbnail_object;not null"`
+	ThumbnailBlurHash        string                 `gorm:"column:thumbnail_blurhash;not null"`
 	Cursor                   int64                  `gorm:"column:cursor"`
 	IsOpen                   bool                   `gorm:"column:is_open"`
 	LeadDayTime              int32                  `gorm:"column:lead_day_time"`
@@ -52,5 +55,10 @@ type Business struct {
 func (i *Business) BeforeCreate(tx *gorm.DB) (err error) {
 	i.CreateTime = time.Now()
 	i.UpdateTime = time.Now()
+	return
+}
+
+func (u *Business) BeforeUpdate(tx *gorm.DB) (err error) {
+	u.UpdateTime = time.Now()
 	return
 }

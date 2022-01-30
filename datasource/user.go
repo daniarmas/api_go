@@ -6,12 +6,14 @@ import (
 
 	"github.com/daniarmas/api_go/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type UserDatasource interface {
 	GetUser(tx *gorm.DB, user *models.User) (*models.User, error)
 	GetUserWithAddress(tx *gorm.DB, user *models.User, fields *[]string) (*models.User, error)
 	CreateUser(tx *gorm.DB, user *models.User) (*models.User, error)
+	UpdateUser(tx *gorm.DB, where *models.User, data *models.User) (*models.User, error)
 }
 
 type userDatasource struct{}
@@ -57,4 +59,16 @@ func (u *userDatasource) CreateUser(tx *gorm.DB, user *models.User) (*models.Use
 		return nil, result.Error
 	}
 	return user, nil
+}
+
+func (v *userDatasource) UpdateUser(tx *gorm.DB, where *models.User, data *models.User) (*models.User, error) {
+	result := tx.Clauses(clause.Returning{}).Where(where).Updates(&data)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("record not found")
+		} else {
+			return nil, result.Error
+		}
+	}
+	return data, nil
 }
