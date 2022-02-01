@@ -85,13 +85,13 @@ service CartItemService {
 // }
 
 message ListCartItemRequest {
-  string nextPage = 1;
+  int32 nextPage = 1;
   google.protobuf.FieldMask fieldMask = 2;
 }
 
 message ListCartItemResponse {
-  repeated Item items = 1;
-  string nextPage = 2;
+  repeated CartItem cartItems = 1;
+  int32 nextPage = 2;
 }
 
 message UpdateUserRequest {
@@ -334,16 +334,6 @@ message SignInResponse {
 //   string updateTime = 15;
 // }
 
-// message CartItem {
-//   string id = 1;
-//   string itemFk = 2;
-//   double price = 3;
-//   string userFk = 4;
-//   string authorizationTokenFk = 5;
-//   string createTim = 6;
-//   string updateTime = 7;
-// }
-
 message User {
   string id = 1;
   string fullName = 2; 
@@ -413,6 +403,21 @@ message Item {
   int32 cursor = 18;
   bool isInRange = 19;
 }
+
+message CartItem {
+  string id = 1;
+  string name = 2;
+  string itemFk = 3;
+  string authorizationTokenFk = 4;
+  double price = 5;
+  int32 quantity = 6;
+  string thumbnail = 7;
+  string thumbnailBlurHash = 8;
+  string createTime = 9;
+  string updateTime = 10;
+  int32 cursor = 11;
+}
+
 
 message ItemCategory {
   string id = 1;

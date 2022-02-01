@@ -10,6 +10,11 @@ type ItemServer struct {
 	itemService usecase.ItemService
 }
 
+type CartItemServer struct {
+	pb.UnimplementedCartItemServiceServer
+	cartItemService usecase.CartItemService
+}
+
 type UserServer struct {
 	pb.UnimplementedUserServiceServer
 	userService usecase.UserService
@@ -30,6 +35,14 @@ func NewItemServer(
 ) *ItemServer {
 	return &ItemServer{
 		itemService: itemService,
+	}
+}
+
+func NewCartItemServer(
+	cartItemService usecase.CartItemService,
+) *CartItemServer {
+	return &CartItemServer{
+		cartItemService: cartItemService,
 	}
 }
 

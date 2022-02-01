@@ -28,6 +28,7 @@ type DAO interface {
 	NewBusinessDatasource() BusinessDatasource
 	NewBannedUserDatasource() BannedUserDatasource
 	NewBannedDeviceDatasource() BannedDeviceDatasource
+	NewCartItemDatasource() CartItemDatasource
 }
 
 type dao struct{}
@@ -226,4 +227,8 @@ func (d *dao) NewBannedUserDatasource() BannedUserDatasource {
 
 func (d *dao) NewBannedDeviceDatasource() BannedDeviceDatasource {
 	return &bannedDeviceDatasource{}
+}
+
+func (d *dao) NewCartItemDatasource() CartItemDatasource {
+	return &cartItemDatasource{}
 }
