@@ -1,12 +1,19 @@
 package datasource
 
 import (
+	"errors"
+
 	"github.com/daniarmas/api_go/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type CartItemDatasource interface {
 	ListCartItemAndItem(tx *gorm.DB, where *models.CartItem) (*[]models.CartItemAndItem, error)
+	CreateCartItem(tx *gorm.DB, where *models.CartItem) (*models.CartItem, error)
+	UpdateCartItem(tx *gorm.DB, where *models.CartItem, data *models.CartItem) (*models.CartItem, error)
+	ExistCartItem(tx *gorm.DB, where *models.CartItem) (*bool, error)
+	GetCartItem(tx *gorm.DB, cartItem *models.CartItem) (*models.CartItem, error)
 }
 
 type cartItemDatasource struct{}
@@ -18,4 +25,65 @@ func (i *cartItemDatasource) ListCartItemAndItem(tx *gorm.DB, where *models.Cart
 		return nil, result.Error
 	}
 	return &cartItems, nil
+}
+
+func (i *cartItemDatasource) CreateCartItem(tx *gorm.DB, data *models.CartItem) (*models.CartItem, error) {
+	result := tx.Create(&data)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return data, nil
+}
+
+func (v *cartItemDatasource) UpdateCartItem(tx *gorm.DB, where *models.CartItem, data *models.CartItem) (*models.CartItem, error) {
+	result := tx.Clauses(clause.Returning{}).Where(where).Updates(&data)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("record not found")
+		} else {
+			return nil, result.Error
+		}
+	}
+	return data, nil
+}
+
+func (v *cartItemDatasource) DeleteCartItem(tx *gorm.DB, cartItem *models.CartItem) error {
+	var cartItemResult *[]models.CartItem
+	result := tx.Where(cartItem).Delete(&cartItemResult)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
+func (v *cartItemDatasource) ExistCartItem(tx *gorm.DB, where *models.CartItem) (*bool, error) {
+	var existCartItemResult *models.CartItem
+	var boolean = false
+	result := tx.Where(where).Take(&existCartItemResult)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("record not found")
+		} else {
+			return nil, result.Error
+		}
+	}
+	if result.RowsAffected == 0 {
+		return &boolean, nil
+	} else {
+		boolean = true
+		return &boolean, nil
+	}
+}
+
+func (v *cartItemDatasource) GetCartItem(tx *gorm.DB, cartItem *models.CartItem) (*models.CartItem, error) {
+	var cartItemResult *models.CartItem
+	result := tx.Where(cartItem).Take(&cartItemResult)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("record not found")
+		} else {
+			return nil, result.Error
+		}
+	}
+	return cartItemResult, nil
 }

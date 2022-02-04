@@ -800,7 +800,7 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CartItemServiceClient interface {
 	ListCartItem(ctx context.Context, in *ListCartItemRequest, opts ...grpc.CallOption) (*ListCartItemResponse, error)
-	CreateCartItem(ctx context.Context, in *AddCartItemRequest, opts ...grpc.CallOption) (*AddCartItemResponse, error)
+	AddCartItem(ctx context.Context, in *AddCartItemRequest, opts ...grpc.CallOption) (*AddCartItemResponse, error)
 }
 
 type cartItemServiceClient struct {
@@ -820,9 +820,9 @@ func (c *cartItemServiceClient) ListCartItem(ctx context.Context, in *ListCartIt
 	return out, nil
 }
 
-func (c *cartItemServiceClient) CreateCartItem(ctx context.Context, in *AddCartItemRequest, opts ...grpc.CallOption) (*AddCartItemResponse, error) {
+func (c *cartItemServiceClient) AddCartItem(ctx context.Context, in *AddCartItemRequest, opts ...grpc.CallOption) (*AddCartItemResponse, error) {
 	out := new(AddCartItemResponse)
-	err := c.cc.Invoke(ctx, "/main.CartItemService/CreateCartItem", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/main.CartItemService/AddCartItem", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -834,7 +834,7 @@ func (c *cartItemServiceClient) CreateCartItem(ctx context.Context, in *AddCartI
 // for forward compatibility
 type CartItemServiceServer interface {
 	ListCartItem(context.Context, *ListCartItemRequest) (*ListCartItemResponse, error)
-	CreateCartItem(context.Context, *AddCartItemRequest) (*AddCartItemResponse, error)
+	AddCartItem(context.Context, *AddCartItemRequest) (*AddCartItemResponse, error)
 	mustEmbedUnimplementedCartItemServiceServer()
 }
 
@@ -845,8 +845,8 @@ type UnimplementedCartItemServiceServer struct {
 func (UnimplementedCartItemServiceServer) ListCartItem(context.Context, *ListCartItemRequest) (*ListCartItemResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCartItem not implemented")
 }
-func (UnimplementedCartItemServiceServer) CreateCartItem(context.Context, *AddCartItemRequest) (*AddCartItemResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateCartItem not implemented")
+func (UnimplementedCartItemServiceServer) AddCartItem(context.Context, *AddCartItemRequest) (*AddCartItemResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddCartItem not implemented")
 }
 func (UnimplementedCartItemServiceServer) mustEmbedUnimplementedCartItemServiceServer() {}
 
@@ -879,20 +879,20 @@ func _CartItemService_ListCartItem_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CartItemService_CreateCartItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _CartItemService_AddCartItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddCartItemRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CartItemServiceServer).CreateCartItem(ctx, in)
+		return srv.(CartItemServiceServer).AddCartItem(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/main.CartItemService/CreateCartItem",
+		FullMethod: "/main.CartItemService/AddCartItem",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CartItemServiceServer).CreateCartItem(ctx, req.(*AddCartItemRequest))
+		return srv.(CartItemServiceServer).AddCartItem(ctx, req.(*AddCartItemRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -909,8 +909,8 @@ var CartItemService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CartItemService_ListCartItem_Handler,
 		},
 		{
-			MethodName: "CreateCartItem",
-			Handler:    _CartItemService_CreateCartItem_Handler,
+			MethodName: "AddCartItem",
+			Handler:    _CartItemService_AddCartItem_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -7,12 +7,14 @@ import (
 	"github.com/daniarmas/api_go/models"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type ItemDatasource interface {
 	GetItem(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error)
 	ListItem(tx *gorm.DB, where *models.Item) (*[]models.Item, error)
 	SearchItem(tx *gorm.DB, name string, provinceFk string, municipalityFk string, cursor int64, municipalityNotEqual bool, limit int64) (*[]models.Item, error)
+	UpdateItem(tx *gorm.DB, where *models.Item, data *models.Item) (*models.Item, error)
 }
 
 type itemDatasource struct{}
@@ -54,4 +56,16 @@ func (i *itemDatasource) SearchItem(tx *gorm.DB, name string, provinceFk string,
 		return nil, result.Error
 	}
 	return &items, nil
+}
+
+func (v *itemDatasource) UpdateItem(tx *gorm.DB, where *models.Item, data *models.Item) (*models.Item, error) {
+	result := tx.Clauses(clause.Returning{}).Where(where).Updates(&data)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("record not found")
+		} else {
+			return nil, result.Error
+		}
+	}
+	return data, nil
 }
