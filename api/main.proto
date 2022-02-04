@@ -48,6 +48,7 @@ service UserService {
 service CartItemService {
   rpc ListCartItem (ListCartItemRequest) returns (ListCartItemResponse) {}
   rpc AddCartItem (AddCartItemRequest) returns (AddCartItemResponse) {}
+  rpc ReduceCartItem (ReduceCartItemRequest) returns (ReduceCartItemResponse) {}
 }
 
 // service ObjectStorageService {
@@ -148,6 +149,17 @@ message AddCartItemRequest {
 }
 
 message AddCartItemResponse {
+  CartItem cartItem = 1;
+}
+
+message ReduceCartItemRequest {
+  string itemFk = 1;
+  Point location = 2;
+  int32 quantity = 3;
+  google.protobuf.FieldMask fieldMask = 4;
+}
+
+message ReduceCartItemResponse {
   CartItem cartItem = 1;
 }
 
