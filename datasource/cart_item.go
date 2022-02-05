@@ -14,6 +14,7 @@ type CartItemDatasource interface {
 	UpdateCartItem(tx *gorm.DB, where *models.CartItem, data *models.CartItem) (*models.CartItem, error)
 	ExistCartItem(tx *gorm.DB, where *models.CartItem) (*bool, error)
 	GetCartItem(tx *gorm.DB, cartItem *models.CartItem) (*models.CartItem, error)
+	DeleteCartItem(tx *gorm.DB, where *models.CartItem) error
 }
 
 type cartItemDatasource struct{}
@@ -47,9 +48,9 @@ func (v *cartItemDatasource) UpdateCartItem(tx *gorm.DB, where *models.CartItem,
 	return data, nil
 }
 
-func (v *cartItemDatasource) DeleteCartItem(tx *gorm.DB, cartItem *models.CartItem) error {
+func (v *cartItemDatasource) DeleteCartItem(tx *gorm.DB, where *models.CartItem) error {
 	var cartItemResult *[]models.CartItem
-	result := tx.Where(cartItem).Delete(&cartItemResult)
+	result := tx.Where(where).Delete(&cartItemResult)
 	if result.Error != nil {
 		return result.Error
 	}

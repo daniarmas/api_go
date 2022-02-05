@@ -10,6 +10,7 @@ type CartItemQuery interface {
 	CreateCartItem(tx *gorm.DB, where *models.CartItem) (*models.CartItem, error)
 	UpdateCartItem(tx *gorm.DB, where *models.CartItem, data *models.CartItem) (*models.CartItem, error)
 	GetCartItem(tx *gorm.DB, cartItem *models.CartItem) (*models.CartItem, error)
+	DeleteCartItem(tx *gorm.DB, where *models.CartItem) error
 }
 
 type cartItemQuery struct{}
@@ -44,4 +45,12 @@ func (i *cartItemQuery) GetCartItem(tx *gorm.DB, where *models.CartItem) (*model
 		return nil, err
 	}
 	return result, nil
+}
+
+func (v *cartItemQuery) DeleteCartItem(tx *gorm.DB, where *models.CartItem) error {
+	err := Datasource.NewCartItemDatasource().DeleteCartItem(tx, where)
+	if err != nil {
+		return err
+	}
+	return nil
 }
