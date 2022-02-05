@@ -3,6 +3,7 @@ package datasource
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/daniarmas/api_go/models"
 	"github.com/twpayne/go-geom/encoding/ewkb"
@@ -12,16 +13,16 @@ import (
 
 type ItemDatasource interface {
 	GetItem(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error)
-	ListItem(tx *gorm.DB, where *models.Item) (*[]models.Item, error)
+	ListItem(tx *gorm.DB, where *models.Item, cursor time.Time) (*[]models.Item, error)
 	SearchItem(tx *gorm.DB, name string, provinceFk string, municipalityFk string, cursor int64, municipalityNotEqual bool, limit int64) (*[]models.Item, error)
 	UpdateItem(tx *gorm.DB, where *models.Item, data *models.Item) (*models.Item, error)
 }
 
 type itemDatasource struct{}
 
-func (i *itemDatasource) ListItem(tx *gorm.DB, where *models.Item) (*[]models.Item, error) {
+func (i *itemDatasource) ListItem(tx *gorm.DB, where *models.Item, cursor time.Time) (*[]models.Item, error) {
 	var items []models.Item
-	result := tx.Limit(11).Where("business_fk = ? AND business_item_category_fk = ? AND cursor > ?", where.BusinessFk, where.BusinessItemCategoryFk, where.Cursor).Order("cursor asc").Find(&items)
+	result := tx.Limit(11).Where("business_fk = ? AND business_item_category_fk = ? AND create_time < ?", where.BusinessFk, where.BusinessItemCategoryFk, cursor).Order("create_time desc").Find(&items)
 	if result.Error != nil {
 		return nil, result.Error
 	}

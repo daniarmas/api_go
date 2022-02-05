@@ -1,7 +1,9 @@
 package dto
 
+import "time"
+
 type ListItemRequest struct {
 	BusinessFk             string
 	BusinessItemCategoryFk string
-	NextPage               int32
+	NextPage               time.Time
 }

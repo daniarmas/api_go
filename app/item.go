@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"time"
 
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
@@ -14,7 +15,13 @@ import (
 )
 
 func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb.ListItemResponse, error) {
-	listItemsResponse, err := m.itemService.ListItem(&dto.ListItemRequest{BusinessFk: req.BusinessFk, BusinessItemCategoryFk: req.ItemCategoryFk, NextPage: req.NextPage})
+	var nextPage time.Time
+	if req.NextPage.Nanos == 0 && req.NextPage.Seconds == 0 {
+		nextPage = time.Now()
+	} else {
+		nextPage = req.NextPage.AsTime()
+	}
+	listItemsResponse, err := m.itemService.ListItem(&dto.ListItemRequest{BusinessFk: req.BusinessFk, BusinessItemCategoryFk: req.ItemCategoryFk, NextPage: nextPage})
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +46,7 @@ func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb
 			UpdateTime:               timestamppb.New(item.UpdateTime),
 		})
 	}
-	return &pb.ListItemResponse{Items: itemsResponse, NextPage: listItemsResponse.NextPage}, nil
+	return &pb.ListItemResponse{Items: itemsResponse, NextPage: timestamppb.New(listItemsResponse.NextPage)}, nil
 }
 
 func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.GetItemResponse, error) {
