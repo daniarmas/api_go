@@ -21,7 +21,6 @@ type CartItem struct {
 	ItemFk               uuid.UUID      `gorm:"column:item_fk;not null"`
 	UserFk               uuid.UUID      `gorm:"column:user_fk;not null"`
 	AuthorizationTokenFk uuid.UUID      `gorm:"column:authorization_token_fk;not null"`
-	Cursor               int32          `gorm:"column:cursor"`
 	CreateTime           time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime           time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime           gorm.DeletedAt `gorm:"index;column:delete_time"`
@@ -37,7 +36,6 @@ type CartItemAndItem struct {
 	AuthorizationTokenFk uuid.UUID      `gorm:"column:authorization_token_fk;not null"`
 	Thumbnail            string         `gorm:"column:thumbnail;not null"`
 	ThumbnailBlurHash    string         `gorm:"column:thumbnail_blurhash;not null"`
-	Cursor               int32          `gorm:"column:cursor"`
 	CreateTime           time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime           time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime           gorm.DeletedAt `gorm:"index;column:delete_time"`

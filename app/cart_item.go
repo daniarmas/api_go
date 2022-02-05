@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
@@ -19,7 +20,11 @@ import (
 func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemRequest) (*pb.ListCartItemResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	listCartItemsResponse, err := m.cartItemService.ListCartItemAndItem(&dto.ListCartItemRequest{NextPage: req.NextPage, Metadata: &md})
+	var nextPage = req.NextPage.AsTime()
+	if req.NextPage.Nanos == 0 && req.NextPage.Seconds == 0 {
+		nextPage = time.Now()
+	}
+	listCartItemsResponse, err := m.cartItemService.ListCartItemAndItem(&dto.ListCartItemRequest{NextPage: nextPage, Metadata: &md})
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -43,7 +48,6 @@ func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemR
 			Id:                   item.ID.String(),
 			Name:                 item.Name,
 			Price:                item.Price,
-			Cursor:               item.Cursor,
 			ItemFk:               item.ItemFk.String(),
 			AuthorizationTokenFk: item.AuthorizationTokenFk.String(),
 			Quantity:             item.Quantity,
@@ -53,7 +57,7 @@ func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemR
 			UpdateTime:           timestamppb.New(item.UpdateTime),
 		})
 	}
-	return &pb.ListCartItemResponse{CartItems: itemsResponse, NextPage: listCartItemsResponse.NextPage}, nil
+	return &pb.ListCartItemResponse{CartItems: itemsResponse, NextPage: timestamppb.New(listCartItemsResponse.NextPage)}, nil
 }
 
 func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemRequest) (*pb.AddCartItemResponse, error) {
@@ -95,7 +99,6 @@ func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemReq
 		Id:                   cartItemsResponse.ID.String(),
 		Name:                 cartItemsResponse.Name,
 		Price:                cartItemsResponse.Price,
-		Cursor:               cartItemsResponse.Cursor,
 		ItemFk:               cartItemsResponse.ItemFk.String(),
 		AuthorizationTokenFk: cartItemsResponse.AuthorizationTokenFk.String(),
 		Quantity:             cartItemsResponse.Quantity,
@@ -148,7 +151,6 @@ func (m *CartItemServer) ReduceCartItem(ctx context.Context, req *pb.ReduceCartI
 			Id:                   cartItemsResponse.ID.String(),
 			Name:                 cartItemsResponse.Name,
 			Price:                cartItemsResponse.Price,
-			Cursor:               cartItemsResponse.Cursor,
 			ItemFk:               cartItemsResponse.ItemFk.String(),
 			AuthorizationTokenFk: cartItemsResponse.AuthorizationTokenFk.String(),
 			Quantity:             cartItemsResponse.Quantity,

@@ -1,8 +1,12 @@
 package dto
 
-import "google.golang.org/grpc/metadata"
+import (
+	"time"
+
+	"google.golang.org/grpc/metadata"
+)
 
 type ListCartItemRequest struct {
 	Metadata *metadata.MD
-	NextPage int32
+	NextPage time.Time
 }

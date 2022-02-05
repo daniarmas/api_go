@@ -57,16 +57,16 @@ func (i *cartItemService) ListCartItemAndItem(itemRequest *dto.ListCartItemReque
 		if userErr != nil {
 			return userErr
 		}
-		items, itemsErr = i.dao.NewCartItemRepository().ListCartItemAndItem(tx, &models.CartItem{UserFk: user.ID, Cursor: itemRequest.NextPage})
+		items, itemsErr = i.dao.NewCartItemRepository().ListCartItemAndItem(tx, &models.CartItem{UserFk: user.ID}, &itemRequest.NextPage)
 		if itemsErr != nil {
 			return itemsErr
 		} else if len(*items) > 10 {
 			*items = (*items)[:len(*items)-1]
-			listItemResponse.NextPage = (*items)[len(*items)-1].Cursor
+			listItemResponse.NextPage = (*items)[len(*items)-1].CreateTime
 		} else if len(*items) == 0 {
 			listItemResponse.NextPage = itemRequest.NextPage
 		} else {
-			listItemResponse.NextPage = (*items)[len(*items)-1].Cursor
+			listItemResponse.NextPage = (*items)[len(*items)-1].CreateTime
 		}
 		return nil
 	})
@@ -81,13 +81,12 @@ func (i *cartItemService) ListCartItemAndItem(itemRequest *dto.ListCartItemReque
 			Price:                item.Price,
 			Thumbnail:            item.Thumbnail,
 			ThumbnailBlurHash:    item.ThumbnailBlurHash,
-			CreateTime:           item.CreateTime,
-			UpdateTime:           item.UpdateTime,
-			Cursor:               item.Cursor,
 			Quantity:             item.Quantity,
 			ItemFk:               item.ItemFk,
 			UserFk:               item.UserFk,
 			AuthorizationTokenFk: item.AuthorizationTokenFk,
+			CreateTime:           item.CreateTime,
+			UpdateTime:           item.UpdateTime,
 		})
 	}
 	listItemResponse.CartItems = *items
@@ -145,7 +144,7 @@ func (i *cartItemService) AddCartItem(request *dto.AddCartItem) (*models.CartIte
 				return resultErr
 			}
 		} else if cartItemRes == nil && cartItemErr.Error() == "record not found" {
-			result, resultErr = i.dao.NewCartItemRepository().CreateCartItem(tx, &models.CartItem{Name: item.Name, Price: item.Price, Quantity: request.Quantity, ItemFk: item.ID, UserFk: authorizationTokenRes.UserFk, AuthorizationTokenFk: authorizationTokenRes.ID, Cursor: 0})
+			result, resultErr = i.dao.NewCartItemRepository().CreateCartItem(tx, &models.CartItem{Name: item.Name, Price: item.Price, Quantity: request.Quantity, ItemFk: item.ID, UserFk: authorizationTokenRes.UserFk, AuthorizationTokenFk: authorizationTokenRes.ID})
 			if resultErr != nil {
 				return resultErr
 			}
@@ -293,7 +292,7 @@ func (i *cartItemService) EmptyCartItem(request *dto.EmptyCartItemRequest) error
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		cartItemRes, cartItemErr := i.dao.NewCartItemRepository().ListCartItem(tx, &models.CartItem{UserFk: authorizationTokenRes.UserFk})
+		cartItemRes, cartItemErr := i.dao.NewCartItemRepository().ListCartItem(tx, &models.CartItem{UserFk: authorizationTokenRes.UserFk}, nil)
 		if cartItemErr != nil && cartItemErr.Error() != "record not found" {
 			return errors.New("cartitem not found")
 		}

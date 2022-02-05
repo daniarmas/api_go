@@ -1,8 +1,12 @@
 package dto
 
-import "github.com/daniarmas/api_go/models"
+import (
+	"time"
+
+	"github.com/daniarmas/api_go/models"
+)
 
 type ListCartItemResponse struct {
 	CartItems []models.CartItemAndItem
-	NextPage  int32
+	NextPage  time.Time
 }

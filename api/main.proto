@@ -89,13 +89,13 @@ service CartItemService {
 // }
 
 message ListCartItemRequest {
-  int32 nextPage = 1;
+  google.protobuf.Timestamp nextPage = 1;
   google.protobuf.FieldMask fieldMask = 2;
 }
 
 message ListCartItemResponse {
   repeated CartItem cartItems = 1;
-  int32 nextPage = 2;
+  google.protobuf.Timestamp nextPage = 2;
 }
 
 message UpdateUserRequest {
@@ -447,9 +447,8 @@ message CartItem {
   int32 quantity = 6;
   string thumbnail = 7;
   string thumbnailBlurHash = 8;
-  int32 cursor = 9;
-  google.protobuf.Timestamp createTime = 10;
-  google.protobuf.Timestamp updateTime = 11;
+  google.protobuf.Timestamp createTime = 9;
+  google.protobuf.Timestamp updateTime = 10;
 }
 
 
