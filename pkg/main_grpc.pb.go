@@ -802,6 +802,7 @@ type CartItemServiceClient interface {
 	ListCartItem(ctx context.Context, in *ListCartItemRequest, opts ...grpc.CallOption) (*ListCartItemResponse, error)
 	AddCartItem(ctx context.Context, in *AddCartItemRequest, opts ...grpc.CallOption) (*AddCartItemResponse, error)
 	ReduceCartItem(ctx context.Context, in *ReduceCartItemRequest, opts ...grpc.CallOption) (*ReduceCartItemResponse, error)
+	DeleteCartItem(ctx context.Context, in *DeleteCartItemRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type cartItemServiceClient struct {
@@ -839,6 +840,15 @@ func (c *cartItemServiceClient) ReduceCartItem(ctx context.Context, in *ReduceCa
 	return out, nil
 }
 
+func (c *cartItemServiceClient) DeleteCartItem(ctx context.Context, in *DeleteCartItemRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/main.CartItemService/DeleteCartItem", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CartItemServiceServer is the server API for CartItemService service.
 // All implementations must embed UnimplementedCartItemServiceServer
 // for forward compatibility
@@ -846,6 +856,7 @@ type CartItemServiceServer interface {
 	ListCartItem(context.Context, *ListCartItemRequest) (*ListCartItemResponse, error)
 	AddCartItem(context.Context, *AddCartItemRequest) (*AddCartItemResponse, error)
 	ReduceCartItem(context.Context, *ReduceCartItemRequest) (*ReduceCartItemResponse, error)
+	DeleteCartItem(context.Context, *DeleteCartItemRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedCartItemServiceServer()
 }
 
@@ -861,6 +872,9 @@ func (UnimplementedCartItemServiceServer) AddCartItem(context.Context, *AddCartI
 }
 func (UnimplementedCartItemServiceServer) ReduceCartItem(context.Context, *ReduceCartItemRequest) (*ReduceCartItemResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReduceCartItem not implemented")
+}
+func (UnimplementedCartItemServiceServer) DeleteCartItem(context.Context, *DeleteCartItemRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteCartItem not implemented")
 }
 func (UnimplementedCartItemServiceServer) mustEmbedUnimplementedCartItemServiceServer() {}
 
@@ -929,6 +943,24 @@ func _CartItemService_ReduceCartItem_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CartItemService_DeleteCartItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteCartItemRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CartItemServiceServer).DeleteCartItem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.CartItemService/DeleteCartItem",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CartItemServiceServer).DeleteCartItem(ctx, req.(*DeleteCartItemRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CartItemService_ServiceDesc is the grpc.ServiceDesc for CartItemService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -947,6 +979,10 @@ var CartItemService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReduceCartItem",
 			Handler:    _CartItemService_ReduceCartItem_Handler,
+		},
+		{
+			MethodName: "DeleteCartItem",
+			Handler:    _CartItemService_DeleteCartItem_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -49,6 +49,7 @@ service CartItemService {
   rpc ListCartItem (ListCartItemRequest) returns (ListCartItemResponse) {}
   rpc AddCartItem (AddCartItemRequest) returns (AddCartItemResponse) {}
   rpc ReduceCartItem (ReduceCartItemRequest) returns (ReduceCartItemResponse) {}
+  rpc DeleteCartItem (DeleteCartItemRequest) returns (google.protobuf.Empty) {}
 }
 
 // service ObjectStorageService {
@@ -139,6 +140,11 @@ message RefreshTokenRequest {
 message RefreshTokenResponse {
   string refreshToken = 1;
   string authorizationToken = 2;
+}
+
+message DeleteCartItemRequest {
+  string cartItemFk = 1;
+  google.protobuf.FieldMask fieldMask = 2;
 }
 
 message AddCartItemRequest {
