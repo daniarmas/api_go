@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	gp "google.golang.org/protobuf/types/known/emptypb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.GetUserResponse, error) {
@@ -44,8 +45,8 @@ func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.GetUserRes
 			UserFk:         e.UserFk.String(),
 			ProvinceFk:     e.ProvinceFk.String(),
 			MunicipalityFk: e.MunicipalityFk.String(),
-			CreateTime:     e.CreateTime.String(),
-			UpdateTime:     e.UpdateTime.String(),
+			CreateTime:     timestamppb.New(e.CreateTime),
+			UpdateTime:     timestamppb.New(e.UpdateTime),
 		})
 	}
 	return &pb.GetUserResponse{User: &pb.User{
@@ -60,8 +61,8 @@ func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.GetUserRes
 		ThumbnailBlurHash:        getUserResponse.ThumbnailBlurHash,
 		Email:                    getUserResponse.Email,
 		UserAddress:              userAddress,
-		CreateTime:               getUserResponse.CreateTime.String(),
-		UpdateTime:               getUserResponse.UpdateTime.String(),
+		CreateTime:               timestamppb.New(getUserResponse.CreateTime),
+		UpdateTime:               timestamppb.New(getUserResponse.UpdateTime),
 	}}, nil
 }
 
@@ -115,7 +116,7 @@ func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) 
 		ThumbnailBlurHash:        updateUserResponse.User.ThumbnailBlurHash,
 		Email:                    updateUserResponse.User.Email,
 		// UserAddress:              userAddress,
-		CreateTime: updateUserResponse.User.CreateTime.String(),
-		UpdateTime: updateUserResponse.User.UpdateTime.String(),
+		CreateTime: timestamppb.New(updateUserResponse.User.CreateTime),
+		UpdateTime: timestamppb.New(updateUserResponse.User.UpdateTime),
 	}}, nil
 }

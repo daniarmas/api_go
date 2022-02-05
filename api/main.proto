@@ -4,6 +4,7 @@ package main;
 
 import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "/pkg";
 
@@ -378,8 +379,8 @@ message User {
   repeated UserAddress userAddress = 10;
   string email = 11; 
   // repeated UserPermission permissions = 13;
-  string createTime = 12;
-  string updateTime = 13;
+  google.protobuf.Timestamp createTime = 12;
+  google.protobuf.Timestamp updateTime = 13;
 }
 
 message Business {
@@ -411,6 +412,8 @@ message Business {
   BusinessStatusType status = 26;
   int32 cursor = 27;
   bool isInRange = 28;
+  google.protobuf.Timestamp createTime = 29;
+  google.protobuf.Timestamp updateTime = 30;
 }
 
 message Item {
@@ -429,10 +432,10 @@ message Item {
   string thumbnail = 13;
   string thumbnailBlurHash = 14;
   repeated ItemPhoto photos = 15;
-  string createTime = 16;
-  string updateTime = 17;
-  int32 cursor = 18;
-  bool isInRange = 19;
+  int32 cursor = 16;
+  bool isInRange = 17;
+  google.protobuf.Timestamp createTime = 18;
+  google.protobuf.Timestamp updateTime = 19;
 }
 
 message CartItem {
@@ -444,9 +447,9 @@ message CartItem {
   int32 quantity = 6;
   string thumbnail = 7;
   string thumbnailBlurHash = 8;
-  string createTime = 9;
-  string updateTime = 10;
-  int32 cursor = 11;
+  int32 cursor = 9;
+  google.protobuf.Timestamp createTime = 10;
+  google.protobuf.Timestamp updateTime = 11;
 }
 
 
@@ -455,8 +458,8 @@ message ItemCategory {
   string name = 2;
   int32 index = 3;
   string businessFk = 4;
-  string createTime = 5;
-  string updateTime = 6;
+  google.protobuf.Timestamp createTime = 5;
+  google.protobuf.Timestamp updateTime = 6;
 }
 
 message SearchItem {
@@ -478,8 +481,8 @@ message ItemPhoto {
   string lowQualityPhotoBlurHash = 6;
   string thumbnail = 7;
   string thumbnailBlurHash = 8;
-  string createTime = 9;
-  string updateTime = 10;
+  google.protobuf.Timestamp createTime = 9;
+  google.protobuf.Timestamp updateTime = 10;
 }
 
 // message BannedUser {
@@ -540,8 +543,8 @@ message UserAddress {
   string userFk = 8;
   string provinceFk = 9;
   string municipalityFk = 10;
-  string createTime = 11;
-  string updateTime = 12;
+  google.protobuf.Timestamp createTime = 11;
+  google.protobuf.Timestamp updateTime = 12;
 }
 
 // message UserPermission {

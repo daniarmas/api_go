@@ -10,6 +10,7 @@ import (
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb.ListItemResponse, error) {
@@ -33,9 +34,9 @@ func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb
 			LowQualityPhotoBlurHash:  item.LowQualityPhotoBlurHash,
 			Thumbnail:                item.Thumbnail,
 			ThumbnailBlurHash:        item.ThumbnailBlurHash,
-			CreateTime:               item.CreateTime.String(),
-			UpdateTime:               item.UpdateTime.String(),
 			Cursor:                   int32(item.Cursor),
+			CreateTime:               timestamppb.New(item.CreateTime),
+			UpdateTime:               timestamppb.New(item.UpdateTime),
 		})
 	}
 	return &pb.ListItemResponse{Items: itemsResponse, NextPage: listItemsResponse.NextPage}, nil
@@ -64,8 +65,8 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 			LowQualityPhotoBlurHash:  e.LowQualityPhotoBlurHash,
 			Thumbnail:                e.Thumbnail,
 			ThumbnailBlurHash:        e.ThumbnailBlurHash,
-			CreateTime:               e.CreateTime.String(),
-			UpdateTime:               e.UpdateTime.String(),
+			CreateTime:               timestamppb.New(e.CreateTime),
+			UpdateTime:               timestamppb.New(e.UpdateTime),
 		})
 	}
 	return &pb.GetItemResponse{Item: &pb.Item{
@@ -82,11 +83,11 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 		LowQualityPhotoBlurHash:  item.LowQualityPhotoBlurHash,
 		Thumbnail:                item.Thumbnail,
 		ThumbnailBlurHash:        item.ThumbnailBlurHash,
-		CreateTime:               item.CreateTime.String(),
-		UpdateTime:               item.UpdateTime.String(),
 		Cursor:                   item.Cursor,
 		Photos:                   itemPhotos,
 		IsInRange:                item.IsInRange,
+		CreateTime:               timestamppb.New(item.CreateTime),
+		UpdateTime:               timestamppb.New(item.UpdateTime),
 	}}, nil
 }
 
