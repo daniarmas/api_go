@@ -4407,7 +4407,7 @@ var file_main_proto_rawDesc = []byte{
 	0x17, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x55, 0x73, 0x65,
 	0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e,
 	0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x00, 0x32, 0xb8, 0x02, 0x0a, 0x0f, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65,
+	0x73, 0x65, 0x22, 0x00, 0x32, 0xfb, 0x02, 0x0a, 0x0f, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65,
 	0x6d, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x47, 0x0a, 0x0c, 0x4c, 0x69, 0x73, 0x74,
 	0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x19, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e,
 	0x4c, 0x69, 0x73, 0x74, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x71, 0x75,
@@ -4426,8 +4426,13 @@ var file_main_proto_rawDesc = []byte{
 	0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x1b, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e,
 	0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65,
 	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x00, 0x42,
-	0x06, 0x5a, 0x04, 0x2f, 0x70, 0x6b, 0x67, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x00, 0x12,
+	0x41, 0x0a, 0x0d, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d,
+	0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
+	0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c,
+	0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79,
+	0x22, 0x00, 0x42, 0x06, 0x5a, 0x04, 0x2f, 0x70, 0x6b, 0x67, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x33,
 }
 
 var (
@@ -4568,28 +4573,30 @@ var file_main_proto_depIdxs = []int32{
 	18, // 65: main.CartItemService.AddCartItem:input_type -> main.AddCartItemRequest
 	20, // 66: main.CartItemService.ReduceCartItem:input_type -> main.ReduceCartItemRequest
 	17, // 67: main.CartItemService.DeleteCartItem:input_type -> main.DeleteCartItemRequest
-	52, // 68: main.AuthenticationService.CreateVerificationCode:output_type -> google.protobuf.Empty
-	52, // 69: main.AuthenticationService.GetVerificationCode:output_type -> google.protobuf.Empty
-	39, // 70: main.AuthenticationService.SignIn:output_type -> main.SignInResponse
-	33, // 71: main.AuthenticationService.SignUp:output_type -> main.SignUpResponse
-	52, // 72: main.AuthenticationService.SignOut:output_type -> google.protobuf.Empty
-	35, // 73: main.AuthenticationService.CheckSession:output_type -> main.CheckSessionResponse
-	16, // 74: main.AuthenticationService.RefreshToken:output_type -> main.RefreshTokenResponse
-	52, // 75: main.AuthenticationService.UserExists:output_type -> google.protobuf.Empty
-	13, // 76: main.AuthenticationService.ListSession:output_type -> main.ListSessionResponse
-	29, // 77: main.BusinessService.Feed:output_type -> main.FeedResponse
-	31, // 78: main.BusinessService.GetBusiness:output_type -> main.GetBusinessResponse
-	25, // 79: main.ItemService.ListItem:output_type -> main.ListItemResponse
-	27, // 80: main.ItemService.GetItem:output_type -> main.GetItemResponse
-	23, // 81: main.ItemService.SearchItem:output_type -> main.SearchItemResponse
-	11, // 82: main.UserService.GetUser:output_type -> main.GetUserResponse
-	10, // 83: main.UserService.UpdateUser:output_type -> main.UpdateUserResponse
-	8,  // 84: main.CartItemService.ListCartItem:output_type -> main.ListCartItemResponse
-	19, // 85: main.CartItemService.AddCartItem:output_type -> main.AddCartItemResponse
-	21, // 86: main.CartItemService.ReduceCartItem:output_type -> main.ReduceCartItemResponse
-	52, // 87: main.CartItemService.DeleteCartItem:output_type -> google.protobuf.Empty
-	68, // [68:88] is the sub-list for method output_type
-	48, // [48:68] is the sub-list for method input_type
+	52, // 68: main.CartItemService.EmptyCartItem:input_type -> google.protobuf.Empty
+	52, // 69: main.AuthenticationService.CreateVerificationCode:output_type -> google.protobuf.Empty
+	52, // 70: main.AuthenticationService.GetVerificationCode:output_type -> google.protobuf.Empty
+	39, // 71: main.AuthenticationService.SignIn:output_type -> main.SignInResponse
+	33, // 72: main.AuthenticationService.SignUp:output_type -> main.SignUpResponse
+	52, // 73: main.AuthenticationService.SignOut:output_type -> google.protobuf.Empty
+	35, // 74: main.AuthenticationService.CheckSession:output_type -> main.CheckSessionResponse
+	16, // 75: main.AuthenticationService.RefreshToken:output_type -> main.RefreshTokenResponse
+	52, // 76: main.AuthenticationService.UserExists:output_type -> google.protobuf.Empty
+	13, // 77: main.AuthenticationService.ListSession:output_type -> main.ListSessionResponse
+	29, // 78: main.BusinessService.Feed:output_type -> main.FeedResponse
+	31, // 79: main.BusinessService.GetBusiness:output_type -> main.GetBusinessResponse
+	25, // 80: main.ItemService.ListItem:output_type -> main.ListItemResponse
+	27, // 81: main.ItemService.GetItem:output_type -> main.GetItemResponse
+	23, // 82: main.ItemService.SearchItem:output_type -> main.SearchItemResponse
+	11, // 83: main.UserService.GetUser:output_type -> main.GetUserResponse
+	10, // 84: main.UserService.UpdateUser:output_type -> main.UpdateUserResponse
+	8,  // 85: main.CartItemService.ListCartItem:output_type -> main.ListCartItemResponse
+	19, // 86: main.CartItemService.AddCartItem:output_type -> main.AddCartItemResponse
+	21, // 87: main.CartItemService.ReduceCartItem:output_type -> main.ReduceCartItemResponse
+	52, // 88: main.CartItemService.DeleteCartItem:output_type -> google.protobuf.Empty
+	52, // 89: main.CartItemService.EmptyCartItem:output_type -> google.protobuf.Empty
+	69, // [69:90] is the sub-list for method output_type
+	48, // [48:69] is the sub-list for method input_type
 	48, // [48:48] is the sub-list for extension type_name
 	48, // [48:48] is the sub-list for extension extendee
 	0,  // [0:48] is the sub-list for field type_name
