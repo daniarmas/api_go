@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	gp "google.golang.org/protobuf/types/known/emptypb"
 )
 
 func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemRequest) (*pb.ListCartItemResponse, error) {
@@ -158,4 +159,44 @@ func (m *CartItemServer) ReduceCartItem(ctx context.Context, req *pb.ReduceCartI
 	} else {
 		return &pb.ReduceCartItemResponse{CartItem: &pb.CartItem{}}, nil
 	}
+}
+
+func (m *CartItemServer) DeleteCartItem(ctx context.Context, req *pb.DeleteCartItemRequest) (*gp.Empty, error) {
+	var st *status.Status
+	md, _ := metadata.FromIncomingContext(ctx)
+	err := m.cartItemService.DeleteCartItem(&dto.DeleteCartItemRequest{CartItemFk: req.CartItemFk, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, Metadata: &md})
+	if err != nil {
+		errorr := strings.Split(err.Error(), ":")
+		switch errorr[0] {
+		case "authorizationtoken not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "cartitem not found":
+			st = status.New(codes.NotFound, "CartItem not found")
+		case "out of range":
+			st = status.New(codes.InvalidArgument, "Out of range")
+		case "no_availability":
+			st = status.New(codes.InvalidArgument, "No availability")
+			ds, _ := st.WithDetails(
+				&epb.QuotaFailure{
+					Violations: []*epb.QuotaFailure_Violation{{
+						Subject:     "Availability",
+						Description: errorr[2],
+					}},
+				},
+			)
+			st = ds
+		case "authorizationtoken expired":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return &gp.Empty{}, nil
 }

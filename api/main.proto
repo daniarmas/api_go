@@ -144,7 +144,8 @@ message RefreshTokenResponse {
 
 message DeleteCartItemRequest {
   string cartItemFk = 1;
-  google.protobuf.FieldMask fieldMask = 2;
+  Point location = 2;
+  google.protobuf.FieldMask fieldMask = 3;
 }
 
 message AddCartItemRequest {
