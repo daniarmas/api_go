@@ -187,7 +187,7 @@ message SearchItemResponse {
 }
 
 message ListItemRequest {
-  int32 nextPage = 1;
+  google.protobuf.Timestamp nextPage = 1;
   string businessFk = 2;
   string itemCategoryFk = 3;
   google.protobuf.FieldMask fieldMask = 4;
@@ -195,7 +195,7 @@ message ListItemRequest {
 
 message ListItemResponse {
   repeated Item items = 1;
-  int32 nextPage = 2;
+  google.protobuf.Timestamp nextPage = 2;
 }
 
 message GetItemRequest {
