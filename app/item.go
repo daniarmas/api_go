@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"time"
 
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
@@ -10,10 +11,17 @@ import (
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb.ListItemResponse, error) {
-	listItemsResponse, err := m.itemService.ListItem(&dto.ListItemRequest{BusinessFk: req.BusinessFk, BusinessItemCategoryFk: req.ItemCategoryFk, NextPage: req.NextPage})
+	var nextPage time.Time
+	if req.NextPage.Nanos == 0 && req.NextPage.Seconds == 0 {
+		nextPage = time.Now()
+	} else {
+		nextPage = req.NextPage.AsTime()
+	}
+	listItemsResponse, err := m.itemService.ListItem(&dto.ListItemRequest{BusinessFk: req.BusinessFk, BusinessItemCategoryFk: req.ItemCategoryFk, NextPage: nextPage})
 	if err != nil {
 		return nil, err
 	}
@@ -33,12 +41,12 @@ func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb
 			LowQualityPhotoBlurHash:  item.LowQualityPhotoBlurHash,
 			Thumbnail:                item.Thumbnail,
 			ThumbnailBlurHash:        item.ThumbnailBlurHash,
-			CreateTime:               item.CreateTime.String(),
-			UpdateTime:               item.UpdateTime.String(),
 			Cursor:                   int32(item.Cursor),
+			CreateTime:               timestamppb.New(item.CreateTime),
+			UpdateTime:               timestamppb.New(item.UpdateTime),
 		})
 	}
-	return &pb.ListItemResponse{Items: itemsResponse, NextPage: listItemsResponse.NextPage}, nil
+	return &pb.ListItemResponse{Items: itemsResponse, NextPage: timestamppb.New(listItemsResponse.NextPage)}, nil
 }
 
 func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.GetItemResponse, error) {
@@ -64,8 +72,8 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 			LowQualityPhotoBlurHash:  e.LowQualityPhotoBlurHash,
 			Thumbnail:                e.Thumbnail,
 			ThumbnailBlurHash:        e.ThumbnailBlurHash,
-			CreateTime:               e.CreateTime.String(),
-			UpdateTime:               e.UpdateTime.String(),
+			CreateTime:               timestamppb.New(e.CreateTime),
+			UpdateTime:               timestamppb.New(e.UpdateTime),
 		})
 	}
 	return &pb.GetItemResponse{Item: &pb.Item{
@@ -82,11 +90,11 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 		LowQualityPhotoBlurHash:  item.LowQualityPhotoBlurHash,
 		Thumbnail:                item.Thumbnail,
 		ThumbnailBlurHash:        item.ThumbnailBlurHash,
-		CreateTime:               item.CreateTime.String(),
-		UpdateTime:               item.UpdateTime.String(),
 		Cursor:                   item.Cursor,
 		Photos:                   itemPhotos,
 		IsInRange:                item.IsInRange,
+		CreateTime:               timestamppb.New(item.CreateTime),
+		UpdateTime:               timestamppb.New(item.UpdateTime),
 	}}, nil
 }
 

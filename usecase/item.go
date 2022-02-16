@@ -37,19 +37,19 @@ func (i *itemService) ListItem(itemRequest *dto.ListItemRequest) (*dto.ListItemR
 			if itemCategoryErr != nil {
 				return itemCategoryErr
 			}
-			items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &models.Item{BusinessFk: uuid.MustParse(itemRequest.BusinessFk), BusinessItemCategoryFk: itemCategoryRes.ID, Cursor: itemRequest.NextPage})
+			items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &models.Item{BusinessFk: uuid.MustParse(itemRequest.BusinessFk), BusinessItemCategoryFk: itemCategoryRes.ID}, itemRequest.NextPage)
 			if itemsErr != nil {
 				return itemsErr
 			} else if len(*items) > 10 {
 				*items = (*items)[:len(*items)-1]
-				listItemResponse.NextPage = (*items)[len(*items)-1].Cursor
+				listItemResponse.NextPage = (*items)[len(*items)-1].CreateTime
 			} else if len(*items) == 0 {
 				listItemResponse.NextPage = itemRequest.NextPage
 			} else {
-				listItemResponse.NextPage = (*items)[len(*items)-1].Cursor
+				listItemResponse.NextPage = (*items)[len(*items)-1].CreateTime
 			}
 		} else if itemRequest.BusinessFk != "" && itemRequest.BusinessItemCategoryFk != "" {
-			items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &models.Item{BusinessFk: uuid.MustParse(itemRequest.BusinessFk), BusinessItemCategoryFk: uuid.MustParse(itemRequest.BusinessItemCategoryFk)})
+			items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &models.Item{BusinessFk: uuid.MustParse(itemRequest.BusinessFk), BusinessItemCategoryFk: uuid.MustParse(itemRequest.BusinessItemCategoryFk)}, itemRequest.NextPage)
 			if itemsErr != nil {
 				return itemsErr
 			}

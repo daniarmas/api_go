@@ -4,6 +4,7 @@ package main;
 
 import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "/pkg";
 
@@ -27,10 +28,13 @@ service AuthenticationService {
 service BusinessService {
   rpc Feed (FeedRequest) returns (FeedResponse) {}
   rpc GetBusiness (GetBusinessRequest) returns (GetBusinessResponse) {}
+//rpc UpdateBusiness (UpdateBusinessRequest) returns (UpdateBusinessResponse) {}
 }
 
 service ItemService {
   rpc ListItem (ListItemRequest) returns (ListItemResponse) {}
+rpc CreateItem (CreateItemRequest) returns (CreateItemResponse) {}  
+//rpc UpdateItem (UpdateItemRequest) returns (UpdateItemResponse) {}
   rpc GetItem (GetItemRequest) returns (GetItemResponse) {}
   rpc SearchItem (SearchItemRequest) returns (SearchItemResponse) {}
 }
@@ -42,13 +46,17 @@ service UserService {
 
 // service OrderService {
 //   rpc ListOrder (ListOrderRequest) returns (ListOrderResponse) {}
+//   rpc CreateOrder (CreateOrderRequest) returns (CreateOrderResponse) {}
 //   rpc GetOrder (GetOrderRequest) returns (GetOrderResponse) {}
 // }
 
-// service CartItemService {
-//   rpc ListCartItem (ListCartItemRequest) returns (ListCartItemResponse) {}
-//   rpc GetCartItem (GetCartItemRequest) returns (GetCartItemResponse) {}
-// }
+service CartItemService {
+  rpc ListCartItem (ListCartItemRequest) returns (ListCartItemResponse) {}
+  rpc AddCartItem (AddCartItemRequest) returns (AddCartItemResponse) {}
+  rpc ReduceCartItem (ReduceCartItemRequest) returns (ReduceCartItemResponse) {}
+  rpc DeleteCartItem (DeleteCartItemRequest) returns (google.protobuf.Empty) {}
+  // rpc EmptyCartItem (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+}
 
 // service ObjectStorageService {
 //   rpc GetPresignedPutObjectUserAvatar (GetPresignedPutUserAvatarRequest) returns (GetPresignedPutUserAvatarResponse) {}
@@ -84,15 +92,32 @@ service UserService {
 //   Item item = 1;
 // }
 
-// message ListCartItemRequest {
-//   string nextPage = 1;
-//   google.protobuf.FieldMask fieldMask = 2;
-// }
+message CreateItemRequest {
+  string name = 1;
+  string description = 2;
+  double price = 3;
+  string businessItemCategoryFk = 4;
+  string highQualityPhoto = 5;
+  string highQualityPhotoBlurHash = 6;
+  string lowQualityPhoto = 7;
+  string lowQualityPhotoBlurHash = 8;
+  string thumbnail = 9;
+  string thumbnailBlurHash = 10;
+}
 
-// message ListCartItemResponse {
-//   repeated Item items = 1;
-//   string nextPage = 2;
-// }
+message CreateItemResponse {
+  Item item = 1;
+}
+
+message ListCartItemRequest {
+  google.protobuf.Timestamp nextPage = 1;
+  google.protobuf.FieldMask fieldMask = 2;
+}
+
+message ListCartItemResponse {
+  repeated CartItem cartItems = 1;
+  google.protobuf.Timestamp nextPage = 2;
+}
 
 message UpdateUserRequest {
   google.protobuf.FieldMask fieldMask = 1;
@@ -140,6 +165,34 @@ message RefreshTokenResponse {
   string authorizationToken = 2;
 }
 
+message DeleteCartItemRequest {
+  string cartItemFk = 1;
+  Point location = 2;
+  google.protobuf.FieldMask fieldMask = 3;
+}
+
+message AddCartItemRequest {
+  string itemFk = 1;
+  Point location = 2;
+  int32 quantity = 3;
+  google.protobuf.FieldMask fieldMask = 4;
+}
+
+message AddCartItemResponse {
+  CartItem cartItem = 1;
+}
+
+message ReduceCartItemRequest {
+  string itemFk = 1;
+  Point location = 2;
+  int32 quantity = 3;
+  google.protobuf.FieldMask fieldMask = 4;
+}
+
+message ReduceCartItemResponse {
+  CartItem cartItem = 1;
+}
+
 message SearchItemRequest {
   int32 nextPage = 1;
   string name = 2;
@@ -155,7 +208,7 @@ message SearchItemResponse {
 }
 
 message ListItemRequest {
-  int32 nextPage = 1;
+  google.protobuf.Timestamp nextPage = 1;
   string businessFk = 2;
   string itemCategoryFk = 3;
   google.protobuf.FieldMask fieldMask = 4;
@@ -163,7 +216,7 @@ message ListItemRequest {
 
 message ListItemResponse {
   repeated Item items = 1;
-  int32 nextPage = 2;
+  google.protobuf.Timestamp nextPage = 2;
 }
 
 message GetItemRequest {
@@ -334,16 +387,6 @@ message SignInResponse {
 //   string updateTime = 15;
 // }
 
-// message CartItem {
-//   string id = 1;
-//   string itemFk = 2;
-//   double price = 3;
-//   string userFk = 4;
-//   string authorizationTokenFk = 5;
-//   string createTim = 6;
-//   string updateTime = 7;
-// }
-
 message User {
   string id = 1;
   string fullName = 2; 
@@ -357,8 +400,8 @@ message User {
   repeated UserAddress userAddress = 10;
   string email = 11; 
   // repeated UserPermission permissions = 13;
-  string createTime = 12;
-  string updateTime = 13;
+  google.protobuf.Timestamp createTime = 12;
+  google.protobuf.Timestamp updateTime = 13;
 }
 
 message Business {
@@ -390,6 +433,8 @@ message Business {
   BusinessStatusType status = 26;
   int32 cursor = 27;
   bool isInRange = 28;
+  google.protobuf.Timestamp createTime = 29;
+  google.protobuf.Timestamp updateTime = 30;
 }
 
 message Item {
@@ -408,19 +453,33 @@ message Item {
   string thumbnail = 13;
   string thumbnailBlurHash = 14;
   repeated ItemPhoto photos = 15;
-  string createTime = 16;
-  string updateTime = 17;
-  int32 cursor = 18;
-  bool isInRange = 19;
+  int32 cursor = 16;
+  bool isInRange = 17;
+  google.protobuf.Timestamp createTime = 18;
+  google.protobuf.Timestamp updateTime = 19;
 }
+
+message CartItem {
+  string id = 1;
+  string name = 2;
+  string itemFk = 3;
+  string authorizationTokenFk = 4;
+  double price = 5;
+  int32 quantity = 6;
+  string thumbnail = 7;
+  string thumbnailBlurHash = 8;
+  google.protobuf.Timestamp createTime = 9;
+  google.protobuf.Timestamp updateTime = 10;
+}
+
 
 message ItemCategory {
   string id = 1;
   string name = 2;
   int32 index = 3;
   string businessFk = 4;
-  string createTime = 5;
-  string updateTime = 6;
+  google.protobuf.Timestamp createTime = 5;
+  google.protobuf.Timestamp updateTime = 6;
 }
 
 message SearchItem {
@@ -442,8 +501,8 @@ message ItemPhoto {
   string lowQualityPhotoBlurHash = 6;
   string thumbnail = 7;
   string thumbnailBlurHash = 8;
-  string createTime = 9;
-  string updateTime = 10;
+  google.protobuf.Timestamp createTime = 9;
+  google.protobuf.Timestamp updateTime = 10;
 }
 
 // message BannedUser {
@@ -504,8 +563,8 @@ message UserAddress {
   string userFk = 8;
   string provinceFk = 9;
   string municipalityFk = 10;
-  string createTime = 11;
-  string updateTime = 12;
+  google.protobuf.Timestamp createTime = 11;
+  google.protobuf.Timestamp updateTime = 12;
 }
 
 // message UserPermission {
