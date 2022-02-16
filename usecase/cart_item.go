@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 
 	"github.com/daniarmas/api_go/datasource"
@@ -18,7 +17,6 @@ type CartItemService interface {
 	AddCartItem(request *dto.AddCartItem) (*models.CartItem, error)
 	ReduceCartItem(request *dto.ReduceCartItem) (*models.CartItem, error)
 	DeleteCartItem(request *dto.DeleteCartItemRequest) error
-	EmptyCartItem(requet *dto.EmptyCartItemRequest) error
 }
 
 type cartItemService struct {
@@ -263,40 +261,6 @@ func (i *cartItemService) DeleteCartItem(request *dto.DeleteCartItemRequest) err
 		if deleteCartItemErr != nil {
 			return deleteCartItemErr
 		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (i *cartItemService) EmptyCartItem(request *dto.EmptyCartItemRequest) error {
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&request.Metadata.Get("authorization")[0])
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
-			case "Token is expired":
-				return errors.New("authorizationtoken expired")
-			case "signature is invalid":
-				return errors.New("signature is invalid")
-			case "token contains an invalid number of segments":
-				return errors.New("token contains an invalid number of segments")
-			default:
-				return authorizationTokenParseErr
-			}
-		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
-		if authorizationTokenErr != nil {
-			return authorizationTokenErr
-		} else if authorizationTokenRes == nil {
-			return errors.New("unauthenticated")
-		}
-		cartItemRes, cartItemErr := i.dao.NewCartItemRepository().ListCartItem(tx, &models.CartItem{UserFk: authorizationTokenRes.UserFk}, nil)
-		if cartItemErr != nil && cartItemErr.Error() != "record not found" {
-			return errors.New("cartitem not found")
-		}
-		fmt.Println(cartItemRes)
 		return nil
 	})
 	if err != nil {

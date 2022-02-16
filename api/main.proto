@@ -28,10 +28,13 @@ service AuthenticationService {
 service BusinessService {
   rpc Feed (FeedRequest) returns (FeedResponse) {}
   rpc GetBusiness (GetBusinessRequest) returns (GetBusinessResponse) {}
+//rpc UpdateBusiness (UpdateBusinessRequest) returns (UpdateBusinessResponse) {}
 }
 
 service ItemService {
   rpc ListItem (ListItemRequest) returns (ListItemResponse) {}
+rpc CreateItem (CreateItemRequest) returns (CreateItemResponse) {}  
+//rpc UpdateItem (UpdateItemRequest) returns (UpdateItemResponse) {}
   rpc GetItem (GetItemRequest) returns (GetItemResponse) {}
   rpc SearchItem (SearchItemRequest) returns (SearchItemResponse) {}
 }
@@ -43,6 +46,7 @@ service UserService {
 
 // service OrderService {
 //   rpc ListOrder (ListOrderRequest) returns (ListOrderResponse) {}
+//   rpc CreateOrder (CreateOrderRequest) returns (CreateOrderResponse) {}
 //   rpc GetOrder (GetOrderRequest) returns (GetOrderResponse) {}
 // }
 
@@ -51,7 +55,7 @@ service CartItemService {
   rpc AddCartItem (AddCartItemRequest) returns (AddCartItemResponse) {}
   rpc ReduceCartItem (ReduceCartItemRequest) returns (ReduceCartItemResponse) {}
   rpc DeleteCartItem (DeleteCartItemRequest) returns (google.protobuf.Empty) {}
-  rpc EmptyCartItem (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  // rpc EmptyCartItem (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
 
 // service ObjectStorageService {
@@ -87,6 +91,23 @@ service CartItemService {
 // message GetCartItemResponse {
 //   Item item = 1;
 // }
+
+message CreateItemRequest {
+  string name = 1;
+  string description = 2;
+  double price = 3;
+  string businessItemCategoryFk = 4;
+  string highQualityPhoto = 5;
+  string highQualityPhotoBlurHash = 6;
+  string lowQualityPhoto = 7;
+  string lowQualityPhotoBlurHash = 8;
+  string thumbnail = 9;
+  string thumbnailBlurHash = 10;
+}
+
+message CreateItemResponse {
+  Item item = 1;
+}
 
 message ListCartItemRequest {
   google.protobuf.Timestamp nextPage = 1;

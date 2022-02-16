@@ -4452,7 +4452,7 @@ var file_main_proto_rawDesc = []byte{
 	0x72, 0x12, 0x17, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x55,
 	0x73, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x6d, 0x61, 0x69,
 	0x6e, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x32, 0xfb, 0x02, 0x0a, 0x0f, 0x43, 0x61, 0x72, 0x74, 0x49,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x32, 0xb8, 0x02, 0x0a, 0x0f, 0x43, 0x61, 0x72, 0x74, 0x49,
 	0x74, 0x65, 0x6d, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x47, 0x0a, 0x0c, 0x4c, 0x69,
 	0x73, 0x74, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x19, 0x2e, 0x6d, 0x61, 0x69,
 	0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65,
@@ -4472,12 +4472,8 @@ var file_main_proto_rawDesc = []byte{
 	0x6e, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d,
 	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
 	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22,
-	0x00, 0x12, 0x41, 0x0a, 0x0d, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74,
-	0x65, 0x6d, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f,
-	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70,
-	0x74, 0x79, 0x22, 0x00, 0x42, 0x06, 0x5a, 0x04, 0x2f, 0x70, 0x6b, 0x67, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x00, 0x42, 0x06, 0x5a, 0x04, 0x2f, 0x70, 0x6b, 0x67, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x33,
 }
 
 var (
@@ -4637,30 +4633,28 @@ var file_main_proto_depIdxs = []int32{
 	18, // 83: main.CartItemService.AddCartItem:input_type -> main.AddCartItemRequest
 	20, // 84: main.CartItemService.ReduceCartItem:input_type -> main.ReduceCartItemRequest
 	17, // 85: main.CartItemService.DeleteCartItem:input_type -> main.DeleteCartItemRequest
-	53, // 86: main.CartItemService.EmptyCartItem:input_type -> google.protobuf.Empty
-	53, // 87: main.AuthenticationService.CreateVerificationCode:output_type -> google.protobuf.Empty
-	53, // 88: main.AuthenticationService.GetVerificationCode:output_type -> google.protobuf.Empty
-	39, // 89: main.AuthenticationService.SignIn:output_type -> main.SignInResponse
-	33, // 90: main.AuthenticationService.SignUp:output_type -> main.SignUpResponse
-	53, // 91: main.AuthenticationService.SignOut:output_type -> google.protobuf.Empty
-	35, // 92: main.AuthenticationService.CheckSession:output_type -> main.CheckSessionResponse
-	16, // 93: main.AuthenticationService.RefreshToken:output_type -> main.RefreshTokenResponse
-	53, // 94: main.AuthenticationService.UserExists:output_type -> google.protobuf.Empty
-	13, // 95: main.AuthenticationService.ListSession:output_type -> main.ListSessionResponse
-	29, // 96: main.BusinessService.Feed:output_type -> main.FeedResponse
-	31, // 97: main.BusinessService.GetBusiness:output_type -> main.GetBusinessResponse
-	25, // 98: main.ItemService.ListItem:output_type -> main.ListItemResponse
-	27, // 99: main.ItemService.GetItem:output_type -> main.GetItemResponse
-	23, // 100: main.ItemService.SearchItem:output_type -> main.SearchItemResponse
-	11, // 101: main.UserService.GetUser:output_type -> main.GetUserResponse
-	10, // 102: main.UserService.UpdateUser:output_type -> main.UpdateUserResponse
-	8,  // 103: main.CartItemService.ListCartItem:output_type -> main.ListCartItemResponse
-	19, // 104: main.CartItemService.AddCartItem:output_type -> main.AddCartItemResponse
-	21, // 105: main.CartItemService.ReduceCartItem:output_type -> main.ReduceCartItemResponse
-	53, // 106: main.CartItemService.DeleteCartItem:output_type -> google.protobuf.Empty
-	53, // 107: main.CartItemService.EmptyCartItem:output_type -> google.protobuf.Empty
-	87, // [87:108] is the sub-list for method output_type
-	66, // [66:87] is the sub-list for method input_type
+	53, // 86: main.AuthenticationService.CreateVerificationCode:output_type -> google.protobuf.Empty
+	53, // 87: main.AuthenticationService.GetVerificationCode:output_type -> google.protobuf.Empty
+	39, // 88: main.AuthenticationService.SignIn:output_type -> main.SignInResponse
+	33, // 89: main.AuthenticationService.SignUp:output_type -> main.SignUpResponse
+	53, // 90: main.AuthenticationService.SignOut:output_type -> google.protobuf.Empty
+	35, // 91: main.AuthenticationService.CheckSession:output_type -> main.CheckSessionResponse
+	16, // 92: main.AuthenticationService.RefreshToken:output_type -> main.RefreshTokenResponse
+	53, // 93: main.AuthenticationService.UserExists:output_type -> google.protobuf.Empty
+	13, // 94: main.AuthenticationService.ListSession:output_type -> main.ListSessionResponse
+	29, // 95: main.BusinessService.Feed:output_type -> main.FeedResponse
+	31, // 96: main.BusinessService.GetBusiness:output_type -> main.GetBusinessResponse
+	25, // 97: main.ItemService.ListItem:output_type -> main.ListItemResponse
+	27, // 98: main.ItemService.GetItem:output_type -> main.GetItemResponse
+	23, // 99: main.ItemService.SearchItem:output_type -> main.SearchItemResponse
+	11, // 100: main.UserService.GetUser:output_type -> main.GetUserResponse
+	10, // 101: main.UserService.UpdateUser:output_type -> main.UpdateUserResponse
+	8,  // 102: main.CartItemService.ListCartItem:output_type -> main.ListCartItemResponse
+	19, // 103: main.CartItemService.AddCartItem:output_type -> main.AddCartItemResponse
+	21, // 104: main.CartItemService.ReduceCartItem:output_type -> main.ReduceCartItemResponse
+	53, // 105: main.CartItemService.DeleteCartItem:output_type -> google.protobuf.Empty
+	86, // [86:106] is the sub-list for method output_type
+	66, // [66:86] is the sub-list for method input_type
 	66, // [66:66] is the sub-list for extension type_name
 	66, // [66:66] is the sub-list for extension extendee
 	0,  // [0:66] is the sub-list for field type_name

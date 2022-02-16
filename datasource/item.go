@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/daniarmas/api_go/models"
+	"github.com/google/uuid"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -14,6 +15,8 @@ import (
 type ItemDatasource interface {
 	GetItem(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error)
 	ListItem(tx *gorm.DB, where *models.Item, cursor time.Time) (*[]models.Item, error)
+	ListItemInIds(tx *gorm.DB, ids []uuid.UUID) (*[]models.Item, error)
+	// ListItemAllInIds(tx *gorm.DB, ids *[]string) (*[]models.Item, error)
 	SearchItem(tx *gorm.DB, name string, provinceFk string, municipalityFk string, cursor int64, municipalityNotEqual bool, limit int64) (*[]models.Item, error)
 	UpdateItem(tx *gorm.DB, where *models.Item, data *models.Item) (*models.Item, error)
 }
@@ -28,6 +31,24 @@ func (i *itemDatasource) ListItem(tx *gorm.DB, where *models.Item, cursor time.T
 	}
 	return &items, nil
 }
+
+func (i *itemDatasource) ListItemInIds(tx *gorm.DB, ids []uuid.UUID) (*[]models.Item, error) {
+	var items []models.Item
+	result := tx.Where("id IN ? ", ids).Find(&items)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &items, nil
+}
+
+// func (i *itemDatasource) ListItemAllInIds(tx *gorm.DB, ids *[]string) (*[]models.Item, error) {
+// 	var items []models.Item
+// 	result := tx.Where("business_fk = ? AND business_item_category_fk = ? AND create_time < ?", where.BusinessFk, where.BusinessItemCategoryFk, cursor).Order("create_time desc").Find(&items)
+// 	if result.Error != nil {
+// 		return nil, result.Error
+// 	}
+// 	return &items, nil
+// }
 
 func (i *itemDatasource) GetItem(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error) {
 	var item *models.ItemBusiness

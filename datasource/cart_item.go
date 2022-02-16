@@ -12,6 +12,7 @@ import (
 type CartItemDatasource interface {
 	ListCartItemAndItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItemAndItem, error)
 	ListCartItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItem, error)
+	ListCartItemAll(tx *gorm.DB, where *models.CartItem) (*[]models.CartItem, error)
 	CreateCartItem(tx *gorm.DB, where *models.CartItem) (*models.CartItem, error)
 	UpdateCartItem(tx *gorm.DB, where *models.CartItem, data *models.CartItem) (*models.CartItem, error)
 	ExistCartItem(tx *gorm.DB, where *models.CartItem) (*bool, error)
@@ -33,6 +34,15 @@ func (i *cartItemDatasource) ListCartItemAndItem(tx *gorm.DB, where *models.Cart
 func (i *cartItemDatasource) ListCartItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItem, error) {
 	var cartItems []models.CartItem
 	result := tx.Limit(11).Where("cart_item.user_fk = ? AND cart_item.create_time > ?", where.UserFk, cursor).Order("cart_item.create_time desc").Find(&cartItems)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &cartItems, nil
+}
+
+func (i *cartItemDatasource) ListCartItemAll(tx *gorm.DB, where *models.CartItem) (*[]models.CartItem, error) {
+	var cartItems []models.CartItem
+	result := tx.Where("cart_item.user_fk = ?", where.UserFk).Order("cart_item.create_time desc").Find(&cartItems)
 	if result.Error != nil {
 		return nil, result.Error
 	}
