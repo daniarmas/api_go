@@ -15,6 +15,7 @@ import (
 type CartItemService interface {
 	ListCartItemAndItem(itemRequest *dto.ListCartItemRequest) (*dto.ListCartItemResponse, error)
 	AddCartItem(request *dto.AddCartItem) (*models.CartItem, error)
+	CartItemQuantity(request *dto.CartItemQuantity) (*bool, error)
 	ReduceCartItem(request *dto.ReduceCartItem) (*models.CartItem, error)
 	DeleteCartItem(request *dto.DeleteCartItemRequest) error
 }
@@ -25,6 +26,41 @@ type cartItemService struct {
 
 func NewCartItemService(dao repository.DAO) CartItemService {
 	return &cartItemService{dao: dao}
+}
+
+func (i *cartItemService) CartItemQuantity(request *dto.CartItemQuantity) (*bool, error) {
+	var cartItemQuantityRes *bool
+	var cartItemQuantityErr error
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+		authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&request.Metadata.Get("authorization")[0])
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+		if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		} else if authorizationTokenRes == nil {
+			return errors.New("unauthenticated")
+		}
+		cartItemQuantityRes, cartItemQuantityErr = i.dao.NewCartItemRepository().CartItemQuantity(tx, &models.CartItem{UserFk: authorizationTokenRes.UserFk})
+		if cartItemQuantityErr != nil {
+			return cartItemQuantityErr
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cartItemQuantityRes, nil
 }
 
 func (i *cartItemService) ListCartItemAndItem(itemRequest *dto.ListCartItemRequest) (*dto.ListCartItemResponse, error) {

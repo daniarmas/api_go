@@ -18,9 +18,24 @@ type CartItemDatasource interface {
 	ExistCartItem(tx *gorm.DB, where *models.CartItem) (*bool, error)
 	GetCartItem(tx *gorm.DB, cartItem *models.CartItem) (*models.CartItem, error)
 	DeleteCartItem(tx *gorm.DB, where *models.CartItem) error
+	CartItemQuantity(tx *gorm.DB, where *models.CartItem) (*bool, error)
 }
 
 type cartItemDatasource struct{}
+
+func (i *cartItemDatasource) CartItemQuantity(tx *gorm.DB, where *models.CartItem) (*bool, error) {
+	var cartItems []models.CartItem
+	var res = false
+	result := tx.Limit(1).Select("id").Where("cart_item.user_fk = ?", where.UserFk).Find(&cartItems)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	if len(cartItems) == 0 {
+		return &res, nil
+	}
+	res = true
+	return &res, nil
+}
 
 func (i *cartItemDatasource) ListCartItemAndItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItemAndItem, error) {
 	var cartItems []models.CartItemAndItem

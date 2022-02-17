@@ -1,28 +1,53 @@
 version: "3.7"
 
 services:
-  cockroach:
-    image: docker.uclv.cu/cockroachdb/cockroach:latest-v21.2
-    container_name: cockroach
+  # cockroach:
+  #   image: docker.uclv.cu/cockroachdb/cockroach:latest-v21.2
+  #   container_name: cockroach
+  #   volumes:
+  #     - cockroach:/cockroach/cockroach-data
+  #   ports:
+  #     - 26257:26257
+  #     - 8082:8080
+  #   restart: always
+  #   command: start-single-node --insecure
+  # pgweb:
+  #   container_name: pgweb
+  #   restart: always
+  #   image: sosedoff/pgweb:0.11.9
+  #   ports: 
+  #     - "8083:8081" 
+  #   links: 
+  #     - cockroach:cockroach 
+  #   environment:
+  #     - DATABASE_URL=postgres://root:root@cockroach:26257/postgres?sslmode=disable
+  #   depends_on:
+  #     - cockroach
+  db:
+    image: ownpostgis:v0.1.0
+    container_name: ownpostgis
     volumes:
-      - cockroach:/cockroach/cockroach-data
+      - postgres:/var/lib/postgresql/data
     ports:
-      - 26257:26257
-      - 8082:8080
+      - 5432:5432
     restart: always
-    command: start-single-node --insecure
-  pgweb:
-    container_name: pgweb
-    restart: always
-    image: sosedoff/pgweb:0.11.9
-    ports: 
-      - "8083:8081" 
-    links: 
-      - cockroach:cockroach 
     environment:
-      - DATABASE_URL=postgres://root:root@cockroach:26257/postgres?sslmode=disable
-    depends_on:
-      - cockroach
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_DB: postgres
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --auth-local=scram-sha-256
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+  pgadmin4:
+    image: dpage/pgadmin4
+    container_name: pgadmin4
+    volumes:
+      - pgadmin4:/var/lib/pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.net
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - 8080:80
   minio:
     image: docker.uclv.cu/minio/minio:RELEASE.2022-01-08T03-11-54Z
     container_name: minio
@@ -53,6 +78,7 @@ services:
   #   ports:
   #     - 8080:80
 volumes:
-  cockroach:
+  # cockroach:
   miniodata:
-  # pgadmin4:
+  postgres:
+  pgadmin4:

@@ -7,9 +7,11 @@ import (
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/utils"
+	"github.com/google/uuid"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -61,21 +63,21 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 		}
 		return nil, st.Err()
 	}
-	itemPhotos := make([]*pb.ItemPhoto, 0, len(item.ItemPhoto))
-	for _, e := range item.ItemPhoto {
-		itemPhotos = append(itemPhotos, &pb.ItemPhoto{
-			Id:                       e.ID.String(),
-			ItemFk:                   e.ItemFk.String(),
-			HighQualityPhoto:         e.HighQualityPhoto,
-			HighQualityPhotoBlurHash: e.HighQualityPhotoBlurHash,
-			LowQualityPhoto:          e.LowQualityPhoto,
-			LowQualityPhotoBlurHash:  e.LowQualityPhotoBlurHash,
-			Thumbnail:                e.Thumbnail,
-			ThumbnailBlurHash:        e.ThumbnailBlurHash,
-			CreateTime:               timestamppb.New(e.CreateTime),
-			UpdateTime:               timestamppb.New(e.UpdateTime),
-		})
-	}
+	// itemPhotos := make([]*pb.ItemPhoto, 0, len(item.ItemPhoto))
+	// for _, e := range item.ItemPhoto {
+	// 	itemPhotos = append(itemPhotos, &pb.ItemPhoto{
+	// 		Id:                       e.ID.String(),
+	// 		ItemFk:                   e.ItemFk.String(),
+	// 		HighQualityPhoto:         e.HighQualityPhoto,
+	// 		HighQualityPhotoBlurHash: e.HighQualityPhotoBlurHash,
+	// 		LowQualityPhoto:          e.LowQualityPhoto,
+	// 		LowQualityPhotoBlurHash:  e.LowQualityPhotoBlurHash,
+	// 		Thumbnail:                e.Thumbnail,
+	// 		ThumbnailBlurHash:        e.ThumbnailBlurHash,
+	// 		CreateTime:               timestamppb.New(e.CreateTime),
+	// 		UpdateTime:               timestamppb.New(e.UpdateTime),
+	// 	})
+	// }
 	return &pb.GetItemResponse{Item: &pb.Item{
 		Id:                       item.ID.String(),
 		Name:                     item.Name,
@@ -91,10 +93,10 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 		Thumbnail:                item.Thumbnail,
 		ThumbnailBlurHash:        item.ThumbnailBlurHash,
 		Cursor:                   item.Cursor,
-		Photos:                   itemPhotos,
-		IsInRange:                item.IsInRange,
-		CreateTime:               timestamppb.New(item.CreateTime),
-		UpdateTime:               timestamppb.New(item.UpdateTime),
+		// Photos:                   itemPhotos,
+		IsInRange:  item.IsInRange,
+		CreateTime: timestamppb.New(item.CreateTime),
+		UpdateTime: timestamppb.New(item.UpdateTime),
 	}}, nil
 }
 
@@ -121,4 +123,36 @@ func (m *ItemServer) SearchItem(ctx context.Context, req *pb.SearchItemRequest) 
 		})
 	}
 	return &pb.SearchItemResponse{Items: itemsResponse, NextPage: response.NextPage, SearchMunicipalityType: *utils.ParseSearchMunicipalityType(response.SearchMunicipalityType)}, nil
+}
+
+func (m *ItemServer) CreateItem(ctx context.Context, req *pb.CreateItemRequest) (*pb.CreateItemResponse, error) {
+	md, _ := metadata.FromIncomingContext(ctx)
+	var st *status.Status
+	res, err := m.itemService.CreateItem(&dto.CreateItemRequest{Name: req.Name, Description: req.Description, Price: float32(req.Price), BusinessItemCategoryFk: req.BusinessItemCategoryFk, HighQualityPhotoObject: req.HighQualityPhoto, HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash, LowQualityPhotoObject: req.LowQualityPhoto, LowQualityPhotoBlurHash: req.LowQualityPhotoBlurHash, ThumbnailObject: req.Thumbnail, ThumbnailBlurHash: req.ThumbnailBlurHash, BusinessFk: uuid.MustParse(req.BusinessFk), Metadata: &md})
+	if err != nil {
+		switch err.Error() {
+		case "authorizationtoken not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorizationtoken expired":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "permission denied":
+			st = status.New(codes.PermissionDenied, "Permission denied")
+		case "HighQualityPhotoObject missing":
+			st = status.New(codes.InvalidArgument, "HighQualityPhotoObject missing")
+		case "LowQualityPhotoObject missing":
+			st = status.New(codes.InvalidArgument, "LowQualityPhotoObject missing")
+		case "ThumbnailObject missing":
+			st = status.New(codes.InvalidArgument, "ThumbnailObject missing")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return &pb.CreateItemResponse{Item: &pb.Item{Id: res.ID.String(), Name: res.Name, Description: res.Description, Price: res.Price, Status: *utils.ParseItemStatusType(&res.Status), Availability: int32(res.Availability), BusinessFk: res.BusinessFk.String(), BusinessItemCategoryFk: res.BusinessItemCategoryFk.String(), HighQualityPhoto: res.HighQualityPhoto, HighQualityPhotoBlurHash: res.HighQualityPhotoBlurHash, LowQualityPhoto: res.LowQualityPhoto, LowQualityPhotoBlurHash: res.LowQualityPhotoBlurHash, Thumbnail: res.Thumbnail, ThumbnailBlurHash: res.ThumbnailBlurHash, CreateTime: timestamppb.New(res.CreateTime), UpdateTime: timestamppb.New(res.UpdateTime)}}, nil
 }

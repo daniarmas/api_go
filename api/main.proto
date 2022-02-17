@@ -53,6 +53,7 @@ service UserService {
 service CartItemService {
   rpc ListCartItem (ListCartItemRequest) returns (ListCartItemResponse) {}
   rpc AddCartItem (AddCartItemRequest) returns (AddCartItemResponse) {}
+  rpc CartItemQuantity (google.protobuf.Empty) returns (CartItemQuantityResponse) {}
   rpc ReduceCartItem (ReduceCartItemRequest) returns (ReduceCartItemResponse) {}
   rpc DeleteCartItem (DeleteCartItemRequest) returns (google.protobuf.Empty) {}
   // rpc EmptyCartItem (google.protobuf.Empty) returns (google.protobuf.Empty) {}
@@ -92,6 +93,10 @@ service CartItemService {
 //   Item item = 1;
 // }
 
+message CartItemQuantityResponse {
+  bool isFull = 1;
+}
+
 message CreateItemRequest {
   string name = 1;
   string description = 2;
@@ -103,6 +108,7 @@ message CreateItemRequest {
   string lowQualityPhotoBlurHash = 8;
   string thumbnail = 9;
   string thumbnailBlurHash = 10;
+  string business_fk = 11;
 }
 
 message CreateItemResponse {
@@ -452,7 +458,7 @@ message Item {
   string lowQualityPhotoBlurHash = 12;
   string thumbnail = 13;
   string thumbnailBlurHash = 14;
-  repeated ItemPhoto photos = 15;
+  // repeated ItemPhoto photos = 15;
   int32 cursor = 16;
   bool isInRange = 17;
   google.protobuf.Timestamp createTime = 18;

@@ -839,6 +839,7 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 type CartItemServiceClient interface {
 	ListCartItem(ctx context.Context, in *ListCartItemRequest, opts ...grpc.CallOption) (*ListCartItemResponse, error)
 	AddCartItem(ctx context.Context, in *AddCartItemRequest, opts ...grpc.CallOption) (*AddCartItemResponse, error)
+	CartItemQuantity(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CartItemQuantityResponse, error)
 	ReduceCartItem(ctx context.Context, in *ReduceCartItemRequest, opts ...grpc.CallOption) (*ReduceCartItemResponse, error)
 	DeleteCartItem(ctx context.Context, in *DeleteCartItemRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
@@ -869,6 +870,15 @@ func (c *cartItemServiceClient) AddCartItem(ctx context.Context, in *AddCartItem
 	return out, nil
 }
 
+func (c *cartItemServiceClient) CartItemQuantity(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CartItemQuantityResponse, error) {
+	out := new(CartItemQuantityResponse)
+	err := c.cc.Invoke(ctx, "/main.CartItemService/CartItemQuantity", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *cartItemServiceClient) ReduceCartItem(ctx context.Context, in *ReduceCartItemRequest, opts ...grpc.CallOption) (*ReduceCartItemResponse, error) {
 	out := new(ReduceCartItemResponse)
 	err := c.cc.Invoke(ctx, "/main.CartItemService/ReduceCartItem", in, out, opts...)
@@ -893,6 +903,7 @@ func (c *cartItemServiceClient) DeleteCartItem(ctx context.Context, in *DeleteCa
 type CartItemServiceServer interface {
 	ListCartItem(context.Context, *ListCartItemRequest) (*ListCartItemResponse, error)
 	AddCartItem(context.Context, *AddCartItemRequest) (*AddCartItemResponse, error)
+	CartItemQuantity(context.Context, *emptypb.Empty) (*CartItemQuantityResponse, error)
 	ReduceCartItem(context.Context, *ReduceCartItemRequest) (*ReduceCartItemResponse, error)
 	DeleteCartItem(context.Context, *DeleteCartItemRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedCartItemServiceServer()
@@ -907,6 +918,9 @@ func (UnimplementedCartItemServiceServer) ListCartItem(context.Context, *ListCar
 }
 func (UnimplementedCartItemServiceServer) AddCartItem(context.Context, *AddCartItemRequest) (*AddCartItemResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddCartItem not implemented")
+}
+func (UnimplementedCartItemServiceServer) CartItemQuantity(context.Context, *emptypb.Empty) (*CartItemQuantityResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CartItemQuantity not implemented")
 }
 func (UnimplementedCartItemServiceServer) ReduceCartItem(context.Context, *ReduceCartItemRequest) (*ReduceCartItemResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReduceCartItem not implemented")
@@ -963,6 +977,24 @@ func _CartItemService_AddCartItem_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CartItemService_CartItemQuantity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CartItemServiceServer).CartItemQuantity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.CartItemService/CartItemQuantity",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CartItemServiceServer).CartItemQuantity(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _CartItemService_ReduceCartItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ReduceCartItemRequest)
 	if err := dec(in); err != nil {
@@ -1013,6 +1045,10 @@ var CartItemService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddCartItem",
 			Handler:    _CartItemService_AddCartItem_Handler,
+		},
+		{
+			MethodName: "CartItemQuantity",
+			Handler:    _CartItemService_CartItemQuantity_Handler,
 		},
 		{
 			MethodName: "ReduceCartItem",
