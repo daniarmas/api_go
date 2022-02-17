@@ -2,7 +2,6 @@ package datasource
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/daniarmas/api_go/models"
@@ -61,9 +60,8 @@ func (i *itemDatasource) ListItemInIds(tx *gorm.DB, ids []uuid.UUID) (*[]models.
 
 func (i *itemDatasource) GetItem(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error) {
 	var item *models.ItemBusiness
-	p := fmt.Sprintf("'POINT(%v %v)'", point.Point.Coords()[1], point.Point.Coords()[0])
-	s := fmt.Sprintf("item.id, item.name, item.description, item.price, item.status, item.availability, item.business_fk, item.business_item_category_fk, item.high_quality_photo, item.high_quality_photo_blurhash, item.low_quality_photo, item.low_quality_photo_blurhash, item.thumbnail, item.thumbnail_blurhash, item.create_time, item.update_time, item.cursor, ST_Contains(business.polygon, ST_GeomFromText(%s, 4326)) as is_in_range", p)
-	result := tx.Model(&models.Item{}).Select(s).Where("item.id = ?", id).Take(&item)
+	// p := fmt.Sprintf("'POINT(%v %v)'", point.Point.Coords()[1], point.Point.Coords()[0])
+	result := tx.Model(&models.Item{}).Select("item.id, item.name, item.description, item.price, item.status, item.availability, item.business_fk, item.business_item_category_fk, item.high_quality_photo, item.high_quality_photo_blurhash, item.low_quality_photo, item.low_quality_photo_blurhash, item.thumbnail, item.thumbnail_blurhash, item.create_time, item.update_time, item.cursor").Where("item.id = ?", id).Take(&item)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
