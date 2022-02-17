@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/models"
+	"github.com/google/uuid"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	"gorm.io/gorm"
 )
@@ -12,9 +14,23 @@ import (
 type BusinessDatasource interface {
 	Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceFk string, municipalityFk string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]models.Business, error)
 	GetBusiness(tx *gorm.DB, where *models.Business) (*models.Business, error)
+	GetBusinessProvinceAndMunicipality(tx *gorm.DB, businessFk uuid.UUID) (*dto.GetBusinessProvinceAndMunicipality, error)
 }
 
 type businessDatasource struct{}
+
+func (b *businessDatasource) GetBusinessProvinceAndMunicipality(tx *gorm.DB, businessFk uuid.UUID) (*dto.GetBusinessProvinceAndMunicipality, error) {
+	var res dto.GetBusinessProvinceAndMunicipality
+	result := tx.Model(&models.Business{}).Limit(1).Select("province_fk", "municipality_fk").Where("id = ?", businessFk.String()).Scan(&res)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("record not found")
+		} else {
+			return nil, result.Error
+		}
+	}
+	return &res, nil
+}
 
 func (b *businessDatasource) Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceFk string, municipalityFk string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]models.Business, error) {
 	var businessResult *[]models.Business

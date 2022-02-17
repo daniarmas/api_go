@@ -9,15 +9,27 @@ import (
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (m *BusinessServer) Feed(ctx context.Context, req *pb.FeedRequest) (*pb.FeedResponse, error) {
 	var st *status.Status
-	feedBusiness, err := m.businessService.Feed(&dto.FeedRequest{Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, ProvinceFk: req.ProvinceFk, MunicipalityFk: req.MunicipalityFk, HomeDelivery: req.HomeDelivery, ToPickUp: req.ToPickUp, NextPage: req.NextPage, SearchMunicipalityType: req.SearchMunicipalityType.String()})
+	md, _ := metadata.FromIncomingContext(ctx)
+	feedBusiness, err := m.businessService.Feed(&dto.FeedRequest{Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, ProvinceFk: req.ProvinceFk, MunicipalityFk: req.MunicipalityFk, HomeDelivery: req.HomeDelivery, ToPickUp: req.ToPickUp, NextPage: req.NextPage, SearchMunicipalityType: req.SearchMunicipalityType.String(), Metadata: &md})
 	if err != nil {
 		switch err.Error() {
+		case "authorizationtoken not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorizationtoken expired":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
 		case "banned user":
 			st = status.New(codes.PermissionDenied, "User banned")
 		case "banned device":
@@ -94,5 +106,5 @@ func (m *BusinessServer) GetBusiness(ctx context.Context, req *pb.GetBusinessReq
 			UpdateTime: timestamppb.New(e.UpdateTime),
 		})
 	}
-	return &pb.GetBusinessResponse{Business: &pb.Business{Id: getBusiness.Business.ID.String(), Name: getBusiness.Business.Name, Description: getBusiness.Business.Description, Address: getBusiness.Business.Address, Phone: getBusiness.Business.Phone, Email: getBusiness.Business.Email, HighQualityPhoto: getBusiness.Business.HighQualityPhoto, HighQualityPhotoBlurHash: getBusiness.Business.HighQualityPhotoBlurHash, LowQualityPhoto: getBusiness.Business.LowQualityPhoto, LowQualityPhotoBlurHash: getBusiness.Business.LowQualityPhotoBlurHash, Thumbnail: getBusiness.Business.Thumbnail, ThumbnailBlurHash: getBusiness.Business.ThumbnailBlurHash, IsOpen: getBusiness.Business.IsOpen, ToPickUp: getBusiness.Business.ToPickUp, DeliveryPrice: float64(getBusiness.Business.DeliveryPrice), HomeDelivery: getBusiness.Business.HomeDelivery, ProvinceFk: getBusiness.Business.ProvinceFk.String(), MunicipalityFk: getBusiness.Business.MunicipalityFk.String(), BusinessBrandFk: getBusiness.Business.BusinessBrandFk.String(), IsInRange: getBusiness.Business.IsInRange, Polygon: getBusiness.Business.Polygon.FlatCoords(), Coordinates: &pb.Point{Latitude: getBusiness.Business.Coordinates.Coords()[1], Longitude: getBusiness.Business.Coordinates.Coords()[0]}, Distance: getBusiness.Business.Distance}, ItemCategory: itemsCategoryResponse}, nil
+	return &pb.GetBusinessResponse{Business: &pb.Business{Id: getBusiness.Business.ID.String(), Name: getBusiness.Business.Name, Description: getBusiness.Business.Description, Address: getBusiness.Business.Address, Phone: getBusiness.Business.Phone, Email: getBusiness.Business.Email, HighQualityPhoto: getBusiness.Business.HighQualityPhoto, HighQualityPhotoBlurHash: getBusiness.Business.HighQualityPhotoBlurHash, LowQualityPhoto: getBusiness.Business.LowQualityPhoto, LowQualityPhotoBlurHash: getBusiness.Business.LowQualityPhotoBlurHash, Thumbnail: getBusiness.Business.Thumbnail, ThumbnailBlurHash: getBusiness.Business.ThumbnailBlurHash, IsOpen: getBusiness.Business.IsOpen, ToPickUp: getBusiness.Business.ToPickUp, DeliveryPrice: float64(getBusiness.Business.DeliveryPrice), HomeDelivery: getBusiness.Business.HomeDelivery, ProvinceFk: getBusiness.Business.ProvinceFk.String(), MunicipalityFk: getBusiness.Business.MunicipalityFk.String(), BusinessBrandFk: getBusiness.Business.BusinessBrandFk.String(), IsInRange: getBusiness.Business.IsInRange, Coordinates: &pb.Point{Latitude: getBusiness.Business.Coordinates.Coords()[1], Longitude: getBusiness.Business.Coordinates.Coords()[0]}, Distance: getBusiness.Business.Distance}, ItemCategory: itemsCategoryResponse}, nil
 }

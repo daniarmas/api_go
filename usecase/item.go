@@ -1,6 +1,10 @@
 package usecase
 
 import (
+	// "context"
+	"context"
+	"errors"
+
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/models"
@@ -14,9 +18,7 @@ type ItemService interface {
 	GetItem(request *dto.GetItemRequest) (*models.ItemBusiness, error)
 	ListItem(itemRequest *dto.ListItemRequest) (*dto.ListItemResponse, error)
 	SearchItem(name string, provinceFk string, municipalityFk string, cursor int64, searchMunicipalityType string) (*dto.SearchItemResponse, error)
-	// CreateItem(answer models.Item) (*int64, error)
-	// UpdateItem(answer models.Item) (*models.Item, error)
-	// DeleteItem(id int64) error
+	CreateItem(request *dto.CreateItemRequest) (*models.Item, error)
 }
 
 type itemService struct {
@@ -25,6 +27,69 @@ type itemService struct {
 
 func NewItemService(dao repository.DAO) ItemService {
 	return &itemService{dao: dao}
+}
+
+func (i *itemService) CreateItem(request *dto.CreateItemRequest) (*models.Item, error) {
+	var itemRes *models.Item
+	var itemErr error
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+		authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&request.Metadata.Get("authorization")[0])
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+		if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		} else if authorizationTokenRes == nil {
+			return errors.New("unauthenticated")
+		}
+		permissionExistsErr := i.dao.NewPermissionRepository().PermissionExists(tx, &models.Permission{Name: "create_item", UserFk: authorizationTokenRes.UserFk, BusinessFk: request.BusinessFk})
+		if permissionExistsErr != nil && permissionExistsErr.Error() == "record not found" {
+			return errors.New("permission denied")
+		} else if permissionExistsErr != nil {
+			return permissionExistsErr
+		}
+		_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, request.HighQualityPhotoObject)
+		if hqErr != nil && hqErr.Error() == "ObjectMissing" {
+			return errors.New("HighQualityPhotoObject missing")
+		} else if hqErr != nil {
+			return hqErr
+		}
+		_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, request.LowQualityPhotoObject)
+		if lqErr != nil && lqErr.Error() == "ObjectMissing" {
+			return errors.New("LowQualityPhotoObject missing")
+		} else if lqErr != nil {
+			return lqErr
+		}
+		_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, request.ThumbnailObject)
+		if tnErr != nil && tnErr.Error() == "ObjectMissing" {
+			return errors.New("ThumbnailObject missing")
+		} else if tnErr != nil {
+			return tnErr
+		}
+		businessRes, businessErr := i.dao.NewBusinessQuery().GetBusinessProvinceAndMunicipality(tx, request.BusinessFk)
+		if businessErr != nil {
+			return businessErr
+		}
+		itemRes, itemErr = i.dao.NewItemQuery().CreateItem(tx, &models.Item{Name: request.Name, Description: request.Description, Price: float64(request.Price), Availability: -1, BusinessFk: request.BusinessFk, BusinessItemCategoryFk: uuid.MustParse(request.BusinessItemCategoryFk), HighQualityPhoto: datasource.Config.ItemsBulkName + "/" + request.HighQualityPhotoObject, LowQualityPhoto: datasource.Config.ItemsBulkName + "/" + request.LowQualityPhotoObject, Thumbnail: datasource.Config.ItemsBulkName + "/" + request.ThumbnailObject, HighQualityPhotoObject: request.HighQualityPhotoObject, LowQualityPhotoObject: datasource.Config.ItemsBulkName + "/" + request.LowQualityPhotoObject, ThumbnailObject: datasource.Config.ItemsBulkName + "/" + request.ThumbnailObject, HighQualityPhotoBlurHash: request.HighQualityPhotoBlurHash, LowQualityPhotoBlurHash: request.LowQualityPhotoBlurHash, ThumbnailBlurHash: request.ThumbnailBlurHash, Status: "Unavailable", ProvinceFk: businessRes.ProvinceFk, MunicipalityFk: businessRes.MunicipalityFk})
+		if itemErr != nil {
+			return itemErr
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return itemRes, nil
 }
 
 func (i *itemService) ListItem(itemRequest *dto.ListItemRequest) (*dto.ListItemResponse, error) {

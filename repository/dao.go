@@ -20,6 +20,7 @@ type DAO interface {
 	NewItemCategoryQuery() ItemCategoryQuery
 	NewObjectStorageRepository() ObjectStorageRepository
 	NewCartItemRepository() CartItemQuery
+	NewPermissionRepository() PermissionRepository
 }
 
 type dao struct{}
@@ -119,4 +120,8 @@ func (d *dao) NewObjectStorageRepository() ObjectStorageRepository {
 
 func (d *dao) NewCartItemRepository() CartItemQuery {
 	return &cartItemQuery{}
+}
+
+func (d *dao) NewPermissionRepository() PermissionRepository {
+	return &permissionRepository{}
 }
