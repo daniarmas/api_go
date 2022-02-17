@@ -29,6 +29,9 @@ type DAO interface {
 	NewBannedUserDatasource() BannedUserDatasource
 	NewBannedDeviceDatasource() BannedDeviceDatasource
 	NewCartItemDatasource() CartItemDatasource
+	NewPermissionDatasource() PermissionDatasource
+	NewProvinceDatasource() ProvinceDatasource
+	NewMunicipalityDatasource() MunicipalityDatasource
 }
 
 type dao struct{}
@@ -209,8 +212,20 @@ func (d *dao) NewItemDatasource() ItemDatasource {
 	return &itemDatasource{}
 }
 
+func (d *dao) NewProvinceDatasource() ProvinceDatasource {
+	return &provinceDatasource{}
+}
+
+func (d *dao) NewMunicipalityDatasource() MunicipalityDatasource {
+	return &municipalityDatasource{}
+}
+
 func (d *dao) NewItemCategoryDatasource() ItemCategoryDatasource {
 	return &itemCategoryDatasource{}
+}
+
+func (d *dao) NewPermissionDatasource() PermissionDatasource {
+	return &permissionDatasource{}
 }
 
 func (d *dao) NewDeviceDatasource() DeviceDatasource {

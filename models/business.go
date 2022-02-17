@@ -39,7 +39,6 @@ type Business struct {
 	ToPickUp                 bool                   `gorm:"column:to_pick_up"`
 	HomeDelivery             bool                   `gorm:"column:home_delivery"`
 	Coordinates              ewkb.Point             `gorm:"column:coordinates"`
-	Polygon                  ewkb.Polygon           `gorm:"column:polygon"`
 	IsInRange                bool                   `gorm:"column:is_in_range"`
 	ProvinceFk               uuid.UUID              `gorm:"column:province_fk"`
 	MunicipalityFk           uuid.UUID              `gorm:"column:municipality_fk"`

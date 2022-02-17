@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/models"
+	"github.com/google/uuid"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	"gorm.io/gorm"
 )
@@ -12,9 +14,23 @@ import (
 type BusinessDatasource interface {
 	Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceFk string, municipalityFk string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]models.Business, error)
 	GetBusiness(tx *gorm.DB, where *models.Business) (*models.Business, error)
+	GetBusinessProvinceAndMunicipality(tx *gorm.DB, businessFk uuid.UUID) (*dto.GetBusinessProvinceAndMunicipality, error)
 }
 
 type businessDatasource struct{}
+
+func (b *businessDatasource) GetBusinessProvinceAndMunicipality(tx *gorm.DB, businessFk uuid.UUID) (*dto.GetBusinessProvinceAndMunicipality, error) {
+	var res dto.GetBusinessProvinceAndMunicipality
+	result := tx.Model(&models.Business{}).Limit(1).Select("province_fk", "municipality_fk").Where("id = ?", businessFk.String()).Scan(&res)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("record not found")
+		} else {
+			return nil, result.Error
+		}
+	}
+	return &res, nil
+}
 
 func (b *businessDatasource) Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceFk string, municipalityFk string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]models.Business, error) {
 	var businessResult *[]models.Business
@@ -40,9 +56,9 @@ func (b *businessDatasource) Feed(tx *gorm.DB, coordinates ewkb.Point, limit int
 
 func (b *businessDatasource) GetBusiness(tx *gorm.DB, where *models.Business) (*models.Business, error) {
 	var businessResult *models.Business
-	point := fmt.Sprintf("'POINT(%v %v)'", where.Coordinates.Point.Coords()[1], where.Coordinates.Point.Coords()[0])
+	// point := fmt.Sprintf("'POINT(%v %v)'", where.Coordinates.Point.Coords()[1], where.Coordinates.Point.Coords()[0])
 	distance := fmt.Sprintf(`ST_Distance("coordinates", ST_GeomFromText('POINT(%v %v)', 4326)) AS "distance"`, where.Coordinates.Point.Coords()[1], where.Coordinates.Point.Coords()[0])
-	query := fmt.Sprintf("SELECT business.id, business.name, business.phone, business.description, business.email, business.address, business.high_quality_photo, business.high_quality_photo_blurhash, business.low_quality_photo, business.low_quality_photo_blurhash, business.delivery_price, business.is_open, business.home_delivery, business.to_pick_up, business.cursor, ST_AsEWKB(business.coordinates) AS coordinates, ST_AsEWKB(business.polygon) AS polygon, ST_Contains(business.polygon, ST_GeomFromText(%v, 4326)) as is_in_range, %v FROM business WHERE business.id = '%v' ORDER BY business.cursor asc LIMIT 1;", point, distance, where.ID)
+	query := fmt.Sprintf("SELECT business.id, business.name, business.phone, business.description, business.email, business.address, business.high_quality_photo, business.high_quality_photo_blurhash, business.low_quality_photo, business.low_quality_photo_blurhash, business.delivery_price, business.is_open, business.home_delivery, business.to_pick_up, business.cursor, ST_AsEWKB(business.coordinates) AS coordinates, %v FROM business WHERE business.id = '%v' ORDER BY business.cursor asc LIMIT 1;", distance, where.ID)
 	err := tx.Raw(query).Scan(&businessResult).Error
 	if err != nil {
 		return nil, err
