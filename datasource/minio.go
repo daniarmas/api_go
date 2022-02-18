@@ -11,10 +11,19 @@ type ObjectStorageDatasource interface {
 	BucketExists(ctx context.Context, bucketName string) (*bool, error)
 	ObjectExists(ctx context.Context, bucketName string, objectName string) (*bool, error)
 	CopyObject(ctx context.Context, dst minio.CopyDestOptions, src minio.CopySrcOptions) (*minio.UploadInfo, error)
+	RemoveObject(ctx context.Context, bucketName, objectName string, opts minio.RemoveObjectOptions) error
 }
 
 type objectStorageDatasource struct {
 	Minio *minio.Client
+}
+
+func (m *objectStorageDatasource) RemoveObject(ctx context.Context, bucketName, objectName string, opts minio.RemoveObjectOptions) error {
+	err := MinioClient.RemoveObject(ctx, bucketName, objectName, opts)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *objectStorageDatasource) BucketExists(ctx context.Context, bucketName string) (*bool, error) {
