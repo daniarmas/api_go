@@ -49,15 +49,6 @@ func (i *itemDatasource) ListItemInIds(tx *gorm.DB, ids []uuid.UUID) (*[]models.
 	return &items, nil
 }
 
-// func (i *itemDatasource) ListItemAllInIds(tx *gorm.DB, ids *[]string) (*[]models.Item, error) {
-// 	var items []models.Item
-// 	result := tx.Where("business_fk = ? AND business_item_category_fk = ? AND create_time < ?", where.BusinessFk, where.BusinessItemCategoryFk, cursor).Order("create_time desc").Find(&items)
-// 	if result.Error != nil {
-// 		return nil, result.Error
-// 	}
-// 	return &items, nil
-// }
-
 func (i *itemDatasource) GetItem(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error) {
 	var item *models.ItemBusiness
 	// p := fmt.Sprintf("'POINT(%v %v)'", point.Point.Coords()[1], point.Point.Coords()[0])

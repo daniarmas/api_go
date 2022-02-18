@@ -93,8 +93,6 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 		Thumbnail:                item.Thumbnail,
 		ThumbnailBlurHash:        item.ThumbnailBlurHash,
 		Cursor:                   item.Cursor,
-		// Photos:                   itemPhotos,
-		IsInRange:  item.IsInRange,
 		CreateTime: timestamppb.New(item.CreateTime),
 		UpdateTime: timestamppb.New(item.UpdateTime),
 	}}, nil

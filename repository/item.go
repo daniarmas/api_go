@@ -45,14 +45,6 @@ func (i *itemQuery) ListItemInIds(tx *gorm.DB, ids []uuid.UUID) (*[]models.Item,
 	return result, nil
 }
 
-// func (i *itemQuery) ListItemAllInIds(tx *gorm.DB, ids *[]string) (*[]models.Item, error) {
-// 	result, err := Datasource.NewItemDatasource().ListItemAllInIds(tx, )
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return result, nil
-// }
-
 func (i *itemQuery) GetItem(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error) {
 	result, err := Datasource.NewItemDatasource().GetItem(tx, id, point)
 	if err != nil {

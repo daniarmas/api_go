@@ -7,6 +7,7 @@ import (
 
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
+	"github.com/google/uuid"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -24,7 +25,7 @@ func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemR
 	if req.NextPage.Nanos == 0 && req.NextPage.Seconds == 0 {
 		nextPage = time.Now()
 	}
-	listCartItemsResponse, err := m.cartItemService.ListCartItemAndItem(&dto.ListCartItemRequest{NextPage: nextPage, Metadata: &md})
+	listCartItemsResponse, err := m.cartItemService.ListCartItemAndItem(&dto.ListCartItemRequest{NextPage: nextPage, Metadata: &md, MunicipalityFk: uuid.MustParse(req.MunicipalityFk)})
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -63,7 +64,7 @@ func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemR
 func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemRequest) (*pb.AddCartItemResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	cartItemsResponse, err := m.cartItemService.AddCartItem(&dto.AddCartItem{ItemFk: req.ItemFk, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, Metadata: &md, Quantity: req.Quantity})
+	cartItemsResponse, err := m.cartItemService.AddCartItem(&dto.AddCartItem{ItemFk: req.ItemFk, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, Metadata: &md, Quantity: req.Quantity, MunicipalityFk: uuid.MustParse(req.MunicipalityFk)})
 	if err != nil {
 		errorr := strings.Split(err.Error(), ":")
 		switch errorr[0] {
@@ -112,7 +113,7 @@ func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemReq
 func (m *CartItemServer) ReduceCartItem(ctx context.Context, req *pb.ReduceCartItemRequest) (*pb.ReduceCartItemResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	cartItemsResponse, err := m.cartItemService.ReduceCartItem(&dto.ReduceCartItem{ItemFk: req.ItemFk, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, Metadata: &md})
+	cartItemsResponse, err := m.cartItemService.ReduceCartItem(&dto.ReduceCartItem{ItemFk: req.ItemFk, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, Metadata: &md, MunicipalityFk: uuid.MustParse(req.MunicipalityFk)})
 	if err != nil {
 		errorr := strings.Split(err.Error(), ":")
 		switch errorr[0] {
@@ -167,7 +168,7 @@ func (m *CartItemServer) ReduceCartItem(ctx context.Context, req *pb.ReduceCartI
 func (m *CartItemServer) DeleteCartItem(ctx context.Context, req *pb.DeleteCartItemRequest) (*gp.Empty, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	err := m.cartItemService.DeleteCartItem(&dto.DeleteCartItemRequest{CartItemFk: req.CartItemFk, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, Metadata: &md})
+	err := m.cartItemService.DeleteCartItem(&dto.DeleteCartItemRequest{CartItemFk: req.CartItemFk, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, Metadata: &md, MunicipalityFk: uuid.MustParse(req.MunicipalityFk)})
 	if err != nil {
 		errorr := strings.Split(err.Error(), ":")
 		switch errorr[0] {
