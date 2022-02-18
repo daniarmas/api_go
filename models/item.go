@@ -59,7 +59,6 @@ type ItemBusiness struct {
 	ThumbnailObject          string         `gorm:"column:thumbnail_object;not null"`
 	ThumbnailBlurHash        string         `gorm:"column:thumbnail_blurhash;not null"`
 	Cursor                   int32          `gorm:"column:cursor"`
-	IsInRange                bool           `gorm:"column:is_in_range"`
 	Status                   string         `gorm:"column:status;not null"`
 	CreateTime               time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime               time.Time      `gorm:"column:update_time;not null"`

@@ -46,6 +46,7 @@ type Business struct {
 	BusinessItemCategory     []BusinessItemCategory `gorm:"foreignKey:BusinessFk"`
 	Status                   string                 `gorm:"column:status"`
 	Distance                 float64                `gorm:"column:distance"`
+	Municipality             []Municipality         `gorm:"many2many:union_business_and_municipality;"`
 	CreateTime               time.Time              `gorm:"column:create_time"`
 	UpdateTime               time.Time              `gorm:"column:update_time"`
 	DeleteTime               gorm.DeletedAt         `gorm:"index;column:delete_time"`
