@@ -32,6 +32,7 @@ type DAO interface {
 	NewPermissionDatasource() PermissionDatasource
 	NewProvinceDatasource() ProvinceDatasource
 	NewMunicipalityDatasource() MunicipalityDatasource
+	NewUnionBusinessAndMunicipalityDatasource() UnionBusinessAndMunicipalityDatasource
 }
 
 type dao struct{}
@@ -202,6 +203,10 @@ func (d *dao) NewUserDatasource() UserDatasource {
 
 func (d *dao) NewRefreshTokenDatasource() RefreshTokenDatasource {
 	return &refreshTokenDatasource{}
+}
+
+func (d *dao) NewUnionBusinessAndMunicipalityDatasource() UnionBusinessAndMunicipalityDatasource {
+	return &unionBusinessAndMunicipalityDatasource{}
 }
 
 func (d *dao) NewAuthorizationTokenDatasource() AuthorizationTokenDatasource {

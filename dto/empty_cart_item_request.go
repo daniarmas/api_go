@@ -1,7 +1,11 @@
 package dto
 
-import "google.golang.org/grpc/metadata"
+import (
+	"github.com/google/uuid"
+	"google.golang.org/grpc/metadata"
+)
 
 type EmptyCartItemRequest struct {
-	Metadata *metadata.MD
+	Metadata       *metadata.MD
+	MunicipalityFk uuid.UUID
 }
