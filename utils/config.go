@@ -18,7 +18,7 @@ type Config struct {
 	BusinessAvatarBulkName             string `mapstructure:"BUSINESS_AVATAR_BULK_NAME"`
 	ItemsBulkName                      string `mapstructure:"ITEMS_BULK_NAME"`
 	UsersBulkName                      string `mapstructure:"USERS_BULK_NAME"`
-	UsersDeleteObjectsBulkName         string `mapstructure:"USERS_DELETE_OBJECTS_BULK_NAME"`
+	UsersDeletedBulkName               string `mapstructure:"USERS_DELETED_BULK_NAME"`
 	ItemsDeletedBulkName               string `mapstructure:"ITEMS_DELETED_BULK_NAME"`
 }
 
