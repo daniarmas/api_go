@@ -3217,25 +3217,24 @@ type Item struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id                       string         `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name                     string         `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Description              string         `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	Price                    float64        `protobuf:"fixed64,4,opt,name=price,proto3" json:"price,omitempty"`
-	Status                   ItemStatusType `protobuf:"varint,5,opt,name=status,proto3,enum=main.ItemStatusType" json:"status,omitempty"`
-	Availability             int32          `protobuf:"varint,6,opt,name=availability,proto3" json:"availability,omitempty"`
-	BusinessFk               string         `protobuf:"bytes,7,opt,name=businessFk,proto3" json:"businessFk,omitempty"`
-	BusinessItemCategoryFk   string         `protobuf:"bytes,8,opt,name=businessItemCategoryFk,proto3" json:"businessItemCategoryFk,omitempty"`
-	HighQualityPhoto         string         `protobuf:"bytes,9,opt,name=highQualityPhoto,proto3" json:"highQualityPhoto,omitempty"`
-	HighQualityPhotoBlurHash string         `protobuf:"bytes,10,opt,name=highQualityPhotoBlurHash,proto3" json:"highQualityPhotoBlurHash,omitempty"`
-	LowQualityPhoto          string         `protobuf:"bytes,11,opt,name=lowQualityPhoto,proto3" json:"lowQualityPhoto,omitempty"`
-	LowQualityPhotoBlurHash  string         `protobuf:"bytes,12,opt,name=lowQualityPhotoBlurHash,proto3" json:"lowQualityPhotoBlurHash,omitempty"`
-	Thumbnail                string         `protobuf:"bytes,13,opt,name=thumbnail,proto3" json:"thumbnail,omitempty"`
-	ThumbnailBlurHash        string         `protobuf:"bytes,14,opt,name=thumbnailBlurHash,proto3" json:"thumbnailBlurHash,omitempty"`
-	// repeated ItemPhoto photos = 15;
-	Cursor     int32                  `protobuf:"varint,16,opt,name=cursor,proto3" json:"cursor,omitempty"`
-	IsInRange  bool                   `protobuf:"varint,17,opt,name=isInRange,proto3" json:"isInRange,omitempty"`
-	CreateTime *timestamppb.Timestamp `protobuf:"bytes,18,opt,name=createTime,proto3" json:"createTime,omitempty"`
-	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,19,opt,name=updateTime,proto3" json:"updateTime,omitempty"`
+	Id                       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name                     string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description              string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Price                    float64                `protobuf:"fixed64,4,opt,name=price,proto3" json:"price,omitempty"`
+	Status                   ItemStatusType         `protobuf:"varint,5,opt,name=status,proto3,enum=main.ItemStatusType" json:"status,omitempty"`
+	Availability             int32                  `protobuf:"varint,6,opt,name=availability,proto3" json:"availability,omitempty"`
+	BusinessFk               string                 `protobuf:"bytes,7,opt,name=businessFk,proto3" json:"businessFk,omitempty"`
+	BusinessItemCategoryFk   string                 `protobuf:"bytes,8,opt,name=businessItemCategoryFk,proto3" json:"businessItemCategoryFk,omitempty"`
+	HighQualityPhoto         string                 `protobuf:"bytes,9,opt,name=highQualityPhoto,proto3" json:"highQualityPhoto,omitempty"`
+	HighQualityPhotoBlurHash string                 `protobuf:"bytes,10,opt,name=highQualityPhotoBlurHash,proto3" json:"highQualityPhotoBlurHash,omitempty"`
+	LowQualityPhoto          string                 `protobuf:"bytes,11,opt,name=lowQualityPhoto,proto3" json:"lowQualityPhoto,omitempty"`
+	LowQualityPhotoBlurHash  string                 `protobuf:"bytes,12,opt,name=lowQualityPhotoBlurHash,proto3" json:"lowQualityPhotoBlurHash,omitempty"`
+	Thumbnail                string                 `protobuf:"bytes,13,opt,name=thumbnail,proto3" json:"thumbnail,omitempty"`
+	ThumbnailBlurHash        string                 `protobuf:"bytes,14,opt,name=thumbnailBlurHash,proto3" json:"thumbnailBlurHash,omitempty"`
+	Cursor                   int32                  `protobuf:"varint,16,opt,name=cursor,proto3" json:"cursor,omitempty"`
+	IsInRange                bool                   `protobuf:"varint,17,opt,name=isInRange,proto3" json:"isInRange,omitempty"`
+	CreateTime               *timestamppb.Timestamp `protobuf:"bytes,18,opt,name=createTime,proto3" json:"createTime,omitempty"`
+	UpdateTime               *timestamppb.Timestamp `protobuf:"bytes,19,opt,name=updateTime,proto3" json:"updateTime,omitempty"`
 }
 
 func (x *Item) Reset() {
