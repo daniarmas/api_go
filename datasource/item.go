@@ -19,9 +19,19 @@ type ItemDatasource interface {
 	// ListItemAllInIds(tx *gorm.DB, ids *[]string) (*[]models.Item, error)
 	SearchItem(tx *gorm.DB, name string, provinceFk string, municipalityFk string, cursor int64, municipalityNotEqual bool, limit int64) (*[]models.Item, error)
 	UpdateItem(tx *gorm.DB, where *models.Item, data *models.Item) (*models.Item, error)
+	DeleteItem(tx *gorm.DB, where *models.Item) error
 }
 
 type itemDatasource struct{}
+
+func (v *itemDatasource) DeleteItem(tx *gorm.DB, where *models.Item) error {
+	var itemResult *[]models.Item
+	result := tx.Where(where).Delete(&itemResult)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
 
 func (v *itemDatasource) CreateItem(tx *gorm.DB, data *models.Item) (*models.Item, error) {
 	result := tx.Create(&data)
