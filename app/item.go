@@ -6,7 +6,7 @@ import (
 
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
-	"github.com/daniarmas/api_go/utils"
+	ut "github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
@@ -99,6 +99,62 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 	}}, nil
 }
 
+func (m *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) (*pb.UpdateItemResponse, error) {
+	var st *status.Status
+	md, _ := metadata.FromIncomingContext(ctx)
+	var businessItemCategoryFk uuid.UUID
+	if req.BusinessItemCategoryFk != "" {
+		businessItemCategoryFk = uuid.MustParse(req.BusinessItemCategoryFk)
+	}
+	item, err := m.itemService.UpdateItem(&dto.UpdateItemRequest{ItemFk: uuid.MustParse(req.ItemFk), Name: req.Name, Description: req.Description, Price: float32(req.Price), HighQualityPhotoObject: req.HighQualityPhotoObject, HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash, LowQualityPhotoObject: req.LowQualityPhotoObject, LowQualityPhotoBlurHash: req.LowQualityPhotoBlurHash, ThumbnailObject: req.ThumbnailObject, ThumbnailBlurHash: req.ThumbnailBlurHash, Availability: req.Availability, Status: req.Status.String(), BusinessItemCategoryFk: businessItemCategoryFk, Metadata: &md})
+	if err != nil {
+		switch err.Error() {
+		case "authorizationtoken not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorizationtoken expired":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "permission denied":
+			st = status.New(codes.PermissionDenied, "Permission denied")
+		case "HighQualityPhotoObject missing":
+			st = status.New(codes.InvalidArgument, "HighQualityPhotoObject missing")
+		case "LowQualityPhotoObject missing":
+			st = status.New(codes.InvalidArgument, "LowQualityPhotoObject missing")
+		case "ThumbnailObject missing":
+			st = status.New(codes.InvalidArgument, "ThumbnailObject missing")
+		case "record not found":
+			st = status.New(codes.NotFound, "Item not found")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return &pb.UpdateItemResponse{Item: &pb.Item{
+		Id:                       item.ID.String(),
+		Name:                     item.Name,
+		Description:              item.Description,
+		Price:                    item.Price,
+		Availability:             int32(item.Availability),
+		BusinessFk:               item.BusinessFk.String(),
+		BusinessItemCategoryFk:   item.BusinessItemCategoryFk.String(),
+		HighQualityPhoto:         item.HighQualityPhoto,
+		HighQualityPhotoBlurHash: item.HighQualityPhotoBlurHash,
+		LowQualityPhoto:          item.LowQualityPhoto,
+		LowQualityPhotoBlurHash:  item.LowQualityPhotoBlurHash,
+		Thumbnail:                item.Thumbnail,
+		ThumbnailBlurHash:        item.ThumbnailBlurHash,
+		Cursor:                   item.Cursor,
+		Status:                   *ut.ParseItemStatusType(&item.Status),
+		CreateTime:               timestamppb.New(item.CreateTime),
+		UpdateTime:               timestamppb.New(item.UpdateTime),
+	}}, nil
+}
+
 func (m *ItemServer) SearchItem(ctx context.Context, req *pb.SearchItemRequest) (*pb.SearchItemResponse, error) {
 	var st *status.Status
 	response, err := m.itemService.SearchItem(req.Name, req.ProvinceFk, req.MunicipalityFk, int64(req.NextPage), req.SearchMunicipalityType.String())
@@ -118,10 +174,10 @@ func (m *ItemServer) SearchItem(ctx context.Context, req *pb.SearchItemRequest) 
 			ThumbnailBlurHash: e.ThumbnailBlurHash,
 			Price:             e.Price,
 			Cursor:            int32(e.Cursor),
-			Status:            *utils.ParseItemStatusType(&e.Status),
+			Status:            *ut.ParseItemStatusType(&e.Status),
 		})
 	}
-	return &pb.SearchItemResponse{Items: itemsResponse, NextPage: response.NextPage, SearchMunicipalityType: *utils.ParseSearchMunicipalityType(response.SearchMunicipalityType)}, nil
+	return &pb.SearchItemResponse{Items: itemsResponse, NextPage: response.NextPage, SearchMunicipalityType: *ut.ParseSearchMunicipalityType(response.SearchMunicipalityType)}, nil
 }
 
 func (m *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) (*gp.Empty, error) {
@@ -189,5 +245,5 @@ func (m *ItemServer) CreateItem(ctx context.Context, req *pb.CreateItemRequest) 
 		}
 		return nil, st.Err()
 	}
-	return &pb.CreateItemResponse{Item: &pb.Item{Id: res.ID.String(), Name: res.Name, Description: res.Description, Price: res.Price, Status: *utils.ParseItemStatusType(&res.Status), Availability: int32(res.Availability), BusinessFk: res.BusinessFk.String(), BusinessItemCategoryFk: res.BusinessItemCategoryFk.String(), HighQualityPhoto: res.HighQualityPhoto, HighQualityPhotoBlurHash: res.HighQualityPhotoBlurHash, LowQualityPhoto: res.LowQualityPhoto, LowQualityPhotoBlurHash: res.LowQualityPhotoBlurHash, Thumbnail: res.Thumbnail, ThumbnailBlurHash: res.ThumbnailBlurHash, CreateTime: timestamppb.New(res.CreateTime), UpdateTime: timestamppb.New(res.UpdateTime)}}, nil
+	return &pb.CreateItemResponse{Item: &pb.Item{Id: res.ID.String(), Name: res.Name, Description: res.Description, Price: res.Price, Status: *ut.ParseItemStatusType(&res.Status), Availability: int32(res.Availability), BusinessFk: res.BusinessFk.String(), BusinessItemCategoryFk: res.BusinessItemCategoryFk.String(), HighQualityPhoto: res.HighQualityPhoto, HighQualityPhotoBlurHash: res.HighQualityPhotoBlurHash, LowQualityPhoto: res.LowQualityPhoto, LowQualityPhotoBlurHash: res.LowQualityPhotoBlurHash, Thumbnail: res.Thumbnail, ThumbnailBlurHash: res.ThumbnailBlurHash, CreateTime: timestamppb.New(res.CreateTime), UpdateTime: timestamppb.New(res.UpdateTime)}}, nil
 }

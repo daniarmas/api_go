@@ -33,6 +33,8 @@ func NewItemService(dao repository.DAO) ItemService {
 }
 
 func (i *itemService) UpdateItem(request *dto.UpdateItemRequest) (*models.Item, error) {
+	var updateItemRes *models.Item
+	var updateItemErr error
 	var highQualityPhoto string = ""
 	var lowQualityPhoto string = ""
 	var thumbnail string = ""
@@ -113,7 +115,7 @@ func (i *itemService) UpdateItem(request *dto.UpdateItemRequest) (*models.Item, 
 			lowQualityPhoto = datasource.Config.ItemsBulkName + "/" + request.LowQualityPhotoObject
 			thumbnail = datasource.Config.ItemsBulkName + "/" + request.ThumbnailObject
 		}
-		_, updateItemErr := i.dao.NewItemQuery().UpdateItem(tx, &models.Item{ID: request.ItemFk}, &models.Item{Name: request.Name, Description: request.Description, Price: float64(request.Price), Availability: request.Availability, BusinessItemCategoryFk: request.BusinessItemCategoryFk, HighQualityPhotoObject: request.HighQualityPhotoObject, HighQualityPhotoBlurHash: request.HighQualityPhotoBlurHash, LowQualityPhotoObject: request.LowQualityPhotoObject, LowQualityPhotoBlurHash: request.LowQualityPhotoBlurHash, ThumbnailObject: request.ThumbnailObject, ThumbnailBlurHash: request.ThumbnailBlurHash, Thumbnail: thumbnail, HighQualityPhoto: highQualityPhoto, LowQualityPhoto: lowQualityPhoto})
+		updateItemRes, updateItemErr = i.dao.NewItemQuery().UpdateItem(tx, &models.Item{ID: request.ItemFk}, &models.Item{Name: request.Name, Description: request.Description, Price: float64(request.Price), Availability: request.Availability, BusinessItemCategoryFk: request.BusinessItemCategoryFk, HighQualityPhotoObject: request.HighQualityPhotoObject, HighQualityPhotoBlurHash: request.HighQualityPhotoBlurHash, LowQualityPhotoObject: request.LowQualityPhotoObject, LowQualityPhotoBlurHash: request.LowQualityPhotoBlurHash, ThumbnailObject: request.ThumbnailObject, ThumbnailBlurHash: request.ThumbnailBlurHash, Thumbnail: thumbnail, HighQualityPhoto: highQualityPhoto, LowQualityPhoto: lowQualityPhoto})
 		if updateItemErr != nil {
 			return updateItemErr
 		}
@@ -122,7 +124,7 @@ func (i *itemService) UpdateItem(request *dto.UpdateItemRequest) (*models.Item, 
 	if err != nil {
 		return nil, err
 	}
-	return nil, nil
+	return updateItemRes, nil
 }
 
 func (i *itemService) DeleteItem(request *dto.DeleteItemRequest) error {

@@ -97,6 +97,18 @@ service CartItemService {
 
 message UpdateItemRequest {
   string itemFk = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  string businessItemCategoryFk = 5;
+  string highQualityPhotoObject = 6;
+  string highQualityPhotoBlurHash = 7;
+  string lowQualityPhotoObject = 8;
+  string lowQualityPhotoBlurHash = 9;
+  string thumbnailObject = 10;
+  string thumbnailBlurHash = 11;
+	int64 availability = 12;       
+	ItemStatusType status = 13;         
 }
 
 message UpdateItemResponse {
