@@ -20,6 +20,7 @@ type ItemService interface {
 	ListItem(itemRequest *dto.ListItemRequest) (*dto.ListItemResponse, error)
 	SearchItem(name string, provinceFk string, municipalityFk string, cursor int64, searchMunicipalityType string) (*dto.SearchItemResponse, error)
 	CreateItem(request *dto.CreateItemRequest) (*models.Item, error)
+	UpdateItem(request *dto.UpdateItemRequest) (*models.Item, error)
 	DeleteItem(request *dto.DeleteItemRequest) error
 }
 
@@ -29,6 +30,101 @@ type itemService struct {
 
 func NewItemService(dao repository.DAO) ItemService {
 	return &itemService{dao: dao}
+}
+
+func (i *itemService) UpdateItem(request *dto.UpdateItemRequest) (*models.Item, error) {
+	var updateItemRes *models.Item
+	var updateItemErr error
+	var highQualityPhoto string = ""
+	var lowQualityPhoto string = ""
+	var thumbnail string = ""
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+		authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&request.Metadata.Get("authorization")[0])
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+		if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		} else if authorizationTokenRes == nil {
+			return errors.New("unauthenticated")
+		}
+		permissionExistsErr := i.dao.NewPermissionRepository().PermissionExists(tx, &models.Permission{Name: "update_item", UserFk: authorizationTokenRes.UserFk, BusinessFk: request.BusinessFk})
+		if permissionExistsErr != nil && permissionExistsErr.Error() == "record not found" {
+			return errors.New("permission denied")
+		} else if permissionExistsErr != nil {
+			return permissionExistsErr
+		}
+		getItemRes, getItemErr := i.dao.NewItemQuery().GetItem(tx, &models.Item{ID: request.ItemFk})
+		if getItemErr != nil {
+			return getItemErr
+		}
+		if request.HighQualityPhotoObject != "" || request.LowQualityPhotoObject != "" || request.ThumbnailObject != "" {
+			_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, request.HighQualityPhotoObject)
+			if hqErr != nil && hqErr.Error() == "ObjectMissing" {
+				return errors.New("HighQualityPhotoObject missing")
+			} else if hqErr != nil {
+				return hqErr
+			}
+			_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, request.LowQualityPhotoObject)
+			if lqErr != nil && lqErr.Error() == "ObjectMissing" {
+				return errors.New("LowQualityPhotoObject missing")
+			} else if lqErr != nil {
+				return lqErr
+			}
+			_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, request.ThumbnailObject)
+			if tnErr != nil && tnErr.Error() == "ObjectMissing" {
+				return errors.New("ThumbnailObject missing")
+			} else if tnErr != nil {
+				return tnErr
+			}
+			_, copyHqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getItemRes.HighQualityPhotoObject}, minio.CopySrcOptions{Bucket: repository.Config.ItemsBulkName, Object: getItemRes.HighQualityPhotoObject})
+			if copyHqErr != nil {
+				return copyHqErr
+			}
+			_, copyLqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getItemRes.LowQualityPhotoObject}, minio.CopySrcOptions{Bucket: repository.Config.ItemsBulkName, Object: getItemRes.LowQualityPhotoObject})
+			if copyLqErr != nil {
+				return copyLqErr
+			}
+			_, copyThErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getItemRes.ThumbnailObject}, minio.CopySrcOptions{Bucket: repository.Config.ItemsBulkName, Object: getItemRes.ThumbnailObject})
+			if copyThErr != nil {
+				return copyThErr
+			}
+			rmHqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.ItemsBulkName, getItemRes.HighQualityPhotoObject, minio.RemoveObjectOptions{})
+			if rmHqErr != nil {
+				return rmHqErr
+			}
+			rmLqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.ItemsBulkName, getItemRes.LowQualityPhotoObject, minio.RemoveObjectOptions{})
+			if rmLqErr != nil {
+				return rmLqErr
+			}
+			rmThErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.ItemsBulkName, getItemRes.ThumbnailObject, minio.RemoveObjectOptions{})
+			if rmThErr != nil {
+				return rmThErr
+			}
+			highQualityPhoto = datasource.Config.ItemsBulkName + "/" + request.HighQualityPhotoObject
+			lowQualityPhoto = datasource.Config.ItemsBulkName + "/" + request.LowQualityPhotoObject
+			thumbnail = datasource.Config.ItemsBulkName + "/" + request.ThumbnailObject
+		}
+		updateItemRes, updateItemErr = i.dao.NewItemQuery().UpdateItem(tx, &models.Item{ID: request.ItemFk}, &models.Item{Name: request.Name, Description: request.Description, Price: float64(request.Price), Availability: request.Availability, BusinessItemCategoryFk: request.BusinessItemCategoryFk, HighQualityPhotoObject: request.HighQualityPhotoObject, HighQualityPhotoBlurHash: request.HighQualityPhotoBlurHash, LowQualityPhotoObject: request.LowQualityPhotoObject, LowQualityPhotoBlurHash: request.LowQualityPhotoBlurHash, ThumbnailObject: request.ThumbnailObject, ThumbnailBlurHash: request.ThumbnailBlurHash, Thumbnail: thumbnail, HighQualityPhoto: highQualityPhoto, LowQualityPhoto: lowQualityPhoto})
+		if updateItemErr != nil {
+			return updateItemErr
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return updateItemRes, nil
 }
 
 func (i *itemService) DeleteItem(request *dto.DeleteItemRequest) error {
