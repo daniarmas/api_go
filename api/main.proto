@@ -33,10 +33,10 @@ service BusinessService {
 
 service ItemService {
   rpc ListItem (ListItemRequest) returns (ListItemResponse) {}
-  rpc CreateItem (CreateItemRequest) returns (CreateItemResponse) {}
-  rpc DeleteItem (DeleteItemRequest) returns (google.protobuf.Empty) {}  
-//rpc UpdateItem (UpdateItemRequest) returns (UpdateItemResponse) {}
   rpc GetItem (GetItemRequest) returns (GetItemResponse) {}
+  rpc CreateItem (CreateItemRequest) returns (CreateItemResponse) {}
+  rpc UpdateItem (UpdateItemRequest) returns (UpdateItemResponse) {}
+  rpc DeleteItem (DeleteItemRequest) returns (google.protobuf.Empty) {}  
   rpc SearchItem (SearchItemRequest) returns (SearchItemResponse) {}
 }
 
@@ -93,6 +93,14 @@ service CartItemService {
 // message GetCartItemResponse {
 //   Item item = 1;
 // }
+
+message UpdateItemRequest {
+  string itemFk = 1;
+}
+
+message UpdateItemResponse {
+  Item item = 1;
+}
 
 message CartItemQuantityResponse {
   bool isFull = 1;
