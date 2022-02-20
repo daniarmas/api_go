@@ -28,7 +28,8 @@ service AuthenticationService {
 service BusinessService {
   rpc Feed (FeedRequest) returns (FeedResponse) {}
   rpc GetBusiness (GetBusinessRequest) returns (GetBusinessResponse) {}
-//rpc UpdateBusiness (UpdateBusinessRequest) returns (UpdateBusinessResponse) {}
+  //rpc CreateBusiness (CreateBusinessRequest) returns (CreateBusinessResponse) {}
+  //rpc UpdateBusiness (UpdateBusinessRequest) returns (UpdateBusinessResponse) {}
 }
 
 service ItemService {
