@@ -64,6 +64,12 @@ func (i *itemService) UpdateItem(request *dto.UpdateItemRequest) (*models.Item, 
 		} else if permissionExistsErr != nil {
 			return permissionExistsErr
 		}
+		businessRes, businessErr := i.dao.NewBusinessQuery().BusinessIsOpen(tx, &models.Business{ID: request.BusinessFk})
+		if businessErr != nil {
+			return businessErr
+		} else if *businessRes {
+			return errors.New("business is open")
+		}
 		getItemRes, getItemErr := i.dao.NewItemQuery().GetItem(tx, &models.Item{ID: request.ItemFk})
 		if getItemErr != nil {
 			return getItemErr
@@ -157,6 +163,12 @@ func (i *itemService) DeleteItem(request *dto.DeleteItemRequest) error {
 			return errors.New("permission denied")
 		} else if permissionExistsErr != nil {
 			return permissionExistsErr
+		}
+		businessRes, businessErr := i.dao.NewBusinessQuery().BusinessIsOpen(tx, &models.Business{ID: getItemRes.BusinessFk})
+		if businessErr != nil {
+			return businessErr
+		} else if *businessRes {
+			return errors.New("business is open")
 		}
 		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{ItemFk: request.ItemFk})
 		if getCartItemErr != nil && getCartItemErr.Error() != "record not found" {
