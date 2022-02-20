@@ -14,10 +14,24 @@ import (
 type BusinessDatasource interface {
 	Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceFk string, municipalityFk string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]models.Business, error)
 	GetBusiness(tx *gorm.DB, where *models.Business) (*models.Business, error)
+	GetBusinessWithLocation(tx *gorm.DB, where *models.Business) (*models.Business, error)
 	GetBusinessProvinceAndMunicipality(tx *gorm.DB, businessFk uuid.UUID) (*dto.GetBusinessProvinceAndMunicipality, error)
 }
 
 type businessDatasource struct{}
+
+func (b *businessDatasource) GetBusiness(tx *gorm.DB, where *models.Business) (*models.Business, error) {
+	var businessResult *models.Business
+	result := tx.Where(where).Take(&businessResult)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("record not found")
+		} else {
+			return nil, result.Error
+		}
+	}
+	return businessResult, nil
+}
 
 func (b *businessDatasource) GetBusinessProvinceAndMunicipality(tx *gorm.DB, businessFk uuid.UUID) (*dto.GetBusinessProvinceAndMunicipality, error) {
 	var res dto.GetBusinessProvinceAndMunicipality
@@ -54,7 +68,7 @@ func (b *businessDatasource) Feed(tx *gorm.DB, coordinates ewkb.Point, limit int
 	return businessResult, nil
 }
 
-func (b *businessDatasource) GetBusiness(tx *gorm.DB, where *models.Business) (*models.Business, error) {
+func (b *businessDatasource) GetBusinessWithLocation(tx *gorm.DB, where *models.Business) (*models.Business, error) {
 	var businessResult *models.Business
 	// point := fmt.Sprintf("'POINT(%v %v)'", where.Coordinates.Point.Coords()[1], where.Coordinates.Point.Coords()[0])
 	distance := fmt.Sprintf(`ST_Distance("coordinates", ST_GeomFromText('POINT(%v %v)', 4326)) AS "distance"`, where.Coordinates.Point.Coords()[1], where.Coordinates.Point.Coords()[0])
