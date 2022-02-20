@@ -121,6 +121,8 @@ func (m *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) 
 			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
 		case "permission denied":
 			st = status.New(codes.PermissionDenied, "Permission denied")
+		case "business is open":
+			st = status.New(codes.InvalidArgument, "Business is open")
 		case "HighQualityPhotoObject missing":
 			st = status.New(codes.InvalidArgument, "HighQualityPhotoObject missing")
 		case "LowQualityPhotoObject missing":
@@ -198,6 +200,8 @@ func (m *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) 
 			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
 		case "permission denied":
 			st = status.New(codes.PermissionDenied, "Permission denied")
+		case "business is open":
+			st = status.New(codes.InvalidArgument, "Business is open")
 		case "HighQualityPhotoObject missing":
 			st = status.New(codes.InvalidArgument, "HighQualityPhotoObject missing")
 		case "LowQualityPhotoObject missing":
