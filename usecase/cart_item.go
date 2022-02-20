@@ -150,7 +150,7 @@ func (i *cartItemService) AddCartItem(request *dto.AddCartItem) (*models.CartIte
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		item, itemErr := i.dao.NewItemQuery().GetItem(tx, request.ItemFk, request.Location)
+		item, itemErr := i.dao.NewItemQuery().GetItemWithLocation(tx, request.ItemFk, request.Location)
 		var itemAvailability int64
 		if itemErr != nil {
 			return itemErr
@@ -217,7 +217,7 @@ func (i *cartItemService) ReduceCartItem(request *dto.ReduceCartItem) (*models.C
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		item, itemErr := i.dao.NewItemQuery().GetItem(tx, request.ItemFk, request.Location)
+		item, itemErr := i.dao.NewItemQuery().GetItemWithLocation(tx, request.ItemFk, request.Location)
 		if itemErr != nil && itemErr.Error() == "record not found" {
 			return errors.New("item not found")
 		} else if itemErr != nil {
@@ -285,7 +285,7 @@ func (i *cartItemService) DeleteCartItem(request *dto.DeleteCartItemRequest) err
 		if cartItemErr != nil && cartItemErr.Error() != "record not found" {
 			return errors.New("cartitem not found")
 		}
-		item, itemErr := i.dao.NewItemQuery().GetItem(tx, cartItemRes.ItemFk.String(), request.Location)
+		item, itemErr := i.dao.NewItemQuery().GetItemWithLocation(tx, cartItemRes.ItemFk.String(), request.Location)
 		if itemErr != nil {
 			return itemErr
 		}

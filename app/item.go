@@ -13,6 +13,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	gp "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -93,8 +94,8 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 		Thumbnail:                item.Thumbnail,
 		ThumbnailBlurHash:        item.ThumbnailBlurHash,
 		Cursor:                   item.Cursor,
-		CreateTime: timestamppb.New(item.CreateTime),
-		UpdateTime: timestamppb.New(item.UpdateTime),
+		CreateTime:               timestamppb.New(item.CreateTime),
+		UpdateTime:               timestamppb.New(item.UpdateTime),
 	}}, nil
 }
 
@@ -121,6 +122,42 @@ func (m *ItemServer) SearchItem(ctx context.Context, req *pb.SearchItemRequest) 
 		})
 	}
 	return &pb.SearchItemResponse{Items: itemsResponse, NextPage: response.NextPage, SearchMunicipalityType: *utils.ParseSearchMunicipalityType(response.SearchMunicipalityType)}, nil
+}
+
+func (m *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) (*gp.Empty, error) {
+	var st *status.Status
+	md, _ := metadata.FromIncomingContext(ctx)
+	err := m.itemService.DeleteItem(&dto.DeleteItemRequest{ItemFk: uuid.MustParse(req.ItemFk), Metadata: &md})
+	if err != nil {
+		switch err.Error() {
+		case "authorizationtoken not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorizationtoken expired":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "permission denied":
+			st = status.New(codes.PermissionDenied, "Permission denied")
+		case "HighQualityPhotoObject missing":
+			st = status.New(codes.InvalidArgument, "HighQualityPhotoObject missing")
+		case "LowQualityPhotoObject missing":
+			st = status.New(codes.InvalidArgument, "LowQualityPhotoObject missing")
+		case "ThumbnailObject missing":
+			st = status.New(codes.InvalidArgument, "ThumbnailObject missing")
+		case "item in the cart":
+			st = status.New(codes.InvalidArgument, "Item in the cart")
+		case "cartitem not found":
+			st = status.New(codes.NotFound, "CartItem not found")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return &gp.Empty{}, nil
 }
 
 func (m *ItemServer) CreateItem(ctx context.Context, req *pb.CreateItemRequest) (*pb.CreateItemResponse, error) {

@@ -24,7 +24,8 @@ type DAO interface {
 	NewUnionBusinessAndMunicipalityRepository() UnionBusinessAndMunicipalityRepository
 }
 
-type dao struct{}
+type dao struct {
+}
 
 var Config *utils.Config
 var Datasource datasource.DAO
