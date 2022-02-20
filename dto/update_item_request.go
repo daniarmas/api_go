@@ -10,13 +10,15 @@ type UpdateItemRequest struct {
 	Name                     string
 	Description              string
 	Price                    float32
-	BusinessItemCategoryFk   string
 	HighQualityPhotoObject   string
 	HighQualityPhotoBlurHash string
 	LowQualityPhotoObject    string
 	LowQualityPhotoBlurHash  string
 	ThumbnailObject          string
 	ThumbnailBlurHash        string
+	Availability             int64
+	Status                   string
+	BusinessItemCategoryFk   uuid.UUID
 	BusinessFk               uuid.UUID
 	Metadata                 *metadata.MD
 }
