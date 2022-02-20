@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const OrderTableName = "item"
+const OrderTableName = "order"
 
 func (Order) TableName() string {
 	return OrderTableName
