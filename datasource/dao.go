@@ -116,6 +116,16 @@ func NewMinioClient(config *utils.Config) (*minio.Client, error) {
 			return nil, setPolicyErr
 		}
 	}
+	itemsDeletedRes, itemsDeletedErr := minioClient.BucketExists(context.Background(), config.ItemsDeletedBulkName)
+	if itemsDeletedErr != nil {
+		return nil, itemsDeletedErr
+	}
+	if !itemsDeletedRes {
+		err = minioClient.MakeBucket(context.Background(), config.ItemsDeletedBulkName, minio.MakeBucketOptions{ObjectLocking: false})
+		if err != nil {
+			return nil, err
+		}
+	}
 	userAvatarRes, userAvatarErr := minioClient.BucketExists(context.Background(), config.UsersBulkName)
 	if userAvatarErr != nil {
 		return nil, userAvatarErr
