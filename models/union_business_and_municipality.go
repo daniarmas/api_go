@@ -23,12 +23,12 @@ type UnionBusinessAndMunicipality struct {
 }
 
 func (u *UnionBusinessAndMunicipality) BeforeCreate(tx *gorm.DB) (err error) {
-	u.CreateTime = time.Now()
-	u.UpdateTime = time.Now()
+	u.CreateTime = time.Now().UTC()
+	u.UpdateTime = time.Now().UTC()
 	return
 }
 
 func (u *UnionBusinessAndMunicipality) BeforeUpdate(tx *gorm.DB) (err error) {
-	u.UpdateTime = time.Now()
+	u.UpdateTime = time.Now().UTC()
 	return
 }
