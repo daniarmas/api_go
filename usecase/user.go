@@ -9,6 +9,7 @@ import (
 	"github.com/daniarmas/api_go/models"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/google/uuid"
+	"github.com/minio/minio-go/v7"
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
 )
@@ -176,6 +177,30 @@ func (i *userService) UpdateUser(request *dto.UpdateUserRequest) (*dto.UpdateUse
 			_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.UsersBulkName, request.ThumbnailObject)
 			if tnErr != nil {
 				return tnErr
+			}
+			_, copyHqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.UsersDeletedBulkName, Object: userRes.HighQualityPhotoObject}, minio.CopySrcOptions{Bucket: repository.Config.UsersBulkName, Object: userRes.HighQualityPhotoObject})
+			if copyHqErr != nil {
+				return copyHqErr
+			}
+			_, copyLqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.UsersDeletedBulkName, Object: userRes.LowQualityPhotoObject}, minio.CopySrcOptions{Bucket: repository.Config.UsersBulkName, Object: userRes.LowQualityPhotoObject})
+			if copyLqErr != nil {
+				return copyLqErr
+			}
+			_, copyThErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.UsersDeletedBulkName, Object: userRes.ThumbnailObject}, minio.CopySrcOptions{Bucket: repository.Config.UsersBulkName, Object: userRes.ThumbnailObject})
+			if copyThErr != nil {
+				return copyThErr
+			}
+			rmHqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.UsersBulkName, userRes.HighQualityPhotoObject, minio.RemoveObjectOptions{})
+			if rmHqErr != nil {
+				return rmHqErr
+			}
+			rmLqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.UsersBulkName, userRes.LowQualityPhotoObject, minio.RemoveObjectOptions{})
+			if rmLqErr != nil {
+				return rmLqErr
+			}
+			rmThErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.UsersBulkName, userRes.ThumbnailObject, minio.RemoveObjectOptions{})
+			if rmThErr != nil {
+				return rmThErr
 			}
 			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: userRes.ID}, &models.User{HighQualityPhotoObject: request.HighQualityPhotoObject, HighQualityPhotoBlurHash: request.HighQualityPhotoBlurHash, HighQualityPhoto: datasource.Config.UsersBulkName + "/" + request.HighQualityPhotoObject, LowQualityPhoto: datasource.Config.UsersBulkName + "/" + request.LowQualityPhotoObject, LowQualityPhotoBlurHash: request.LowQualityPhotoBlurHash, LowQualityPhotoObject: request.LowQualityPhotoObject, Thumbnail: datasource.Config.UsersBulkName + "/" + request.ThumbnailObject, ThumbnailObject: request.ThumbnailObject, ThumbnailBlurHash: request.ThumbnailBlurHash})
 			if updatedUserErr != nil {
