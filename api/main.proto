@@ -33,10 +33,10 @@ service BusinessService {
 
 service ItemService {
   rpc ListItem (ListItemRequest) returns (ListItemResponse) {}
-  rpc CreateItem (CreateItemRequest) returns (CreateItemResponse) {}
-  rpc DeleteItem (DeleteItemRequest) returns (google.protobuf.Empty) {}  
-//rpc UpdateItem (UpdateItemRequest) returns (UpdateItemResponse) {}
   rpc GetItem (GetItemRequest) returns (GetItemResponse) {}
+  rpc CreateItem (CreateItemRequest) returns (CreateItemResponse) {}
+  rpc UpdateItem (UpdateItemRequest) returns (UpdateItemResponse) {}
+  rpc DeleteItem (DeleteItemRequest) returns (google.protobuf.Empty) {}  
   rpc SearchItem (SearchItemRequest) returns (SearchItemResponse) {}
 }
 
@@ -49,6 +49,7 @@ service UserService {
 //   rpc ListOrder (ListOrderRequest) returns (ListOrderResponse) {}
 //   rpc CreateOrder (CreateOrderRequest) returns (CreateOrderResponse) {}
 //   rpc GetOrder (GetOrderRequest) returns (GetOrderResponse) {}
+//   rpc UpdateOrder (UpdateOrderRequest) returns (UpdateOrder) {}
 // }
 
 service CartItemService {
@@ -93,6 +94,26 @@ service CartItemService {
 // message GetCartItemResponse {
 //   Item item = 1;
 // }
+
+message UpdateItemRequest {
+  string itemFk = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  string businessItemCategoryFk = 5;
+  string highQualityPhotoObject = 6;
+  string highQualityPhotoBlurHash = 7;
+  string lowQualityPhotoObject = 8;
+  string lowQualityPhotoBlurHash = 9;
+  string thumbnailObject = 10;
+  string thumbnailBlurHash = 11;
+	int64 availability = 12;       
+	ItemStatusType status = 13;         
+}
+
+message UpdateItemResponse {
+  Item item = 1;
+}
 
 message CartItemQuantityResponse {
   bool isFull = 1;
@@ -336,19 +357,6 @@ message GetVerificationCodeRequest {
   VerificationCodeType type = 3;
 }
 
-// message UpdateVerificationCodeRequest {
-//   string id = 1;
-//   string code = 2;
-//   string email = 3;
-//   VerificationCodeType type = 4;
-//   string deviceId = 5;
-//   google.protobuf.FieldMask fieldMask = 6;
-// }
-
-// message UpdateVerificationCodeResponse {
-//   VerificationCode verificationCode = 1;
-// }
-
 message SignInRequest {
   string email = 1;
   string code = 2;
@@ -367,19 +375,6 @@ message SignInResponse {
 
 // message HostnameResponse {
 //   string hostname = 1;
-// }
-
-// message HealthCheckRequest {
-//   string service = 1;
-// }
-
-// message HealthCheckResponse {
-//   enum ServingStatus {
-//     UNKNOWN = 0;
-//     SERVING = 1;
-//     NOT_SERVING = 2;
-//   }
-//   ServingStatus status = 1;
 // }
 
 // // Entites Messages
@@ -467,7 +462,6 @@ message Item {
   string lowQualityPhotoBlurHash = 12;
   string thumbnail = 13;
   string thumbnailBlurHash = 14;
-  // repeated ItemPhoto photos = 15;
   int32 cursor = 16;
   bool isInRange = 17;
   google.protobuf.Timestamp createTime = 18;
