@@ -10,16 +10,25 @@ import (
 )
 
 type ItemQuery interface {
-	GetItem(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error)
+	GetItem(tx *gorm.DB, where *models.Item) (*models.Item, error)
+	GetItemWithLocation(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error)
 	ListItem(tx *gorm.DB, where *models.Item, cursor time.Time) (*[]models.Item, error)
 	ListItemInIds(tx *gorm.DB, ids []uuid.UUID) (*[]models.Item, error)
 	CreateItem(tx *gorm.DB, data *models.Item) (*models.Item, error)
-	// ListItemAllInIds(tx *gorm.DB, ids *[]string) (*[]models.Item, error)
 	SearchItem(tx *gorm.DB, name string, provinceFk string, municipalityFk string, cursor int64, municipalityNotEqual bool, limit int64) (*[]models.Item, error)
 	UpdateItem(tx *gorm.DB, where *models.Item, data *models.Item) (*models.Item, error)
+	DeleteItem(tx *gorm.DB, where *models.Item) error
 }
 
 type itemQuery struct{}
+
+func (v *itemQuery) DeleteItem(tx *gorm.DB, where *models.Item) error {
+	err := Datasource.NewItemDatasource().DeleteItem(tx, where)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 func (v *itemQuery) CreateItem(tx *gorm.DB, data *models.Item) (*models.Item, error) {
 	res, err := Datasource.NewItemDatasource().CreateItem(tx, data)
@@ -45,8 +54,16 @@ func (i *itemQuery) ListItemInIds(tx *gorm.DB, ids []uuid.UUID) (*[]models.Item,
 	return result, nil
 }
 
-func (i *itemQuery) GetItem(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error) {
-	result, err := Datasource.NewItemDatasource().GetItem(tx, id, point)
+func (i *itemQuery) GetItem(tx *gorm.DB, where *models.Item) (*models.Item, error) {
+	result, err := Datasource.NewItemDatasource().GetItem(tx, where)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (i *itemQuery) GetItemWithLocation(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error) {
+	result, err := Datasource.NewItemDatasource().GetItemWithLocation(tx, id, point)
 	if err != nil {
 		return nil, err
 	}

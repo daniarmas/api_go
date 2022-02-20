@@ -11,6 +11,7 @@ import (
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/google/uuid"
+	"github.com/minio/minio-go/v7"
 	"gorm.io/gorm"
 )
 
@@ -19,6 +20,7 @@ type ItemService interface {
 	ListItem(itemRequest *dto.ListItemRequest) (*dto.ListItemResponse, error)
 	SearchItem(name string, provinceFk string, municipalityFk string, cursor int64, searchMunicipalityType string) (*dto.SearchItemResponse, error)
 	CreateItem(request *dto.CreateItemRequest) (*models.Item, error)
+	DeleteItem(request *dto.DeleteItemRequest) error
 }
 
 type itemService struct {
@@ -27,6 +29,79 @@ type itemService struct {
 
 func NewItemService(dao repository.DAO) ItemService {
 	return &itemService{dao: dao}
+}
+
+func (i *itemService) DeleteItem(request *dto.DeleteItemRequest) error {
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+		authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&request.Metadata.Get("authorization")[0])
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+		if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		} else if authorizationTokenRes == nil {
+			return errors.New("unauthenticated")
+		}
+		getItemRes, getItemErr := i.dao.NewItemQuery().GetItem(tx, &models.Item{ID: request.ItemFk})
+		if getItemErr != nil {
+			return getItemErr
+		}
+		permissionExistsErr := i.dao.NewPermissionRepository().PermissionExists(tx, &models.Permission{Name: "delete_item", UserFk: authorizationTokenRes.UserFk, BusinessFk: getItemRes.BusinessFk})
+		if permissionExistsErr != nil && permissionExistsErr.Error() == "record not found" {
+			return errors.New("permission denied")
+		} else if permissionExistsErr != nil {
+			return permissionExistsErr
+		}
+		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{ItemFk: request.ItemFk})
+		if getCartItemErr != nil && getCartItemErr.Error() != "record not found" {
+			return getCartItemErr
+		} else if getCartItemRes != nil {
+			return errors.New("item in the cart")
+		}
+		deleteItemErr := i.dao.NewItemQuery().DeleteItem(tx, &models.Item{ID: request.ItemFk})
+		if deleteItemErr != nil {
+			return deleteItemErr
+		}
+		_, copyHqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getItemRes.HighQualityPhotoObject}, minio.CopySrcOptions{Bucket: repository.Config.ItemsBulkName, Object: getItemRes.HighQualityPhotoObject})
+		if copyHqErr != nil {
+			return copyHqErr
+		}
+		_, copyLqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getItemRes.LowQualityPhotoObject}, minio.CopySrcOptions{Bucket: repository.Config.ItemsBulkName, Object: getItemRes.LowQualityPhotoObject})
+		if copyLqErr != nil {
+			return copyLqErr
+		}
+		_, copyThErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getItemRes.ThumbnailObject}, minio.CopySrcOptions{Bucket: repository.Config.ItemsBulkName, Object: getItemRes.ThumbnailObject})
+		if copyThErr != nil {
+			return copyThErr
+		}
+		rmHqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.ItemsBulkName, getItemRes.HighQualityPhotoObject, minio.RemoveObjectOptions{})
+		if rmHqErr != nil {
+			return rmHqErr
+		}
+		rmLqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.ItemsBulkName, getItemRes.LowQualityPhotoObject, minio.RemoveObjectOptions{})
+		if rmLqErr != nil {
+			return rmLqErr
+		}
+		rmThErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.ItemsBulkName, getItemRes.ThumbnailObject, minio.RemoveObjectOptions{})
+		if rmThErr != nil {
+			return rmThErr
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (i *itemService) CreateItem(request *dto.CreateItemRequest) (*models.Item, error) {
@@ -132,7 +207,7 @@ func (i *itemService) GetItem(request *dto.GetItemRequest) (*models.ItemBusiness
 	var item *models.ItemBusiness
 	var itemErr error
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		item, itemErr = i.dao.NewItemQuery().GetItem(tx, request.Id, request.Location)
+		item, itemErr = i.dao.NewItemQuery().GetItemWithLocation(tx, request.Id, request.Location)
 		if itemErr != nil {
 			return itemErr
 		}
