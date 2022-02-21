@@ -48,7 +48,7 @@ service UserService {
 
 service OrderService {
   rpc ListOrder (ListOrderRequest) returns (ListOrderResponse) {}
-  // rpc CreateOrder (CreateOrderRequest) returns (CreateOrderResponse) {}
+  rpc CreateOrder (CreateOrderRequest) returns (CreateOrderResponse) {}
   // rpc GetOrder (GetOrderRequest) returns (GetOrderResponse) {}
   // rpc UpdateOrder (UpdateOrderRequest) returns (UpdateOrder) {}
 }
@@ -76,6 +76,21 @@ service CartItemService {
 // message GetOrderResponse {
 //   Order order = 1;
 // }
+
+message CreateOrderRequest {
+  repeated string orderedItems = 1;
+	string status = 2;                
+	string deliveryType = 3;           
+	string residenceType = 4;        
+	string buildingNumber = 5;         
+	string houseNumber = 6;           
+	Point coordinates = 7;    
+	google.protobuf.Timestamp deliveryDate = 8;       
+}
+
+message CreateOrderResponse {
+  Order order = 1;  
+}
 
 message ListOrderRequest {
   google.protobuf.Timestamp nextPage = 1;
