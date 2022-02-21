@@ -49,6 +49,14 @@ func (i *orderService) ListOrder(request *dto.ListOrderRequest) (*dto.ListOrderR
 		if ordersErr != nil {
 			return ordersErr
 		}
+		if len(*ordersRes) > 10 {
+			*ordersRes = (*ordersRes)[:len(*ordersRes)-1]
+			listOrderResponse.NextPage = (*ordersRes)[len(*ordersRes)-1].CreateTime
+		} else if len(*ordersRes) > 0 {
+			listOrderResponse.NextPage = (*ordersRes)[len(*ordersRes)-1].CreateTime
+		} else {
+			listOrderResponse.NextPage = request.NextPage
+		}
 		listOrderResponse.Orders = ordersRes
 		return nil
 	})
