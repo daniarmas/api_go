@@ -11,7 +11,7 @@ type Config struct {
 	ApiPort                            string `mapstructure:"API_PORT"`
 	PrometheusPushgateway              string `mapstructure:"PROMETHEUS_PUSHGATEWAY"`
 	JwtSecret                          string `mapstructure:"JWT_SECRET"`
-	ObjectStorageServerUseSsl          bool   `mapstructure:"OBJECT_STORAGE_SERVER_USE_SSL"`
+	ObjectStorageServerUseSsl          string `mapstructure:"OBJECT_STORAGE_SERVER_USE_SSL"`
 	ObjectStorageServerAccessKeyId     string `mapstructure:"OBJECT_STORAGE_SERVER_ACCESS_KEY_ID"`
 	ObjectStorageServerSecretAccessKey string `mapstructure:"OBJECT_STORAGE_SERVER_SECRET_ACCESS_KEY"`
 	ObjectStorageServerEndpoint        string `mapstructure:"OBJECT_STORAGE_SERVER_ENDPOINT"`
