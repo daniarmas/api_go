@@ -34,6 +34,7 @@ type DAO interface {
 	NewMunicipalityDatasource() MunicipalityDatasource
 	NewUnionBusinessAndMunicipalityDatasource() UnionBusinessAndMunicipalityDatasource
 	NewOrderDatasource() OrderDatasource
+	NewOrderedItemDatasource() OrderedItemDatasource
 }
 
 type dao struct{}
@@ -208,6 +209,10 @@ func NewDB(config *utils.Config) (*gorm.DB, error) {
 
 func (d *dao) NewObjectStorageDatasource() ObjectStorageDatasource {
 	return &objectStorageDatasource{Minio: MinioClient}
+}
+
+func (d *dao) NewOrderedItemDatasource() OrderedItemDatasource {
+	return &orderedItemDatasource{}
 }
 
 func (d *dao) NewJwtTokenDatasource() JwtTokenDatasource {
