@@ -1,14 +1,12 @@
 package repository
 
 import (
-	"time"
-
 	"github.com/daniarmas/api_go/models"
 	"gorm.io/gorm"
 )
 
 type OrderRepository interface {
-	ListItem(tx *gorm.DB, where *models.Item, cursor time.Time) (*[]models.Item, error)
+	ListOrder(tx *gorm.DB, where *models.Order) (*[]models.Order, error)
 }
 
 type orderRepository struct{}

@@ -22,6 +22,7 @@ type DAO interface {
 	NewCartItemRepository() CartItemQuery
 	NewPermissionRepository() PermissionRepository
 	NewUnionBusinessAndMunicipalityRepository() UnionBusinessAndMunicipalityRepository
+	NewOrderRepository() OrderRepository
 }
 
 type dao struct {
@@ -82,6 +83,10 @@ func (d *dao) NewVerificationCodeQuery() VerificationCodeQuery {
 
 func (d *dao) NewUserQuery() UserQuery {
 	return &userQuery{}
+}
+
+func (d *dao) NewOrderRepository() OrderRepository {
+	return &orderRepository{}
 }
 
 func (d *dao) NewBannedUserQuery() BannedUserQuery {
