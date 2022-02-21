@@ -7,6 +7,6 @@ import (
 )
 
 type CreateOrderResponse struct {
-	OrderedItems *[]models.Order
+	Order models.Order
 	NextPage     time.Time
 }
