@@ -31,12 +31,12 @@ type UserAddress struct {
 }
 
 func (u *UserAddress) BeforeCreate(tx *gorm.DB) (err error) {
-	u.CreateTime = time.Now()
-	u.UpdateTime = time.Now()
+	u.CreateTime = time.Now().UTC()
+	u.UpdateTime = time.Now().UTC()
 	return
 }
 
 func (u *UserAddress) BeforeUpdate(tx *gorm.DB) (err error) {
-	u.UpdateTime = time.Now()
+	u.UpdateTime = time.Now().UTC()
 	return
 }

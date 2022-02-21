@@ -42,12 +42,12 @@ type CartItemAndItem struct {
 }
 
 func (i *CartItem) BeforeCreate(tx *gorm.DB) (err error) {
-	i.CreateTime = time.Now()
-	i.UpdateTime = time.Now()
+	i.CreateTime = time.Now().UTC()
+	i.UpdateTime = time.Now().UTC()
 	return
 }
 
 func (u *CartItem) BeforeUpdate(tx *gorm.DB) (err error) {
-	u.UpdateTime = time.Now()
+	u.UpdateTime = time.Now().UTC()
 	return
 }

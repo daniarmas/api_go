@@ -72,12 +72,12 @@ func (i *Item) BeforeCreate(tx *gorm.DB) (err error) {
 		return result.Error
 	}
 	i.Cursor = item.Cursor + 1
-	i.CreateTime = time.Now()
-	i.UpdateTime = time.Now()
+	i.CreateTime = time.Now().UTC()
+	i.UpdateTime = time.Now().UTC()
 	return
 }
 
 func (u *Item) BeforeUpdate(tx *gorm.DB) (err error) {
-	u.UpdateTime = time.Now()
+	u.UpdateTime = time.Now().UTC()
 	return
 }

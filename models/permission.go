@@ -26,7 +26,7 @@ type Permission struct {
 }
 
 func (r *Permission) BeforeCreate(tx *gorm.DB) (err error) {
-	r.CreateTime = time.Now()
-	r.UpdateTime = time.Now()
+	r.CreateTime = time.Now().UTC()
+	r.UpdateTime = time.Now().UTC()
 	return
 }

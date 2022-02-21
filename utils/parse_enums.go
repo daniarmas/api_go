@@ -12,6 +12,21 @@ func ParsePlatformType(tp *string) *pb.PlatformType {
 	}
 }
 
+func ParseOrderStatusType(tp *string) *pb.OrderStatusType {
+	switch *tp {
+	case "OrderStatusTypePending":
+		return pb.OrderStatusType_OrderStatusTypePending.Enum()
+	case "OrderStatusTypeRejected":
+		return pb.OrderStatusType_OrderStatusTypeRejected.Enum()
+	case "OrderStatusTypeApproved":
+		return pb.OrderStatusType_OrderStatusTypeApproved.Enum()
+	case "OrderStatusTypeReceived":
+		return pb.OrderStatusType_OrderStatusTypeReceived.Enum()
+	default:
+		return pb.OrderStatusType_OrderStatusTypeUnspecified.Enum()
+	}
+}
+
 func ParseAppType(tp *string) *pb.AppType {
 	if *tp == "App" {
 		return pb.AppType_App.Enum()
@@ -41,6 +56,28 @@ func ParseSearchMunicipalityType(tp string) *pb.SearchMunicipalityType {
 		return pb.SearchMunicipalityType_NoMore.Enum()
 	} else {
 		return pb.SearchMunicipalityType_SearchMunicipalityTypeUnspecified.Enum()
+	}
+}
+
+func ParseOrderResidenceType(tp *string) *pb.ResidenceType {
+	switch *tp {
+	case "ResidenceTypeHouse":
+		return pb.ResidenceType_ResidenceTypeHouse.Enum()
+	case "ResidenceTypeApartament":
+		return pb.ResidenceType_ResidenceTypeApartment.Enum()
+	default:
+		return pb.ResidenceType_ResidenceTypeUnspecified.Enum()
+	}
+}
+
+func ParseDeliveryType(tp *string) *pb.DeliveryType {
+	switch *tp {
+	case "DeliveryTypePickUp":
+		return pb.DeliveryType_DeliveryTypePickUp.Enum()
+	case "DeliveryTypeHomeDelivery":
+		return pb.DeliveryType_DeliveryTypeHomeDelivery.Enum()
+	default:
+		return pb.DeliveryType_DeliveryTypeUnspecified.Enum()
 	}
 }
 

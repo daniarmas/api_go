@@ -27,7 +27,7 @@ type BannedUser struct {
 }
 
 func (i *BannedUser) BeforeCreate(tx *gorm.DB) (err error) {
-	i.CreateTime = time.Now()
-	i.UpdateTime = time.Now()
+	i.CreateTime = time.Now().UTC()
+	i.UpdateTime = time.Now().UTC()
 	return
 }
