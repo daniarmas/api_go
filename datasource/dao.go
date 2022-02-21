@@ -50,9 +50,13 @@ func NewDAO(db *gorm.DB, config *utils.Config, minio *minio.Client) DAO {
 }
 
 func NewMinioClient(config *utils.Config) (*minio.Client, error) {
+	var secure bool
+	if config.ObjectStorageServerUseSsl == "true" {
+		secure = true
+	}
 	minioClient, err := minio.New(config.ObjectStorageServerEndpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(config.ObjectStorageServerAccessKeyId, config.ObjectStorageServerSecretAccessKey, ""),
-		Secure: config.ObjectStorageServerUseSsl,
+		Secure: secure,
 	})
 	if err != nil {
 		log.Fatalln(err)
