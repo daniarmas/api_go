@@ -13,6 +13,7 @@ import (
 
 type OrderService interface {
 	ListOrder(request *dto.ListOrderRequest) (*dto.ListOrderResponse, error)
+	// CreateOrder(request *dto.CreateOrderRequest) (*dto.CreateOrderResponse, error)
 }
 
 type orderService struct {
