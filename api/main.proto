@@ -79,9 +79,9 @@ service CartItemService {
 
 message CreateOrderRequest {
   repeated string orderedItems = 1;
-	string status = 2;                
-	string deliveryType = 3;           
-	string residenceType = 4;        
+	OrderStatusType status = 2;                
+	DeliveryType deliveryType = 3;           
+	ResidenceType residenceType = 4;        
 	string buildingNumber = 5;         
 	string houseNumber = 6;           
 	Point coordinates = 7;    

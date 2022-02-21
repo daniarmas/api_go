@@ -531,9 +531,9 @@ type CreateOrderRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	OrderedItems   []string               `protobuf:"bytes,1,rep,name=orderedItems,proto3" json:"orderedItems,omitempty"`
-	Status         string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
-	DeliveryType   string                 `protobuf:"bytes,3,opt,name=deliveryType,proto3" json:"deliveryType,omitempty"`
-	ResidenceType  string                 `protobuf:"bytes,4,opt,name=residenceType,proto3" json:"residenceType,omitempty"`
+	Status         OrderStatusType        `protobuf:"varint,2,opt,name=status,proto3,enum=main.OrderStatusType" json:"status,omitempty"`
+	DeliveryType   DeliveryType           `protobuf:"varint,3,opt,name=deliveryType,proto3,enum=main.DeliveryType" json:"deliveryType,omitempty"`
+	ResidenceType  ResidenceType          `protobuf:"varint,4,opt,name=residenceType,proto3,enum=main.ResidenceType" json:"residenceType,omitempty"`
 	BuildingNumber string                 `protobuf:"bytes,5,opt,name=buildingNumber,proto3" json:"buildingNumber,omitempty"`
 	HouseNumber    string                 `protobuf:"bytes,6,opt,name=houseNumber,proto3" json:"houseNumber,omitempty"`
 	Coordinates    *Point                 `protobuf:"bytes,7,opt,name=coordinates,proto3" json:"coordinates,omitempty"`
@@ -579,25 +579,25 @@ func (x *CreateOrderRequest) GetOrderedItems() []string {
 	return nil
 }
 
-func (x *CreateOrderRequest) GetStatus() string {
+func (x *CreateOrderRequest) GetStatus() OrderStatusType {
 	if x != nil {
 		return x.Status
 	}
-	return ""
+	return OrderStatusType_OrderStatusTypeUnspecified
 }
 
-func (x *CreateOrderRequest) GetDeliveryType() string {
+func (x *CreateOrderRequest) GetDeliveryType() DeliveryType {
 	if x != nil {
 		return x.DeliveryType
 	}
-	return ""
+	return DeliveryType_DeliveryTypeUnspecified
 }
 
-func (x *CreateOrderRequest) GetResidenceType() string {
+func (x *CreateOrderRequest) GetResidenceType() ResidenceType {
 	if x != nil {
 		return x.ResidenceType
 	}
-	return ""
+	return ResidenceType_ResidenceTypeUnspecified
 }
 
 func (x *CreateOrderRequest) GetBuildingNumber() string {
@@ -4833,15 +4833,19 @@ var file_main_proto_rawDesc = []byte{
 	0x2f, 0x66, 0x69, 0x65, 0x6c, 0x64, 0x5f, 0x6d, 0x61, 0x73, 0x6b, 0x2e, 0x70, 0x72, 0x6f, 0x74,
 	0x6f, 0x1a, 0x1f, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
 	0x75, 0x66, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x22, 0xd3, 0x02, 0x0a, 0x12, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x4f, 0x72, 0x64,
+	0x74, 0x6f, 0x22, 0x93, 0x03, 0x0a, 0x12, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x4f, 0x72, 0x64,
 	0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x22, 0x0a, 0x0c, 0x6f, 0x72, 0x64,
 	0x65, 0x72, 0x65, 0x64, 0x49, 0x74, 0x65, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52,
-	0x0c, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x65, 0x64, 0x49, 0x74, 0x65, 0x6d, 0x73, 0x12, 0x16, 0x0a,
-	0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73,
-	0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x22, 0x0a, 0x0c, 0x64, 0x65, 0x6c, 0x69, 0x76, 0x65, 0x72,
-	0x79, 0x54, 0x79, 0x70, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x64, 0x65, 0x6c,
-	0x69, 0x76, 0x65, 0x72, 0x79, 0x54, 0x79, 0x70, 0x65, 0x12, 0x24, 0x0a, 0x0d, 0x72, 0x65, 0x73,
-	0x69, 0x64, 0x65, 0x6e, 0x63, 0x65, 0x54, 0x79, 0x70, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09,
+	0x0c, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x65, 0x64, 0x49, 0x74, 0x65, 0x6d, 0x73, 0x12, 0x2d, 0x0a,
+	0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x15, 0x2e,
+	0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73,
+	0x54, 0x79, 0x70, 0x65, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x36, 0x0a, 0x0c,
+	0x64, 0x65, 0x6c, 0x69, 0x76, 0x65, 0x72, 0x79, 0x54, 0x79, 0x70, 0x65, 0x18, 0x03, 0x20, 0x01,
+	0x28, 0x0e, 0x32, 0x12, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x44, 0x65, 0x6c, 0x69, 0x76, 0x65,
+	0x72, 0x79, 0x54, 0x79, 0x70, 0x65, 0x52, 0x0c, 0x64, 0x65, 0x6c, 0x69, 0x76, 0x65, 0x72, 0x79,
+	0x54, 0x79, 0x70, 0x65, 0x12, 0x39, 0x0a, 0x0d, 0x72, 0x65, 0x73, 0x69, 0x64, 0x65, 0x6e, 0x63,
+	0x65, 0x54, 0x79, 0x70, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x13, 0x2e, 0x6d, 0x61,
+	0x69, 0x6e, 0x2e, 0x52, 0x65, 0x73, 0x69, 0x64, 0x65, 0x6e, 0x63, 0x65, 0x54, 0x79, 0x70, 0x65,
 	0x52, 0x0d, 0x72, 0x65, 0x73, 0x69, 0x64, 0x65, 0x6e, 0x63, 0x65, 0x54, 0x79, 0x70, 0x65, 0x12,
 	0x26, 0x0a, 0x0e, 0x62, 0x75, 0x69, 0x6c, 0x64, 0x69, 0x6e, 0x67, 0x4e, 0x75, 0x6d, 0x62, 0x65,
 	0x72, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0e, 0x62, 0x75, 0x69, 0x6c, 0x64, 0x69, 0x6e,
@@ -5830,145 +5834,148 @@ var file_main_proto_goTypes = []interface{}{
 	(*emptypb.Empty)(nil),                 // 67: google.protobuf.Empty
 }
 var file_main_proto_depIdxs = []int32{
-	64,  // 0: main.CreateOrderRequest.coordinates:type_name -> main.Point
-	65,  // 1: main.CreateOrderRequest.deliveryDate:type_name -> google.protobuf.Timestamp
-	53,  // 2: main.CreateOrderResponse.order:type_name -> main.Order
-	65,  // 3: main.ListOrderRequest.nextPage:type_name -> google.protobuf.Timestamp
-	66,  // 4: main.ListOrderRequest.fieldMask:type_name -> google.protobuf.FieldMask
-	53,  // 5: main.ListOrderResponse.orders:type_name -> main.Order
-	65,  // 6: main.ListOrderResponse.nextPage:type_name -> google.protobuf.Timestamp
-	2,   // 7: main.UpdateItemRequest.status:type_name -> main.ItemStatusType
-	56,  // 8: main.UpdateItemResponse.item:type_name -> main.Item
-	56,  // 9: main.CreateItemResponse.item:type_name -> main.Item
-	65,  // 10: main.ListCartItemRequest.nextPage:type_name -> google.protobuf.Timestamp
-	66,  // 11: main.ListCartItemRequest.fieldMask:type_name -> google.protobuf.FieldMask
-	57,  // 12: main.ListCartItemResponse.cartItems:type_name -> main.CartItem
-	65,  // 13: main.ListCartItemResponse.nextPage:type_name -> google.protobuf.Timestamp
-	66,  // 14: main.UpdateUserRequest.fieldMask:type_name -> google.protobuf.FieldMask
-	66,  // 15: main.UpdateUserRequest.updateMask:type_name -> google.protobuf.FieldMask
-	54,  // 16: main.UpdateUserResponse.user:type_name -> main.User
-	54,  // 17: main.GetUserResponse.user:type_name -> main.User
-	66,  // 18: main.ListSessionRequest.fieldMask:type_name -> google.protobuf.FieldMask
-	61,  // 19: main.ListSessionResponse.sessions:type_name -> main.Session
-	66,  // 20: main.RefreshTokenRequest.fieldMask:type_name -> google.protobuf.FieldMask
-	64,  // 21: main.DeleteCartItemRequest.location:type_name -> main.Point
-	66,  // 22: main.DeleteCartItemRequest.fieldMask:type_name -> google.protobuf.FieldMask
-	64,  // 23: main.AddCartItemRequest.location:type_name -> main.Point
-	66,  // 24: main.AddCartItemRequest.fieldMask:type_name -> google.protobuf.FieldMask
-	57,  // 25: main.AddCartItemResponse.cartItem:type_name -> main.CartItem
-	64,  // 26: main.ReduceCartItemRequest.location:type_name -> main.Point
-	66,  // 27: main.ReduceCartItemRequest.fieldMask:type_name -> google.protobuf.FieldMask
-	57,  // 28: main.ReduceCartItemResponse.cartItem:type_name -> main.CartItem
-	0,   // 29: main.SearchItemRequest.searchMunicipalityType:type_name -> main.SearchMunicipalityType
-	59,  // 30: main.SearchItemResponse.items:type_name -> main.SearchItem
-	0,   // 31: main.SearchItemResponse.searchMunicipalityType:type_name -> main.SearchMunicipalityType
-	65,  // 32: main.ListItemRequest.nextPage:type_name -> google.protobuf.Timestamp
-	66,  // 33: main.ListItemRequest.fieldMask:type_name -> google.protobuf.FieldMask
-	56,  // 34: main.ListItemResponse.items:type_name -> main.Item
-	65,  // 35: main.ListItemResponse.nextPage:type_name -> google.protobuf.Timestamp
-	64,  // 36: main.GetItemRequest.location:type_name -> main.Point
-	66,  // 37: main.GetItemRequest.fieldMask:type_name -> google.protobuf.FieldMask
-	56,  // 38: main.GetItemResponse.item:type_name -> main.Item
-	64,  // 39: main.FeedRequest.location:type_name -> main.Point
-	0,   // 40: main.FeedRequest.searchMunicipalityType:type_name -> main.SearchMunicipalityType
-	66,  // 41: main.FeedRequest.fieldMask:type_name -> google.protobuf.FieldMask
-	55,  // 42: main.FeedResponse.businesses:type_name -> main.Business
-	0,   // 43: main.FeedResponse.searchMunicipalityType:type_name -> main.SearchMunicipalityType
-	64,  // 44: main.GetBusinessRequest.location:type_name -> main.Point
-	66,  // 45: main.GetBusinessRequest.fieldMask:type_name -> google.protobuf.FieldMask
-	55,  // 46: main.GetBusinessResponse.business:type_name -> main.Business
-	58,  // 47: main.GetBusinessResponse.itemCategory:type_name -> main.ItemCategory
-	54,  // 48: main.SignUpResponse.user:type_name -> main.User
-	1,   // 49: main.CreateVerificationCodeRequest.type:type_name -> main.VerificationCodeType
-	1,   // 50: main.GetVerificationCodeRequest.type:type_name -> main.VerificationCodeType
-	54,  // 51: main.SignInResponse.user:type_name -> main.User
-	6,   // 52: main.Order.status:type_name -> main.OrderStatusType
-	7,   // 53: main.Order.deliveryType:type_name -> main.DeliveryType
-	8,   // 54: main.Order.residenceType:type_name -> main.ResidenceType
-	64,  // 55: main.Order.coordinates:type_name -> main.Point
-	65,  // 56: main.Order.deliveryDate:type_name -> google.protobuf.Timestamp
-	65,  // 57: main.Order.createTime:type_name -> google.protobuf.Timestamp
-	65,  // 58: main.Order.updateTime:type_name -> google.protobuf.Timestamp
-	62,  // 59: main.User.userAddress:type_name -> main.UserAddress
-	65,  // 60: main.User.createTime:type_name -> google.protobuf.Timestamp
-	65,  // 61: main.User.updateTime:type_name -> google.protobuf.Timestamp
-	64,  // 62: main.Business.coordinates:type_name -> main.Point
-	3,   // 63: main.Business.status:type_name -> main.BusinessStatusType
-	65,  // 64: main.Business.createTime:type_name -> google.protobuf.Timestamp
-	65,  // 65: main.Business.updateTime:type_name -> google.protobuf.Timestamp
-	2,   // 66: main.Item.status:type_name -> main.ItemStatusType
-	65,  // 67: main.Item.createTime:type_name -> google.protobuf.Timestamp
-	65,  // 68: main.Item.updateTime:type_name -> google.protobuf.Timestamp
-	65,  // 69: main.CartItem.createTime:type_name -> google.protobuf.Timestamp
-	65,  // 70: main.CartItem.updateTime:type_name -> google.protobuf.Timestamp
-	65,  // 71: main.ItemCategory.createTime:type_name -> google.protobuf.Timestamp
-	65,  // 72: main.ItemCategory.updateTime:type_name -> google.protobuf.Timestamp
-	2,   // 73: main.SearchItem.status:type_name -> main.ItemStatusType
-	65,  // 74: main.ItemPhoto.createTime:type_name -> google.protobuf.Timestamp
-	65,  // 75: main.ItemPhoto.updateTime:type_name -> google.protobuf.Timestamp
-	4,   // 76: main.Session.platform:type_name -> main.PlatformType
-	5,   // 77: main.Session.app:type_name -> main.AppType
-	9,   // 78: main.UserAddress.residenceType:type_name -> main.UserAddress.UserAddressType
-	64,  // 79: main.UserAddress.coordinates:type_name -> main.Point
-	65,  // 80: main.UserAddress.createTime:type_name -> google.protobuf.Timestamp
-	65,  // 81: main.UserAddress.updateTime:type_name -> google.protobuf.Timestamp
-	49,  // 82: main.AuthenticationService.CreateVerificationCode:input_type -> main.CreateVerificationCodeRequest
-	50,  // 83: main.AuthenticationService.GetVerificationCode:input_type -> main.GetVerificationCodeRequest
-	51,  // 84: main.AuthenticationService.SignIn:input_type -> main.SignInRequest
-	45,  // 85: main.AuthenticationService.SignUp:input_type -> main.SignUpRequest
-	26,  // 86: main.AuthenticationService.SignOut:input_type -> main.SignOutRequest
-	67,  // 87: main.AuthenticationService.CheckSession:input_type -> google.protobuf.Empty
-	27,  // 88: main.AuthenticationService.RefreshToken:input_type -> main.RefreshTokenRequest
-	47,  // 89: main.AuthenticationService.UserExists:input_type -> main.UserExistsRequest
-	24,  // 90: main.AuthenticationService.ListSession:input_type -> main.ListSessionRequest
-	41,  // 91: main.BusinessService.Feed:input_type -> main.FeedRequest
-	43,  // 92: main.BusinessService.GetBusiness:input_type -> main.GetBusinessRequest
-	37,  // 93: main.ItemService.ListItem:input_type -> main.ListItemRequest
-	39,  // 94: main.ItemService.GetItem:input_type -> main.GetItemRequest
-	17,  // 95: main.ItemService.CreateItem:input_type -> main.CreateItemRequest
-	14,  // 96: main.ItemService.UpdateItem:input_type -> main.UpdateItemRequest
-	29,  // 97: main.ItemService.DeleteItem:input_type -> main.DeleteItemRequest
-	35,  // 98: main.ItemService.SearchItem:input_type -> main.SearchItemRequest
-	67,  // 99: main.UserService.GetUser:input_type -> google.protobuf.Empty
-	21,  // 100: main.UserService.UpdateUser:input_type -> main.UpdateUserRequest
-	12,  // 101: main.OrderService.ListOrder:input_type -> main.ListOrderRequest
-	10,  // 102: main.OrderService.CreateOrder:input_type -> main.CreateOrderRequest
-	19,  // 103: main.CartItemService.ListCartItem:input_type -> main.ListCartItemRequest
-	31,  // 104: main.CartItemService.AddCartItem:input_type -> main.AddCartItemRequest
-	67,  // 105: main.CartItemService.CartItemQuantity:input_type -> google.protobuf.Empty
-	33,  // 106: main.CartItemService.ReduceCartItem:input_type -> main.ReduceCartItemRequest
-	30,  // 107: main.CartItemService.DeleteCartItem:input_type -> main.DeleteCartItemRequest
-	67,  // 108: main.AuthenticationService.CreateVerificationCode:output_type -> google.protobuf.Empty
-	67,  // 109: main.AuthenticationService.GetVerificationCode:output_type -> google.protobuf.Empty
-	52,  // 110: main.AuthenticationService.SignIn:output_type -> main.SignInResponse
-	46,  // 111: main.AuthenticationService.SignUp:output_type -> main.SignUpResponse
-	67,  // 112: main.AuthenticationService.SignOut:output_type -> google.protobuf.Empty
-	48,  // 113: main.AuthenticationService.CheckSession:output_type -> main.CheckSessionResponse
-	28,  // 114: main.AuthenticationService.RefreshToken:output_type -> main.RefreshTokenResponse
-	67,  // 115: main.AuthenticationService.UserExists:output_type -> google.protobuf.Empty
-	25,  // 116: main.AuthenticationService.ListSession:output_type -> main.ListSessionResponse
-	42,  // 117: main.BusinessService.Feed:output_type -> main.FeedResponse
-	44,  // 118: main.BusinessService.GetBusiness:output_type -> main.GetBusinessResponse
-	38,  // 119: main.ItemService.ListItem:output_type -> main.ListItemResponse
-	40,  // 120: main.ItemService.GetItem:output_type -> main.GetItemResponse
-	18,  // 121: main.ItemService.CreateItem:output_type -> main.CreateItemResponse
-	15,  // 122: main.ItemService.UpdateItem:output_type -> main.UpdateItemResponse
-	67,  // 123: main.ItemService.DeleteItem:output_type -> google.protobuf.Empty
-	36,  // 124: main.ItemService.SearchItem:output_type -> main.SearchItemResponse
-	23,  // 125: main.UserService.GetUser:output_type -> main.GetUserResponse
-	22,  // 126: main.UserService.UpdateUser:output_type -> main.UpdateUserResponse
-	13,  // 127: main.OrderService.ListOrder:output_type -> main.ListOrderResponse
-	11,  // 128: main.OrderService.CreateOrder:output_type -> main.CreateOrderResponse
-	20,  // 129: main.CartItemService.ListCartItem:output_type -> main.ListCartItemResponse
-	32,  // 130: main.CartItemService.AddCartItem:output_type -> main.AddCartItemResponse
-	16,  // 131: main.CartItemService.CartItemQuantity:output_type -> main.CartItemQuantityResponse
-	34,  // 132: main.CartItemService.ReduceCartItem:output_type -> main.ReduceCartItemResponse
-	67,  // 133: main.CartItemService.DeleteCartItem:output_type -> google.protobuf.Empty
-	108, // [108:134] is the sub-list for method output_type
-	82,  // [82:108] is the sub-list for method input_type
-	82,  // [82:82] is the sub-list for extension type_name
-	82,  // [82:82] is the sub-list for extension extendee
-	0,   // [0:82] is the sub-list for field type_name
+	6,   // 0: main.CreateOrderRequest.status:type_name -> main.OrderStatusType
+	7,   // 1: main.CreateOrderRequest.deliveryType:type_name -> main.DeliveryType
+	8,   // 2: main.CreateOrderRequest.residenceType:type_name -> main.ResidenceType
+	64,  // 3: main.CreateOrderRequest.coordinates:type_name -> main.Point
+	65,  // 4: main.CreateOrderRequest.deliveryDate:type_name -> google.protobuf.Timestamp
+	53,  // 5: main.CreateOrderResponse.order:type_name -> main.Order
+	65,  // 6: main.ListOrderRequest.nextPage:type_name -> google.protobuf.Timestamp
+	66,  // 7: main.ListOrderRequest.fieldMask:type_name -> google.protobuf.FieldMask
+	53,  // 8: main.ListOrderResponse.orders:type_name -> main.Order
+	65,  // 9: main.ListOrderResponse.nextPage:type_name -> google.protobuf.Timestamp
+	2,   // 10: main.UpdateItemRequest.status:type_name -> main.ItemStatusType
+	56,  // 11: main.UpdateItemResponse.item:type_name -> main.Item
+	56,  // 12: main.CreateItemResponse.item:type_name -> main.Item
+	65,  // 13: main.ListCartItemRequest.nextPage:type_name -> google.protobuf.Timestamp
+	66,  // 14: main.ListCartItemRequest.fieldMask:type_name -> google.protobuf.FieldMask
+	57,  // 15: main.ListCartItemResponse.cartItems:type_name -> main.CartItem
+	65,  // 16: main.ListCartItemResponse.nextPage:type_name -> google.protobuf.Timestamp
+	66,  // 17: main.UpdateUserRequest.fieldMask:type_name -> google.protobuf.FieldMask
+	66,  // 18: main.UpdateUserRequest.updateMask:type_name -> google.protobuf.FieldMask
+	54,  // 19: main.UpdateUserResponse.user:type_name -> main.User
+	54,  // 20: main.GetUserResponse.user:type_name -> main.User
+	66,  // 21: main.ListSessionRequest.fieldMask:type_name -> google.protobuf.FieldMask
+	61,  // 22: main.ListSessionResponse.sessions:type_name -> main.Session
+	66,  // 23: main.RefreshTokenRequest.fieldMask:type_name -> google.protobuf.FieldMask
+	64,  // 24: main.DeleteCartItemRequest.location:type_name -> main.Point
+	66,  // 25: main.DeleteCartItemRequest.fieldMask:type_name -> google.protobuf.FieldMask
+	64,  // 26: main.AddCartItemRequest.location:type_name -> main.Point
+	66,  // 27: main.AddCartItemRequest.fieldMask:type_name -> google.protobuf.FieldMask
+	57,  // 28: main.AddCartItemResponse.cartItem:type_name -> main.CartItem
+	64,  // 29: main.ReduceCartItemRequest.location:type_name -> main.Point
+	66,  // 30: main.ReduceCartItemRequest.fieldMask:type_name -> google.protobuf.FieldMask
+	57,  // 31: main.ReduceCartItemResponse.cartItem:type_name -> main.CartItem
+	0,   // 32: main.SearchItemRequest.searchMunicipalityType:type_name -> main.SearchMunicipalityType
+	59,  // 33: main.SearchItemResponse.items:type_name -> main.SearchItem
+	0,   // 34: main.SearchItemResponse.searchMunicipalityType:type_name -> main.SearchMunicipalityType
+	65,  // 35: main.ListItemRequest.nextPage:type_name -> google.protobuf.Timestamp
+	66,  // 36: main.ListItemRequest.fieldMask:type_name -> google.protobuf.FieldMask
+	56,  // 37: main.ListItemResponse.items:type_name -> main.Item
+	65,  // 38: main.ListItemResponse.nextPage:type_name -> google.protobuf.Timestamp
+	64,  // 39: main.GetItemRequest.location:type_name -> main.Point
+	66,  // 40: main.GetItemRequest.fieldMask:type_name -> google.protobuf.FieldMask
+	56,  // 41: main.GetItemResponse.item:type_name -> main.Item
+	64,  // 42: main.FeedRequest.location:type_name -> main.Point
+	0,   // 43: main.FeedRequest.searchMunicipalityType:type_name -> main.SearchMunicipalityType
+	66,  // 44: main.FeedRequest.fieldMask:type_name -> google.protobuf.FieldMask
+	55,  // 45: main.FeedResponse.businesses:type_name -> main.Business
+	0,   // 46: main.FeedResponse.searchMunicipalityType:type_name -> main.SearchMunicipalityType
+	64,  // 47: main.GetBusinessRequest.location:type_name -> main.Point
+	66,  // 48: main.GetBusinessRequest.fieldMask:type_name -> google.protobuf.FieldMask
+	55,  // 49: main.GetBusinessResponse.business:type_name -> main.Business
+	58,  // 50: main.GetBusinessResponse.itemCategory:type_name -> main.ItemCategory
+	54,  // 51: main.SignUpResponse.user:type_name -> main.User
+	1,   // 52: main.CreateVerificationCodeRequest.type:type_name -> main.VerificationCodeType
+	1,   // 53: main.GetVerificationCodeRequest.type:type_name -> main.VerificationCodeType
+	54,  // 54: main.SignInResponse.user:type_name -> main.User
+	6,   // 55: main.Order.status:type_name -> main.OrderStatusType
+	7,   // 56: main.Order.deliveryType:type_name -> main.DeliveryType
+	8,   // 57: main.Order.residenceType:type_name -> main.ResidenceType
+	64,  // 58: main.Order.coordinates:type_name -> main.Point
+	65,  // 59: main.Order.deliveryDate:type_name -> google.protobuf.Timestamp
+	65,  // 60: main.Order.createTime:type_name -> google.protobuf.Timestamp
+	65,  // 61: main.Order.updateTime:type_name -> google.protobuf.Timestamp
+	62,  // 62: main.User.userAddress:type_name -> main.UserAddress
+	65,  // 63: main.User.createTime:type_name -> google.protobuf.Timestamp
+	65,  // 64: main.User.updateTime:type_name -> google.protobuf.Timestamp
+	64,  // 65: main.Business.coordinates:type_name -> main.Point
+	3,   // 66: main.Business.status:type_name -> main.BusinessStatusType
+	65,  // 67: main.Business.createTime:type_name -> google.protobuf.Timestamp
+	65,  // 68: main.Business.updateTime:type_name -> google.protobuf.Timestamp
+	2,   // 69: main.Item.status:type_name -> main.ItemStatusType
+	65,  // 70: main.Item.createTime:type_name -> google.protobuf.Timestamp
+	65,  // 71: main.Item.updateTime:type_name -> google.protobuf.Timestamp
+	65,  // 72: main.CartItem.createTime:type_name -> google.protobuf.Timestamp
+	65,  // 73: main.CartItem.updateTime:type_name -> google.protobuf.Timestamp
+	65,  // 74: main.ItemCategory.createTime:type_name -> google.protobuf.Timestamp
+	65,  // 75: main.ItemCategory.updateTime:type_name -> google.protobuf.Timestamp
+	2,   // 76: main.SearchItem.status:type_name -> main.ItemStatusType
+	65,  // 77: main.ItemPhoto.createTime:type_name -> google.protobuf.Timestamp
+	65,  // 78: main.ItemPhoto.updateTime:type_name -> google.protobuf.Timestamp
+	4,   // 79: main.Session.platform:type_name -> main.PlatformType
+	5,   // 80: main.Session.app:type_name -> main.AppType
+	9,   // 81: main.UserAddress.residenceType:type_name -> main.UserAddress.UserAddressType
+	64,  // 82: main.UserAddress.coordinates:type_name -> main.Point
+	65,  // 83: main.UserAddress.createTime:type_name -> google.protobuf.Timestamp
+	65,  // 84: main.UserAddress.updateTime:type_name -> google.protobuf.Timestamp
+	49,  // 85: main.AuthenticationService.CreateVerificationCode:input_type -> main.CreateVerificationCodeRequest
+	50,  // 86: main.AuthenticationService.GetVerificationCode:input_type -> main.GetVerificationCodeRequest
+	51,  // 87: main.AuthenticationService.SignIn:input_type -> main.SignInRequest
+	45,  // 88: main.AuthenticationService.SignUp:input_type -> main.SignUpRequest
+	26,  // 89: main.AuthenticationService.SignOut:input_type -> main.SignOutRequest
+	67,  // 90: main.AuthenticationService.CheckSession:input_type -> google.protobuf.Empty
+	27,  // 91: main.AuthenticationService.RefreshToken:input_type -> main.RefreshTokenRequest
+	47,  // 92: main.AuthenticationService.UserExists:input_type -> main.UserExistsRequest
+	24,  // 93: main.AuthenticationService.ListSession:input_type -> main.ListSessionRequest
+	41,  // 94: main.BusinessService.Feed:input_type -> main.FeedRequest
+	43,  // 95: main.BusinessService.GetBusiness:input_type -> main.GetBusinessRequest
+	37,  // 96: main.ItemService.ListItem:input_type -> main.ListItemRequest
+	39,  // 97: main.ItemService.GetItem:input_type -> main.GetItemRequest
+	17,  // 98: main.ItemService.CreateItem:input_type -> main.CreateItemRequest
+	14,  // 99: main.ItemService.UpdateItem:input_type -> main.UpdateItemRequest
+	29,  // 100: main.ItemService.DeleteItem:input_type -> main.DeleteItemRequest
+	35,  // 101: main.ItemService.SearchItem:input_type -> main.SearchItemRequest
+	67,  // 102: main.UserService.GetUser:input_type -> google.protobuf.Empty
+	21,  // 103: main.UserService.UpdateUser:input_type -> main.UpdateUserRequest
+	12,  // 104: main.OrderService.ListOrder:input_type -> main.ListOrderRequest
+	10,  // 105: main.OrderService.CreateOrder:input_type -> main.CreateOrderRequest
+	19,  // 106: main.CartItemService.ListCartItem:input_type -> main.ListCartItemRequest
+	31,  // 107: main.CartItemService.AddCartItem:input_type -> main.AddCartItemRequest
+	67,  // 108: main.CartItemService.CartItemQuantity:input_type -> google.protobuf.Empty
+	33,  // 109: main.CartItemService.ReduceCartItem:input_type -> main.ReduceCartItemRequest
+	30,  // 110: main.CartItemService.DeleteCartItem:input_type -> main.DeleteCartItemRequest
+	67,  // 111: main.AuthenticationService.CreateVerificationCode:output_type -> google.protobuf.Empty
+	67,  // 112: main.AuthenticationService.GetVerificationCode:output_type -> google.protobuf.Empty
+	52,  // 113: main.AuthenticationService.SignIn:output_type -> main.SignInResponse
+	46,  // 114: main.AuthenticationService.SignUp:output_type -> main.SignUpResponse
+	67,  // 115: main.AuthenticationService.SignOut:output_type -> google.protobuf.Empty
+	48,  // 116: main.AuthenticationService.CheckSession:output_type -> main.CheckSessionResponse
+	28,  // 117: main.AuthenticationService.RefreshToken:output_type -> main.RefreshTokenResponse
+	67,  // 118: main.AuthenticationService.UserExists:output_type -> google.protobuf.Empty
+	25,  // 119: main.AuthenticationService.ListSession:output_type -> main.ListSessionResponse
+	42,  // 120: main.BusinessService.Feed:output_type -> main.FeedResponse
+	44,  // 121: main.BusinessService.GetBusiness:output_type -> main.GetBusinessResponse
+	38,  // 122: main.ItemService.ListItem:output_type -> main.ListItemResponse
+	40,  // 123: main.ItemService.GetItem:output_type -> main.GetItemResponse
+	18,  // 124: main.ItemService.CreateItem:output_type -> main.CreateItemResponse
+	15,  // 125: main.ItemService.UpdateItem:output_type -> main.UpdateItemResponse
+	67,  // 126: main.ItemService.DeleteItem:output_type -> google.protobuf.Empty
+	36,  // 127: main.ItemService.SearchItem:output_type -> main.SearchItemResponse
+	23,  // 128: main.UserService.GetUser:output_type -> main.GetUserResponse
+	22,  // 129: main.UserService.UpdateUser:output_type -> main.UpdateUserResponse
+	13,  // 130: main.OrderService.ListOrder:output_type -> main.ListOrderResponse
+	11,  // 131: main.OrderService.CreateOrder:output_type -> main.CreateOrderResponse
+	20,  // 132: main.CartItemService.ListCartItem:output_type -> main.ListCartItemResponse
+	32,  // 133: main.CartItemService.AddCartItem:output_type -> main.AddCartItemResponse
+	16,  // 134: main.CartItemService.CartItemQuantity:output_type -> main.CartItemQuantityResponse
+	34,  // 135: main.CartItemService.ReduceCartItem:output_type -> main.ReduceCartItemResponse
+	67,  // 136: main.CartItemService.DeleteCartItem:output_type -> google.protobuf.Empty
+	111, // [111:137] is the sub-list for method output_type
+	85,  // [85:111] is the sub-list for method input_type
+	85,  // [85:85] is the sub-list for extension type_name
+	85,  // [85:85] is the sub-list for extension extendee
+	0,   // [0:85] is the sub-list for field type_name
 }
 
 func init() { file_main_proto_init() }
