@@ -7,9 +7,18 @@ import (
 
 type OrderDatasource interface {
 	ListOrder(tx *gorm.DB, where *models.Order) (*[]models.Order, error)
+	CreateOrder(tx *gorm.DB, data *models.Order) (*models.Order, error)
 }
 
 type orderDatasource struct{}
+
+func (i *orderDatasource) CreateOrder(tx *gorm.DB, data *models.Order) (*models.Order, error) {
+	result := tx.Create(&data)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return data, nil
+}
 
 func (i *orderDatasource) ListOrder(tx *gorm.DB, where *models.Order) (*[]models.Order, error) {
 	var order []models.Order
