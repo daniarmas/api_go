@@ -10,6 +10,11 @@ type ItemServer struct {
 	itemService usecase.ItemService
 }
 
+type OrderServer struct {
+	pb.UnimplementedOrderServiceServer
+	orderService usecase.OrderService
+}
+
 type CartItemServer struct {
 	pb.UnimplementedCartItemServiceServer
 	cartItemService usecase.CartItemService
@@ -28,6 +33,14 @@ type AuthenticationServer struct {
 type BusinessServer struct {
 	pb.UnimplementedBusinessServiceServer
 	businessService usecase.BusinessService
+}
+
+func NewOrderServer(
+	orderService usecase.OrderService,
+) *OrderServer {
+	return &OrderServer{
+		orderService: orderService,
+	}
 }
 
 func NewItemServer(

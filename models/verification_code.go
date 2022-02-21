@@ -30,12 +30,12 @@ type VerificationCode struct {
 func (vc *VerificationCode) BeforeCreate(tx *gorm.DB) (err error) {
 	// UUID version 4
 	vc.ID = uuid.New()
-	vc.CreateTime = time.Now()
-	vc.UpdateTime = time.Now()
+	vc.CreateTime = time.Now().UTC()
+	vc.UpdateTime = time.Now().UTC()
 	return
 }
 
 func (u *VerificationCode) BeforeUpdate(tx *gorm.DB) (err error) {
-	u.UpdateTime = time.Now()
+	u.UpdateTime = time.Now().UTC()
 	return
 }

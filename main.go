@@ -39,6 +39,7 @@ func main() {
 	businessService := usecase.NewBusinessService(repositoryDao)
 	userService := usecase.NewUserService(repositoryDao)
 	cartItemService := usecase.NewCartItemService(repositoryDao)
+	orderService := usecase.NewOrderService(repositoryDao)
 	// Starting gRPC server
 	address := fmt.Sprintf("0.0.0.0:%s", config.ApiPort)
 	listener, err := net.Listen("tcp", address)
@@ -61,6 +62,9 @@ func main() {
 	))
 	pb.RegisterCartItemServiceServer(grpcServer, app.NewCartItemServer(
 		cartItemService,
+	))
+	pb.RegisterOrderServiceServer(grpcServer, app.NewOrderServer(
+		orderService,
 	))
 	err = grpcServer.Serve(listener)
 	if err != nil {
