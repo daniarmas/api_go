@@ -16,7 +16,6 @@ func (Order) TableName() string {
 
 type Order struct {
 	ID             uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
-	Description    string         `gorm:"column:description"`
 	Status         string         `gorm:"column:status"`
 	DeliveryType   string         `gorm:"column:delivery_type"`
 	ResidenceType  string         `gorm:"column:residence_type"`
@@ -24,11 +23,11 @@ type Order struct {
 	BuildingNumber string         `gorm:"column:building_number"`
 	HouseNumber    string         `gorm:"column:house_number"`
 	BusinessFk     uuid.UUID      `gorm:"column:business_fk;not null"`
-	Coordinates    ewkb.Point     `gorm:"column:coordinates"`
 	Business       Business       `gorm:"foreignKey:BusinessFk"`
-	UserFk         string         `gorm:"column:thumbnail;not null"`
-	DeviceFk       string         `gorm:"column:thumbnail;not null"`
-	AppVersion     string         `gorm:"column:thumbnail;not null"`
+	Coordinates    ewkb.Point     `gorm:"column:coordinates"`
+	UserFk         uuid.UUID      `gorm:"column:user_fk;not null"`
+	DeviceFk       uuid.UUID      `gorm:"column:device_fk;not null"`
+	AppVersion     string         `gorm:"column:app_version;not null"`
 	DeliveryDate   time.Time      `gorm:"column:delivery_date;not null"`
 	CreateTime     time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime     time.Time      `gorm:"column:update_time;not null"`

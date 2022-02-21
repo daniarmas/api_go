@@ -45,7 +45,7 @@ func (i *orderService) ListOrder(request *dto.ListOrderRequest) (*dto.ListOrderR
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		ordersRes, ordersErr := i.dao.NewOrderRepository().ListOrder(tx, &models.Order{CreateTime: request.NextPage, UserFk: authorizationTokenRes.UserFk.String()})
+		ordersRes, ordersErr := i.dao.NewOrderRepository().ListOrder(tx, &models.Order{CreateTime: request.NextPage, UserFk: authorizationTokenRes.UserFk})
 		if ordersErr != nil {
 			return ordersErr
 		}
