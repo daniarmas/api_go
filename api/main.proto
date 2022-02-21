@@ -46,12 +46,12 @@ service UserService {
   rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse) {}
 }
 
-// service OrderService {
-//   rpc ListOrder (ListOrderRequest) returns (ListOrderResponse) {}
-//   rpc CreateOrder (CreateOrderRequest) returns (CreateOrderResponse) {}
-//   rpc GetOrder (GetOrderRequest) returns (GetOrderResponse) {}
-//   rpc UpdateOrder (UpdateOrderRequest) returns (UpdateOrder) {}
-// }
+service OrderService {
+  rpc ListOrder (ListOrderRequest) returns (ListOrderResponse) {}
+  // rpc CreateOrder (CreateOrderRequest) returns (CreateOrderResponse) {}
+  // rpc GetOrder (GetOrderRequest) returns (GetOrderResponse) {}
+  // rpc UpdateOrder (UpdateOrderRequest) returns (UpdateOrder) {}
+}
 
 service CartItemService {
   rpc ListCartItem (ListCartItemRequest) returns (ListCartItemResponse) {}
@@ -77,15 +77,15 @@ service CartItemService {
 //   Order order = 1;
 // }
 
-// message ListOrderRequest {
-//   string nextPage = 1;
-//   google.protobuf.FieldMask fieldMask = 2;
-// }
+message ListOrderRequest {
+  google.protobuf.Timestamp nextPage = 1;
+  google.protobuf.FieldMask fieldMask = 2;
+}
 
-// message ListOrderResponse {
-//   repeated Order orders = 1;
-//   string nextPage = 2;
-// }
+message ListOrderResponse {
+  repeated Order orders = 1;
+  google.protobuf.Timestamp nextPage = 2;
+}
 
 // message GetCartItemRequest {
 //   string id = 1;
@@ -380,23 +380,23 @@ message SignInResponse {
 
 // // Entites Messages
 
-// message Order {
-//   string id = 1;
-//   OrderStatusType status = 2;
-//   string deliveryDate = 3;
-//   DeliveryType deliveryType = 4;
-//   ResidenceType residenceType = 5;
-//   string buildingNumber = 6;
-//   string houseNumber = 7;
-//   Point coordinates = 8;
-//   double price = 9;
-//   string businessFk = 10;
-//   string userFk = 11;
-//   string deviceFk = 12;
-//   string appVersion = 13;
-//   string createTime = 14;
-//   string updateTime = 15;
-// }
+message Order {
+  string id = 1;
+  OrderStatusType status = 2;
+  DeliveryType deliveryType = 4;
+  ResidenceType residenceType = 5;
+  string buildingNumber = 6;
+  string houseNumber = 7;
+  Point coordinates = 8;
+  double price = 9;
+  string businessFk = 10;
+  string userFk = 11;
+  string deviceFk = 12;
+  string appVersion = 13;
+  google.protobuf.Timestamp deliveryDate = 3;
+  google.protobuf.Timestamp createTime = 14;
+  google.protobuf.Timestamp updateTime = 15;
+}
 
 message User {
   string id = 1;
@@ -631,25 +631,25 @@ enum AppType  {
   BusinessApp = 2;
 }
 
-// enum OrderStatusType {
-//   OrderStatusTypeUnspecified = 0; 
-//   Pending = 1;
-//   Approved = 2;
-//   Rejected = 3;
-//   Received = 4;
-// }
+enum OrderStatusType {
+  OrderStatusTypeUnspecified = 0; 
+  OrderStatusTypePending = 1;
+  OrderStatusTypeApproved = 2;
+  OrderStatusTypeRejected = 3;
+  OrderStatusTypeReceived = 4;
+}
 
-// enum DeliveryType {
-//   DeliveryTypeUnspecified = 0;
-//   ToPickUp = 1; 
-//   HomeDelivery = 2;
-// }
+enum DeliveryType {
+  DeliveryTypeUnspecified = 0;
+  DeliveryTypePickUp = 1; 
+  DeliveryTypeHomeDelivery = 2;
+}
 
-// enum ResidenceType {
-//   ResidenceTypeUnspecified = 0;
-//   House = 1;
-//   Apartment = 2;
-// }
+enum ResidenceType {
+  ResidenceTypeUnspecified = 0;
+  ResidenceTypeHouse = 1;
+  ResidenceTypeApartment = 2;
+}
 
 // 'Sign_In', 'Sign_Up', 'Change_User_Email'
 
