@@ -8,7 +8,7 @@ import (
 	"github.com/daniarmas/api_go/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
+	// "gorm.io/gorm/clause"
 )
 
 type OrderDatasource interface {
@@ -20,7 +20,10 @@ type OrderDatasource interface {
 type orderDatasource struct{}
 
 func (i *orderDatasource) UpdateOrder(tx *gorm.DB, where *models.Order, data *models.Order) (*models.Order, error) {
-	result := tx.Clauses(clause.Returning{}).Where(where).Updates(&data)
+	// result := tx.Clauses(clause.Returning{}).Where(where).Updates(&data)
+	var response models.Order
+	var time = time.Now().UTC()
+	result := tx.Raw(`UPDATE "order" SET "status"=?,"update_time"=? WHERE "order"."id" = ? AND "order"."user_fk" = ? AND "order"."delete_time" IS NULL RETURNING "id", "status", "delivery_type", "residence_type", "price", "building_number", "house_number", "business_fk", ST_AsEWKB(coordinates) AS coordinates, "user_fk", "authorization_token_fk", "delivery_date", "create_time", "update_time"`, data.Status, time, where.ID, where.UserFk).Scan(&response)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
@@ -28,7 +31,7 @@ func (i *orderDatasource) UpdateOrder(tx *gorm.DB, where *models.Order, data *mo
 			return nil, result.Error
 		}
 	}
-	return data, nil
+	return &response, nil
 }
 
 func (i *orderDatasource) CreateOrder(tx *gorm.DB, data *models.Order) (*models.Order, error) {

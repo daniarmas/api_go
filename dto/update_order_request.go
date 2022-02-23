@@ -7,6 +7,6 @@ import (
 
 type UpdateOrderRequest struct {
 	Id          uuid.UUID
-	OrderStatus string
+	Status string
 	Metadata    *metadata.MD
 }

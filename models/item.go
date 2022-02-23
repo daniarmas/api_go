@@ -63,6 +63,17 @@ type ItemBusiness struct {
 	CreateTime               time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime               time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime               gorm.DeletedAt `gorm:"index;column:delete_time"`
+	
+}
+
+// Contains tells whether a contains x.
+func IndexById(items []Item, item Item) int {
+	for i, n := range items {
+		if n.ID == item.ID {
+			return i
+		}
+	}
+	return -1
 }
 
 func (i *Item) BeforeCreate(tx *gorm.DB) (err error) {

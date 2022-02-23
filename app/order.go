@@ -117,7 +117,7 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderRequest) (*pb.UpdateOrderResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	updateOrderRes, updateOrderErr := m.orderService.UpdateOrder(&dto.UpdateOrderRequest{Id: uuid.MustParse(req.Id), OrderStatus: req.Status.String(), Metadata: &md})
+	updateOrderRes, updateOrderErr := m.orderService.UpdateOrder(&dto.UpdateOrderRequest{Id: uuid.MustParse(req.Id), Status: req.Status.String(), Metadata: &md})
 	if updateOrderErr != nil {
 		switch updateOrderErr.Error() {
 		case "authorizationtoken not found":
@@ -130,14 +130,8 @@ func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReques
 			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
 		case "token contains an invalid number of segments":
 			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
-		case "permission denied":
-			st = status.New(codes.PermissionDenied, "Permission denied")
-		case "business is open":
-			st = status.New(codes.InvalidArgument, "Business is open")
-		case "item in the cart":
-			st = status.New(codes.InvalidArgument, "Item in the cart")
-		case "cartitem not found":
-			st = status.New(codes.NotFound, "CartItem not found")
+		case "invalid status value":
+			st = status.New(codes.InvalidArgument, "Invalid status value")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
