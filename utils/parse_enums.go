@@ -22,6 +22,8 @@ func ParseOrderStatusType(tp *string) *pb.OrderStatusType {
 		return pb.OrderStatusType_OrderStatusTypeApproved.Enum()
 	case "OrderStatusTypeReceived":
 		return pb.OrderStatusType_OrderStatusTypeReceived.Enum()
+	case "OrderStatusTypeCanceled":
+		return pb.OrderStatusType_OrderStatusTypeCanceled.Enum()
 	default:
 		return pb.OrderStatusType_OrderStatusTypeUnspecified.Enum()
 	}
