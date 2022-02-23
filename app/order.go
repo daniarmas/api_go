@@ -7,6 +7,9 @@ import (
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/utils"
+	"github.com/google/uuid"
+	"github.com/twpayne/go-geom"
+	"github.com/twpayne/go-geom/encoding/ewkb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -62,8 +65,6 @@ func (m *OrderServer) ListOrder(ctx context.Context, req *pb.ListOrderRequest) (
 			BuildingNumber: item.BuildingNumber,
 			HouseNumber:    item.HouseNumber,
 			UserFk:         item.UserFk.String(),
-			AppVersion:     item.AppVersion,
-			DeviceFk:       item.DeviceFk.String(),
 			DeliveryDate:   timestamppb.New(item.DeliveryDate),
 			Status:         *utils.ParseOrderStatusType(&item.Status),
 			DeliveryType:   *utils.ParseDeliveryType(&item.DeliveryType),
@@ -75,4 +76,40 @@ func (m *OrderServer) ListOrder(ctx context.Context, req *pb.ListOrderRequest) (
 		})
 	}
 	return &pb.ListOrderResponse{Orders: ordersResponse, NextPage: timestamppb.New(listOrderResponse.NextPage)}, nil
+}
+
+func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*pb.CreateOrderResponse, error) {
+	var st *status.Status
+	md, _ := metadata.FromIncomingContext(ctx)
+	cartItems := make([]uuid.UUID, 0, len(req.CartItems))
+	for _, item := range req.CartItems {
+		cartItems = append(cartItems, uuid.MustParse(item))
+	}
+	createOrderRes, createOrderErr := m.orderService.CreateOrder(&dto.CreateOrderRequest{CartItems: &cartItems, Status: req.Status.String(), DeliveryType: req.DeliveryType.String(), ResidenceType: req.ResidenceType.String(), BuildingNumber: req.BuildingNumber, HouseNumber: req.HouseNumber, DeliveryDate: req.DeliveryDate.AsTime(), Coordinates: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Coordinates.Latitude, req.Coordinates.Longitude}).SetSRID(4326)}, Metadata: &md})
+	if createOrderErr != nil {
+		switch createOrderErr.Error() {
+		case "authorizationtoken not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorizationtoken expired":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "permission denied":
+			st = status.New(codes.PermissionDenied, "Permission denied")
+		case "business is open":
+			st = status.New(codes.InvalidArgument, "Business is open")
+		case "item in the cart":
+			st = status.New(codes.InvalidArgument, "Item in the cart")
+		case "cartitem not found":
+			st = status.New(codes.NotFound, "CartItem not found")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return &pb.CreateOrderResponse{Order: &pb.Order{Id: createOrderRes.Order.ID.String(), BuildingNumber: createOrderRes.Order.BuildingNumber, Price: createOrderRes.Order.Price, UserFk: createOrderRes.Order.UserFk.String(), BusinessFk: createOrderRes.Order.BusinessFk.String(), Status: *utils.ParseOrderStatusType(&createOrderRes.Order.Status), DeliveryType: *utils.ParseDeliveryType(&createOrderRes.Order.DeliveryType), ResidenceType: *utils.ParseOrderResidenceType(&createOrderRes.Order.ResidenceType), HouseNumber: createOrderRes.Order.HouseNumber, CreateTime: timestamppb.New(createOrderRes.Order.CreateTime), UpdateTime: timestamppb.New(createOrderRes.Order.UpdateTime), DeliveryDate: timestamppb.New(createOrderRes.Order.DeliveryDate), Coordinates: &pb.Point{Latitude: createOrderRes.Order.Coordinates.FlatCoords()[0], Longitude: createOrderRes.Order.Coordinates.FlatCoords()[1]}}}, nil
 }

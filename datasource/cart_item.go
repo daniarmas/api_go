@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/daniarmas/api_go/models"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -13,6 +14,7 @@ type CartItemDatasource interface {
 	ListCartItemAndItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItemAndItem, error)
 	ListCartItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItem, error)
 	ListCartItemAll(tx *gorm.DB, where *models.CartItem) (*[]models.CartItem, error)
+	ListCartItemInIds(tx *gorm.DB, ids []uuid.UUID) (*[]models.CartItem, error)
 	CreateCartItem(tx *gorm.DB, where *models.CartItem) (*models.CartItem, error)
 	UpdateCartItem(tx *gorm.DB, where *models.CartItem, data *models.CartItem) (*models.CartItem, error)
 	ExistCartItem(tx *gorm.DB, where *models.CartItem) (*bool, error)
@@ -22,6 +24,15 @@ type CartItemDatasource interface {
 }
 
 type cartItemDatasource struct{}
+
+func (i *cartItemDatasource) ListCartItemInIds(tx *gorm.DB, ids []uuid.UUID) (*[]models.CartItem, error) {
+	var cartItems []models.CartItem
+	result := tx.Where("id IN ? ", ids).Find(&cartItems)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &cartItems, nil
+}
 
 func (i *cartItemDatasource) CartItemQuantity(tx *gorm.DB, where *models.CartItem) (*bool, error) {
 	var cartItems []models.CartItem

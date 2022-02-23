@@ -106,7 +106,7 @@ func (m *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) 
 	if req.BusinessItemCategoryFk != "" {
 		businessItemCategoryFk = uuid.MustParse(req.BusinessItemCategoryFk)
 	}
-	item, err := m.itemService.UpdateItem(&dto.UpdateItemRequest{ItemFk: uuid.MustParse(req.ItemFk), Name: req.Name, Description: req.Description, Price: float32(req.Price), HighQualityPhotoObject: req.HighQualityPhotoObject, HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash, LowQualityPhotoObject: req.LowQualityPhotoObject, LowQualityPhotoBlurHash: req.LowQualityPhotoBlurHash, ThumbnailObject: req.ThumbnailObject, ThumbnailBlurHash: req.ThumbnailBlurHash, Availability: req.Availability, Status: req.Status.String(), BusinessItemCategoryFk: businessItemCategoryFk, Metadata: &md})
+	item, err := m.itemService.UpdateItem(&dto.UpdateItemRequest{ItemFk: uuid.MustParse(req.Id), Name: req.Name, Description: req.Description, Price: float32(req.Price), HighQualityPhotoObject: req.HighQualityPhotoObject, HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash, LowQualityPhotoObject: req.LowQualityPhotoObject, LowQualityPhotoBlurHash: req.LowQualityPhotoBlurHash, ThumbnailObject: req.ThumbnailObject, ThumbnailBlurHash: req.ThumbnailBlurHash, Availability: req.Availability, Status: req.Status.String(), BusinessItemCategoryFk: businessItemCategoryFk, Metadata: &md})
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -185,7 +185,7 @@ func (m *ItemServer) SearchItem(ctx context.Context, req *pb.SearchItemRequest) 
 func (m *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) (*gp.Empty, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	err := m.itemService.DeleteItem(&dto.DeleteItemRequest{ItemFk: uuid.MustParse(req.ItemFk), Metadata: &md})
+	err := m.itemService.DeleteItem(&dto.DeleteItemRequest{ItemFk: uuid.MustParse(req.Id), Metadata: &md})
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
