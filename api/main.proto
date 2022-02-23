@@ -661,6 +661,7 @@ enum OrderStatusType {
   OrderStatusTypeApproved = 2;
   OrderStatusTypeRejected = 3;
   OrderStatusTypeReceived = 4;
+  OrderStatusTypeCanceled = 5;
 }
 
 enum DeliveryType {

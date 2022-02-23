@@ -113,3 +113,35 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 	}
 	return &pb.CreateOrderResponse{Order: &pb.Order{Id: createOrderRes.Order.ID.String(), BuildingNumber: createOrderRes.Order.BuildingNumber, Price: createOrderRes.Order.Price, UserFk: createOrderRes.Order.UserFk.String(), BusinessFk: createOrderRes.Order.BusinessFk.String(), Status: *utils.ParseOrderStatusType(&createOrderRes.Order.Status), DeliveryType: *utils.ParseDeliveryType(&createOrderRes.Order.DeliveryType), ResidenceType: *utils.ParseOrderResidenceType(&createOrderRes.Order.ResidenceType), HouseNumber: createOrderRes.Order.HouseNumber, CreateTime: timestamppb.New(createOrderRes.Order.CreateTime), UpdateTime: timestamppb.New(createOrderRes.Order.UpdateTime), DeliveryDate: timestamppb.New(createOrderRes.Order.DeliveryDate), Coordinates: &pb.Point{Latitude: createOrderRes.Order.Coordinates.FlatCoords()[0], Longitude: createOrderRes.Order.Coordinates.FlatCoords()[1]}}}, nil
 }
+
+func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderRequest) (*pb.UpdateOrderResponse, error) {
+	var st *status.Status
+	md, _ := metadata.FromIncomingContext(ctx)
+	updateOrderRes, updateOrderErr := m.orderService.UpdateOrder(&dto.UpdateOrderRequest{Id: uuid.MustParse(req.Id), OrderStatus: req.Status.String(), Metadata: &md})
+	if updateOrderErr != nil {
+		switch updateOrderErr.Error() {
+		case "authorizationtoken not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorizationtoken expired":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "permission denied":
+			st = status.New(codes.PermissionDenied, "Permission denied")
+		case "business is open":
+			st = status.New(codes.InvalidArgument, "Business is open")
+		case "item in the cart":
+			st = status.New(codes.InvalidArgument, "Item in the cart")
+		case "cartitem not found":
+			st = status.New(codes.NotFound, "CartItem not found")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return &pb.UpdateOrderResponse{Order: &pb.Order{Id: updateOrderRes.Order.ID.String(), BuildingNumber: updateOrderRes.Order.BuildingNumber, Price: updateOrderRes.Order.Price, UserFk: updateOrderRes.Order.UserFk.String(), BusinessFk: updateOrderRes.Order.BusinessFk.String(), Status: *utils.ParseOrderStatusType(&updateOrderRes.Order.Status), DeliveryType: *utils.ParseDeliveryType(&updateOrderRes.Order.DeliveryType), ResidenceType: *utils.ParseOrderResidenceType(&updateOrderRes.Order.ResidenceType), HouseNumber: updateOrderRes.Order.HouseNumber, CreateTime: timestamppb.New(updateOrderRes.Order.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.Order.UpdateTime), DeliveryDate: timestamppb.New(updateOrderRes.Order.DeliveryDate), Coordinates: &pb.Point{Latitude: updateOrderRes.Order.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Order.Coordinates.FlatCoords()[1]}}}, nil
+}
