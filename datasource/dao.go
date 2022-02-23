@@ -34,6 +34,8 @@ type DAO interface {
 	NewMunicipalityDatasource() MunicipalityDatasource
 	NewUnionBusinessAndMunicipalityDatasource() UnionBusinessAndMunicipalityDatasource
 	NewOrderDatasource() OrderDatasource
+	NewOrderedItemDatasource() OrderedItemDatasource
+	NewUnionOrderAndOrderedItemDatasource() UnionOrderAndOrderedItemDatasource
 }
 
 type dao struct{}
@@ -50,9 +52,13 @@ func NewDAO(db *gorm.DB, config *utils.Config, minio *minio.Client) DAO {
 }
 
 func NewMinioClient(config *utils.Config) (*minio.Client, error) {
+	var secure bool
+	if config.ObjectStorageServerUseSsl == "true" {
+		secure = true
+	}
 	minioClient, err := minio.New(config.ObjectStorageServerEndpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(config.ObjectStorageServerAccessKeyId, config.ObjectStorageServerSecretAccessKey, ""),
-		Secure: config.ObjectStorageServerUseSsl,
+		Secure: secure,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -208,6 +214,14 @@ func NewDB(config *utils.Config) (*gorm.DB, error) {
 
 func (d *dao) NewObjectStorageDatasource() ObjectStorageDatasource {
 	return &objectStorageDatasource{Minio: MinioClient}
+}
+
+func (d *dao) NewOrderedItemDatasource() OrderedItemDatasource {
+	return &orderedItemDatasource{}
+}
+
+func (d *dao) NewUnionOrderAndOrderedItemDatasource() UnionOrderAndOrderedItemDatasource {
+	return &unionOrderAndOrderedItemDatasource{}
 }
 
 func (d *dao) NewJwtTokenDatasource() JwtTokenDatasource {

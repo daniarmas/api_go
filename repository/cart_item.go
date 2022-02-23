@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/daniarmas/api_go/models"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -11,6 +12,7 @@ type CartItemQuery interface {
 	ListCartItemAndItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItemAndItem, error)
 	ListCartItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItem, error)
 	ListCartItemAll(tx *gorm.DB, where *models.CartItem) (*[]models.CartItem, error)
+	ListCartItemInIds(tx *gorm.DB, ids []uuid.UUID) (*[]models.CartItem, error)
 	CreateCartItem(tx *gorm.DB, where *models.CartItem) (*models.CartItem, error)
 	UpdateCartItem(tx *gorm.DB, where *models.CartItem, data *models.CartItem) (*models.CartItem, error)
 	GetCartItem(tx *gorm.DB, cartItem *models.CartItem) (*models.CartItem, error)
@@ -46,6 +48,14 @@ func (i *cartItemQuery) CartItemQuantity(tx *gorm.DB, where *models.CartItem) (*
 
 func (i *cartItemQuery) ListCartItemAll(tx *gorm.DB, where *models.CartItem) (*[]models.CartItem, error) {
 	result, err := Datasource.NewCartItemDatasource().ListCartItemAll(tx, where)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (i *cartItemQuery) ListCartItemInIds(tx *gorm.DB, ids []uuid.UUID) (*[]models.CartItem, error) {
+	result, err := Datasource.NewCartItemDatasource().ListCartItemInIds(tx, ids)
 	if err != nil {
 		return nil, err
 	}

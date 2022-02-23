@@ -19,6 +19,8 @@ type CartItem struct {
 	Price                float64        `gorm:"column:price;not null"`
 	Quantity             int32          `gorm:"column:quantity;not null"`
 	ItemFk               uuid.UUID      `gorm:"column:item_fk;not null"`
+	BusinessFk           uuid.UUID      `gorm:"column:business_fk;not null"`
+	Business             Business       `gorm:"foreignKey:BusinessFk"`
 	UserFk               uuid.UUID      `gorm:"column:user_fk;not null"`
 	AuthorizationTokenFk uuid.UUID      `gorm:"column:authorization_token_fk;not null"`
 	CreateTime           time.Time      `gorm:"column:create_time;not null"`

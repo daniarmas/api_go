@@ -181,7 +181,7 @@ func (i *cartItemService) AddCartItem(request *dto.AddCartItem) (*models.CartIte
 				return resultErr
 			}
 		} else if cartItemRes == nil && cartItemErr.Error() == "record not found" {
-			result, resultErr = i.dao.NewCartItemRepository().CreateCartItem(tx, &models.CartItem{Name: item.Name, Price: item.Price, Quantity: request.Quantity, ItemFk: item.ID, UserFk: authorizationTokenRes.UserFk, AuthorizationTokenFk: authorizationTokenRes.ID})
+			result, resultErr = i.dao.NewCartItemRepository().CreateCartItem(tx, &models.CartItem{Name: item.Name, Price: item.Price, Quantity: request.Quantity, ItemFk: item.ID, UserFk: authorizationTokenRes.UserFk, AuthorizationTokenFk: authorizationTokenRes.ID, BusinessFk: item.BusinessFk})
 			if resultErr != nil {
 				return resultErr
 			}
