@@ -18,6 +18,7 @@ type OrderedItem struct {
 	Price      float64        `gorm:"column:price;not null"`
 	ItemFk     uuid.UUID      `gorm:"column:item_fk;not null"`
 	Item       Item           `gorm:"foreignKey:ItemFk"`
+	Quantity   int32          `gorm:"column:quantity;not null"`
 	UserFk     uuid.UUID      `gorm:"column:user_fk;not null"`
 	CreateTime time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime time.Time      `gorm:"column:update_time;not null"`

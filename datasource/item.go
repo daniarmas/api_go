@@ -20,6 +20,7 @@ type ItemDatasource interface {
 	// ListItemAllInIds(tx *gorm.DB, ids *[]string) (*[]models.Item, error)
 	SearchItem(tx *gorm.DB, name string, provinceFk string, municipalityFk string, cursor int64, municipalityNotEqual bool, limit int64) (*[]models.Item, error)
 	UpdateItem(tx *gorm.DB, where *models.Item, data *models.Item) (*models.Item, error)
+	UpdateItems(tx *gorm.DB, data *[]models.Item) (*[]models.Item, error)
 	DeleteItem(tx *gorm.DB, where *models.Item) error
 }
 
@@ -104,6 +105,18 @@ func (i *itemDatasource) SearchItem(tx *gorm.DB, name string, provinceFk string,
 
 func (v *itemDatasource) UpdateItem(tx *gorm.DB, where *models.Item, data *models.Item) (*models.Item, error) {
 	result := tx.Clauses(clause.Returning{}).Where(where).Updates(&data)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("record not found")
+		} else {
+			return nil, result.Error
+		}
+	}
+	return data, nil
+}
+
+func (v *itemDatasource) UpdateItems(tx *gorm.DB, data *[]models.Item) (*[]models.Item, error) {
+	result := tx.Clauses(clause.Returning{}).Updates(data)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

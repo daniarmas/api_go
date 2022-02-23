@@ -17,6 +17,7 @@ type ItemQuery interface {
 	CreateItem(tx *gorm.DB, data *models.Item) (*models.Item, error)
 	SearchItem(tx *gorm.DB, name string, provinceFk string, municipalityFk string, cursor int64, municipalityNotEqual bool, limit int64) (*[]models.Item, error)
 	UpdateItem(tx *gorm.DB, where *models.Item, data *models.Item) (*models.Item, error)
+	UpdateItems(tx *gorm.DB, data *[]models.Item) (*[]models.Item, error)
 	DeleteItem(tx *gorm.DB, where *models.Item) error
 }
 
@@ -72,6 +73,14 @@ func (i *itemQuery) GetItemWithLocation(tx *gorm.DB, id string, point ewkb.Point
 
 func (i *itemQuery) UpdateItem(tx *gorm.DB, where *models.Item, data *models.Item) (*models.Item, error) {
 	result, err := Datasource.NewItemDatasource().UpdateItem(tx, where, data)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (i *itemQuery) UpdateItems(tx *gorm.DB, data *[]models.Item) (*[]models.Item, error) {
+	result, err := Datasource.NewItemDatasource().UpdateItems(tx, data)
 	if err != nil {
 		return nil, err
 	}
