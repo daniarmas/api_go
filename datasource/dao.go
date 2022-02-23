@@ -35,6 +35,7 @@ type DAO interface {
 	NewUnionBusinessAndMunicipalityDatasource() UnionBusinessAndMunicipalityDatasource
 	NewOrderDatasource() OrderDatasource
 	NewOrderedItemDatasource() OrderedItemDatasource
+	NewUnionOrderAndOrderedItemDatasource() UnionOrderAndOrderedItemDatasource
 }
 
 type dao struct{}
@@ -217,6 +218,10 @@ func (d *dao) NewObjectStorageDatasource() ObjectStorageDatasource {
 
 func (d *dao) NewOrderedItemDatasource() OrderedItemDatasource {
 	return &orderedItemDatasource{}
+}
+
+func (d *dao) NewUnionOrderAndOrderedItemDatasource() UnionOrderAndOrderedItemDatasource {
+	return &unionOrderAndOrderedItemDatasource{}
 }
 
 func (d *dao) NewJwtTokenDatasource() JwtTokenDatasource {

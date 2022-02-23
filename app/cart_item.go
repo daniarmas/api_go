@@ -168,7 +168,7 @@ func (m *CartItemServer) ReduceCartItem(ctx context.Context, req *pb.ReduceCartI
 func (m *CartItemServer) DeleteCartItem(ctx context.Context, req *pb.DeleteCartItemRequest) (*gp.Empty, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	err := m.cartItemService.DeleteCartItem(&dto.DeleteCartItemRequest{CartItemFk: req.CartItemFk, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, Metadata: &md, MunicipalityFk: uuid.MustParse(req.MunicipalityFk)})
+	err := m.cartItemService.DeleteCartItem(&dto.DeleteCartItemRequest{CartItemFk: req.Id, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, Metadata: &md, MunicipalityFk: uuid.MustParse(req.MunicipalityFk)})
 	if err != nil {
 		errorr := strings.Split(err.Error(), ":")
 		switch errorr[0] {

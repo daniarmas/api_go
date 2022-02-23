@@ -78,7 +78,7 @@ service CartItemService {
 // }
 
 message CreateOrderRequest {
-  repeated string orderedItems = 1;
+  repeated string cartItems = 1;
 	OrderStatusType status = 2;                
 	DeliveryType deliveryType = 3;           
 	ResidenceType residenceType = 4;        
@@ -112,7 +112,7 @@ message ListOrderResponse {
 // }
 
 message UpdateItemRequest {
-  string itemFk = 1;
+  string id = 1;
   string name = 2;
   string description = 3;
   double price = 4;
@@ -211,11 +211,11 @@ message RefreshTokenResponse {
 }
 
 message DeleteItemRequest {
-  string itemFk = 1;
+  string id = 1;
 }
 
 message DeleteCartItemRequest {
-  string cartItemFk = 1;
+  string id = 1;
   Point location = 2;
   string municipalityFk = 3;
   google.protobuf.FieldMask fieldMask = 4;

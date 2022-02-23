@@ -19,7 +19,6 @@ type OrderedItem struct {
 	ItemFk     uuid.UUID      `gorm:"column:item_fk;not null"`
 	Item       Item           `gorm:"foreignKey:ItemFk"`
 	UserFk     uuid.UUID      `gorm:"column:user_fk;not null"`
-	OrderFk    uuid.UUID      `gorm:"column:order_fk;not null"`
 	CreateTime time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime gorm.DeletedAt `gorm:"index;column:delete_time"`

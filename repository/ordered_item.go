@@ -11,7 +11,7 @@ type OrderedRepository interface {
 
 type orderedRepository struct{}
 
-func (i *orderRepository) BatchCreateOrderedItem(tx *gorm.DB, data *[]models.OrderedItem) (*[]models.OrderedItem, error) {
+func (i *orderedRepository) BatchCreateOrderedItem(tx *gorm.DB, data *[]models.OrderedItem) (*[]models.OrderedItem, error) {
 	res, err := Datasource.NewOrderedItemDatasource().BatchCreateOrderedItem(tx, data)
 	if err != nil {
 		return nil, err

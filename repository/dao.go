@@ -24,6 +24,7 @@ type DAO interface {
 	NewUnionBusinessAndMunicipalityRepository() UnionBusinessAndMunicipalityRepository
 	NewOrderRepository() OrderRepository
 	NewOrderedRepository() OrderedRepository
+	NewUnionOrderAndOrderedItemRepository() UnionOrderAndOrderedItemRepository
 }
 
 type dao struct {
@@ -95,7 +96,11 @@ func (d *dao) NewBannedUserQuery() BannedUserQuery {
 }
 
 func (d *dao) NewOrderedRepository() OrderedRepository {
-	return &orderRepository{}
+	return &orderedRepository{}
+}
+
+func (d *dao) NewUnionOrderAndOrderedItemRepository() UnionOrderAndOrderedItemRepository {
+	return &unionOrderAndOrderedItemRepository{}
 }
 
 func (d *dao) NewBannedDeviceQuery() BannedDeviceQuery {
