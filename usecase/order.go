@@ -14,6 +14,7 @@ import (
 type OrderService interface {
 	ListOrder(request *dto.ListOrderRequest) (*dto.ListOrderResponse, error)
 	CreateOrder(request *dto.CreateOrderRequest) (*dto.CreateOrderResponse, error)
+	UpdateOrder(request *dto.UpdateOrderRequest) (*dto.UpdateOrderResponse, error)
 }
 
 type orderService struct {
@@ -22,6 +23,41 @@ type orderService struct {
 
 func NewOrderService(dao repository.DAO) OrderService {
 	return &orderService{dao: dao}
+}
+
+func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.UpdateOrderResponse, error) {
+	var response dto.UpdateOrderResponse
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+		authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&request.Metadata.Get("authorization")[0])
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+		if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		} else if authorizationTokenRes == nil {
+			return errors.New("unauthenticated")
+		}
+		updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: request.Id, UserFk: authorizationTokenRes.UserFk}, &models.Order{Status: request.OrderStatus})
+		if updateOrderErr != nil {
+			return updateOrderErr
+		}
+		response.Order = &models.Order{ID: updateOrderRes.ID, Status: updateOrderRes.Status, DeliveryType: updateOrderRes.DeliveryType, ResidenceType: updateOrderRes.ResidenceType, Price: updateOrderRes.Price, BuildingNumber: updateOrderRes.BuildingNumber, HouseNumber: updateOrderRes.HouseNumber, BusinessFk: updateOrderRes.BusinessFk, UserFk: updateOrderRes.UserFk, Coordinates: updateOrderRes.Coordinates, AuthorizationTokenFk: updateOrderRes.AuthorizationTokenFk, DeliveryDate: updateOrderRes.DeliveryDate, CreateTime: updateOrderRes.CreateTime, UpdateTime: updateOrderRes.UpdateTime}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &response, nil
 }
 
 func (i *orderService) CreateOrder(request *dto.CreateOrderRequest) (*dto.CreateOrderResponse, error) {
