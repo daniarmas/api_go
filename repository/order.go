@@ -8,6 +8,7 @@ import (
 type OrderRepository interface {
 	ListOrder(tx *gorm.DB, where *models.Order) (*[]models.Order, error)
 	CreateOrder(tx *gorm.DB, data *models.Order) (*models.Order, error)
+	UpdateOrder(tx *gorm.DB, where *models.Order, data *models.Order) (*models.Order, error)
 }
 
 type orderRepository struct{}
@@ -26,4 +27,12 @@ func (i *orderRepository) CreateOrder(tx *gorm.DB, data *models.Order) (*models.
 		return nil, err
 	}
 	return res, nil
+}
+
+func (i *orderRepository) UpdateOrder(tx *gorm.DB, where *models.Order, data *models.Order) (*models.Order, error) {
+	result, err := Datasource.NewOrderDatasource().UpdateOrder(tx, where, data)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
