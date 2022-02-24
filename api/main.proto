@@ -44,12 +44,12 @@ service ItemService {
 service UserService {
   rpc GetUser (google.protobuf.Empty) returns (GetUserResponse) {}
   rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse) {}
+  rpc GetAddressInfo (GetAddressInfoRequest) returns (GetAddressInfoResponse) {}
 }
 
 service OrderService {
   rpc ListOrder (ListOrderRequest) returns (ListOrderResponse) {}
   rpc CreateOrder (CreateOrderRequest) returns (CreateOrderResponse) {}
-  // rpc GetOrder (GetOrderRequest) returns (GetOrderResponse) {}
   rpc UpdateOrder (UpdateOrderRequest) returns (UpdateOrderResponse) {}
   rpc ListOrderedItem (ListOrderedItemRequest) returns (ListOrderedItemResponse) {}
 }
@@ -77,6 +77,15 @@ service CartItemService {
 // message GetOrderResponse {
 //   Order order = 1;
 // }
+
+message GetAddressInfoRequest {
+  Point location = 1;
+}
+
+message GetAddressInfoResponse {
+  string provinceId = 1;
+  string municipalityId = 2;
+}
 
 message UpdateOrderRequest {
   string id = 1;
