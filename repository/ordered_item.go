@@ -9,6 +9,7 @@ import (
 type OrderedRepository interface {
 	BatchCreateOrderedItem(tx *gorm.DB, data *[]models.OrderedItem) (*[]models.OrderedItem, error)
 	ListOrderedItemByIds(tx *gorm.DB, ids *[]uuid.UUID) (*[]models.OrderedItem, error)
+	ListOrderedItem(tx *gorm.DB, where *models.OrderedItem) (*[]models.OrderedItem, error)
 }
 
 type orderedRepository struct{}
@@ -23,6 +24,14 @@ func (i *orderedRepository) BatchCreateOrderedItem(tx *gorm.DB, data *[]models.O
 
 func (i *orderedRepository) ListOrderedItemByIds(tx *gorm.DB, ids *[]uuid.UUID) (*[]models.OrderedItem, error) {
 	result, err := Datasource.NewOrderedItemDatasource().ListOrderedItemByIds(tx, ids)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (i *orderedRepository) ListOrderedItem(tx *gorm.DB, where *models.OrderedItem) (*[]models.OrderedItem, error) {
+	result, err := Datasource.NewOrderedItemDatasource().ListOrderedItem(tx, where)
 	if err != nil {
 		return nil, err
 	}
