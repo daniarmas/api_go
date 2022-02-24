@@ -18,6 +18,30 @@ import (
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
+func (m *CartItemServer) EmptyCartItem(ctx context.Context, req *gp.Empty) (*gp.Empty, error) {
+	var st *status.Status
+	md, _ := metadata.FromIncomingContext(ctx)
+	err := m.cartItemService.EmptyCartItem(&dto.EmptyCartItemRequest{Metadata: &md})
+	if err != nil {
+		switch err.Error() {
+		case "authorizationtoken not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorizationtoken expired":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return &gp.Empty{}, nil
+}
+
 func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemRequest) (*pb.ListCartItemResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
