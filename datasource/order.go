@@ -15,9 +15,23 @@ type OrderDatasource interface {
 	ListOrder(tx *gorm.DB, where *models.Order) (*[]models.Order, error)
 	CreateOrder(tx *gorm.DB, data *models.Order) (*models.Order, error)
 	UpdateOrder(tx *gorm.DB, where *models.Order, data *models.Order) (*models.Order, error)
+	GetOrder(tx *gorm.DB, where *models.Order, fields *string) (*models.Order, error)
 }
 
 type orderDatasource struct{}
+
+func (i *orderDatasource) GetOrder(tx *gorm.DB, where *models.Order, fields *string) (*models.Order, error) {
+	var response models.Order
+	result := tx.Where(where).Select(*fields).Take(&response)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("record not found")
+		} else {
+			return nil, result.Error
+		}
+	}
+	return &response, nil
+}
 
 func (i *orderDatasource) UpdateOrder(tx *gorm.DB, where *models.Order, data *models.Order) (*models.Order, error) {
 	// result := tx.Clauses(clause.Returning{}).Where(where).Updates(&data)
@@ -47,7 +61,7 @@ func (i *orderDatasource) CreateOrder(tx *gorm.DB, data *models.Order) (*models.
 
 func (i *orderDatasource) ListOrder(tx *gorm.DB, where *models.Order) (*[]models.Order, error) {
 	var order []models.Order
-	result := tx.Limit(11).Select("id, status, delivery_type, residence_type, price, building_number, house_number, business_fk, user_fk, device_fk, app_version, delivery_date, create_time, update_time, delete_time, ST_AsEWKB(coordinates) AS coordinates").Where("user_fk = ? AND create_time < ?", where.UserFk, where.CreateTime).Order("create_time desc").Find(&order)
+	result := tx.Limit(11).Select("id, status, delivery_type, residence_type, price, building_number, house_number, business_fk, user_fk, delivery_date, create_time, update_time, delete_time, ST_AsEWKB(coordinates) AS coordinates").Where("user_fk = ? AND create_time < ?", where.UserFk, where.CreateTime).Order("create_time desc").Find(&order)
 	if result.Error != nil {
 		return nil, result.Error
 	}

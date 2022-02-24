@@ -139,3 +139,33 @@ func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReques
 	}
 	return &pb.UpdateOrderResponse{Order: &pb.Order{Id: updateOrderRes.Order.ID.String(), BuildingNumber: updateOrderRes.Order.BuildingNumber, Price: updateOrderRes.Order.Price, UserFk: updateOrderRes.Order.UserFk.String(), BusinessFk: updateOrderRes.Order.BusinessFk.String(), Status: *utils.ParseOrderStatusType(&updateOrderRes.Order.Status), DeliveryType: *utils.ParseDeliveryType(&updateOrderRes.Order.DeliveryType), ResidenceType: *utils.ParseOrderResidenceType(&updateOrderRes.Order.ResidenceType), HouseNumber: updateOrderRes.Order.HouseNumber, CreateTime: timestamppb.New(updateOrderRes.Order.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.Order.UpdateTime), DeliveryDate: timestamppb.New(updateOrderRes.Order.DeliveryDate), Coordinates: &pb.Point{Latitude: updateOrderRes.Order.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Order.Coordinates.FlatCoords()[1]}}}, nil
 }
+
+func (m *OrderServer) ListOrderedItem(ctx context.Context, req *pb.ListOrderedItemRequest) (*pb.ListOrderedItemResponse, error) {
+	var st *status.Status
+	md, _ := metadata.FromIncomingContext(ctx)
+	listOrderedItemRes, listOrderedItemErr := m.orderService.ListOrderedItemWithItem(&dto.ListOrderedItemRequest{OrderFk: uuid.MustParse(req.OrderFk), Metadata: &md})
+	if listOrderedItemErr != nil {
+		switch listOrderedItemErr.Error() {
+		case "authorizationtoken not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorizationtoken expired":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "invalid status value":
+			st = status.New(codes.InvalidArgument, "Invalid status value")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	orderedItems := make([]*pb.OrderedItem, 0, len(*listOrderedItemRes.OrderedItems))
+	for _, item := range *listOrderedItemRes.OrderedItems {
+		orderedItems = append(orderedItems, &pb.OrderedItem{Id: item.ID.String(), Name: item.Name, Price: item.Price, ItemFk: item.ItemFk.String(), Quantity: item.Quantity, UserFk: item.UserFk.String(), CreateTime: timestamppb.New(item.CreateTime), UpdateTime: timestamppb.New(item.UpdateTime), CartItemFk: item.CartItemFk.String()})
+	}
+	return &pb.ListOrderedItemResponse{OrderedItems: orderedItems}, nil
+}

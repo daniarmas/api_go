@@ -113,7 +113,7 @@ message ListOrderResponse {
 }
 
 message ListOrderedItemRequest {
-  google.protobuf.Timestamp nextPage = 1;
+  string orderFk = 1;
   google.protobuf.FieldMask fieldMask = 2;
 }
 
@@ -419,11 +419,12 @@ message OrderedItem {
   string id = 1;
   string name = 2;
 	double price = 3;
-	string itemFk = 4;
-	int32 quantity = 5;
-	string userFk = 6;
-	google.protobuf.Timestamp createTime = 7;
-	google.protobuf.Timestamp updateTime = 8;
+  string cartItemFk = 4;
+	string itemFk = 5;
+	int32 quantity = 6;
+	string userFk = 7;
+	google.protobuf.Timestamp createTime = 8;
+	google.protobuf.Timestamp updateTime = 9;
 }
 
 message Order {
