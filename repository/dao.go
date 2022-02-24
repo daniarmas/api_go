@@ -17,6 +17,8 @@ type DAO interface {
 	NewAuthorizationTokenQuery() AuthorizationTokenQuery
 	NewSessionQuery() SessionQuery
 	NewBusinessQuery() BusinessQuery
+	NewMunicipalityRepository() MunicipalityRepository
+	NewProvinceRepository() ProvinceRepository
 	NewItemCategoryQuery() ItemCategoryQuery
 	NewObjectStorageRepository() ObjectStorageRepository
 	NewCartItemRepository() CartItemQuery
@@ -80,11 +82,19 @@ func (d *dao) NewItemQuery() ItemQuery {
 }
 
 func (d *dao) NewVerificationCodeQuery() VerificationCodeQuery {
-	return &verificationCodeQuery{}
+	return &municipalityRepository{}
 }
 
 func (d *dao) NewUserQuery() UserQuery {
 	return &userQuery{}
+}
+
+func (d *dao) NewMunicipalityRepository() MunicipalityRepository {
+	return &municipalityRepository{}
+}
+
+func (d *dao) NewProvinceRepository() ProvinceRepository {
+	return &provinceRepository{}
 }
 
 func (d *dao) NewOrderRepository() OrderRepository {

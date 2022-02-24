@@ -6,12 +6,40 @@ import (
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/utils"
+	"github.com/twpayne/go-geom"
+	"github.com/twpayne/go-geom/encoding/ewkb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	gp "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
+
+func (m *UserServer) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoRequest) (*pb.GetAddressInfoResponse, error) {
+	var st *status.Status
+	md, _ := metadata.FromIncomingContext(ctx)
+	getAddressInfoRes, err := m.userService.GetAddressInfo(&dto.GetAddressInfoRequest{Metadata: &md, Coordinates: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}})
+	if err != nil {
+		switch err.Error() {
+		case "authorizationtoken not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorizationtoken expired":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "municipality not found":
+			st = status.New(codes.InvalidArgument, "Location not available")
+		case "province not found":
+			st = status.New(codes.InvalidArgument, "Location not available")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return &pb.GetAddressInfoResponse{ProvinceId: getAddressInfoRes.ProvinceId.String(), ProvinceName: getAddressInfoRes.ProvinceName, MunicipalityName: getAddressInfoRes.MunicipalityName, MunicipalityId: getAddressInfoRes.MunicipalityId.String(), ProvinceNameAbbreviation: getAddressInfoRes.ProvinceNameAbbreviation}, nil
+}
 
 func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.GetUserResponse, error) {
 	var st *status.Status

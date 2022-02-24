@@ -11,6 +11,7 @@ import (
 
 type ProvinceDatasource interface {
 	ProvinceByCoordinate(tx *gorm.DB, coordinate ewkb.Point) (*models.Province, error)
+	GetProvince(tx *gorm.DB, where *models.Province) (*models.Province, error)
 }
 
 type provinceDatasource struct{}
@@ -27,4 +28,17 @@ func (i *provinceDatasource) ProvinceByCoordinate(tx *gorm.DB, coordinate ewkb.P
 		}
 	}
 	return provinceResult, nil
+}
+
+func (i *provinceDatasource) GetProvince(tx *gorm.DB, where *models.Province) (*models.Province, error) {
+	var response *models.Province
+	result := tx.Where(where).Take(&response)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("record not found")
+		} else {
+			return nil, result.Error
+		}
+	}
+	return response, nil
 }

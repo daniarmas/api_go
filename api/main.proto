@@ -84,7 +84,10 @@ message GetAddressInfoRequest {
 
 message GetAddressInfoResponse {
   string provinceId = 1;
-  string municipalityId = 2;
+  string provinceName = 2;
+  string provinceNameAbbreviation = 3;
+  string municipalityId = 4;
+  string municipalityName = 5;
 }
 
 message UpdateOrderRequest {
