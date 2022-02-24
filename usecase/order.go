@@ -15,6 +15,7 @@ type OrderService interface {
 	ListOrder(request *dto.ListOrderRequest) (*dto.ListOrderResponse, error)
 	CreateOrder(request *dto.CreateOrderRequest) (*dto.CreateOrderResponse, error)
 	UpdateOrder(request *dto.UpdateOrderRequest) (*dto.UpdateOrderResponse, error)
+	ListOrderedItemWithItem(request *dto.ListOrderedItemRequest) (*dto.ListOrderedItemResponse, error)
 }
 
 type orderService struct {
@@ -23,6 +24,49 @@ type orderService struct {
 
 func NewOrderService(dao repository.DAO) OrderService {
 	return &orderService{dao: dao}
+}
+
+func (i *orderService) ListOrderedItemWithItem(request *dto.ListOrderedItemRequest) (*dto.ListOrderedItemResponse, error) {
+	var response dto.ListOrderedItemResponse
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+		authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&request.Metadata.Get("authorization")[0])
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+		if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		} else if authorizationTokenRes == nil {
+			return errors.New("unauthenticated")
+		}
+		unionOrderAndOrderedItemRes, unionOrderAndOrderedItemErr := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &models.UnionOrderAndOrderedItem{OrderFk: request.OrderFk})
+		if unionOrderAndOrderedItemErr != nil {
+			return unionOrderAndOrderedItemErr
+		}
+		orderedItemFks := make([]uuid.UUID, 0, len(*unionOrderAndOrderedItemRes))
+		for _, item := range *unionOrderAndOrderedItemRes {
+			orderedItemFks = append(orderedItemFks, item.OrderedItemFk)
+		}
+		orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, &orderedItemFks)
+		if orderedItemsErr != nil {
+			return orderedItemsErr
+		}
+		response.OrderedItems = orderedItemsRes
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &response, nil
 }
 
 func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.UpdateOrderResponse, error) {
@@ -130,7 +174,7 @@ func (i *orderService) CreateOrder(request *dto.CreateOrderRequest) (*dto.Create
 		orderedItems := make([]models.OrderedItem, 0, len(*listCartItemRes))
 		for _, item := range *listCartItemRes {
 			price += item.Price
-			orderedItems = append(orderedItems, models.OrderedItem{Quantity: item.Quantity, Price: item.Price, ItemFk: item.ItemFk, UserFk: item.UserFk})
+			orderedItems = append(orderedItems, models.OrderedItem{Quantity: item.Quantity, Price: item.Price, CartItemFk: item.ID, UserFk: item.UserFk, ItemFk: item.ItemFk})
 		}
 		_, createOrderedItemsErr := i.dao.NewOrderedRepository().BatchCreateOrderedItem(tx, &orderedItems)
 		if createOrderedItemsErr != nil {
