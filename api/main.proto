@@ -59,7 +59,7 @@ service CartItemService {
   rpc CartItemQuantity (google.protobuf.Empty) returns (CartItemQuantityResponse) {}
   rpc ReduceCartItem (ReduceCartItemRequest) returns (ReduceCartItemResponse) {}
   rpc DeleteCartItem (DeleteCartItemRequest) returns (google.protobuf.Empty) {}
-  // rpc EmptyCartItem (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc EmptyCartItem (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
 
 // service ObjectStorageService {

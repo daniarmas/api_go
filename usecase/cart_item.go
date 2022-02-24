@@ -18,6 +18,7 @@ type CartItemService interface {
 	CartItemQuantity(request *dto.CartItemQuantity) (*bool, error)
 	ReduceCartItem(request *dto.ReduceCartItem) (*models.CartItem, error)
 	DeleteCartItem(request *dto.DeleteCartItemRequest) error
+	EmptyCartItem(request *dto.EmptyCartItemRequest) error
 }
 
 type cartItemService struct {
@@ -26,6 +27,66 @@ type cartItemService struct {
 
 func NewCartItemService(dao repository.DAO) CartItemService {
 	return &cartItemService{dao: dao}
+}
+
+func (i *cartItemService) EmptyCartItem(request *dto.EmptyCartItemRequest) error {
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+		authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&request.Metadata.Get("authorization")[0])
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+		if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		} else if authorizationTokenRes == nil {
+			return errors.New("unauthenticated")
+		}
+		listCartItemsRes, listCartItemsErr := i.dao.NewCartItemRepository().ListCartItemAll(tx, &models.CartItem{UserFk: authorizationTokenRes.UserFk})
+		if listCartItemsErr != nil {
+			return listCartItemsErr
+		}
+		itemFks := make([]uuid.UUID, 0, len(*listCartItemsRes))
+		for _, item := range *listCartItemsRes {
+			itemFks = append(itemFks, item.ItemFk)
+		}
+		itemsRes, itemsErr := i.dao.NewItemQuery().ListItemInIds(tx, itemFks)
+		if itemsErr != nil {
+			return itemsErr
+		}
+		for _, item := range *listCartItemsRes {
+			var index = -1
+			for i, n := range *itemsRes {
+				if n.ID == item.ItemFk {
+					index = i
+				}
+			}
+			(*itemsRes)[index].Availability += int64(item.Quantity)
+		}
+		for _, item := range *itemsRes {
+			_, updateItemsErr := i.dao.NewItemQuery().UpdateItem(tx, &models.Item{ID: item.ID}, &item)
+			if updateItemsErr != nil {
+				return updateItemsErr
+			}
+		}
+		deleteCartItemErr := i.dao.NewCartItemRepository().DeleteCartItem(tx, &models.CartItem{UserFk: authorizationTokenRes.UserFk})
+		if deleteCartItemErr != nil {
+			return deleteCartItemErr
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (i *cartItemService) CartItemQuantity(request *dto.CartItemQuantity) (*bool, error) {
