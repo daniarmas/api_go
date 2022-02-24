@@ -5838,7 +5838,7 @@ var file_main_proto_rawDesc = []byte{
 	0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4f, 0x72, 0x64, 0x65, 0x72,
 	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x19, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x55,
 	0x70, 0x64, 0x61, 0x74, 0x65, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x00, 0x32, 0x86, 0x03, 0x0a, 0x0f, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65,
+	0x73, 0x65, 0x22, 0x00, 0x32, 0xc9, 0x03, 0x0a, 0x0f, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65,
 	0x6d, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x47, 0x0a, 0x0c, 0x4c, 0x69, 0x73, 0x74,
 	0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x19, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e,
 	0x4c, 0x69, 0x73, 0x74, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x71, 0x75,
@@ -5862,8 +5862,12 @@ var file_main_proto_rawDesc = []byte{
 	0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x1b, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x44, 0x65,
 	0x6c, 0x65, 0x74, 0x65, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x71, 0x75,
 	0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x00, 0x42, 0x06, 0x5a,
-	0x04, 0x2f, 0x70, 0x6b, 0x67, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x00, 0x12, 0x41, 0x0a,
+	0x0d, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x16,
+	0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
+	0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x00,
+	0x42, 0x06, 0x5a, 0x04, 0x2f, 0x70, 0x6b, 0x67, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -6067,35 +6071,37 @@ var file_main_proto_depIdxs = []int32{
 	69,  // 111: main.CartItemService.CartItemQuantity:input_type -> google.protobuf.Empty
 	35,  // 112: main.CartItemService.ReduceCartItem:input_type -> main.ReduceCartItemRequest
 	32,  // 113: main.CartItemService.DeleteCartItem:input_type -> main.DeleteCartItemRequest
-	69,  // 114: main.AuthenticationService.CreateVerificationCode:output_type -> google.protobuf.Empty
-	69,  // 115: main.AuthenticationService.GetVerificationCode:output_type -> google.protobuf.Empty
-	54,  // 116: main.AuthenticationService.SignIn:output_type -> main.SignInResponse
-	48,  // 117: main.AuthenticationService.SignUp:output_type -> main.SignUpResponse
-	69,  // 118: main.AuthenticationService.SignOut:output_type -> google.protobuf.Empty
-	50,  // 119: main.AuthenticationService.CheckSession:output_type -> main.CheckSessionResponse
-	30,  // 120: main.AuthenticationService.RefreshToken:output_type -> main.RefreshTokenResponse
-	69,  // 121: main.AuthenticationService.UserExists:output_type -> google.protobuf.Empty
-	27,  // 122: main.AuthenticationService.ListSession:output_type -> main.ListSessionResponse
-	44,  // 123: main.BusinessService.Feed:output_type -> main.FeedResponse
-	46,  // 124: main.BusinessService.GetBusiness:output_type -> main.GetBusinessResponse
-	40,  // 125: main.ItemService.ListItem:output_type -> main.ListItemResponse
-	42,  // 126: main.ItemService.GetItem:output_type -> main.GetItemResponse
-	20,  // 127: main.ItemService.CreateItem:output_type -> main.CreateItemResponse
-	17,  // 128: main.ItemService.UpdateItem:output_type -> main.UpdateItemResponse
-	69,  // 129: main.ItemService.DeleteItem:output_type -> google.protobuf.Empty
-	38,  // 130: main.ItemService.SearchItem:output_type -> main.SearchItemResponse
-	25,  // 131: main.UserService.GetUser:output_type -> main.GetUserResponse
-	24,  // 132: main.UserService.UpdateUser:output_type -> main.UpdateUserResponse
-	15,  // 133: main.OrderService.ListOrder:output_type -> main.ListOrderResponse
-	13,  // 134: main.OrderService.CreateOrder:output_type -> main.CreateOrderResponse
-	11,  // 135: main.OrderService.UpdateOrder:output_type -> main.UpdateOrderResponse
-	22,  // 136: main.CartItemService.ListCartItem:output_type -> main.ListCartItemResponse
-	34,  // 137: main.CartItemService.AddCartItem:output_type -> main.AddCartItemResponse
-	18,  // 138: main.CartItemService.CartItemQuantity:output_type -> main.CartItemQuantityResponse
-	36,  // 139: main.CartItemService.ReduceCartItem:output_type -> main.ReduceCartItemResponse
-	69,  // 140: main.CartItemService.DeleteCartItem:output_type -> google.protobuf.Empty
-	114, // [114:141] is the sub-list for method output_type
-	87,  // [87:114] is the sub-list for method input_type
+	69,  // 114: main.CartItemService.EmptyCartItem:input_type -> google.protobuf.Empty
+	69,  // 115: main.AuthenticationService.CreateVerificationCode:output_type -> google.protobuf.Empty
+	69,  // 116: main.AuthenticationService.GetVerificationCode:output_type -> google.protobuf.Empty
+	54,  // 117: main.AuthenticationService.SignIn:output_type -> main.SignInResponse
+	48,  // 118: main.AuthenticationService.SignUp:output_type -> main.SignUpResponse
+	69,  // 119: main.AuthenticationService.SignOut:output_type -> google.protobuf.Empty
+	50,  // 120: main.AuthenticationService.CheckSession:output_type -> main.CheckSessionResponse
+	30,  // 121: main.AuthenticationService.RefreshToken:output_type -> main.RefreshTokenResponse
+	69,  // 122: main.AuthenticationService.UserExists:output_type -> google.protobuf.Empty
+	27,  // 123: main.AuthenticationService.ListSession:output_type -> main.ListSessionResponse
+	44,  // 124: main.BusinessService.Feed:output_type -> main.FeedResponse
+	46,  // 125: main.BusinessService.GetBusiness:output_type -> main.GetBusinessResponse
+	40,  // 126: main.ItemService.ListItem:output_type -> main.ListItemResponse
+	42,  // 127: main.ItemService.GetItem:output_type -> main.GetItemResponse
+	20,  // 128: main.ItemService.CreateItem:output_type -> main.CreateItemResponse
+	17,  // 129: main.ItemService.UpdateItem:output_type -> main.UpdateItemResponse
+	69,  // 130: main.ItemService.DeleteItem:output_type -> google.protobuf.Empty
+	38,  // 131: main.ItemService.SearchItem:output_type -> main.SearchItemResponse
+	25,  // 132: main.UserService.GetUser:output_type -> main.GetUserResponse
+	24,  // 133: main.UserService.UpdateUser:output_type -> main.UpdateUserResponse
+	15,  // 134: main.OrderService.ListOrder:output_type -> main.ListOrderResponse
+	13,  // 135: main.OrderService.CreateOrder:output_type -> main.CreateOrderResponse
+	11,  // 136: main.OrderService.UpdateOrder:output_type -> main.UpdateOrderResponse
+	22,  // 137: main.CartItemService.ListCartItem:output_type -> main.ListCartItemResponse
+	34,  // 138: main.CartItemService.AddCartItem:output_type -> main.AddCartItemResponse
+	18,  // 139: main.CartItemService.CartItemQuantity:output_type -> main.CartItemQuantityResponse
+	36,  // 140: main.CartItemService.ReduceCartItem:output_type -> main.ReduceCartItemResponse
+	69,  // 141: main.CartItemService.DeleteCartItem:output_type -> google.protobuf.Empty
+	69,  // 142: main.CartItemService.EmptyCartItem:output_type -> google.protobuf.Empty
+	115, // [115:143] is the sub-list for method output_type
+	87,  // [87:115] is the sub-list for method input_type
 	87,  // [87:87] is the sub-list for extension type_name
 	87,  // [87:87] is the sub-list for extension extendee
 	0,   // [0:87] is the sub-list for field type_name
