@@ -17,6 +17,7 @@ import (
 type UserService interface {
 	GetUser(metadata *metadata.MD) (*models.User, error)
 	UpdateUser(request *dto.UpdateUserRequest) (*dto.UpdateUserResponse, error)
+	GetAddressInfo(request *dto.GetAddressInfoRequest) (*dto.GetAddressInfoResponse, error)
 }
 
 type userService struct {
@@ -25,6 +26,34 @@ type userService struct {
 
 func NewUserService(dao repository.DAO) UserService {
 	return &userService{dao: dao}
+}
+
+func (i *userService) GetAddressInfo(request *dto.GetAddressInfoRequest) (*dto.GetAddressInfoResponse, error) {
+	var response dto.GetAddressInfoResponse
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+		muncipalityRes, municipalityErr := i.dao.NewMunicipalityRepository().GetMunicipalityByCoordinate(tx, request.Coordinates)
+		if municipalityErr != nil && municipalityErr.Error() == "record not found" {
+			return errors.New("municipality not found")
+		} else if municipalityErr != nil {
+			return municipalityErr
+		}
+		provinceRes, provinceErr := i.dao.NewProvinceRepository().GetProvince(tx, &models.Province{ID: muncipalityRes.ProvinceFk})
+		if provinceErr != nil && provinceErr.Error() == "record not found" {
+			return errors.New("province not found")
+		} else if provinceErr != nil {
+			return provinceErr
+		}
+		response.MunicipalityId = muncipalityRes.ID
+		response.MunicipalityName = muncipalityRes.Name
+		response.ProvinceId = provinceRes.ID
+		response.ProvinceName = provinceRes.Name
+		response.ProvinceNameAbbreviation = provinceRes.ProvinceNameAbbreviation
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &response, nil
 }
 
 func (i *userService) GetUser(metadata *metadata.MD) (*models.User, error) {
