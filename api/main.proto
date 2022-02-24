@@ -51,6 +51,7 @@ service OrderService {
   rpc CreateOrder (CreateOrderRequest) returns (CreateOrderResponse) {}
   // rpc GetOrder (GetOrderRequest) returns (GetOrderResponse) {}
   rpc UpdateOrder (UpdateOrderRequest) returns (UpdateOrderResponse) {}
+  rpc ListOrderedItem (ListOrderedItemRequest) returns (ListOrderedItemResponse) {}
 }
 
 service CartItemService {
@@ -108,6 +109,16 @@ message ListOrderRequest {
 
 message ListOrderResponse {
   repeated Order orders = 1;
+  google.protobuf.Timestamp nextPage = 2;
+}
+
+message ListOrderedItemRequest {
+  google.protobuf.Timestamp nextPage = 1;
+  google.protobuf.FieldMask fieldMask = 2;
+}
+
+message ListOrderedItemResponse {
+  repeated OrderedItem orderedItems = 1;
   google.protobuf.Timestamp nextPage = 2;
 }
 
@@ -403,6 +414,17 @@ message SignInResponse {
 // }
 
 // // Entites Messages
+
+message OrderedItem {
+  string id = 1;
+  string name = 2;
+	double price = 3;
+	string itemFk = 4;
+	int32 quantity = 5;
+	string userFk = 6;
+	google.protobuf.Timestamp createTime = 7;
+	google.protobuf.Timestamp updateTime = 8;
+}
 
 message Order {
   string id = 1;
