@@ -14,11 +14,12 @@ func (Province) TableName() string {
 }
 
 type Province struct {
-	ID         uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
-	Name       string         `gorm:"column:name;not null"`
-	CreateTime time.Time      `gorm:"column:create_time;not null"`
-	UpdateTime time.Time      `gorm:"column:update_time;not null"`
-	DeleteTime gorm.DeletedAt `gorm:"index;column:delete_time"`
+	ID                       uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
+	Name                     string         `gorm:"column:name;not null"`
+	ProvinceNameAbbreviation string         `gorm:"column:abbreviation_province_name;not null"`
+	CreateTime               time.Time      `gorm:"column:create_time;not null"`
+	UpdateTime               time.Time      `gorm:"column:update_time;not null"`
+	DeleteTime               gorm.DeletedAt `gorm:"index;column:delete_time"`
 }
 
 func (r *Province) BeforeCreate(tx *gorm.DB) (err error) {

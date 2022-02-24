@@ -787,6 +787,7 @@ var ItemService_ServiceDesc = grpc.ServiceDesc{
 type UserServiceClient interface {
 	GetUser(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetUserResponse, error)
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error)
+	GetAddressInfo(ctx context.Context, in *GetAddressInfoRequest, opts ...grpc.CallOption) (*GetAddressInfoResponse, error)
 }
 
 type userServiceClient struct {
@@ -815,12 +816,22 @@ func (c *userServiceClient) UpdateUser(ctx context.Context, in *UpdateUserReques
 	return out, nil
 }
 
+func (c *userServiceClient) GetAddressInfo(ctx context.Context, in *GetAddressInfoRequest, opts ...grpc.CallOption) (*GetAddressInfoResponse, error) {
+	out := new(GetAddressInfoResponse)
+	err := c.cc.Invoke(ctx, "/main.UserService/GetAddressInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
 type UserServiceServer interface {
 	GetUser(context.Context, *emptypb.Empty) (*GetUserResponse, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
+	GetAddressInfo(context.Context, *GetAddressInfoRequest) (*GetAddressInfoResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -833,6 +844,9 @@ func (UnimplementedUserServiceServer) GetUser(context.Context, *emptypb.Empty) (
 }
 func (UnimplementedUserServiceServer) UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
+}
+func (UnimplementedUserServiceServer) GetAddressInfo(context.Context, *GetAddressInfoRequest) (*GetAddressInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAddressInfo not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 
@@ -883,6 +897,24 @@ func _UserService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetAddressInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAddressInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetAddressInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.UserService/GetAddressInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetAddressInfo(ctx, req.(*GetAddressInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -898,6 +930,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "UpdateUser",
 			Handler:    _UserService_UpdateUser_Handler,
 		},
+		{
+			MethodName: "GetAddressInfo",
+			Handler:    _UserService_GetAddressInfo_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "main.proto",
@@ -909,7 +945,6 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 type OrderServiceClient interface {
 	ListOrder(ctx context.Context, in *ListOrderRequest, opts ...grpc.CallOption) (*ListOrderResponse, error)
 	CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*CreateOrderResponse, error)
-	// rpc GetOrder (GetOrderRequest) returns (GetOrderResponse) {}
 	UpdateOrder(ctx context.Context, in *UpdateOrderRequest, opts ...grpc.CallOption) (*UpdateOrderResponse, error)
 	ListOrderedItem(ctx context.Context, in *ListOrderedItemRequest, opts ...grpc.CallOption) (*ListOrderedItemResponse, error)
 }
@@ -964,7 +999,6 @@ func (c *orderServiceClient) ListOrderedItem(ctx context.Context, in *ListOrdere
 type OrderServiceServer interface {
 	ListOrder(context.Context, *ListOrderRequest) (*ListOrderResponse, error)
 	CreateOrder(context.Context, *CreateOrderRequest) (*CreateOrderResponse, error)
-	// rpc GetOrder (GetOrderRequest) returns (GetOrderResponse) {}
 	UpdateOrder(context.Context, *UpdateOrderRequest) (*UpdateOrderResponse, error)
 	ListOrderedItem(context.Context, *ListOrderedItemRequest) (*ListOrderedItemResponse, error)
 	mustEmbedUnimplementedOrderServiceServer()

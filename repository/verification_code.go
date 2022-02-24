@@ -13,7 +13,7 @@ type VerificationCodeQuery interface {
 
 type verificationCodeQuery struct{}
 
-func (v *verificationCodeQuery) CreateVerificationCode(tx *gorm.DB, data *models.VerificationCode) error {
+func (v *municipalityRepository) CreateVerificationCode(tx *gorm.DB, data *models.VerificationCode) error {
 	err := Datasource.NewVerificationCodeDatasource().CreateVerificationCode(tx, data)
 	if err != nil {
 		return err
@@ -21,7 +21,7 @@ func (v *verificationCodeQuery) CreateVerificationCode(tx *gorm.DB, data *models
 	return nil
 }
 
-func (v *verificationCodeQuery) GetVerificationCode(tx *gorm.DB, where *models.VerificationCode, fields *[]string) (*models.VerificationCode, error) {
+func (v *municipalityRepository) GetVerificationCode(tx *gorm.DB, where *models.VerificationCode, fields *[]string) (*models.VerificationCode, error) {
 	result, err := Datasource.NewVerificationCodeDatasource().GetVerificationCode(tx, where, fields)
 	if err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func (v *verificationCodeQuery) GetVerificationCode(tx *gorm.DB, where *models.V
 	return result, nil
 }
 
-func (v *verificationCodeQuery) DeleteVerificationCode(tx *gorm.DB, where *models.VerificationCode) error {
+func (v *municipalityRepository) DeleteVerificationCode(tx *gorm.DB, where *models.VerificationCode) error {
 	err := Datasource.NewVerificationCodeDatasource().DeleteVerificationCode(tx, where)
 	if err != nil {
 		return err
