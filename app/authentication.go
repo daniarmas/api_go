@@ -78,7 +78,8 @@ func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest
 func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest) (*pb.SignUpResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	result, err := m.authenticationService.SignUp(&req.FullName, &req.Alias, &models.VerificationCode{Code: req.Code, Email: req.Email, Type: "SignIn", DeviceId: md.Get("deviceid")[0]}, &md)
+	signUpType := req.SignUpType.String()
+	result, err := m.authenticationService.SignUp(&req.FullName, &req.Alias, &models.VerificationCode{Code: req.Code, Email: req.Email, Type: "SignIn", DeviceId: md.Get("deviceid")[0]}, &signUpType, &md)
 	if err != nil {
 		switch err.Error() {
 		case "verification code not found":

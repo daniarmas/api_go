@@ -665,7 +665,8 @@ enum VerificationCodeType {
   VerificationCodeTypeUnspecified = 0;
   SignIn = 1;
   SignUp = 2;
-  ChangeUserEmail = 3;
+  SignUpBusinessOwner = 3;
+  ChangeUserEmail = 4;
 }
 
 enum ItemStatusType {

@@ -180,13 +180,14 @@ func (v *authenticationService) SignUp(fullname *string, alias *string, verifica
 	var bannedUserRes *models.BannedUser
 	var bannedDeviceRes *models.BannedDevice
 	var deviceRes *models.Device
+	var verificationCodeRes *models.VerificationCode
 	var verificationCodeErr, userErr, bannedUserErr, bannedDeviceErr, deviceErr, refreshTokenErr, authorizationTokenErr, jwtRefreshTokenErr, jwtAuthorizationTokenErr, createUserErr error
 	var refreshTokenRes *models.RefreshToken
 	var authorizationTokenRes *models.AuthorizationToken
 	var createUserRes *models.User
 	var jwtAuthorizationTokenRes, jwtRefreshTokenRes *string
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		_, verificationCodeErr = v.dao.NewVerificationCodeQuery().GetVerificationCode(tx, &models.VerificationCode{Email: verificationCode.Email, Code: verificationCode.Code, DeviceId: verificationCode.DeviceId, Type: "SignUp"}, &[]string{"id"})
+		verificationCodeRes, verificationCodeErr = v.dao.NewVerificationCodeQuery().GetVerificationCode(tx, &models.VerificationCode{Email: verificationCode.Email, Code: verificationCode.Code, DeviceId: verificationCode.DeviceId, Type: "SignUp"}, &[]string{"id"})
 		if verificationCodeErr != nil && verificationCodeErr.Error() == "record not found" {
 			return errors.New("verification code not found")
 		} else if verificationCodeErr != nil {
@@ -259,6 +260,16 @@ func (v *authenticationService) SignUp(fullname *string, alias *string, verifica
 		jwtAuthorizationTokenRes, jwtAuthorizationTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtAuthorizationToken(&authorizationTokenId)
 		if jwtAuthorizationTokenErr != nil {
 			return jwtAuthorizationTokenErr
+		}
+		var isBusinessOwner bool = false
+		if verificationCodeRes.Type == "SignUpBusinessOwner" {
+			isBusinessOwner = true
+		}
+		if *signUpType == "SignUpBusiness" {
+			_, createBusinessUserErr := v.dao.NewBusinessUserRepository().CreateBusinessUser(tx, &models.BusinessUser{IsBusinessOwner: isBusinessOwner, UserFk: createUserRes.ID})
+			if createBusinessUserErr != nil {
+				return createBusinessUserErr
+			}
 		}
 		return nil
 	})
