@@ -8,5 +8,5 @@ import (
 
 type ListOrderResponse struct {
 	NextPage time.Time
-	Orders   *[]models.Order
+	Orders   *[]models.OrderBusiness
 }

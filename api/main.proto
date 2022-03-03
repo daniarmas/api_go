@@ -452,9 +452,11 @@ message Order {
   string userFk = 11;
   string deviceFk = 12;
   string appVersion = 13;
-  google.protobuf.Timestamp deliveryDate = 3;
-  google.protobuf.Timestamp createTime = 14;
-  google.protobuf.Timestamp updateTime = 15;
+  string businessName = 14;
+  int32 quantity = 15;
+  google.protobuf.Timestamp deliveryDate = 16;
+  google.protobuf.Timestamp createTime = 17;
+  google.protobuf.Timestamp updateTime = 18;
 }
 
 message User {
