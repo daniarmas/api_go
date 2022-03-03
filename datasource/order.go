@@ -13,6 +13,7 @@ import (
 
 type OrderDatasource interface {
 	ListOrder(tx *gorm.DB, where *models.Order) (*[]models.Order, error)
+	ListOrderWithBusiness(tx *gorm.DB, where *models.OrderBusiness) (*[]models.OrderBusiness, error)
 	CreateOrder(tx *gorm.DB, data *models.Order) (*models.Order, error)
 	UpdateOrder(tx *gorm.DB, where *models.Order, data *models.Order) (*models.Order, error)
 	GetOrder(tx *gorm.DB, where *models.Order, fields *string) (*models.Order, error)
@@ -62,6 +63,15 @@ func (i *orderDatasource) CreateOrder(tx *gorm.DB, data *models.Order) (*models.
 func (i *orderDatasource) ListOrder(tx *gorm.DB, where *models.Order) (*[]models.Order, error) {
 	var order []models.Order
 	result := tx.Limit(11).Select("id, status, delivery_type, residence_type, price, building_number, house_number, business_fk, user_fk, delivery_date, create_time, update_time, delete_time, ST_AsEWKB(coordinates) AS coordinates").Where("user_fk = ? AND create_time < ?", where.UserFk, where.CreateTime).Order("create_time desc").Find(&order)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &order, nil
+}
+
+func (i *orderDatasource) ListOrderWithBusiness(tx *gorm.DB, where *models.OrderBusiness) (*[]models.OrderBusiness, error) {
+	var order []models.OrderBusiness
+	result := tx.Model(&models.Order{}).Limit(11).Select(`"order"."id", "order"."status", "order"."delivery_type", "order"."residence_type", "order"."price", "order"."building_number", "order"."house_number", "order"."business_fk", "order"."user_fk", "order"."delivery_date", "order"."create_time", "order"."update_time", "order"."delete_time", ST_AsEWKB("order"."coordinates") AS "coordinates", "business"."name" AS "business_name", "order"."quantity"`).Joins(`left join "business" on "business"."id" = "order"."business_fk"`).Where(`"order"."user_fk" = ? AND "order"."create_time" < ?`, where.UserFk, where.CreateTime).Order(`"order"."create_time" desc`).Scan(&order)
 	if result.Error != nil {
 		return nil, result.Error
 	}
