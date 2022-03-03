@@ -354,6 +354,7 @@ message SignUpRequest {
   string alias = 2;
   string fullName = 3;
   string code = 5;
+  SignUpType signUpType = 6;
 }
 
 message SignUpResponse {
@@ -664,7 +665,8 @@ enum VerificationCodeType {
   VerificationCodeTypeUnspecified = 0;
   SignIn = 1;
   SignUp = 2;
-  ChangeUserEmail = 3;
+  SignUpBusinessOwner = 3;
+  ChangeUserEmail = 4;
 }
 
 enum ItemStatusType {
@@ -711,6 +713,12 @@ enum ResidenceType {
   ResidenceTypeUnspecified = 0;
   ResidenceTypeHouse = 1;
   ResidenceTypeApartment = 2;
+}
+
+enum SignUpType {
+  SignUpUnspecified = 0;
+  SignUpUser = 1;
+  SignUpBusiness = 2;
 }
 
 // 'Sign_In', 'Sign_Up', 'Change_User_Email'
