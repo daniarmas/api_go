@@ -16,7 +16,7 @@ type AuthenticationService interface {
 	CreateVerificationCode(verificationCode *models.VerificationCode) error
 	GetVerificationCode(verificationCode *models.VerificationCode, fields *[]string) (*models.VerificationCode, error)
 	SignIn(verificationCode *models.VerificationCode, metadata *metadata.MD) (*dto.SignIn, error)
-	SignUp(fullname *string, alias *string, verificationCode *models.VerificationCode, metadata *metadata.MD) (*dto.SignIn, error)
+	SignUp(fullname *string, alias *string, verificationCode *models.VerificationCode, signUpType *string, metadata *metadata.MD) (*dto.SignIn, error)
 	SignOut(all *bool, authorizationTokenFk *string, metadata *metadata.MD) error
 	UserExists(alias *string) error
 	CheckSession(metadata *metadata.MD) (*[]string, error)
@@ -175,7 +175,7 @@ func (v *authenticationService) SignIn(verificationCode *models.VerificationCode
 	return &dto.SignIn{AuthorizationToken: *jwtAuthorizationTokenRes, RefreshToken: *jwtRefreshTokenRes, User: *userRes}, nil
 }
 
-func (v *authenticationService) SignUp(fullname *string, alias *string, verificationCode *models.VerificationCode, metadata *metadata.MD) (*dto.SignIn, error) {
+func (v *authenticationService) SignUp(fullname *string, alias *string, verificationCode *models.VerificationCode, signUpType *string, metadata *metadata.MD) (*dto.SignIn, error) {
 	var userRes *models.User
 	var bannedUserRes *models.BannedUser
 	var bannedDeviceRes *models.BannedDevice
