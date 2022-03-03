@@ -171,16 +171,18 @@ func (i *orderService) CreateOrder(request *dto.CreateOrderRequest) (*dto.Create
 			return listCartItemErr
 		}
 		var price float64 = 0
+		var quantity int32 = 0
 		orderedItems := make([]models.OrderedItem, 0, len(*listCartItemRes))
 		for _, item := range *listCartItemRes {
 			price += item.Price
+			quantity += item.Quantity
 			orderedItems = append(orderedItems, models.OrderedItem{Quantity: item.Quantity, Price: item.Price, CartItemFk: item.ID, UserFk: item.UserFk, ItemFk: item.ItemFk})
 		}
 		_, createOrderedItemsErr := i.dao.NewOrderedRepository().BatchCreateOrderedItem(tx, &orderedItems)
 		if createOrderedItemsErr != nil {
 			return createOrderedItemsErr
 		}
-		createOrderRes, createOrderErr := i.dao.NewOrderRepository().CreateOrder(tx, &models.Order{Status: request.Status, DeliveryType: request.DeliveryType, ResidenceType: request.ResidenceType, BuildingNumber: request.BuildingNumber, HouseNumber: request.HouseNumber, UserFk: authorizationTokenRes.UserFk, DeliveryDate: request.DeliveryDate, Coordinates: request.Coordinates, AuthorizationTokenFk: authorizationTokenRes.ID, BusinessFk: (*listCartItemRes)[0].BusinessFk, Price: price})
+		createOrderRes, createOrderErr := i.dao.NewOrderRepository().CreateOrder(tx, &models.Order{Quantity: quantity, Status: request.Status, DeliveryType: request.DeliveryType, ResidenceType: request.ResidenceType, BuildingNumber: request.BuildingNumber, HouseNumber: request.HouseNumber, UserFk: authorizationTokenRes.UserFk, DeliveryDate: request.DeliveryDate, Coordinates: request.Coordinates, AuthorizationTokenFk: authorizationTokenRes.ID, BusinessFk: (*listCartItemRes)[0].BusinessFk, Price: price})
 		if createOrderErr != nil {
 			return createOrderErr
 		}
@@ -227,7 +229,7 @@ func (i *orderService) ListOrder(request *dto.ListOrderRequest) (*dto.ListOrderR
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		ordersRes, ordersErr := i.dao.NewOrderRepository().ListOrder(tx, &models.Order{CreateTime: request.NextPage, UserFk: authorizationTokenRes.UserFk})
+		ordersRes, ordersErr := i.dao.NewOrderRepository().ListOrderWithBusiness(tx, &models.OrderBusiness{CreateTime: request.NextPage, UserFk: authorizationTokenRes.UserFk})
 		if ordersErr != nil {
 			return ordersErr
 		}

@@ -61,6 +61,8 @@ func (m *OrderServer) ListOrder(ctx context.Context, req *pb.ListOrderRequest) (
 	for _, item := range *listOrderResponse.Orders {
 		ordersResponse = append(ordersResponse, &pb.Order{
 			Id:             item.ID.String(),
+			BusinessName:   item.BusinessName,
+			Quantity:       item.Quantity,
 			Price:          item.Price,
 			BuildingNumber: item.BuildingNumber,
 			HouseNumber:    item.HouseNumber,
