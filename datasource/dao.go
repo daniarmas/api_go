@@ -27,6 +27,7 @@ type DAO interface {
 	NewDeviceDatasource() DeviceDatasource
 	NewBusinessDatasource() BusinessDatasource
 	NewBannedUserDatasource() BannedUserDatasource
+	NewBusinessUserDatasource() BusinessUserDatasource
 	NewBannedDeviceDatasource() BannedDeviceDatasource
 	NewCartItemDatasource() CartItemDatasource
 	NewPermissionDatasource() PermissionDatasource
@@ -226,6 +227,10 @@ func (d *dao) NewUnionOrderAndOrderedItemDatasource() UnionOrderAndOrderedItemDa
 
 func (d *dao) NewJwtTokenDatasource() JwtTokenDatasource {
 	return &jwtTokenDatasource{}
+}
+
+func (d *dao) NewBusinessUserDatasource() BusinessUserDatasource {
+	return &businessUserDatasource{}
 }
 
 func (d *dao) NewVerificationCodeDatasource() VerificationCodeDatasource {
