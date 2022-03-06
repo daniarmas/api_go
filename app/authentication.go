@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	gp "google.golang.org/protobuf/types/known/emptypb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest) (*gp.Empty, error) {
@@ -72,7 +73,19 @@ func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest
 		}
 		return nil, st.Err()
 	}
-	return &pb.SignInResponse{RefreshToken: result.RefreshToken, AuthorizationToken: result.AuthorizationToken, User: &pb.User{Id: result.User.ID.String(), FullName: result.User.FullName, Alias: result.User.Alias, HighQualityPhoto: result.User.HighQualityPhoto, HighQualityPhotoBlurHash: result.User.HighQualityPhotoBlurHash, LowQualityPhoto: result.User.LowQualityPhoto, LowQualityPhotoBlurHash: result.User.LowQualityPhotoBlurHash, Thumbnail: result.User.Thumbnail, ThumbnailBlurHash: result.User.ThumbnailBlurHash, UserAddress: nil, Email: result.User.Email}}, nil
+	permissions := make([]*pb.Permission, 0, len(result.User.Permission))
+	for _, item := range result.User.Permission {
+		permissions = append(permissions, &pb.Permission{
+			Id:         item.ID.String(),
+			Name:       item.Name,
+			UserFk:     item.UserFk.String(),
+			BusinessFk: item.BusinessFk.String(),
+			CreateTime: timestamppb.New(item.CreateTime),
+			UpdateTime: timestamppb.New(item.UpdateTime),
+		})
+	}
+
+	return &pb.SignInResponse{RefreshToken: result.RefreshToken, AuthorizationToken: result.AuthorizationToken, User: &pb.User{Id: result.User.ID.String(), FullName: result.User.FullName, Alias: result.User.Alias, HighQualityPhoto: result.User.HighQualityPhoto, HighQualityPhotoBlurHash: result.User.HighQualityPhotoBlurHash, LowQualityPhoto: result.User.LowQualityPhoto, LowQualityPhotoBlurHash: result.User.LowQualityPhotoBlurHash, Thumbnail: result.User.Thumbnail, ThumbnailBlurHash: result.User.ThumbnailBlurHash, UserAddress: nil, Email: result.User.Email, Permissions: permissions}}, nil
 }
 
 func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest) (*pb.SignUpResponse, error) {

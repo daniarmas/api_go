@@ -644,8 +644,8 @@ message Permission {
   string name = 2;
   string userFk = 4;
   string businessFk = 5;
-  string createTime = 6;
-  string updateTime = 7;
+  google.protobuf.Timestamp createTime = 6;
+  google.protobuf.Timestamp updateTime = 7;
 }
 
 message Polygon {
