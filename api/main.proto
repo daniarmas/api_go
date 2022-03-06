@@ -472,9 +472,9 @@ message User {
   string thumbnailBlurHash = 9;
   repeated UserAddress userAddress = 10;
   string email = 11; 
-  // repeated UserPermission permissions = 13;
-  google.protobuf.Timestamp createTime = 12;
-  google.protobuf.Timestamp updateTime = 13;
+  repeated Permission permissions = 12;
+  google.protobuf.Timestamp createTime = 13;
+  google.protobuf.Timestamp updateTime = 14;
 }
 
 message Business {
@@ -639,15 +639,14 @@ message UserAddress {
   google.protobuf.Timestamp updateTime = 12;
 }
 
-// message UserPermission {
-//   string id = 1;
-//   string name = 2;
-//   string permissionFk = 3;
-//   string userFk = 4;
-//   string businessFk = 5;
-//   string createTime = 6;
-//   string updateTime = 7;
-// }
+message Permission {
+  string id = 1;
+  string name = 2;
+  string userFk = 4;
+  string businessFk = 5;
+  google.protobuf.Timestamp createTime = 6;
+  google.protobuf.Timestamp updateTime = 7;
+}
 
 message Polygon {
   repeated double coordinates = 1;

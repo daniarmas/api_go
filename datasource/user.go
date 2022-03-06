@@ -11,6 +11,7 @@ import (
 
 type UserDatasource interface {
 	GetUser(tx *gorm.DB, user *models.User) (*models.User, error)
+	GetUserWithPermission(tx *gorm.DB, user *models.User) (*models.User, error)
 	GetUserWithAddress(tx *gorm.DB, user *models.User, fields *[]string) (*models.User, error)
 	CreateUser(tx *gorm.DB, user *models.User) (*models.User, error)
 	UpdateUser(tx *gorm.DB, where *models.User, data *models.User) (*models.User, error)
@@ -28,7 +29,7 @@ func (u *userDatasource) GetUserWithAddress(tx *gorm.DB, where *models.User, fie
 	if userAddressErr != nil {
 		return nil, userAddressErr
 	}
-	result = tx.Where(where).Take(&userResult)
+	result = tx.Joins("Company").Where(where).Take(&userResult)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return userResult, nil
@@ -43,6 +44,19 @@ func (u *userDatasource) GetUserWithAddress(tx *gorm.DB, where *models.User, fie
 func (u *userDatasource) GetUser(tx *gorm.DB, where *models.User) (*models.User, error) {
 	var userResult *models.User
 	result := tx.Where(where).Take(&userResult)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("record not found")
+		} else {
+			return nil, result.Error
+		}
+	}
+	return userResult, nil
+}
+
+func (u *userDatasource) GetUserWithPermission(tx *gorm.DB, where *models.User) (*models.User, error) {
+	var userResult *models.User
+	result := tx.Preload("Permission").Where(where).Take(&userResult)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
