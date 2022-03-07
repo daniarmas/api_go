@@ -308,19 +308,19 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 			deviceRes, deviceErr = v.dao.NewDeviceQuery().GetDevice(tx, &models.Device{DeviceId: metadata.Get("deviceid")[0]}, &[]string{"id"})
 			if deviceErr != nil {
 				return deviceErr
-			} else if *deviceRes == (models.Device{}) {
+			} else if deviceRes == nil {
 				deviceRes, deviceErr = v.dao.NewDeviceQuery().CreateDevice(tx, &models.Device{DeviceId: metadata.Get("deviceid")[0], Platform: metadata.Get("platform")[0], SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0], Model: metadata.Get("model")[0]})
 				if deviceErr != nil {
 					return deviceErr
 				}
-			} else if *deviceRes != (models.Device{}) {
+			} else if deviceRes != nil {
 				_, deviceErr := v.dao.NewDeviceQuery().UpdateDevice(tx, &models.Device{DeviceId: metadata.Get("deviceid")[0]}, &models.Device{SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0]})
 				if deviceErr != nil {
 					return deviceErr
 				}
 			}
 			bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceId: metadata.Get("deviceid")[0]}, &[]string{"id"})
-			if bannedDeviceErr != nil {
+			if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
 				return bannedDeviceErr
 			} else if bannedDeviceRes != nil {
 				return errors.New("device banned")
@@ -350,14 +350,14 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 			} else if refreshTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			userRes, userErr = v.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{ID: authorizationTokenRes.UserFk}, &[]string{"id"})
+			userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserFk})
 			if userErr != nil {
 				return userErr
 			} else if userRes == nil {
 				return errors.New("user not found")
 			}
 			bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{UserFk: authorizationTokenRes.UserFk}, &[]string{"id"})
-			if bannedUserErr != nil {
+			if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
 				return bannedUserErr
 			} else if bannedUserRes != nil {
 				return errors.New("user banned")
@@ -367,19 +367,19 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 			deviceRes, deviceErr = v.dao.NewDeviceQuery().GetDevice(tx, &models.Device{DeviceId: metadata.Get("deviceid")[0]}, &[]string{"id"})
 			if deviceErr != nil {
 				return deviceErr
-			} else if *deviceRes == (models.Device{}) {
+			} else if deviceRes == nil {
 				deviceRes, deviceErr = v.dao.NewDeviceQuery().CreateDevice(tx, &models.Device{DeviceId: metadata.Get("deviceid")[0], Platform: metadata.Get("platform")[0], SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0], Model: metadata.Get("model")[0]})
 				if deviceErr != nil {
 					return deviceErr
 				}
-			} else if *deviceRes != (models.Device{}) {
+			} else if deviceRes != nil {
 				_, deviceErr := v.dao.NewDeviceQuery().UpdateDevice(tx, &models.Device{DeviceId: metadata.Get("deviceid")[0]}, &models.Device{SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0]})
 				if deviceErr != nil {
 					return deviceErr
 				}
 			}
 			bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceId: metadata.Get("deviceid")[0]}, &[]string{"id"})
-			if bannedDeviceErr != nil {
+			if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
 				return bannedDeviceErr
 			} else if bannedDeviceRes != nil {
 				return errors.New("device banned")

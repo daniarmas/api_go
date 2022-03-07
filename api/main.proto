@@ -465,16 +465,19 @@ message User {
   string fullName = 2; 
   string alias = 3;
   string highQualityPhoto = 4;
-  string highQualityPhotoBlurHash = 5;
-  string lowQualityPhoto = 6;
-  string lowQualityPhotoBlurHash = 7;
-  string thumbnail = 8;
-  string thumbnailBlurHash = 9;
-  repeated UserAddress userAddress = 10;
-  string email = 11; 
-  repeated Permission permissions = 12;
-  google.protobuf.Timestamp createTime = 13;
-  google.protobuf.Timestamp updateTime = 14;
+  string highQualityPhotoObject = 5;
+  string highQualityPhotoBlurHash = 6;
+  string lowQualityPhoto = 7;
+  string lowQualityPhotoObject = 8;
+  string lowQualityPhotoBlurHash = 9;
+  string thumbnail = 10;
+  string thumbnailObject = 11;
+  string thumbnailBlurHash = 12;
+  repeated UserAddress userAddress = 13;
+  string email = 14; 
+  repeated Permission permissions = 15;
+  google.protobuf.Timestamp createTime = 16;
+  google.protobuf.Timestamp updateTime = 17;
 }
 
 message Business {
