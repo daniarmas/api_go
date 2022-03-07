@@ -85,7 +85,7 @@ func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest
 		})
 	}
 
-	return &pb.SignInResponse{RefreshToken: result.RefreshToken, AuthorizationToken: result.AuthorizationToken, User: &pb.User{Id: result.User.ID.String(), FullName: result.User.FullName, Alias: result.User.Alias, HighQualityPhoto: result.User.HighQualityPhoto, HighQualityPhotoBlurHash: result.User.HighQualityPhotoBlurHash, LowQualityPhoto: result.User.LowQualityPhoto, LowQualityPhotoBlurHash: result.User.LowQualityPhotoBlurHash, Thumbnail: result.User.Thumbnail, ThumbnailBlurHash: result.User.ThumbnailBlurHash, UserAddress: nil, Email: result.User.Email, Permissions: permissions}}, nil
+	return &pb.SignInResponse{RefreshToken: result.RefreshToken, AuthorizationToken: result.AuthorizationToken, User: &pb.User{Id: result.User.ID.String(), FullName: result.User.FullName, Alias: result.User.Alias, HighQualityPhoto: result.User.HighQualityPhoto, HighQualityPhotoBlurHash: result.User.HighQualityPhotoBlurHash, LowQualityPhoto: result.User.LowQualityPhoto, LowQualityPhotoBlurHash: result.User.LowQualityPhotoBlurHash, Thumbnail: result.User.Thumbnail, ThumbnailBlurHash: result.User.ThumbnailBlurHash, UserAddress: nil, Email: result.User.Email, Permissions: permissions, HighQualityPhotoObject: result.User.LowQualityPhotoObject, LowQualityPhotoObject: result.User.LowQualityPhotoObject, ThumbnailObject: result.User.ThumbnailObject, CreateTime: timestamppb.New(result.User.CreateTime), UpdateTime: timestamppb.New(result.User.UpdateTime)}}, nil
 }
 
 func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest) (*pb.SignUpResponse, error) {
@@ -137,9 +137,9 @@ func (m *AuthenticationServer) CheckSession(ctx context.Context, req *gp.Empty) 
 		case "user not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "user banned":
-			st = status.New(codes.PermissionDenied, "User Banned")
+			st = status.New(codes.PermissionDenied, "User banned")
 		case "device banned":
-			st = status.New(codes.PermissionDenied, "Device Banned")
+			st = status.New(codes.PermissionDenied, "Device banned")
 		case "authorizationtoken expired":
 			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
 		case "signature is invalid":
