@@ -1398,3 +1398,89 @@ var CartItemService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "main.proto",
 }
+
+// BanServiceClient is the client API for BanService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type BanServiceClient interface {
+	GetBannedDevice(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetBannedDeviceResponse, error)
+}
+
+type banServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewBanServiceClient(cc grpc.ClientConnInterface) BanServiceClient {
+	return &banServiceClient{cc}
+}
+
+func (c *banServiceClient) GetBannedDevice(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetBannedDeviceResponse, error) {
+	out := new(GetBannedDeviceResponse)
+	err := c.cc.Invoke(ctx, "/main.BanService/GetBannedDevice", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// BanServiceServer is the server API for BanService service.
+// All implementations must embed UnimplementedBanServiceServer
+// for forward compatibility
+type BanServiceServer interface {
+	GetBannedDevice(context.Context, *emptypb.Empty) (*GetBannedDeviceResponse, error)
+	mustEmbedUnimplementedBanServiceServer()
+}
+
+// UnimplementedBanServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedBanServiceServer struct {
+}
+
+func (UnimplementedBanServiceServer) GetBannedDevice(context.Context, *emptypb.Empty) (*GetBannedDeviceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBannedDevice not implemented")
+}
+func (UnimplementedBanServiceServer) mustEmbedUnimplementedBanServiceServer() {}
+
+// UnsafeBanServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to BanServiceServer will
+// result in compilation errors.
+type UnsafeBanServiceServer interface {
+	mustEmbedUnimplementedBanServiceServer()
+}
+
+func RegisterBanServiceServer(s grpc.ServiceRegistrar, srv BanServiceServer) {
+	s.RegisterService(&BanService_ServiceDesc, srv)
+}
+
+func _BanService_GetBannedDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BanServiceServer).GetBannedDevice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.BanService/GetBannedDevice",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BanServiceServer).GetBannedDevice(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// BanService_ServiceDesc is the grpc.ServiceDesc for BanService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var BanService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "main.BanService",
+	HandlerType: (*BanServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetBannedDevice",
+			Handler:    _BanService_GetBannedDevice_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "main.proto",
+}

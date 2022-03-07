@@ -63,6 +63,10 @@ service CartItemService {
   rpc EmptyCartItem (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
 
+service BanService {
+  rpc GetBannedDevice(google.protobuf.Empty) returns (GetBannedDeviceResponse) {}
+}
+
 // service ObjectStorageService {
 //   rpc GetPresignedPutObjectUserAvatar (GetPresignedPutUserAvatarRequest) returns (GetPresignedPutUserAvatarResponse) {}
 // }
@@ -88,6 +92,13 @@ message GetAddressInfoResponse {
   string provinceNameAbbreviation = 3;
   string municipalityId = 4;
   string municipalityName = 5;
+}
+
+message GetBannedDeviceResponse {
+  string id = 1;
+	string description = 2;
+	google.protobuf.Timestamp banExpirationTime = 3;
+	google.protobuf.Timestamp createTime = 4;
 }
 
 message UpdateOrderRequest {
