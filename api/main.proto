@@ -95,10 +95,8 @@ message GetAddressInfoResponse {
 }
 
 message GetBannedDeviceResponse {
-  string id = 1;
-	string description = 2;
-	google.protobuf.Timestamp banExpirationTime = 3;
-	google.protobuf.Timestamp createTime = 4;
+	google.protobuf.Timestamp banExpirationTime = 1;
+	google.protobuf.Timestamp createTime = 2;
 }
 
 message UpdateOrderRequest {
