@@ -1,15 +1,19 @@
 package usecase
 
 import (
+	"errors"
+
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
 	"github.com/daniarmas/api_go/repository"
+	"github.com/google/uuid"
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
 )
 
 type BanService interface {
 	GetBannedDevice(metadata *metadata.MD) (*models.BannedDevice, error)
+	GetBannedUser(metadata *metadata.MD) (*models.BannedUser, error)
 }
 
 type banService struct {
@@ -34,4 +38,39 @@ func (i *banService) GetBannedDevice(metadata *metadata.MD) (*models.BannedDevic
 		return nil, err
 	}
 	return bannedDevice, nil
+}
+
+func (i *banService) GetBannedUser(metadata *metadata.MD) (*models.BannedUser, error) {
+	var bannedUser *models.BannedUser
+	var bannedUserErr error
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+		authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+		if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		} else if authorizationTokenRes == nil {
+			return errors.New("unauthenticated")
+		}
+		bannedUser, bannedUserErr = i.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{UserFk: authorizationTokenRes.UserFk}, &[]string{"create_time", "ban_expiration_time"})
+		if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
+			return bannedUserErr
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return bannedUser, nil
 }
