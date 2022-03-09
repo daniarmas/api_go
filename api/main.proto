@@ -65,6 +65,7 @@ service CartItemService {
 
 service BanService {
   rpc GetBannedDevice(google.protobuf.Empty) returns (GetBannedDeviceResponse) {}
+  rpc GetBannedUser(google.protobuf.Empty) returns (GetBannedUserResponse) {}
 }
 
 // service ObjectStorageService {
@@ -96,6 +97,11 @@ message GetAddressInfoResponse {
 
 message GetBannedDeviceResponse {
 	google.protobuf.Timestamp banExpirationTime = 1;
+	google.protobuf.Timestamp createTime = 2;
+}
+
+message GetBannedUserResponse {
+  google.protobuf.Timestamp banExpirationTime = 1;
 	google.protobuf.Timestamp createTime = 2;
 }
 
