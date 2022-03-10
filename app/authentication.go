@@ -18,13 +18,15 @@ func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
 	verificationCode := models.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceId: md.Get("deviceid")[0], CreateTime: time.Now(), UpdateTime: time.Now()}
-	err := m.authenticationService.CreateVerificationCode(&verificationCode)
+	err := m.authenticationService.CreateVerificationCode(&verificationCode, &md)
 	if err != nil {
 		switch err.Error() {
 		case "banned user":
 			st = status.New(codes.PermissionDenied, "User banned")
 		case "banned device":
 			st = status.New(codes.PermissionDenied, "Device banned")
+		case "app banned":
+			st = status.New(codes.PermissionDenied, "App banned")
 		case "user not found":
 			st = status.New(codes.NotFound, "User not found")
 		case "user already exists":
@@ -68,6 +70,8 @@ func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest
 			st = status.New(codes.PermissionDenied, "User banned")
 		case "device banned":
 			st = status.New(codes.PermissionDenied, "Device banned")
+		case "app banned":
+			st = status.New(codes.PermissionDenied, "App banned")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -103,6 +107,8 @@ func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest
 			st = status.New(codes.PermissionDenied, "User banned")
 		case "device banned":
 			st = status.New(codes.PermissionDenied, "Device banned")
+		case "app banned":
+			st = status.New(codes.PermissionDenied, "App banned")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -140,6 +146,8 @@ func (m *AuthenticationServer) CheckSession(ctx context.Context, req *gp.Empty) 
 			st = status.New(codes.PermissionDenied, "User banned")
 		case "device banned":
 			st = status.New(codes.PermissionDenied, "Device banned")
+		case "app banned":
+			st = status.New(codes.PermissionDenied, "App banned")
 		case "authorizationtoken expired":
 			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
 		case "signature is invalid":
