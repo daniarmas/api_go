@@ -134,7 +134,7 @@ func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.Update
 			if updateOrderErr != nil {
 				return updateOrderErr
 			}
-			response.Order = &models.Order{ID: updateOrderRes.ID, Status: updateOrderRes.Status, DeliveryType: updateOrderRes.DeliveryType, ResidenceType: updateOrderRes.ResidenceType, Price: updateOrderRes.Price, BuildingNumber: updateOrderRes.BuildingNumber, HouseNumber: updateOrderRes.HouseNumber, BusinessFk: updateOrderRes.BusinessFk, UserFk: updateOrderRes.UserFk, Coordinates: updateOrderRes.Coordinates, AuthorizationTokenFk: updateOrderRes.AuthorizationTokenFk, DeliveryDate: updateOrderRes.DeliveryDate, CreateTime: updateOrderRes.CreateTime, UpdateTime: updateOrderRes.UpdateTime}
+			response.Order = &models.Order{ID: updateOrderRes.ID, Status: updateOrderRes.Status, OrderType: updateOrderRes.OrderType, ResidenceType: updateOrderRes.ResidenceType, Price: updateOrderRes.Price, BuildingNumber: updateOrderRes.BuildingNumber, HouseNumber: updateOrderRes.HouseNumber, BusinessFk: updateOrderRes.BusinessFk, UserFk: updateOrderRes.UserFk, Coordinates: updateOrderRes.Coordinates, AuthorizationTokenFk: updateOrderRes.AuthorizationTokenFk, OrderDate: updateOrderRes.OrderDate, CreateTime: updateOrderRes.CreateTime, UpdateTime: updateOrderRes.UpdateTime}
 		}
 		return nil
 	})
@@ -182,7 +182,7 @@ func (i *orderService) CreateOrder(request *dto.CreateOrderRequest) (*dto.Create
 		if createOrderedItemsErr != nil {
 			return createOrderedItemsErr
 		}
-		createOrderRes, createOrderErr := i.dao.NewOrderRepository().CreateOrder(tx, &models.Order{Quantity: quantity, Status: request.Status, DeliveryType: request.DeliveryType, ResidenceType: request.ResidenceType, BuildingNumber: request.BuildingNumber, HouseNumber: request.HouseNumber, UserFk: authorizationTokenRes.UserFk, DeliveryDate: request.DeliveryDate, Coordinates: request.Coordinates, AuthorizationTokenFk: authorizationTokenRes.ID, BusinessFk: (*listCartItemRes)[0].BusinessFk, Price: price})
+		createOrderRes, createOrderErr := i.dao.NewOrderRepository().CreateOrder(tx, &models.Order{Quantity: quantity, Status: request.Status, OrderType: request.OrderType, ResidenceType: request.ResidenceType, BuildingNumber: request.BuildingNumber, HouseNumber: request.HouseNumber, UserFk: authorizationTokenRes.UserFk, OrderDate: request.OrderDate, Coordinates: request.Coordinates, AuthorizationTokenFk: authorizationTokenRes.ID, BusinessFk: (*listCartItemRes)[0].BusinessFk, Price: price})
 		if createOrderErr != nil {
 			return createOrderErr
 		}
@@ -198,7 +198,7 @@ func (i *orderService) CreateOrder(request *dto.CreateOrderRequest) (*dto.Create
 		if deleteCartItemErr != nil {
 			return deleteCartItemErr
 		}
-		response.Order = models.Order{Status: createOrderRes.Status, DeliveryType: createOrderRes.DeliveryType, ResidenceType: createOrderRes.ResidenceType, BuildingNumber: createOrderRes.BuildingNumber, HouseNumber: createOrderRes.HouseNumber, BusinessFk: createOrderRes.BusinessFk, AuthorizationTokenFk: createOrderRes.AuthorizationTokenFk, UserFk: createOrderRes.UserFk, DeliveryDate: createOrderRes.DeliveryDate, Coordinates: createOrderRes.Coordinates, Price: price, CreateTime: createOrderRes.CreateTime, UpdateTime: createOrderRes.UpdateTime, ID: createOrderRes.ID}
+		response.Order = models.Order{Status: createOrderRes.Status, OrderType: createOrderRes.OrderType, ResidenceType: createOrderRes.ResidenceType, BuildingNumber: createOrderRes.BuildingNumber, HouseNumber: createOrderRes.HouseNumber, BusinessFk: createOrderRes.BusinessFk, AuthorizationTokenFk: createOrderRes.AuthorizationTokenFk, UserFk: createOrderRes.UserFk, OrderDate: createOrderRes.OrderDate, Coordinates: createOrderRes.Coordinates, Price: price, CreateTime: createOrderRes.CreateTime, UpdateTime: createOrderRes.UpdateTime, ID: createOrderRes.ID}
 		return nil
 	})
 	if err != nil {

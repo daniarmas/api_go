@@ -72,14 +72,14 @@ func ParseOrderResidenceType(tp *string) *pb.ResidenceType {
 	}
 }
 
-func ParseDeliveryType(tp *string) *pb.DeliveryType {
+func ParseDeliveryType(tp *string) *pb.OrderType {
 	switch *tp {
 	case "DeliveryTypePickUp":
-		return pb.DeliveryType_DeliveryTypePickUp.Enum()
+		return pb.OrderType_OrderTypePickUp.Enum()
 	case "DeliveryTypeHomeDelivery":
-		return pb.DeliveryType_DeliveryTypeHomeDelivery.Enum()
+		return pb.OrderType_OrderTypeHomeDelivery.Enum()
 	default:
-		return pb.DeliveryType_DeliveryTypeUnspecified.Enum()
+		return pb.OrderType_OrderTypeUnspecified.Enum()
 	}
 }
 

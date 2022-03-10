@@ -11,11 +11,11 @@ import (
 type CreateOrderRequest struct {
 	CartItems   *[]uuid.UUID
 	Status         string
-	DeliveryType   string
+	OrderType   string
 	ResidenceType  string
 	BuildingNumber string
 	HouseNumber    string
 	Coordinates    ewkb.Point
-	DeliveryDate   time.Time
+	OrderDate   time.Time
 	Metadata       *metadata.MD
 }

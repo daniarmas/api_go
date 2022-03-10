@@ -117,12 +117,12 @@ message UpdateOrderResponse {
 message CreateOrderRequest {
   repeated string cartItems = 1;
 	OrderStatusType status = 2;                
-	DeliveryType deliveryType = 3;           
+	OrderType orderType = 3;           
 	ResidenceType residenceType = 4;        
 	string buildingNumber = 5;         
 	string houseNumber = 6;           
 	Point coordinates = 7;    
-	google.protobuf.Timestamp deliveryDate = 8;       
+	google.protobuf.Timestamp orderDate = 8;       
 }
 
 message CreateOrderResponse {
@@ -458,7 +458,7 @@ message OrderedItem {
 message Order {
   string id = 1;
   OrderStatusType status = 2;
-  DeliveryType deliveryType = 4;
+  OrderType orderType = 4;
   ResidenceType residenceType = 5;
   string buildingNumber = 6;
   string houseNumber = 7;
@@ -470,7 +470,7 @@ message Order {
   string appVersion = 13;
   string businessName = 14;
   int32 quantity = 15;
-  google.protobuf.Timestamp deliveryDate = 16;
+  google.protobuf.Timestamp orderDate = 16;
   google.protobuf.Timestamp createTime = 17;
   google.protobuf.Timestamp updateTime = 18;
 }
@@ -720,10 +720,10 @@ enum OrderStatusType {
   OrderStatusTypeCanceled = 5;
 }
 
-enum DeliveryType {
-  DeliveryTypeUnspecified = 0;
-  DeliveryTypePickUp = 1; 
-  DeliveryTypeHomeDelivery = 2;
+enum OrderType {
+  OrderTypeUnspecified = 0;
+  OrderTypePickUp = 1; 
+  OrderTypeHomeDelivery = 2;
 }
 
 enum ResidenceType {
