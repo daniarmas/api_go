@@ -21,6 +21,7 @@ type BannedDevice struct {
 	Device                        Device             `gorm:"foreignKey:DeviceFk"`
 	ModeratorAuthorizationTokenFk uuid.UUID          `gorm:"column:moderator_authorization_token_fk;not null"`
 	AuthorizationToken            AuthorizationToken `gorm:"foreignKey:ModeratorAuthorizationTokenFk"`
+	BanExpirationTime             time.Time          `gorm:"column:ban_expiration_time;not null"`
 	CreateTime                    time.Time          `gorm:"column:create_time;not null"`
 	UpdateTime                    time.Time          `gorm:"column:update_time;not null"`
 	DeleteTime                    gorm.DeletedAt     `gorm:"index;column:delete_time"`
