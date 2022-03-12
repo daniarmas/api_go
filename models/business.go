@@ -44,6 +44,7 @@ type Business struct {
 	MunicipalityFk           uuid.UUID              `gorm:"column:municipality_fk"`
 	BusinessBrandFk          uuid.UUID              `gorm:"column:business_brand_fk"`
 	BusinessItemCategory     []BusinessItemCategory `gorm:"foreignKey:BusinessFk"`
+	BusinessSchedule         BusinessSchedule       `gorm:"foreignKey:BusinessFk"`
 	Status                   string                 `gorm:"column:status"`
 	Distance                 float64                `gorm:"column:distance"`
 	Municipality             []Municipality         `gorm:"many2many:union_business_and_municipality;"`
