@@ -23,9 +23,10 @@ type Business struct {
 	DeliveryPrice            float32
 	Coordinates              ewkb.Point
 	Polygon                  ewkb.Polygon
-	LeadDayTime              int32
-	LeadHoursTime            int32
-	LeadMinutesTime          int32
+	TimeMarginOrderMonth     int32
+	TimeMarginOrderDay       int32
+	TimeMarginOrderHour      int32
+	TimeMarginOrderMinute    int32
 	ToPickUp                 bool
 	HomeDelivery             bool
 	BusinessBrandFk          uuid.UUID

@@ -150,6 +150,7 @@ func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.Update
 func (i *orderService) CreateOrder(request *dto.CreateOrderRequest) (*dto.CreateOrderResponse, error) {
 	var response dto.CreateOrderResponse
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+		createTime := time.Now().UTC()
 		weekday := request.OrderDate.Weekday().String()
 		authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&request.Metadata.Get("authorization")[0])
 		if authorizationTokenParseErr != nil {
@@ -185,6 +186,17 @@ func (i *orderService) CreateOrder(request *dto.CreateOrderRequest) (*dto.Create
 		businessScheduleRes, businessScheduleErr := i.dao.NewBusinessScheduleRepository().GetBusinessSchedule(tx, &models.BusinessSchedule{BusinessFk: (*listCartItemRes)[0].BusinessFk})
 		if businessScheduleErr != nil {
 			return businessScheduleErr
+		}
+		businessRes, businessErr := i.dao.NewBusinessQuery().GetBusinessWithLocation(tx, &models.Business{ID: (*listCartItemRes)[0].BusinessFk, Coordinates: request.Coordinates})
+		if businessErr != nil {
+			return businessErr
+		}
+		previousTime := createTime
+		previousTime = previousTime.AddDate(0, int(businessRes.TimeMarginOrderMonth), int(businessRes.TimeMarginOrderDay))
+		previousTime = previousTime.Add(time.Duration(businessRes.TimeMarginOrderHour) * time.Hour)
+		previousTime = previousTime.Add(time.Duration(businessRes.TimeMarginOrderMinute) * time.Minute)
+		if request.OrderDate.Before(previousTime) {
+			return errors.New("invalid schedule")
 		}
 		if request.OrderType == "OrderTypeHomeDelivery" {
 			switch weekday {
@@ -533,7 +545,7 @@ func (i *orderService) CreateOrder(request *dto.CreateOrderRequest) (*dto.Create
 		if createOrderedItemsErr != nil {
 			return createOrderedItemsErr
 		}
-		createOrderRes, createOrderErr := i.dao.NewOrderRepository().CreateOrder(tx, &models.Order{Quantity: quantity, Status: request.Status, OrderType: request.OrderType, ResidenceType: request.ResidenceType, BuildingNumber: request.BuildingNumber, HouseNumber: request.HouseNumber, UserFk: authorizationTokenRes.UserFk, OrderDate: request.OrderDate, Coordinates: request.Coordinates, AuthorizationTokenFk: authorizationTokenRes.ID, BusinessFk: (*listCartItemRes)[0].BusinessFk, Price: price})
+		createOrderRes, createOrderErr := i.dao.NewOrderRepository().CreateOrder(tx, &models.Order{Quantity: quantity, Status: request.Status, OrderType: request.OrderType, ResidenceType: request.ResidenceType, BuildingNumber: request.BuildingNumber, HouseNumber: request.HouseNumber, UserFk: authorizationTokenRes.UserFk, OrderDate: request.OrderDate, Coordinates: request.Coordinates, AuthorizationTokenFk: authorizationTokenRes.ID, BusinessFk: (*listCartItemRes)[0].BusinessFk, Price: price, CreateTime: createTime, UpdateTime: createTime})
 		if createOrderErr != nil {
 			return createOrderErr
 		}

@@ -102,6 +102,8 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
 		case "business closed":
 			st = status.New(codes.InvalidArgument, "Business closed")
+		case "invalid schedule":
+			st = status.New(codes.InvalidArgument, "Invalid schedule")
 		case "permission denied":
 			st = status.New(codes.PermissionDenied, "Permission denied")
 		case "business is open":
