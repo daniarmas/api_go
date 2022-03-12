@@ -2,6 +2,9 @@ package usecase
 
 import (
 	"errors"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/dto"
@@ -147,6 +150,7 @@ func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.Update
 func (i *orderService) CreateOrder(request *dto.CreateOrderRequest) (*dto.CreateOrderResponse, error) {
 	var response dto.CreateOrderResponse
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+		weekday := request.OrderDate.Weekday().String()
 		authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&request.Metadata.Get("authorization")[0])
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
@@ -177,6 +181,353 @@ func (i *orderService) CreateOrder(request *dto.CreateOrderRequest) (*dto.Create
 			price += item.Price
 			quantity += item.Quantity
 			orderedItems = append(orderedItems, models.OrderedItem{Quantity: item.Quantity, Price: item.Price, CartItemFk: item.ID, UserFk: item.UserFk, ItemFk: item.ItemFk})
+		}
+		businessScheduleRes, businessScheduleErr := i.dao.NewBusinessScheduleRepository().GetBusinessSchedule(tx, &models.BusinessSchedule{BusinessFk: (*listCartItemRes)[0].BusinessFk})
+		if businessScheduleErr != nil {
+			return businessScheduleErr
+		}
+		if request.OrderType == "OrderTypeHomeDelivery" {
+			switch weekday {
+			case "Sunday":
+				splitOpening := strings.Split(businessScheduleRes.OpeningTimeDeliverySunday, ":")
+				splitClosing := strings.Split(businessScheduleRes.ClosingTimeDeliverySunday, ":")
+				openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+				if openingHourErr != nil {
+					return openingHourErr
+				}
+				openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+				if openingMinutesErr != nil {
+					return openingMinutesErr
+				}
+				closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+				if closingHourErr != nil {
+					return closingHourErr
+				}
+				closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+				if closingMinutesErr != nil {
+					return closingMinutesErr
+				}
+				openingTimeSunday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeSunday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if request.OrderDate.Before(openingTimeSunday) || request.OrderDate.After(closingTimeSunday) {
+					return errors.New("business closed")
+				}
+			case "Monday":
+				splitOpening := strings.Split(businessScheduleRes.OpeningTimeDeliveryMonday, ":")
+				splitClosing := strings.Split(businessScheduleRes.ClosingTimeDeliveryMonday, ":")
+				openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+				if openingHourErr != nil {
+					return openingHourErr
+				}
+				openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+				if openingMinutesErr != nil {
+					return openingMinutesErr
+				}
+				closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+				if closingHourErr != nil {
+					return closingHourErr
+				}
+				closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+				if closingMinutesErr != nil {
+					return closingMinutesErr
+				}
+				openingTimeMonday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeMonday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if request.OrderDate.Before(openingTimeMonday) || request.OrderDate.After(closingTimeMonday) {
+					return errors.New("business closed")
+				}
+			case "Tuesday":
+				splitOpening := strings.Split(businessScheduleRes.OpeningTimeDeliveryTuesday, ":")
+				splitClosing := strings.Split(businessScheduleRes.ClosingTimeDeliveryTuesday, ":")
+				openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+				if openingHourErr != nil {
+					return openingHourErr
+				}
+				openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+				if openingMinutesErr != nil {
+					return openingMinutesErr
+				}
+				closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+				if closingHourErr != nil {
+					return closingHourErr
+				}
+				closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+				if closingMinutesErr != nil {
+					return closingMinutesErr
+				}
+				openingTimeTuesday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeTuesday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if request.OrderDate.Before(openingTimeTuesday) || request.OrderDate.After(closingTimeTuesday) {
+					return errors.New("business closed")
+				}
+			case "Wednesday":
+				splitOpening := strings.Split(businessScheduleRes.OpeningTimeDeliveryWednesday, ":")
+				splitClosing := strings.Split(businessScheduleRes.ClosingTimeDeliveryWednesday, ":")
+				openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+				if openingHourErr != nil {
+					return openingHourErr
+				}
+				openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+				if openingMinutesErr != nil {
+					return openingMinutesErr
+				}
+				closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+				if closingHourErr != nil {
+					return closingHourErr
+				}
+				closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+				if closingMinutesErr != nil {
+					return closingMinutesErr
+				}
+				openingTimeWednesday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeWednesday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if request.OrderDate.Before(openingTimeWednesday) || request.OrderDate.After(closingTimeWednesday) {
+					return errors.New("business closed")
+				}
+			case "Thursday":
+				splitOpening := strings.Split(businessScheduleRes.OpeningTimeDeliveryThursday, ":")
+				splitClosing := strings.Split(businessScheduleRes.ClosingTimeDeliveryThursday, ":")
+				openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+				if openingHourErr != nil {
+					return openingHourErr
+				}
+				openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+				if openingMinutesErr != nil {
+					return openingMinutesErr
+				}
+				closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+				if closingHourErr != nil {
+					return closingHourErr
+				}
+				closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+				if closingMinutesErr != nil {
+					return closingMinutesErr
+				}
+				openingTimeThursday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeThursday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if request.OrderDate.Before(openingTimeThursday) || request.OrderDate.After(closingTimeThursday) {
+					return errors.New("business closed")
+				}
+			case "Friday":
+				splitOpening := strings.Split(businessScheduleRes.OpeningTimeDeliveryFriday, ":")
+				splitClosing := strings.Split(businessScheduleRes.ClosingTimeDeliveryFriday, ":")
+				openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+				if openingHourErr != nil {
+					return openingHourErr
+				}
+				openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+				if openingMinutesErr != nil {
+					return openingMinutesErr
+				}
+				closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+				if closingHourErr != nil {
+					return closingHourErr
+				}
+				closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+				if closingMinutesErr != nil {
+					return closingMinutesErr
+				}
+				openingTimeFriday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeFriday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if request.OrderDate.Before(openingTimeFriday) || request.OrderDate.After(closingTimeFriday) {
+					return errors.New("business closed")
+				}
+			case "Saturday":
+				splitOpening := strings.Split(businessScheduleRes.OpeningTimeDeliverySaturday, ":")
+				splitClosing := strings.Split(businessScheduleRes.ClosingTimeDeliverySaturday, ":")
+				openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+				if openingHourErr != nil {
+					return openingHourErr
+				}
+				openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+				if openingMinutesErr != nil {
+					return openingMinutesErr
+				}
+				closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+				if closingHourErr != nil {
+					return closingHourErr
+				}
+				closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+				if closingMinutesErr != nil {
+					return closingMinutesErr
+				}
+				openingTimeSaturday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeSaturday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if request.OrderDate.Before(openingTimeSaturday) || request.OrderDate.After(closingTimeSaturday) {
+					return errors.New("business closed")
+				}
+			}
+		} else if request.OrderType == "OrderTypePickUp" {
+			switch weekday {
+			case "Sunday":
+				splitOpening := strings.Split(businessScheduleRes.OpeningTimeSunday, ":")
+				splitClosing := strings.Split(businessScheduleRes.ClosingTimeSunday, ":")
+				openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+				if openingHourErr != nil {
+					return openingHourErr
+				}
+				openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+				if openingMinutesErr != nil {
+					return openingMinutesErr
+				}
+				closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+				if closingHourErr != nil {
+					return closingHourErr
+				}
+				closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+				if closingMinutesErr != nil {
+					return closingMinutesErr
+				}
+				openingTimeSunday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeSunday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if request.OrderDate.Before(openingTimeSunday) || request.OrderDate.After(closingTimeSunday) {
+					return errors.New("business closed")
+				}
+			case "Monday":
+				splitOpening := strings.Split(businessScheduleRes.OpeningTimeMonday, ":")
+				splitClosing := strings.Split(businessScheduleRes.ClosingTimeMonday, ":")
+				openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+				if openingHourErr != nil {
+					return openingHourErr
+				}
+				openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+				if openingMinutesErr != nil {
+					return openingMinutesErr
+				}
+				closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+				if closingHourErr != nil {
+					return closingHourErr
+				}
+				closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+				if closingMinutesErr != nil {
+					return closingMinutesErr
+				}
+				openingTimeMonday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeMonday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if request.OrderDate.Before(openingTimeMonday) || request.OrderDate.After(closingTimeMonday) {
+					return errors.New("business closed")
+				}
+			case "Tuesday":
+				splitOpening := strings.Split(businessScheduleRes.OpeningTimeTuesday, ":")
+				splitClosing := strings.Split(businessScheduleRes.ClosingTimeTuesday, ":")
+				openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+				if openingHourErr != nil {
+					return openingHourErr
+				}
+				openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+				if openingMinutesErr != nil {
+					return openingMinutesErr
+				}
+				closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+				if closingHourErr != nil {
+					return closingHourErr
+				}
+				closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+				if closingMinutesErr != nil {
+					return closingMinutesErr
+				}
+				openingTimeTuesday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeTuesday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if request.OrderDate.Before(openingTimeTuesday) || request.OrderDate.After(closingTimeTuesday) {
+					return errors.New("business closed")
+				}
+			case "Wednesday":
+				splitOpening := strings.Split(businessScheduleRes.OpeningTimeWednesday, ":")
+				splitClosing := strings.Split(businessScheduleRes.ClosingTimeWednesday, ":")
+				openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+				if openingHourErr != nil {
+					return openingHourErr
+				}
+				openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+				if openingMinutesErr != nil {
+					return openingMinutesErr
+				}
+				closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+				if closingHourErr != nil {
+					return closingHourErr
+				}
+				closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+				if closingMinutesErr != nil {
+					return closingMinutesErr
+				}
+				openingTimeWednesday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeWednesday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if request.OrderDate.Before(openingTimeWednesday) || request.OrderDate.After(closingTimeWednesday) {
+					return errors.New("business closed")
+				}
+			case "Thursday":
+				splitOpening := strings.Split(businessScheduleRes.OpeningTimeThursday, ":")
+				splitClosing := strings.Split(businessScheduleRes.ClosingTimeThursday, ":")
+				openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+				if openingHourErr != nil {
+					return openingHourErr
+				}
+				openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+				if openingMinutesErr != nil {
+					return openingMinutesErr
+				}
+				closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+				if closingHourErr != nil {
+					return closingHourErr
+				}
+				closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+				if closingMinutesErr != nil {
+					return closingMinutesErr
+				}
+				openingTimeThursday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeThursday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if request.OrderDate.Before(openingTimeThursday) || request.OrderDate.After(closingTimeThursday) {
+					return errors.New("business closed")
+				}
+			case "Friday":
+				splitOpening := strings.Split(businessScheduleRes.OpeningTimeFriday, ":")
+				splitClosing := strings.Split(businessScheduleRes.ClosingTimeFriday, ":")
+				openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+				if openingHourErr != nil {
+					return openingHourErr
+				}
+				openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+				if openingMinutesErr != nil {
+					return openingMinutesErr
+				}
+				closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+				if closingHourErr != nil {
+					return closingHourErr
+				}
+				closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+				if closingMinutesErr != nil {
+					return closingMinutesErr
+				}
+				openingTimeFriday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeFriday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if request.OrderDate.Before(openingTimeFriday) || request.OrderDate.After(closingTimeFriday) {
+					return errors.New("business closed")
+				}
+			case "Saturday":
+				splitOpening := strings.Split(businessScheduleRes.OpeningTimeSaturday, ":")
+				splitClosing := strings.Split(businessScheduleRes.ClosingTimeSaturday, ":")
+				openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+				if openingHourErr != nil {
+					return openingHourErr
+				}
+				openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+				if openingMinutesErr != nil {
+					return openingMinutesErr
+				}
+				closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+				if closingHourErr != nil {
+					return closingHourErr
+				}
+				closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+				if closingMinutesErr != nil {
+					return closingMinutesErr
+				}
+				openingTimeSaturday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeSaturday := time.Date(request.OrderDate.Year(), request.OrderDate.Month(), request.OrderDate.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if request.OrderDate.Before(openingTimeSaturday) || request.OrderDate.After(closingTimeSaturday) {
+					return errors.New("business closed")
+				}
+			}
 		}
 		_, createOrderedItemsErr := i.dao.NewOrderedRepository().BatchCreateOrderedItem(tx, &orderedItems)
 		if createOrderedItemsErr != nil {
