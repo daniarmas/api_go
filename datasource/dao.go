@@ -39,6 +39,7 @@ type DAO interface {
 	NewUnionOrderAndOrderedItemDatasource() UnionOrderAndOrderedItemDatasource
 	NewBannedAppDatasource() BannedAppDatasource
 	NewBusinessScheduleDatasource() BusinessScheduleDatasource
+	NewOrderLifecycleDatasource() OrderLifecycleDatasource
 }
 
 type dao struct{}
@@ -225,6 +226,10 @@ func (d *dao) NewOrderedItemDatasource() OrderedItemDatasource {
 
 func (d *dao) NewBannedAppDatasource() BannedAppDatasource {
 	return &bannedAppDatasource{}
+}
+
+func (d *dao) NewOrderLifecycleDatasource() OrderLifecycleDatasource {
+	return &orderLifecycleDatasource{}
 }
 
 func (d *dao) NewBusinessScheduleDatasource() BusinessScheduleDatasource {
