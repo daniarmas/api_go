@@ -30,6 +30,7 @@ type DAO interface {
 	NewBusinessUserRepository() BusinessUserRepository
 	NewBannedAppRepository() BannedAppRepository
 	NewBusinessScheduleRepository() BusinessScheduleRepository
+	NewOrderLifecycleRepository() OrderLifecycleRepository
 }
 
 type dao struct {

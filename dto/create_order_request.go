@@ -9,13 +9,12 @@ import (
 )
 
 type CreateOrderRequest struct {
-	CartItems   *[]uuid.UUID
-	Status         string
-	OrderType   string
+	CartItems      *[]uuid.UUID
+	OrderType      string
 	ResidenceType  string
 	BuildingNumber string
 	HouseNumber    string
 	Coordinates    ewkb.Point
-	OrderDate   time.Time
+	OrderDate      time.Time
 	Metadata       *metadata.MD
 }

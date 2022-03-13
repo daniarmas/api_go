@@ -115,14 +115,13 @@ message UpdateOrderResponse {
 }
 
 message CreateOrderRequest {
-  repeated string cartItems = 1;
-	OrderStatusType status = 2;                
-	OrderType orderType = 3;           
-	ResidenceType residenceType = 4;        
-	string buildingNumber = 5;         
-	string houseNumber = 6;           
-	Point coordinates = 7;    
-	google.protobuf.Timestamp orderDate = 8;       
+  repeated string cartItems = 1;                
+	OrderType orderType = 2;           
+	ResidenceType residenceType = 3;        
+	string buildingNumber = 4;         
+	string houseNumber = 5;           
+	Point coordinates = 6;    
+	google.protobuf.Timestamp orderDate = 7;       
 }
 
 message CreateOrderResponse {
@@ -719,6 +718,9 @@ enum OrderStatusType {
   OrderStatusTypeRejected = 3;
   OrderStatusTypeReceived = 4;
   OrderStatusTypeCanceled = 5;
+  OrderStatusTypeExpired = 6;
+  OrderStatusTypeDone = 7;
+  OrderStatusTypeStarted = 8;
 }
 
 enum OrderType {

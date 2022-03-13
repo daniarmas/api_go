@@ -69,7 +69,7 @@ func (m *OrderServer) ListOrder(ctx context.Context, req *pb.ListOrderRequest) (
 			UserFk:         item.UserFk.String(),
 			OrderDate:      timestamppb.New(item.OrderDate),
 			Status:         *utils.ParseOrderStatusType(&item.Status),
-			OrderType:      *utils.ParseDeliveryType(&item.OrderType),
+			OrderType:      *utils.ParseOrderType(&item.OrderType),
 			ResidenceType:  *utils.ParseOrderResidenceType(&item.ResidenceType),
 			Coordinates:    &pb.Point{Latitude: item.Coordinates.Coords()[1], Longitude: item.Coordinates.Coords()[0]},
 			BusinessFk:     item.BusinessFk.String(),
@@ -87,7 +87,7 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 	for _, item := range req.CartItems {
 		cartItems = append(cartItems, uuid.MustParse(item))
 	}
-	createOrderRes, createOrderErr := m.orderService.CreateOrder(&dto.CreateOrderRequest{CartItems: &cartItems, Status: req.Status.String(), OrderType: req.OrderType.String(), ResidenceType: req.ResidenceType.String(), BuildingNumber: req.BuildingNumber, HouseNumber: req.HouseNumber, OrderDate: req.OrderDate.AsTime(), Coordinates: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Coordinates.Latitude, req.Coordinates.Longitude}).SetSRID(4326)}, Metadata: &md})
+	createOrderRes, createOrderErr := m.orderService.CreateOrder(&dto.CreateOrderRequest{CartItems: &cartItems, OrderType: req.OrderType.String(), ResidenceType: req.ResidenceType.String(), BuildingNumber: req.BuildingNumber, HouseNumber: req.HouseNumber, OrderDate: req.OrderDate.AsTime(), Coordinates: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Coordinates.Latitude, req.Coordinates.Longitude}).SetSRID(4326)}, Metadata: &md})
 	if createOrderErr != nil {
 		switch createOrderErr.Error() {
 		case "authorizationtoken not found":
@@ -117,7 +117,7 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 		}
 		return nil, st.Err()
 	}
-	return &pb.CreateOrderResponse{Order: &pb.Order{Id: createOrderRes.Order.ID.String(), BuildingNumber: createOrderRes.Order.BuildingNumber, Price: createOrderRes.Order.Price, UserFk: createOrderRes.Order.UserFk.String(), BusinessFk: createOrderRes.Order.BusinessFk.String(), Status: *utils.ParseOrderStatusType(&createOrderRes.Order.Status), OrderType: *utils.ParseDeliveryType(&createOrderRes.Order.OrderType), ResidenceType: *utils.ParseOrderResidenceType(&createOrderRes.Order.ResidenceType), HouseNumber: createOrderRes.Order.HouseNumber, CreateTime: timestamppb.New(createOrderRes.Order.CreateTime), UpdateTime: timestamppb.New(createOrderRes.Order.UpdateTime), OrderDate: timestamppb.New(createOrderRes.Order.OrderDate), Coordinates: &pb.Point{Latitude: createOrderRes.Order.Coordinates.FlatCoords()[0], Longitude: createOrderRes.Order.Coordinates.FlatCoords()[1]}}}, nil
+	return &pb.CreateOrderResponse{Order: &pb.Order{Id: createOrderRes.Order.ID.String(), BuildingNumber: createOrderRes.Order.BuildingNumber, Price: createOrderRes.Order.Price, UserFk: createOrderRes.Order.UserFk.String(), BusinessFk: createOrderRes.Order.BusinessFk.String(), Quantity: createOrderRes.Order.Quantity, Status: *utils.ParseOrderStatusType(&createOrderRes.Order.Status), OrderType: *utils.ParseOrderType(&createOrderRes.Order.OrderType), ResidenceType: *utils.ParseOrderResidenceType(&createOrderRes.Order.ResidenceType), HouseNumber: createOrderRes.Order.HouseNumber, CreateTime: timestamppb.New(createOrderRes.Order.CreateTime), UpdateTime: timestamppb.New(createOrderRes.Order.UpdateTime), OrderDate: timestamppb.New(createOrderRes.Order.OrderDate), Coordinates: &pb.Point{Latitude: createOrderRes.Order.Coordinates.FlatCoords()[0], Longitude: createOrderRes.Order.Coordinates.FlatCoords()[1]}}}, nil
 }
 
 func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderRequest) (*pb.UpdateOrderResponse, error) {
@@ -143,7 +143,7 @@ func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReques
 		}
 		return nil, st.Err()
 	}
-	return &pb.UpdateOrderResponse{Order: &pb.Order{Id: updateOrderRes.Order.ID.String(), BuildingNumber: updateOrderRes.Order.BuildingNumber, Price: updateOrderRes.Order.Price, UserFk: updateOrderRes.Order.UserFk.String(), BusinessFk: updateOrderRes.Order.BusinessFk.String(), Status: *utils.ParseOrderStatusType(&updateOrderRes.Order.Status), OrderType: *utils.ParseDeliveryType(&updateOrderRes.Order.OrderType), ResidenceType: *utils.ParseOrderResidenceType(&updateOrderRes.Order.ResidenceType), HouseNumber: updateOrderRes.Order.HouseNumber, CreateTime: timestamppb.New(updateOrderRes.Order.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.Order.UpdateTime), OrderDate: timestamppb.New(updateOrderRes.Order.OrderDate), Coordinates: &pb.Point{Latitude: updateOrderRes.Order.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Order.Coordinates.FlatCoords()[1]}}}, nil
+	return &pb.UpdateOrderResponse{Order: &pb.Order{Id: updateOrderRes.Order.ID.String(), BuildingNumber: updateOrderRes.Order.BuildingNumber, Price: updateOrderRes.Order.Price, UserFk: updateOrderRes.Order.UserFk.String(), BusinessFk: updateOrderRes.Order.BusinessFk.String(), Status: *utils.ParseOrderStatusType(&updateOrderRes.Order.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.Order.OrderType), ResidenceType: *utils.ParseOrderResidenceType(&updateOrderRes.Order.ResidenceType), HouseNumber: updateOrderRes.Order.HouseNumber, CreateTime: timestamppb.New(updateOrderRes.Order.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.Order.UpdateTime), OrderDate: timestamppb.New(updateOrderRes.Order.OrderDate), Coordinates: &pb.Point{Latitude: updateOrderRes.Order.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Order.Coordinates.FlatCoords()[1]}}}, nil
 }
 
 func (m *OrderServer) ListOrderedItem(ctx context.Context, req *pb.ListOrderedItemRequest) (*pb.ListOrderedItemResponse, error) {
