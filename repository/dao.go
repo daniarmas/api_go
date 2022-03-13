@@ -104,6 +104,10 @@ func (d *dao) NewBusinessUserRepository() BusinessUserRepository {
 	return &businessUserRepository{}
 }
 
+func (d *dao) NewOrderLifecycleRepository() OrderLifecycleRepository {
+	return &orderLifecycleRepository{}
+}
+
 func (d *dao) NewProvinceRepository() ProvinceRepository {
 	return &provinceRepository{}
 }
