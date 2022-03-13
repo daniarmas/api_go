@@ -16,14 +16,14 @@ type OrderDatasource interface {
 	ListOrderWithBusiness(tx *gorm.DB, where *models.OrderBusiness) (*[]models.OrderBusiness, error)
 	CreateOrder(tx *gorm.DB, data *models.Order) (*models.Order, error)
 	UpdateOrder(tx *gorm.DB, where *models.Order, data *models.Order) (*models.Order, error)
-	GetOrder(tx *gorm.DB, where *models.Order, fields *string) (*models.Order, error)
+	GetOrder(tx *gorm.DB, where *models.Order) (*models.Order, error)
 }
 
 type orderDatasource struct{}
 
-func (i *orderDatasource) GetOrder(tx *gorm.DB, where *models.Order, fields *string) (*models.Order, error) {
+func (i *orderDatasource) GetOrder(tx *gorm.DB, where *models.Order) (*models.Order, error) {
 	var response models.Order
-	result := tx.Where(where).Select(*fields).Take(&response)
+	result := tx.Model(&models.Order{}).Raw(`SELECT id, quantity, status, order_type, residence_type, price, building_number, house_number, business_fk, ST_AsEWKB(coordinates) AS coordinates, user_fk, authorization_token_fk, order_date, create_time, update_time WHERE business_fk = ?`, where.ID).Scan(&response)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
