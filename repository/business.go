@@ -12,6 +12,7 @@ import (
 
 type BusinessQuery interface {
 	Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceFk string, municipalityFk string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]models.Business, error)
+	CreateBusiness(tx *gorm.DB, data *models.Business) (*models.Business, error)
 	GetBusiness(tx *gorm.DB, where *models.Business) (*models.Business, error)
 	GetBusinessWithLocation(tx *gorm.DB, where *models.Business) (*models.Business, error)
 	BusinessIsOpen(tx *gorm.DB, where *models.Business) (*bool, error)
@@ -19,6 +20,14 @@ type BusinessQuery interface {
 }
 
 type businessQuery struct{}
+
+func (b *businessQuery) CreateBusiness(tx *gorm.DB, data *models.Business) (*models.Business, error) {
+	res, err := Datasource.NewBusinessDatasource().CreateBusiness(tx, data)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
 
 func (b *businessQuery) BusinessIsOpen(tx *gorm.DB, where *models.Business) (*bool, error) {
 	var response *bool
