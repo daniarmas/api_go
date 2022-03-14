@@ -32,9 +32,10 @@ type Business struct {
 	ThumbnailBlurHash        string                 `gorm:"column:thumbnail_blurhash;not null"`
 	Cursor                   int64                  `gorm:"column:cursor"`
 	IsOpen                   bool                   `gorm:"column:is_open"`
-	LeadDayTime              int32                  `gorm:"column:lead_day_time"`
-	LeadHoursTime            int32                  `gorm:"column:lead_hours_time"`
-	LeadMinutesTime          int32                  `gorm:"column:lead_minutes_time"`
+	TimeMarginOrderMonth     int32                  `gorm:"column:time_margin_order_month"`
+	TimeMarginOrderDay       int32                  `gorm:"column:time_margin_order_day"`
+	TimeMarginOrderHour      int32                  `gorm:"column:time_margin_order_hour"`
+	TimeMarginOrderMinute    int32                  `gorm:"column:time_margin_order_minute"`
 	DeliveryPrice            float32                `gorm:"column:delivery_price"`
 	ToPickUp                 bool                   `gorm:"column:to_pick_up"`
 	HomeDelivery             bool                   `gorm:"column:home_delivery"`
@@ -44,6 +45,7 @@ type Business struct {
 	MunicipalityFk           uuid.UUID              `gorm:"column:municipality_fk"`
 	BusinessBrandFk          uuid.UUID              `gorm:"column:business_brand_fk"`
 	BusinessItemCategory     []BusinessItemCategory `gorm:"foreignKey:BusinessFk"`
+	BusinessSchedule         BusinessSchedule       `gorm:"foreignKey:BusinessFk"`
 	Status                   string                 `gorm:"column:status"`
 	Distance                 float64                `gorm:"column:distance"`
 	Municipality             []Municipality         `gorm:"many2many:union_business_and_municipality;"`

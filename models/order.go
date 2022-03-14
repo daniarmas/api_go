@@ -18,7 +18,7 @@ type Order struct {
 	ID                   uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Status               string         `gorm:"column:status"`
 	Quantity             int32          `gorm:"column:quantity"`
-	DeliveryType         string         `gorm:"column:delivery_type"`
+	OrderType            string         `gorm:"column:order_type"`
 	ResidenceType        string         `gorm:"column:residence_type"`
 	Price                float64        `gorm:"column:price"`
 	BuildingNumber       string         `gorm:"column:building_number"`
@@ -28,7 +28,7 @@ type Order struct {
 	Coordinates          ewkb.Point     `gorm:"column:coordinates"`
 	UserFk               uuid.UUID      `gorm:"column:user_fk;not null"`
 	AuthorizationTokenFk uuid.UUID      `gorm:"column:authorization_token_fk;not null"`
-	DeliveryDate         time.Time      `gorm:"column:delivery_date;not null"`
+	OrderDate            time.Time      `gorm:"column:order_date;not null"`
 	CreateTime           time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime           time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime           gorm.DeletedAt `gorm:"index;column:delete_time"`
@@ -38,7 +38,7 @@ type OrderBusiness struct {
 	BusinessName         string         `gorm:"column:business_name"`
 	Quantity             int32          `gorm:"column:quantity"`
 	Status               string         `gorm:"column:status"`
-	DeliveryType         string         `gorm:"column:delivery_type"`
+	OrderType            string         `gorm:"column:order_type"`
 	ResidenceType        string         `gorm:"column:residence_type"`
 	Price                float64        `gorm:"column:price"`
 	BuildingNumber       string         `gorm:"column:building_number"`
@@ -48,7 +48,7 @@ type OrderBusiness struct {
 	Coordinates          ewkb.Point     `gorm:"column:coordinates"`
 	UserFk               uuid.UUID      `gorm:"column:user_fk;not null"`
 	AuthorizationTokenFk uuid.UUID      `gorm:"column:authorization_token_fk;not null"`
-	DeliveryDate         time.Time      `gorm:"column:delivery_date;not null"`
+	OrderDate            time.Time      `gorm:"column:order_date;not null"`
 	CreateTime           time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime           time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime           gorm.DeletedAt `gorm:"index;column:delete_time"`

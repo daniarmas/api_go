@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 
 	"github.com/daniarmas/api_go/app"
 	"github.com/daniarmas/api_go/datasource"
@@ -11,10 +12,16 @@ import (
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/usecase"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func main() {
 	// Configurations
+	now := time.Now()
+	now = now.Add(time.Duration(20) * time.Minute)
+	now = now.Add(time.Duration(3) * time.Hour * 24)
+	fmt.Println(timestamppb.New(now.UTC()))
+	fmt.Println(now.UTC())
 	config, err := datasource.NewConfig()
 	if err != nil {
 		log.Fatal("cannot load config:", err)
