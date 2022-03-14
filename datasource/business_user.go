@@ -25,7 +25,7 @@ func (v *businessUserDatasource) CreateBusinessUser(tx *gorm.DB, data *models.Bu
 
 func (v *businessUserDatasource) GetBusinessUser(tx *gorm.DB, where *models.BusinessUser, fields *[]string) (*models.BusinessUser, error) {
 	var response *models.BusinessUser
-	result := tx.Where(where).Select(*fields).Take(&response)
+	result := tx.Where(where).Take(&response)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

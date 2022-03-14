@@ -64,11 +64,23 @@ func (i *itemService) UpdateItem(request *dto.UpdateItemRequest) (*models.Item, 
 		} else if permissionExistsErr != nil {
 			return permissionExistsErr
 		}
-		businessRes, businessErr := i.dao.NewBusinessQuery().BusinessIsOpen(tx, &models.Business{ID: request.BusinessFk})
+		businessRes, businessErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessFk: request.BusinessFk}, "OrderTypePickUp")
 		if businessErr != nil {
 			return businessErr
 		} else if *businessRes {
 			return errors.New("business is open")
+		}
+		businessHomeDeliveryRes, businessHomeDeliveryErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessFk: request.BusinessFk}, "OrderTypeHomeDelivery")
+		if businessHomeDeliveryErr != nil {
+			return businessHomeDeliveryErr
+		} else if *businessHomeDeliveryRes {
+			return errors.New("business is open")
+		}
+		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{ItemFk: request.ItemFk})
+		if getCartItemErr != nil && getCartItemErr.Error() != "record not found" {
+			return getCartItemErr
+		} else if getCartItemRes != nil {
+			return errors.New("item in the cart")
 		}
 		getItemRes, getItemErr := i.dao.NewItemQuery().GetItem(tx, &models.Item{ID: request.ItemFk})
 		if getItemErr != nil {
@@ -164,10 +176,16 @@ func (i *itemService) DeleteItem(request *dto.DeleteItemRequest) error {
 		} else if permissionExistsErr != nil {
 			return permissionExistsErr
 		}
-		businessRes, businessErr := i.dao.NewBusinessQuery().BusinessIsOpen(tx, &models.Business{ID: getItemRes.BusinessFk})
+		businessRes, businessErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessFk: getItemRes.BusinessFk}, "OrderTypePickUp")
 		if businessErr != nil {
 			return businessErr
 		} else if *businessRes {
+			return errors.New("business is open")
+		}
+		businessHomeDeliveryRes, businessHomeDeliveryErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessFk: getItemRes.BusinessFk}, "OrderTypeHomeDelivery")
+		if businessHomeDeliveryErr != nil {
+			return businessHomeDeliveryErr
+		} else if *businessHomeDeliveryRes {
 			return errors.New("business is open")
 		}
 		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{ItemFk: request.ItemFk})

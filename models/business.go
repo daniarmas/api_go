@@ -31,7 +31,6 @@ type Business struct {
 	ThumbnailObject          string                 `gorm:"column:thumbnail_object;not null"`
 	ThumbnailBlurHash        string                 `gorm:"column:thumbnail_blurhash;not null"`
 	Cursor                   int64                  `gorm:"column:cursor"`
-	IsOpen                   bool                   `gorm:"column:is_open"`
 	TimeMarginOrderMonth     int32                  `gorm:"column:time_margin_order_month"`
 	TimeMarginOrderDay       int32                  `gorm:"column:time_margin_order_day"`
 	TimeMarginOrderHour      int32                  `gorm:"column:time_margin_order_hour"`

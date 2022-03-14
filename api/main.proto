@@ -28,7 +28,8 @@ service AuthenticationService {
 service BusinessService {
   rpc Feed (FeedRequest) returns (FeedResponse) {}
   rpc GetBusiness (GetBusinessRequest) returns (GetBusinessResponse) {}
-  //rpc CreateBusiness (CreateBusinessRequest) returns (CreateBusinessResponse) {}
+  rpc CreateBusiness (CreateBusinessRequest) returns (CreateBusinessResponse) {}
+  // rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
   //rpc UpdateBusiness (UpdateBusinessRequest) returns (UpdateBusinessResponse) {}
 }
 
@@ -68,9 +69,9 @@ service BanService {
   rpc GetBannedUser(google.protobuf.Empty) returns (GetBannedUserResponse) {}
 }
 
-// service ObjectStorageService {
-//   rpc GetPresignedPutObjectUserAvatar (GetPresignedPutUserAvatarRequest) returns (GetPresignedPutUserAvatarResponse) {}
-// }
+service ObjectStorageService {
+  rpc GetPresignedPutObject (GetPresignedPutRequest) returns (GetPresignedPutResponse) {}
+}
 
 // Request & Response Message
 
@@ -82,6 +83,113 @@ service BanService {
 // message GetOrderResponse {
 //   Order order = 1;
 // }
+
+// message CreateBusinessScheduleRequest {
+//   string business_fk = 1;
+//   string openingTimeSunday = 2;            
+// 	string openingTimeMonday = 3;           
+// 	string openingTimeTuesday = 4;          
+// 	string openingTimeWednesday = 5;        
+// 	string openingTimeThursday = 6;         
+// 	string openingTimeFriday = 7;           
+// 	string openingTimeSaturday = 8;        
+// 	string closingTimeSunday = 9;          
+// 	string closingTimeMonday = 10;           
+// 	string closingTimeTuesday = 11;          
+// 	string closingTimeWednesday = 12;        
+// 	string closingTimeThursday = 13;         
+// 	string closingTimeFriday = 14;           
+// 	string closingTimeSaturday = 15;         
+// 	string openingTimeDeliverySunday = 16;   
+// 	string openingTimeDeliveryMonday = 17;   
+// 	string openingTimeDeliveryTuesday = 18;  
+// 	string openingTimeDeliveryWednesday = 19;
+// 	string openingTimeDeliveryThursday = 20;
+// 	string openingTimeDeliveryFriday = 21;   
+// 	string openingTimeDeliverySaturday = 22;  
+// 	string closingTimeDeliverySunday = 23;   
+// 	string closingTimeDeliveryMonday = 24;    
+// 	string closingTimeDeliveryTuesday = 25; 
+// 	string closingTimeDeliveryWednesday = 26; 
+// 	string closingTimeDeliveryThursday = 27; 
+// 	string closingTimeDeliveryFriday = 28;  
+// 	string closingTimeDeliverySaturday = 29;
+// }
+
+// message CreateBusinessScheduleResponse {
+//   string openingTimeSunday = 1;            
+// 	string openingTimeMonday = 2;           
+// 	string openingTimeTuesday = 3;          
+// 	string openingTimeWednesday = 4;        
+// 	string openingTimeThursday = 5;         
+// 	string openingTimeFriday = 6;           
+// 	string openingTimeSaturday = 7;        
+// 	string closingTimeSunday = 8;          
+// 	string closingTimeMonday = 9;           
+// 	string closingTimeTuesday = 10;          
+// 	string closingTimeWednesday = 11;        
+// 	string closingTimeThursday = 12;         
+// 	string closingTimeFriday = 13;           
+// 	string closingTimeSaturday = 14;         
+// 	string openingTimeDeliverySunday = 15;   
+// 	string openingTimeDeliveryMonday = 16;   
+// 	string openingTimeDeliveryTuesday = 17;  
+// 	string openingTimeDeliveryWednesday = 18;
+// 	string openingTimeDeliveryThursday = 19;
+// 	string openingTimeDeliveryFriday = 20;   
+// 	string openingTimeDeliverySaturday = 21;  
+// 	string closingTimeDeliverySunday = 22;   
+// 	string closingTimeDeliveryMonday = 23;    
+// 	string closingTimeDeliveryTuesday = 24; 
+// 	string closingTimeDeliveryWednesday = 25; 
+// 	string closingTimeDeliveryThursday = 26; 
+// 	string closingTimeDeliveryFriday = 27;  
+// 	string closingTimeDeliverySaturday = 28;
+// }
+
+message GetPresignedPutRequest {
+  string lowQualityPhotoObject = 1;
+  string highQualityPhotoObject = 2;
+  string thumbnailQualityPhotoObject = 3;
+  PhotoType PhotoType = 4;
+}
+
+message GetPresignedPutResponse {
+  string lowQualityPhotoPresignedPutUrl = 1;
+  string highQualityPhotoPresignedPutUrl = 2;
+  string thumbnailPresignedPutUrl = 3;
+}
+
+message CreateBusinessRequest {
+  string name = 1;
+  string description = 2;
+  string address = 3;
+  string phone = 4;
+  string email = 5;
+  string highQualityPhotoObject = 6;
+  string highQualityPhotoBlurHash = 7;
+  string lowQualityPhotoObject = 8;
+  string lowQualityPhotoBlurHash = 9;
+  repeated string municipalities = 10;
+  string thumbnailObject = 11;
+  string thumbnailBlurHash = 12;
+  double deliveryPrice = 14;
+  Point coordinates = 15;
+  int32 timeMarginOrderMonth = 16;
+  int32 timeMarginOrderDay = 17;
+  int32 timeMarginOrderHour = 18;
+  int32 timeMarginOrderMinute = 19;
+  bool toPickUp = 20;
+  bool homeDelivery = 21;
+  string businessBrandFk = 22;
+  string provinceFk = 23;
+  string municipalityFk = 24;
+}
+
+message CreateBusinessResponse {
+  Business business = 1;
+  repeated UnionBusinessAndMunicipality municipalities = 2;
+}
 
 message GetAddressInfoRequest {
   Point location = 1;
@@ -494,6 +602,17 @@ message User {
   google.protobuf.Timestamp updateTime = 17;
 }
 
+message Municipality {
+  string id = 1;
+  string name = 2;
+}
+
+message UnionBusinessAndMunicipality {
+  string id = 1;
+  string name = 2;
+  string municipalityFk = 3;
+}
+
 message Business {
   string id = 1;
   string name = 2;
@@ -696,7 +815,7 @@ enum ItemStatusType {
 enum BusinessStatusType {
   BusinessStatusTypeUnspecified = 0;
   BusinessAvailable = 1;
-  BusinessItemCategoryNull = 2;
+  BusinessUnavailable = 2;
 }
 
 enum PlatformType {
@@ -739,6 +858,13 @@ enum SignUpType {
   SignUpUnspecified = 0;
   SignUpUser = 1;
   SignUpBusiness = 2;
+}
+
+enum PhotoType {
+  PhotoTypeUnspecified = 0;
+  PhotoTypeBusiness = 1;
+  PhotoTypeItem = 2;
+  PhotoTypeUser = 3;
 }
 
 // 'Sign_In', 'Sign_Up', 'Change_User_Email'
