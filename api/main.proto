@@ -151,6 +151,7 @@ message GetPresignedPutRequest {
   string lowQualityPhotoObject = 1;
   string highQualityPhotoObject = 2;
   string thumbnailQualityPhotoObject = 3;
+  PhotoType PhotoType = 4;
 }
 
 message GetPresignedPutResponse {
@@ -172,7 +173,6 @@ message CreateBusinessRequest {
   repeated string municipalities = 10;
   string thumbnailObject = 11;
   string thumbnailBlurHash = 12;
-  bool isOpen = 13;
   double deliveryPrice = 14;
   Point coordinates = 15;
   int32 timeMarginOrderMonth = 16;
@@ -188,6 +188,7 @@ message CreateBusinessRequest {
 
 message CreateBusinessResponse {
   Business business = 1;
+  repeated UnionBusinessAndMunicipality municipalities = 2;
 }
 
 message GetAddressInfoRequest {
@@ -601,6 +602,17 @@ message User {
   google.protobuf.Timestamp updateTime = 17;
 }
 
+message Municipality {
+  string id = 1;
+  string name = 2;
+}
+
+message UnionBusinessAndMunicipality {
+  string id = 1;
+  string name = 2;
+  string municipalityFk = 3;
+}
+
 message Business {
   string id = 1;
   string name = 2;
@@ -803,7 +815,7 @@ enum ItemStatusType {
 enum BusinessStatusType {
   BusinessStatusTypeUnspecified = 0;
   BusinessAvailable = 1;
-  BusinessItemCategoryNull = 2;
+  BusinessUnavailable = 2;
 }
 
 enum PlatformType {
@@ -846,6 +858,13 @@ enum SignUpType {
   SignUpUnspecified = 0;
   SignUpUser = 1;
   SignUpBusiness = 2;
+}
+
+enum PhotoType {
+  PhotoTypeUnspecified = 0;
+  PhotoTypeBusiness = 1;
+  PhotoTypeItem = 2;
+  PhotoTypeUser = 3;
 }
 
 // 'Sign_In', 'Sign_Up', 'Change_User_Email'

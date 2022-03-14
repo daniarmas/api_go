@@ -21,6 +21,15 @@ type UnionBusinessAndMunicipality struct {
 	UpdateTime     time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime     gorm.DeletedAt `gorm:"index;column:delete_time"`
 }
+type UnionBusinessAndMunicipalityWithMunicipality struct {
+	ID               uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
+	BusinessFk       uuid.UUID      `gorm:"column:business_fk;not null"`
+	MunicipalityFk   uuid.UUID      `gorm:"column:municipality_fk;not null"`
+	MunicipalityName string         `gorm:"column:municipality_name;not null"`
+	CreateTime       time.Time      `gorm:"column:create_time;not null"`
+	UpdateTime       time.Time      `gorm:"column:update_time;not null"`
+	DeleteTime       gorm.DeletedAt `gorm:"index;column:delete_time"`
+}
 
 func (u *UnionBusinessAndMunicipality) BeforeCreate(tx *gorm.DB) (err error) {
 	u.CreateTime = time.Now().UTC()

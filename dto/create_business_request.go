@@ -19,7 +19,6 @@ type CreateBusinessRequest struct {
 	ThumbnailObject          string
 	ThumbnailBlurHash        string
 	Municipalities           []string
-	IsOpen                   bool
 	DeliveryPrice            float64
 	Coordinates              ewkb.Point
 	TimeMarginOrderMonth     int32

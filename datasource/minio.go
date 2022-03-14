@@ -3,6 +3,7 @@ package datasource
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/minio/minio-go/v7"
 )
@@ -12,10 +13,20 @@ type ObjectStorageDatasource interface {
 	ObjectExists(ctx context.Context, bucketName string, objectName string) (*bool, error)
 	CopyObject(ctx context.Context, dst minio.CopyDestOptions, src minio.CopySrcOptions) (*minio.UploadInfo, error)
 	RemoveObject(ctx context.Context, bucketName, objectName string, opts minio.RemoveObjectOptions) error
+	PresignedPutObject(ctx context.Context, bucketName, objectName string, expiry time.Duration) (*string, error)
 }
 
 type objectStorageDatasource struct {
 	Minio *minio.Client
+}
+
+func (m *objectStorageDatasource) PresignedPutObject(ctx context.Context, bucketName, objectName string, expiry time.Duration) (*string, error) {
+	res, err := MinioClient.PresignedPutObject(context.Background(), bucketName, objectName, expiry)
+	if err != nil {
+		return nil, err
+	}
+	urlString := res.String()
+	return &urlString, nil
 }
 
 func (m *objectStorageDatasource) RemoveObject(ctx context.Context, bucketName, objectName string, opts minio.RemoveObjectOptions) error {
