@@ -69,9 +69,9 @@ service BanService {
   rpc GetBannedUser(google.protobuf.Empty) returns (GetBannedUserResponse) {}
 }
 
-// service ObjectStorageService {
-//   rpc GetPresignedPutObjectUserAvatar (GetPresignedPutUserAvatarRequest) returns (GetPresignedPutUserAvatarResponse) {}
-// }
+service ObjectStorageService {
+  rpc GetPresignedPutObject (GetPresignedPutRequest) returns (GetPresignedPutResponse) {}
+}
 
 // Request & Response Message
 
@@ -146,6 +146,18 @@ service BanService {
 // 	string closingTimeDeliveryFriday = 27;  
 // 	string closingTimeDeliverySaturday = 28;
 // }
+
+message GetPresignedPutRequest {
+  string lowQualityPhotoObject = 1;
+  string highQualityPhotoObject = 2;
+  string thumbnailQualityPhotoObject = 3;
+}
+
+message GetPresignedPutResponse {
+  string lowQualityPhotoPresignedPutUrl = 1;
+  string highQualityPhotoPresignedPutUrl = 2;
+  string thumbnailPresignedPutUrl = 3;
+}
 
 message CreateBusinessRequest {
   string name = 1;

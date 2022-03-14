@@ -1556,3 +1556,89 @@ var BanService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "main.proto",
 }
+
+// ObjectStorageServiceClient is the client API for ObjectStorageService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type ObjectStorageServiceClient interface {
+	GetPresignedPutObject(ctx context.Context, in *GetPresignedPutRequest, opts ...grpc.CallOption) (*GetPresignedPutResponse, error)
+}
+
+type objectStorageServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewObjectStorageServiceClient(cc grpc.ClientConnInterface) ObjectStorageServiceClient {
+	return &objectStorageServiceClient{cc}
+}
+
+func (c *objectStorageServiceClient) GetPresignedPutObject(ctx context.Context, in *GetPresignedPutRequest, opts ...grpc.CallOption) (*GetPresignedPutResponse, error) {
+	out := new(GetPresignedPutResponse)
+	err := c.cc.Invoke(ctx, "/main.ObjectStorageService/GetPresignedPutObject", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ObjectStorageServiceServer is the server API for ObjectStorageService service.
+// All implementations must embed UnimplementedObjectStorageServiceServer
+// for forward compatibility
+type ObjectStorageServiceServer interface {
+	GetPresignedPutObject(context.Context, *GetPresignedPutRequest) (*GetPresignedPutResponse, error)
+	mustEmbedUnimplementedObjectStorageServiceServer()
+}
+
+// UnimplementedObjectStorageServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedObjectStorageServiceServer struct {
+}
+
+func (UnimplementedObjectStorageServiceServer) GetPresignedPutObject(context.Context, *GetPresignedPutRequest) (*GetPresignedPutResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPresignedPutObject not implemented")
+}
+func (UnimplementedObjectStorageServiceServer) mustEmbedUnimplementedObjectStorageServiceServer() {}
+
+// UnsafeObjectStorageServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ObjectStorageServiceServer will
+// result in compilation errors.
+type UnsafeObjectStorageServiceServer interface {
+	mustEmbedUnimplementedObjectStorageServiceServer()
+}
+
+func RegisterObjectStorageServiceServer(s grpc.ServiceRegistrar, srv ObjectStorageServiceServer) {
+	s.RegisterService(&ObjectStorageService_ServiceDesc, srv)
+}
+
+func _ObjectStorageService_GetPresignedPutObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPresignedPutRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ObjectStorageServiceServer).GetPresignedPutObject(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.ObjectStorageService/GetPresignedPutObject",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ObjectStorageServiceServer).GetPresignedPutObject(ctx, req.(*GetPresignedPutRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// ObjectStorageService_ServiceDesc is the grpc.ServiceDesc for ObjectStorageService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var ObjectStorageService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "main.ObjectStorageService",
+	HandlerType: (*ObjectStorageServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetPresignedPutObject",
+			Handler:    _ObjectStorageService_GetPresignedPutObject_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "main.proto",
+}
