@@ -14,6 +14,8 @@ func ParsePlatformType(tp *string) *pb.PlatformType {
 
 func ParseOrderStatusType(tp *string) *pb.OrderStatusType {
 	switch *tp {
+	case "OrderStatusTypeStarted":
+		return pb.OrderStatusType_OrderStatusTypeStarted.Enum()
 	case "OrderStatusTypePending":
 		return pb.OrderStatusType_OrderStatusTypePending.Enum()
 	case "OrderStatusTypeRejected":
@@ -24,6 +26,10 @@ func ParseOrderStatusType(tp *string) *pb.OrderStatusType {
 		return pb.OrderStatusType_OrderStatusTypeReceived.Enum()
 	case "OrderStatusTypeCanceled":
 		return pb.OrderStatusType_OrderStatusTypeCanceled.Enum()
+	case "OrderStatusTypeDone":
+		return pb.OrderStatusType_OrderStatusTypeDone.Enum()
+	case "OrderStatusTypeExpired":
+		return pb.OrderStatusType_OrderStatusTypeExpired.Enum()
 	default:
 		return pb.OrderStatusType_OrderStatusTypeUnspecified.Enum()
 	}
@@ -72,14 +78,14 @@ func ParseOrderResidenceType(tp *string) *pb.ResidenceType {
 	}
 }
 
-func ParseDeliveryType(tp *string) *pb.DeliveryType {
+func ParseOrderType(tp *string) *pb.OrderType {
 	switch *tp {
-	case "DeliveryTypePickUp":
-		return pb.DeliveryType_DeliveryTypePickUp.Enum()
-	case "DeliveryTypeHomeDelivery":
-		return pb.DeliveryType_DeliveryTypeHomeDelivery.Enum()
+	case "OrderTypePickUp":
+		return pb.OrderType_OrderTypePickUp.Enum()
+	case "OrderTypeHomeDelivery":
+		return pb.OrderType_OrderTypeHomeDelivery.Enum()
 	default:
-		return pb.DeliveryType_DeliveryTypeUnspecified.Enum()
+		return pb.OrderType_OrderTypeUnspecified.Enum()
 	}
 }
 
