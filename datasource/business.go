@@ -3,6 +3,7 @@ package datasource
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/models"
@@ -14,6 +15,7 @@ import (
 type BusinessDatasource interface {
 	Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceFk string, municipalityFk string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]models.Business, error)
 	GetBusiness(tx *gorm.DB, where *models.Business) (*models.Business, error)
+	CreateBusiness(tx *gorm.DB, where *models.Business) (*models.Business, error)
 	GetBusinessWithLocation(tx *gorm.DB, where *models.Business) (*models.Business, error)
 	GetBusinessProvinceAndMunicipality(tx *gorm.DB, businessFk uuid.UUID) (*dto.GetBusinessProvinceAndMunicipality, error)
 }
@@ -31,6 +33,17 @@ func (b *businessDatasource) GetBusiness(tx *gorm.DB, where *models.Business) (*
 		}
 	}
 	return businessResult, nil
+}
+
+func (b *businessDatasource) CreateBusiness(tx *gorm.DB, data *models.Business) (*models.Business, error) {
+	point := fmt.Sprintf("POINT(%v %v)", data.Coordinates.Point.Coords()[1], data.Coordinates.Point.Coords()[0])
+	var time = time.Now().UTC()
+	var response models.Business
+	result := tx.Raw(`INSERT INTO "business" ("id", "name", "description", "address", "phone", "email", "high_quality_photo", "high_quality_photo_object", "high_quality_photo_blurhash", "low_quality_photo", "low_quality_photo_object", "low_quality_photo_blurhash", "thumbnail", "thumbnail_object", "thumbnail_blurhash", "is_open", "time_margin_order_month", "time_margin_order_day", "time_margin_order_hour", "time_margin_order_minute", "delivery_price", "to_pick_up", "home_delivery", "coordinates", "province_fk", "municipality_fk", "business_brand_fk",  "create_time", "update_time") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ST_GeomFromText(?, 4326), ?, ?, ?, ?, ?, ?, ?, ?) RETURNING "id", "name", "description", "address", "phone", "email", "high_quality_photo", "high_quality_photo_object", "high_quality_photo_blurhash", "low_quality_photo", "low_quality_photo_object", "low_quality_photo_blurhash", "thumbnail", "thumbnail_object", "thumbnail_blurhash", "is_open", "time_margin_order_month", "time_margin_order_day", "time_margin_order_hour", "time_margin_order_minute", "delivery_price", "to_pick_up", "home_delivery", "coordinates", "province_fk", "municipality_fk", "business_brand_fk",  "create_time", "update_time"`, uuid.New().String(), data.Name, data.Description, data.Address, data.Phone, point, data.Email, data.HighQualityPhoto, data.HighQualityPhotoObject, data.HighQualityPhotoBlurHash, data.LowQualityPhoto, data.LowQualityPhotoObject, data.LowQualityPhotoBlurHash, data.Thumbnail, data.ThumbnailObject, data.ThumbnailBlurHash, data.IsOpen, data.TimeMarginOrderMonth, data.TimeMarginOrderDay, data.TimeMarginOrderHour, data.TimeMarginOrderHour, data.DeliveryPrice, data.ToPickUp, data.HomeDelivery, point, data.ProvinceFk, data.MunicipalityFk, data.BusinessBrandFk, time, time).Scan(&response)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &response, nil
 }
 
 func (b *businessDatasource) GetBusinessProvinceAndMunicipality(tx *gorm.DB, businessFk uuid.UUID) (*dto.GetBusinessProvinceAndMunicipality, error) {
