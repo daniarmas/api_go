@@ -23,8 +23,13 @@ type OrderLifecycle struct {
 }
 
 func (i *OrderLifecycle) BeforeCreate(tx *gorm.DB) (err error) {
-	i.CreateTime = time.Now().UTC()
-	i.UpdateTime = time.Now().UTC()
+	var nullTime time.Time
+	if i.CreateTime == nullTime {
+		i.CreateTime = time.Now().UTC()
+	}
+	if i.UpdateTime == nullTime {
+		i.UpdateTime = time.Now().UTC()
+	}
 	return
 }
 

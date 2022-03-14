@@ -23,7 +23,7 @@ type orderDatasource struct{}
 
 func (i *orderDatasource) GetOrder(tx *gorm.DB, where *models.Order) (*models.Order, error) {
 	var response models.Order
-	result := tx.Model(&models.Order{}).Raw(`SELECT id, quantity, status, order_type, residence_type, price, building_number, house_number, business_fk, ST_AsEWKB(coordinates) AS coordinates, user_fk, authorization_token_fk, order_date, create_time, update_time WHERE business_fk = ?`, where.ID).Scan(&response)
+	result := tx.Raw(`SELECT id, quantity, status, order_type, residence_type, price, building_number, house_number, business_fk, ST_AsEWKB(coordinates) AS coordinates, user_fk, authorization_token_fk, order_date, create_time, update_time FROM "order" WHERE id = ? LIMIT 1`, where.ID).Scan(&response)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

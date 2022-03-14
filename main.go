@@ -21,6 +21,7 @@ func main() {
 	now = now.Add(time.Duration(20) * time.Minute)
 	now = now.Add(time.Duration(3) * time.Hour * 24)
 	fmt.Println(timestamppb.New(now.UTC()))
+	fmt.Println(now.UTC())
 	config, err := datasource.NewConfig()
 	if err != nil {
 		log.Fatal("cannot load config:", err)
