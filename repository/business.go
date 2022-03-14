@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"errors"
-
 	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/models"
 	"github.com/google/uuid"
@@ -12,26 +10,20 @@ import (
 
 type BusinessQuery interface {
 	Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceFk string, municipalityFk string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]models.Business, error)
+	CreateBusiness(tx *gorm.DB, data *models.Business) (*models.Business, error)
 	GetBusiness(tx *gorm.DB, where *models.Business) (*models.Business, error)
 	GetBusinessWithLocation(tx *gorm.DB, where *models.Business) (*models.Business, error)
-	BusinessIsOpen(tx *gorm.DB, where *models.Business) (*bool, error)
 	GetBusinessProvinceAndMunicipality(tx *gorm.DB, businessFk uuid.UUID) (*dto.GetBusinessProvinceAndMunicipality, error)
 }
 
 type businessQuery struct{}
 
-func (b *businessQuery) BusinessIsOpen(tx *gorm.DB, where *models.Business) (*bool, error) {
-	var response *bool
-	result, err := Datasource.NewBusinessDatasource().GetBusiness(tx, &models.Business{ID: where.ID})
-	if err != nil && err.Error() == "record not found" {
-		return nil, errors.New("business not found")
-	} else if err != nil {
+func (b *businessQuery) CreateBusiness(tx *gorm.DB, data *models.Business) (*models.Business, error) {
+	res, err := Datasource.NewBusinessDatasource().CreateBusiness(tx, data)
+	if err != nil {
 		return nil, err
 	}
-	if result.IsOpen {
-		*response = true
-	}
-	return response, nil
+	return res, nil
 }
 
 func (b *businessQuery) Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceFk string, municipalityFk string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]models.Business, error) {

@@ -15,6 +15,11 @@ type BanServer struct {
 	banService usecase.BanService
 }
 
+type ObjectStorageServer struct {
+	pb.UnimplementedObjectStorageServiceServer
+	objectStorageService usecase.ObjectStorageService
+}
+
 type OrderServer struct {
 	pb.UnimplementedOrderServiceServer
 	orderService usecase.OrderService
@@ -45,6 +50,14 @@ func NewOrderServer(
 ) *OrderServer {
 	return &OrderServer{
 		orderService: orderService,
+	}
+}
+
+func NewObjectStorageServer(
+	objectStorageService usecase.ObjectStorageService,
+) *ObjectStorageServer {
+	return &ObjectStorageServer{
+		objectStorageService: objectStorageService,
 	}
 }
 

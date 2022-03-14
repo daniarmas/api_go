@@ -399,6 +399,7 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 type BusinessServiceClient interface {
 	Feed(ctx context.Context, in *FeedRequest, opts ...grpc.CallOption) (*FeedResponse, error)
 	GetBusiness(ctx context.Context, in *GetBusinessRequest, opts ...grpc.CallOption) (*GetBusinessResponse, error)
+	CreateBusiness(ctx context.Context, in *CreateBusinessRequest, opts ...grpc.CallOption) (*CreateBusinessResponse, error)
 }
 
 type businessServiceClient struct {
@@ -427,12 +428,22 @@ func (c *businessServiceClient) GetBusiness(ctx context.Context, in *GetBusiness
 	return out, nil
 }
 
+func (c *businessServiceClient) CreateBusiness(ctx context.Context, in *CreateBusinessRequest, opts ...grpc.CallOption) (*CreateBusinessResponse, error) {
+	out := new(CreateBusinessResponse)
+	err := c.cc.Invoke(ctx, "/main.BusinessService/CreateBusiness", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BusinessServiceServer is the server API for BusinessService service.
 // All implementations must embed UnimplementedBusinessServiceServer
 // for forward compatibility
 type BusinessServiceServer interface {
 	Feed(context.Context, *FeedRequest) (*FeedResponse, error)
 	GetBusiness(context.Context, *GetBusinessRequest) (*GetBusinessResponse, error)
+	CreateBusiness(context.Context, *CreateBusinessRequest) (*CreateBusinessResponse, error)
 	mustEmbedUnimplementedBusinessServiceServer()
 }
 
@@ -445,6 +456,9 @@ func (UnimplementedBusinessServiceServer) Feed(context.Context, *FeedRequest) (*
 }
 func (UnimplementedBusinessServiceServer) GetBusiness(context.Context, *GetBusinessRequest) (*GetBusinessResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBusiness not implemented")
+}
+func (UnimplementedBusinessServiceServer) CreateBusiness(context.Context, *CreateBusinessRequest) (*CreateBusinessResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateBusiness not implemented")
 }
 func (UnimplementedBusinessServiceServer) mustEmbedUnimplementedBusinessServiceServer() {}
 
@@ -495,6 +509,24 @@ func _BusinessService_GetBusiness_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BusinessService_CreateBusiness_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateBusinessRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusinessServiceServer).CreateBusiness(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.BusinessService/CreateBusiness",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusinessServiceServer).CreateBusiness(ctx, req.(*CreateBusinessRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BusinessService_ServiceDesc is the grpc.ServiceDesc for BusinessService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -509,6 +541,10 @@ var BusinessService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBusiness",
 			Handler:    _BusinessService_GetBusiness_Handler,
+		},
+		{
+			MethodName: "CreateBusiness",
+			Handler:    _BusinessService_CreateBusiness_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1515,6 +1551,92 @@ var BanService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBannedUser",
 			Handler:    _BanService_GetBannedUser_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "main.proto",
+}
+
+// ObjectStorageServiceClient is the client API for ObjectStorageService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type ObjectStorageServiceClient interface {
+	GetPresignedPutObject(ctx context.Context, in *GetPresignedPutRequest, opts ...grpc.CallOption) (*GetPresignedPutResponse, error)
+}
+
+type objectStorageServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewObjectStorageServiceClient(cc grpc.ClientConnInterface) ObjectStorageServiceClient {
+	return &objectStorageServiceClient{cc}
+}
+
+func (c *objectStorageServiceClient) GetPresignedPutObject(ctx context.Context, in *GetPresignedPutRequest, opts ...grpc.CallOption) (*GetPresignedPutResponse, error) {
+	out := new(GetPresignedPutResponse)
+	err := c.cc.Invoke(ctx, "/main.ObjectStorageService/GetPresignedPutObject", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ObjectStorageServiceServer is the server API for ObjectStorageService service.
+// All implementations must embed UnimplementedObjectStorageServiceServer
+// for forward compatibility
+type ObjectStorageServiceServer interface {
+	GetPresignedPutObject(context.Context, *GetPresignedPutRequest) (*GetPresignedPutResponse, error)
+	mustEmbedUnimplementedObjectStorageServiceServer()
+}
+
+// UnimplementedObjectStorageServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedObjectStorageServiceServer struct {
+}
+
+func (UnimplementedObjectStorageServiceServer) GetPresignedPutObject(context.Context, *GetPresignedPutRequest) (*GetPresignedPutResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPresignedPutObject not implemented")
+}
+func (UnimplementedObjectStorageServiceServer) mustEmbedUnimplementedObjectStorageServiceServer() {}
+
+// UnsafeObjectStorageServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ObjectStorageServiceServer will
+// result in compilation errors.
+type UnsafeObjectStorageServiceServer interface {
+	mustEmbedUnimplementedObjectStorageServiceServer()
+}
+
+func RegisterObjectStorageServiceServer(s grpc.ServiceRegistrar, srv ObjectStorageServiceServer) {
+	s.RegisterService(&ObjectStorageService_ServiceDesc, srv)
+}
+
+func _ObjectStorageService_GetPresignedPutObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPresignedPutRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ObjectStorageServiceServer).GetPresignedPutObject(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.ObjectStorageService/GetPresignedPutObject",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ObjectStorageServiceServer).GetPresignedPutObject(ctx, req.(*GetPresignedPutRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// ObjectStorageService_ServiceDesc is the grpc.ServiceDesc for ObjectStorageService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var ObjectStorageService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "main.ObjectStorageService",
+	HandlerType: (*ObjectStorageServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetPresignedPutObject",
+			Handler:    _ObjectStorageService_GetPresignedPutObject_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
