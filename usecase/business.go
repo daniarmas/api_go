@@ -1,6 +1,9 @@
 package usecase
 
 import (
+	"context"
+	"errors"
+
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/models"
@@ -13,6 +16,7 @@ import (
 type BusinessService interface {
 	Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse, error)
 	GetBusiness(request *dto.GetBusinessRequest) (*dto.GetBusinessResponse, error)
+	CreateBusiness(request *dto.CreateBusinessRequest) (*models.Business, error)
 }
 
 type businessService struct {
@@ -21,6 +25,92 @@ type businessService struct {
 
 func NewBusinessService(dao repository.DAO) BusinessService {
 	return &businessService{dao: dao}
+}
+
+func (i *businessService) CreateBusiness(request *dto.CreateBusinessRequest) (*models.Business, error) {
+	var businessRes *models.Business
+	var businessErr error
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+		authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&request.Metadata.Get("authorization")[0])
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+		if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		} else if authorizationTokenRes == nil {
+			return errors.New("unauthenticated")
+		}
+		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserFk: authorizationTokenRes.UserFk}, nil)
+		if businessOwnerErr != nil {
+			return businessOwnerErr
+		}
+		if !businessOwnerRes.IsBusinessOwner {
+			return errors.New("permission denied")
+		}
+		_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.HighQualityPhotoObject)
+		if hqErr != nil && hqErr.Error() == "ObjectMissing" {
+			return errors.New("HighQualityPhotoObject missing")
+		} else if hqErr != nil {
+			return hqErr
+		}
+		_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.LowQualityPhotoObject)
+		if lqErr != nil && lqErr.Error() == "ObjectMissing" {
+			return errors.New("LowQualityPhotoObject missing")
+		} else if lqErr != nil {
+			return lqErr
+		}
+		_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.ThumbnailObject)
+		if tnErr != nil && tnErr.Error() == "ObjectMissing" {
+			return errors.New("ThumbnailObject missing")
+		} else if tnErr != nil {
+			return tnErr
+		}
+		businessRes, businessErr = i.dao.NewBusinessQuery().CreateBusiness(tx, &models.Business{
+			Name:                     request.Name,
+			Description:              request.Description,
+			Address:                  request.Address,
+			Phone:                    request.Phone,
+			Email:                    request.Email,
+			HighQualityPhoto:         datasource.Config.BusinessAvatarBulkName + "/" + request.HighQualityPhotoObject,
+			HighQualityPhotoObject:   request.HighQualityPhotoObject,
+			HighQualityPhotoBlurHash: request.HighQualityPhotoBlurHash,
+			LowQualityPhoto:          datasource.Config.BusinessAvatarBulkName + "/" + request.LowQualityPhotoObject,
+			LowQualityPhotoObject:    request.LowQualityPhotoObject,
+			LowQualityPhotoBlurHash:  request.LowQualityPhotoBlurHash,
+			Thumbnail:                datasource.Config.BusinessAvatarBulkName + "/" + request.ThumbnailObject,
+			ThumbnailObject:          request.ThumbnailObject,
+			ThumbnailBlurHash:        request.ThumbnailBlurHash,
+			TimeMarginOrderMonth:     request.TimeMarginOrderMonth,
+			TimeMarginOrderDay:       request.TimeMarginOrderDay,
+			TimeMarginOrderHour:      request.TimeMarginOrderHour,
+			TimeMarginOrderMinute:    request.TimeMarginOrderMinute,
+			DeliveryPrice:            float32(request.DeliveryPrice),
+			ToPickUp:                 request.ToPickUp,
+			HomeDelivery:             request.HomeDelivery,
+			Coordinates:              request.Coordinates,
+			ProvinceFk:               uuid.MustParse(request.ProvinceFk),
+			MunicipalityFk:           uuid.MustParse(request.MunicipalityFk),
+			BusinessBrandFk:          uuid.MustParse(request.BusinessBrandFk),
+		})
+		if businessErr != nil {
+			return businessErr
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return businessRes, nil
 }
 
 func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse, error) {

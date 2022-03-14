@@ -29,7 +29,7 @@ service BusinessService {
   rpc Feed (FeedRequest) returns (FeedResponse) {}
   rpc GetBusiness (GetBusinessRequest) returns (GetBusinessResponse) {}
   rpc CreateBusiness (CreateBusinessRequest) returns (CreateBusinessResponse) {}
-  rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
+  // rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
   //rpc UpdateBusiness (UpdateBusinessRequest) returns (UpdateBusinessResponse) {}
 }
 
@@ -84,68 +84,68 @@ service BanService {
 //   Order order = 1;
 // }
 
-message CreateBusinessScheduleRequest {
-  string business_fk = 1;
-  string openingTimeSunday = 2;            
-	string openingTimeMonday = 3;           
-	string openingTimeTuesday = 4;          
-	string openingTimeWednesday = 5;        
-	string openingTimeThursday = 6;         
-	string openingTimeFriday = 7;           
-	string openingTimeSaturday = 8;        
-	string closingTimeSunday = 9;          
-	string closingTimeMonday = 10;           
-	string closingTimeTuesday = 11;          
-	string closingTimeWednesday = 12;        
-	string closingTimeThursday = 13;         
-	string closingTimeFriday = 14;           
-	string closingTimeSaturday = 15;         
-	string openingTimeDeliverySunday = 16;   
-	string openingTimeDeliveryMonday = 17;   
-	string openingTimeDeliveryTuesday = 18;  
-	string openingTimeDeliveryWednesday = 19;
-	string openingTimeDeliveryThursday = 20;
-	string openingTimeDeliveryFriday = 21;   
-	string openingTimeDeliverySaturday = 22;  
-	string closingTimeDeliverySunday = 23;   
-	string closingTimeDeliveryMonday = 24;    
-	string closingTimeDeliveryTuesday = 25; 
-	string closingTimeDeliveryWednesday = 26; 
-	string closingTimeDeliveryThursday = 27; 
-	string closingTimeDeliveryFriday = 28;  
-	string closingTimeDeliverySaturday = 29;
-}
+// message CreateBusinessScheduleRequest {
+//   string business_fk = 1;
+//   string openingTimeSunday = 2;            
+// 	string openingTimeMonday = 3;           
+// 	string openingTimeTuesday = 4;          
+// 	string openingTimeWednesday = 5;        
+// 	string openingTimeThursday = 6;         
+// 	string openingTimeFriday = 7;           
+// 	string openingTimeSaturday = 8;        
+// 	string closingTimeSunday = 9;          
+// 	string closingTimeMonday = 10;           
+// 	string closingTimeTuesday = 11;          
+// 	string closingTimeWednesday = 12;        
+// 	string closingTimeThursday = 13;         
+// 	string closingTimeFriday = 14;           
+// 	string closingTimeSaturday = 15;         
+// 	string openingTimeDeliverySunday = 16;   
+// 	string openingTimeDeliveryMonday = 17;   
+// 	string openingTimeDeliveryTuesday = 18;  
+// 	string openingTimeDeliveryWednesday = 19;
+// 	string openingTimeDeliveryThursday = 20;
+// 	string openingTimeDeliveryFriday = 21;   
+// 	string openingTimeDeliverySaturday = 22;  
+// 	string closingTimeDeliverySunday = 23;   
+// 	string closingTimeDeliveryMonday = 24;    
+// 	string closingTimeDeliveryTuesday = 25; 
+// 	string closingTimeDeliveryWednesday = 26; 
+// 	string closingTimeDeliveryThursday = 27; 
+// 	string closingTimeDeliveryFriday = 28;  
+// 	string closingTimeDeliverySaturday = 29;
+// }
 
-message CreateBusinessScheduleResponse {
-  string openingTimeSunday = 1;            
-	string openingTimeMonday = 2;           
-	string openingTimeTuesday = 3;          
-	string openingTimeWednesday = 4;        
-	string openingTimeThursday = 5;         
-	string openingTimeFriday = 6;           
-	string openingTimeSaturday = 7;        
-	string closingTimeSunday = 8;          
-	string closingTimeMonday = 9;           
-	string closingTimeTuesday = 10;          
-	string closingTimeWednesday = 11;        
-	string closingTimeThursday = 12;         
-	string closingTimeFriday = 13;           
-	string closingTimeSaturday = 14;         
-	string openingTimeDeliverySunday = 15;   
-	string openingTimeDeliveryMonday = 16;   
-	string openingTimeDeliveryTuesday = 17;  
-	string openingTimeDeliveryWednesday = 18;
-	string openingTimeDeliveryThursday = 19;
-	string openingTimeDeliveryFriday = 20;   
-	string openingTimeDeliverySaturday = 21;  
-	string closingTimeDeliverySunday = 22;   
-	string closingTimeDeliveryMonday = 23;    
-	string closingTimeDeliveryTuesday = 24; 
-	string closingTimeDeliveryWednesday = 25; 
-	string closingTimeDeliveryThursday = 26; 
-	string closingTimeDeliveryFriday = 27;  
-	string closingTimeDeliverySaturday = 28;
-}
+// message CreateBusinessScheduleResponse {
+//   string openingTimeSunday = 1;            
+// 	string openingTimeMonday = 2;           
+// 	string openingTimeTuesday = 3;          
+// 	string openingTimeWednesday = 4;        
+// 	string openingTimeThursday = 5;         
+// 	string openingTimeFriday = 6;           
+// 	string openingTimeSaturday = 7;        
+// 	string closingTimeSunday = 8;          
+// 	string closingTimeMonday = 9;           
+// 	string closingTimeTuesday = 10;          
+// 	string closingTimeWednesday = 11;        
+// 	string closingTimeThursday = 12;         
+// 	string closingTimeFriday = 13;           
+// 	string closingTimeSaturday = 14;         
+// 	string openingTimeDeliverySunday = 15;   
+// 	string openingTimeDeliveryMonday = 16;   
+// 	string openingTimeDeliveryTuesday = 17;  
+// 	string openingTimeDeliveryWednesday = 18;
+// 	string openingTimeDeliveryThursday = 19;
+// 	string openingTimeDeliveryFriday = 20;   
+// 	string openingTimeDeliverySaturday = 21;  
+// 	string closingTimeDeliverySunday = 22;   
+// 	string closingTimeDeliveryMonday = 23;    
+// 	string closingTimeDeliveryTuesday = 24; 
+// 	string closingTimeDeliveryWednesday = 25; 
+// 	string closingTimeDeliveryThursday = 26; 
+// 	string closingTimeDeliveryFriday = 27;  
+// 	string closingTimeDeliverySaturday = 28;
+// }
 
 message CreateBusinessRequest {
   string name = 1;
