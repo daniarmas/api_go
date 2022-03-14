@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	// "context"
+	"context"
 	"errors"
 
 	"github.com/daniarmas/api_go/datasource"
@@ -58,24 +58,24 @@ func (i *businessService) CreateBusiness(request *dto.CreateBusinessRequest) (*d
 		if !businessOwnerRes.IsBusinessOwner {
 			return errors.New("permission denied")
 		}
-		// _, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.HighQualityPhotoObject)
-		// if hqErr != nil && hqErr.Error() == "ObjectMissing" {
-		// 	return errors.New("HighQualityPhotoObject missing")
-		// } else if hqErr != nil {
-		// 	return hqErr
-		// }
-		// _, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.LowQualityPhotoObject)
-		// if lqErr != nil && lqErr.Error() == "ObjectMissing" {
-		// 	return errors.New("LowQualityPhotoObject missing")
-		// } else if lqErr != nil {
-		// 	return lqErr
-		// }
-		// _, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.ThumbnailObject)
-		// if tnErr != nil && tnErr.Error() == "ObjectMissing" {
-		// 	return errors.New("ThumbnailObject missing")
-		// } else if tnErr != nil {
-		// 	return tnErr
-		// }
+		_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.HighQualityPhotoObject)
+		if hqErr != nil && hqErr.Error() == "ObjectMissing" {
+			return errors.New("HighQualityPhotoObject missing")
+		} else if hqErr != nil {
+			return hqErr
+		}
+		_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.LowQualityPhotoObject)
+		if lqErr != nil && lqErr.Error() == "ObjectMissing" {
+			return errors.New("LowQualityPhotoObject missing")
+		} else if lqErr != nil {
+			return lqErr
+		}
+		_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.ThumbnailObject)
+		if tnErr != nil && tnErr.Error() == "ObjectMissing" {
+			return errors.New("ThumbnailObject missing")
+		} else if tnErr != nil {
+			return tnErr
+		}
 		businessRes, businessErr = i.dao.NewBusinessQuery().CreateBusiness(tx, &models.Business{
 			Name:                     request.Name,
 			Description:              request.Description,
@@ -231,17 +231,17 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 				Thumbnail:                e.Thumbnail,
 				ThumbnailBlurHash:        e.ThumbnailBlurHash,
 				// IsOpen:                   e.IsOpen,
-				DeliveryPrice:            e.DeliveryPrice,
-				TimeMarginOrderMonth:     e.TimeMarginOrderMonth,
-				TimeMarginOrderDay:       e.TimeMarginOrderDay,
-				TimeMarginOrderHour:      e.TimeMarginOrderHour,
-				TimeMarginOrderMinute:    e.TimeMarginOrderMinute,
-				ToPickUp:                 e.ToPickUp,
-				HomeDelivery:             e.HomeDelivery,
-				BusinessBrandFk:          e.BusinessBrandFk,
-				ProvinceFk:               e.ProvinceFk,
-				Cursor:                   int32(e.Cursor),
-				MunicipalityFk:           e.MunicipalityFk,
+				DeliveryPrice:         e.DeliveryPrice,
+				TimeMarginOrderMonth:  e.TimeMarginOrderMonth,
+				TimeMarginOrderDay:    e.TimeMarginOrderDay,
+				TimeMarginOrderHour:   e.TimeMarginOrderHour,
+				TimeMarginOrderMinute: e.TimeMarginOrderMinute,
+				ToPickUp:              e.ToPickUp,
+				HomeDelivery:          e.HomeDelivery,
+				BusinessBrandFk:       e.BusinessBrandFk,
+				ProvinceFk:            e.ProvinceFk,
+				Cursor:                int32(e.Cursor),
+				MunicipalityFk:        e.MunicipalityFk,
 			})
 		}
 	}
