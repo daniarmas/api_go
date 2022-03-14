@@ -28,7 +28,7 @@ service AuthenticationService {
 service BusinessService {
   rpc Feed (FeedRequest) returns (FeedResponse) {}
   rpc GetBusiness (GetBusinessRequest) returns (GetBusinessResponse) {}
-  //rpc CreateBusiness (CreateBusinessRequest) returns (CreateBusinessResponse) {}
+  rpc CreateBusiness (CreateBusinessRequest) returns (CreateBusinessResponse) {}
   //rpc UpdateBusiness (UpdateBusinessRequest) returns (UpdateBusinessResponse) {}
 }
 
@@ -82,6 +82,65 @@ service BanService {
 // message GetOrderResponse {
 //   Order order = 1;
 // }
+
+message CreateBusinessRequest {
+  string name = 1;
+  string description = 2;
+  string address = 3;
+  string phone = 4;
+  string email = 5;
+  string highQualityPhotoObject = 6;
+  string highQualityPhotoBlurHash = 7;
+  string lowQualityPhotoObject = 8;
+  string lowQualityPhotoBlurHash = 9;
+  repeated string municipalities = 10;
+  string thumbnailObject = 11;
+  string thumbnailBlurHash = 12;
+  bool isOpen = 13;
+  double deliveryPrice = 14;
+  Point coordinates = 15;
+  int32 timeMarginOrderMonth = 16;
+  int32 timeMarginOrderDay = 17;
+  int32 timeMarginOrderHour = 18;
+  int32 timeMarginOrderMinute = 19;
+  bool toPickUp = 20;
+  bool homeDelivery = 21;
+  string businessBrandFk = 22;
+  string provinceFk = 23;
+  string municipalityFk = 24;
+  string openingTimeSunday = 25;            
+	string openingTimeMonday = 26;           
+	string openingTimeTuesday = 27;          
+	string openingTimeWednesday = 28;        
+	string openingTimeThursday = 29;         
+	string openingTimeFriday = 30;           
+	string openingTimeSaturday = 31;        
+	string closingTimeSunday = 32;          
+	string closingTimeMonday = 33;           
+	string closingTimeTuesday = 34;          
+	string closingTimeWednesday = 35;        
+	string closingTimeThursday = 36;         
+	string closingTimeFriday = 37;           
+	string closingTimeSaturday = 38;         
+	string openingTimeDeliverySunday = 39;   
+	string openingTimeDeliveryMonday = 40;   
+	string openingTimeDeliveryTuesday = 41;  
+	string openingTimeDeliveryWednesday = 42;
+	string openingTimeDeliveryThursday = 43;
+	string openingTimeDeliveryFriday = 44;   
+	string openingTimeDeliverySaturday = 45;  
+	string closingTimeDeliverySunday = 46;   
+	string closingTimeDeliveryMonday = 47;    
+	string closingTimeDeliveryTuesday = 48; 
+	string closingTimeDeliveryWednesday = 49; 
+	string closingTimeDeliveryThursday = 50; 
+	string closingTimeDeliveryFriday = 51;  
+	string closingTimeDeliverySaturday = 52;
+}
+
+message CreateBusinessResponse {
+  Business business = 1;
+}
 
 message GetAddressInfoRequest {
   Point location = 1;
