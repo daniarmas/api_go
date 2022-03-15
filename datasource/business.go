@@ -10,12 +10,15 @@ import (
 	"github.com/google/uuid"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type BusinessDatasource interface {
 	Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceFk string, municipalityFk string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]models.Business, error)
 	GetBusiness(tx *gorm.DB, where *models.Business) (*models.Business, error)
 	CreateBusiness(tx *gorm.DB, data *models.Business) (*models.Business, error)
+	UpdateBusiness(tx *gorm.DB, data *models.Business, where *models.Business) (*models.Business, error)
+	UpdateBusinessCoordinate(tx *gorm.DB, data *models.Business, where *models.Business) error
 	GetBusinessWithLocation(tx *gorm.DB, where *models.Business) (*models.Business, error)
 	GetBusinessProvinceAndMunicipality(tx *gorm.DB, businessFk uuid.UUID) (*dto.GetBusinessProvinceAndMunicipality, error)
 }
@@ -46,6 +49,29 @@ func (b *businessDatasource) CreateBusiness(tx *gorm.DB, data *models.Business) 
 		return nil, result.Error
 	}
 	return &response, nil
+}
+
+func (b *businessDatasource) UpdateBusiness(tx *gorm.DB, data *models.Business, where *models.Business) (*models.Business, error) {
+	result := tx.Clauses(clause.Returning{}).Where(where).Updates(&data)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("record not found")
+		} else {
+			return nil, result.Error
+		}
+	}
+	return data, nil
+}
+
+func (b *businessDatasource) UpdateBusinessCoordinate(tx *gorm.DB, data *models.Business, where *models.Business) error {
+	point := fmt.Sprintf("POINT(%v %v)", data.Coordinates.Point.Coords()[1], data.Coordinates.Point.Coords()[0])
+	var time = time.Now().UTC()
+	var response models.Business
+	result := tx.Raw(`UPDATE "business" SET coordinates = ST_GeomFromText(?, 4326), update_time = ? WHERE id = ?`, point, time, where.ID).Scan(&response)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }
 
 func (b *businessDatasource) GetBusinessProvinceAndMunicipality(tx *gorm.DB, businessFk uuid.UUID) (*dto.GetBusinessProvinceAndMunicipality, error) {
