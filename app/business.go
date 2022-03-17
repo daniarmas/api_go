@@ -6,6 +6,7 @@ import (
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/utils"
+	"github.com/google/uuid"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	"google.golang.org/grpc/codes"
@@ -77,6 +78,65 @@ func (m *BusinessServer) CreateBusiness(ctx context.Context, req *pb.CreateBusin
 		})
 	}
 	return &pb.CreateBusinessResponse{Business: &pb.Business{Id: res.Business.ID.String(), Name: res.Business.Name, Description: res.Business.Description, Address: res.Business.Address, Phone: res.Business.Phone, Email: res.Business.Email, HighQualityPhoto: res.Business.HighQualityPhoto, HighQualityPhotoBlurHash: res.Business.HighQualityPhotoBlurHash, LowQualityPhoto: res.Business.LowQualityPhoto, LowQualityPhotoBlurHash: res.Business.LowQualityPhotoBlurHash, Thumbnail: res.Business.Thumbnail, ThumbnailBlurHash: res.Business.ThumbnailBlurHash, DeliveryPrice: float64(res.Business.DeliveryPrice), TimeMarginOrderMonth: res.Business.TimeMarginOrderMonth, TimeMarginOrderDay: res.Business.TimeMarginOrderDay, TimeMarginOrderHour: res.Business.TimeMarginOrderHour, TimeMarginOrderMinute: res.Business.TimeMarginOrderMinute, ToPickUp: res.Business.ToPickUp, HomeDelivery: res.Business.HomeDelivery, ProvinceFk: res.Business.ProvinceFk.String(), MunicipalityFk: res.Business.MunicipalityFk.String(), BusinessBrandFk: res.Business.BusinessBrandFk.String(), CreateTime: timestamppb.New(res.Business.CreateTime), UpdateTime: timestamppb.New(res.Business.UpdateTime), Coordinates: &pb.Point{Latitude: res.Business.Coordinates.FlatCoords()[0], Longitude: res.Business.Coordinates.FlatCoords()[1]}}, Municipalities: municipalities}, nil
+}
+
+func (m *BusinessServer) UpdateBusiness(ctx context.Context, req *pb.UpdateBusinessRequest) (*pb.UpdateBusinessResponse, error) {
+	var st *status.Status
+	md, _ := metadata.FromIncomingContext(ctx)
+	res, err := m.businessService.UpdateBusiness(&dto.UpdateBusinessRequest{
+		Id:                       uuid.MustParse(req.Id),
+		Name:                     req.Name,
+		Description:              req.Description,
+		Address:                  req.Address,
+		Phone:                    req.Phone,
+		Email:                    req.Email,
+		HighQualityPhotoObject:   req.HighQualityPhotoObject,
+		HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash,
+		LowQualityPhotoObject:    req.LowQualityPhotoObject,
+		LowQualityPhotoBlurHash:  req.LowQualityPhotoBlurHash,
+		ThumbnailObject:          req.ThumbnailObject,
+		ThumbnailBlurHash:        req.HighQualityPhotoBlurHash,
+		DeliveryPrice:            req.DeliveryPrice,
+		TimeMarginOrderMonth:     req.TimeMarginOrderMonth,
+		TimeMarginOrderDay:       req.TimeMarginOrderDay,
+		TimeMarginOrderHour:      req.TimeMarginOrderHour,
+		TimeMarginOrderMinute:    req.TimeMarginOrderMinute,
+		ToPickUp:                 req.ToPickUp,
+		HomeDelivery:             req.HomeDelivery,
+		ProvinceFk:               req.ProvinceFk,
+		MunicipalityFk:           req.MunicipalityFk,
+		Metadata:                 &md,
+	})
+	if err != nil {
+		switch err.Error() {
+		case "authorizationtoken not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorizationtoken expired":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "HighQualityPhotoObject missing":
+			st = status.New(codes.InvalidArgument, "HighQualityPhotoObject missing")
+		case "LowQualityPhotoObject missing":
+			st = status.New(codes.InvalidArgument, "LowQualityPhotoObject missing")
+		case "ThumbnailObject missing":
+			st = status.New(codes.InvalidArgument, "ThumbnailObject missing")
+		case "business is open":
+			st = status.New(codes.InvalidArgument, "Business is open")
+		case "item in the cart":
+			st = status.New(codes.InvalidArgument, "Item in the cart")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "user not found":
+			st = status.New(codes.NotFound, "User not found")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return &pb.UpdateBusinessResponse{Business: &pb.Business{Id: res.ID.String(), Name: res.Name, Description: res.Description, Address: res.Address, Phone: res.Phone, Email: res.Email, HighQualityPhoto: res.HighQualityPhoto, HighQualityPhotoBlurHash: res.HighQualityPhotoBlurHash, LowQualityPhoto: res.LowQualityPhoto, LowQualityPhotoBlurHash: res.LowQualityPhotoBlurHash, Thumbnail: res.Thumbnail, ThumbnailBlurHash: res.ThumbnailBlurHash, DeliveryPrice: float64(res.DeliveryPrice), TimeMarginOrderMonth: res.TimeMarginOrderMonth, TimeMarginOrderDay: res.TimeMarginOrderDay, TimeMarginOrderHour: res.TimeMarginOrderHour, TimeMarginOrderMinute: res.TimeMarginOrderMinute, ToPickUp: res.ToPickUp, HomeDelivery: res.HomeDelivery, ProvinceFk: res.ProvinceFk.String(), MunicipalityFk: res.MunicipalityFk.String(), BusinessBrandFk: res.BusinessBrandFk.String(), CreateTime: timestamppb.New(res.CreateTime), UpdateTime: timestamppb.New(res.UpdateTime)}}, nil
 }
 
 func (m *BusinessServer) Feed(ctx context.Context, req *pb.FeedRequest) (*pb.FeedResponse, error) {

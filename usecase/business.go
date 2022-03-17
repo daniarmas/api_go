@@ -60,15 +60,15 @@ func (i *businessService) UpdateBusiness(request *dto.UpdateBusinessRequest) (*m
 			return errors.New("permission denied")
 		}
 		businessIsOpenRes, businessIsOpenErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessFk: request.Id}, "OrderTypePickUp")
-		if businessIsOpenErr != nil {
+		if businessIsOpenErr != nil && businessIsOpenErr.Error() != "business closed" {
 			return businessIsOpenErr
-		} else if *businessIsOpenRes {
+		} else if businessIsOpenRes {
 			return errors.New("business is open")
 		}
 		businessHomeDeliveryRes, businessHomeDeliveryErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessFk: request.Id}, "OrderTypeHomeDelivery")
-		if businessHomeDeliveryErr != nil {
+		if businessHomeDeliveryErr != nil && businessIsOpenErr.Error() != "business closed" {
 			return businessHomeDeliveryErr
-		} else if *businessHomeDeliveryRes {
+		} else if businessHomeDeliveryRes {
 			return errors.New("business is open")
 		}
 		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{BusinessFk: request.Id})
@@ -125,6 +125,14 @@ func (i *businessService) UpdateBusiness(request *dto.UpdateBusinessRequest) (*m
 				return rmThErr
 			}
 		}
+		var provinceFk uuid.UUID
+		var municipalityFk uuid.UUID
+		if request.ProvinceFk != "" {
+			provinceFk = uuid.MustParse(request.ProvinceFk)
+		}
+		if request.MunicipalityFk != "" {
+			municipalityFk = uuid.MustParse(request.MunicipalityFk)
+		}
 		businessRes, businessErr = i.dao.NewBusinessQuery().UpdateBusiness(tx, &models.Business{
 			Name:                     request.Name,
 			Description:              request.Description,
@@ -147,9 +155,9 @@ func (i *businessService) UpdateBusiness(request *dto.UpdateBusinessRequest) (*m
 			DeliveryPrice:            float32(request.DeliveryPrice),
 			ToPickUp:                 request.ToPickUp,
 			HomeDelivery:             request.HomeDelivery,
-			ProvinceFk:               uuid.MustParse(request.ProvinceFk),
-			MunicipalityFk:           uuid.MustParse(request.MunicipalityFk),
-		}, &models.Business{})
+			ProvinceFk:               provinceFk,
+			MunicipalityFk:           municipalityFk,
+		}, &models.Business{ID: request.Id})
 		if businessErr != nil {
 			return businessErr
 		}
@@ -388,7 +396,7 @@ func (v *businessService) GetBusiness(request *dto.GetBusinessRequest) (*dto.Get
 	var itemCategoryRes *[]models.BusinessItemCategory
 	var businessErr, itemCategoryErr error
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		businessRes, businessErr = v.dao.NewBusinessQuery().GetBusiness(tx, &models.Business{Coordinates: request.Coordinates, ID: uuid.MustParse(request.Id)})
+		businessRes, businessErr = v.dao.NewBusinessQuery().GetBusiness(tx, &models.Business{ID: uuid.MustParse(request.Id)})
 		if businessErr != nil {
 			return businessErr
 		}

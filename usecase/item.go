@@ -67,13 +67,13 @@ func (i *itemService) UpdateItem(request *dto.UpdateItemRequest) (*models.Item, 
 		businessRes, businessErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessFk: request.BusinessFk}, "OrderTypePickUp")
 		if businessErr != nil {
 			return businessErr
-		} else if *businessRes {
+		} else if businessRes {
 			return errors.New("business is open")
 		}
 		businessHomeDeliveryRes, businessHomeDeliveryErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessFk: request.BusinessFk}, "OrderTypeHomeDelivery")
 		if businessHomeDeliveryErr != nil {
 			return businessHomeDeliveryErr
-		} else if *businessHomeDeliveryRes {
+		} else if businessHomeDeliveryRes {
 			return errors.New("business is open")
 		}
 		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{ItemFk: request.ItemFk})
@@ -179,13 +179,13 @@ func (i *itemService) DeleteItem(request *dto.DeleteItemRequest) error {
 		businessRes, businessErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessFk: getItemRes.BusinessFk}, "OrderTypePickUp")
 		if businessErr != nil {
 			return businessErr
-		} else if *businessRes {
+		} else if businessRes {
 			return errors.New("business is open")
 		}
 		businessHomeDeliveryRes, businessHomeDeliveryErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessFk: getItemRes.BusinessFk}, "OrderTypeHomeDelivery")
 		if businessHomeDeliveryErr != nil {
 			return businessHomeDeliveryErr
-		} else if *businessHomeDeliveryRes {
+		} else if businessHomeDeliveryRes {
 			return errors.New("business is open")
 		}
 		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{ItemFk: request.ItemFk})

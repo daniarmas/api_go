@@ -27,7 +27,7 @@ type businessDatasource struct{}
 
 func (b *businessDatasource) GetBusiness(tx *gorm.DB, where *models.Business) (*models.Business, error) {
 	var businessResult *models.Business
-	result := tx.Where(where).Take(&businessResult)
+	result := tx.Select(`"id", "name", "description", "address", "phone", "email", "high_quality_photo", "high_quality_photo_object", "high_quality_photo_blurhash", "low_quality_photo", "low_quality_photo_object", "low_quality_photo_blurhash", "thumbnail", "thumbnail_object", "thumbnail_blurhash", "time_margin_order_month", "time_margin_order_day", "time_margin_order_hour", "time_margin_order_minute", "delivery_price", "to_pick_up", "home_delivery", ST_AsEWKB(coordinates) AS coordinates, "province_fk", "municipality_fk", "business_brand_fk",  "create_time", "update_time", "cursor"`).Where(where).Take(&businessResult)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
@@ -52,7 +52,7 @@ func (b *businessDatasource) CreateBusiness(tx *gorm.DB, data *models.Business) 
 }
 
 func (b *businessDatasource) UpdateBusiness(tx *gorm.DB, data *models.Business, where *models.Business) (*models.Business, error) {
-	result := tx.Clauses(clause.Returning{}).Where(where).Updates(&data)
+	result := tx.Clauses(clause.Returning{Columns: []clause.Column{{Name: "id"}, {Name: "name"}, {Name: "description"}, {Name: "address"}, {Name: "email"}, {Name: "high_quality_photo"}, {Name: "high_quality_photo_object"}, {Name: "high_quality_photo_blurhash"}, {Name: "low_quality_photo"}, {Name: "low_quality_photo_object"}, {Name: "low_quality_photo_blurhash"}, {Name: "thumbnail"}, {Name: "thumbnail_object"}, {Name: "thumbnail_blurhash"}, {Name: "time_margin_order_month"}, {Name: "time_margin_order_day"}, {Name: "time_margin_order_hour"}, {Name: "time_margin_order_minute"}, {Name: "delivery_price"}, {Name: "to_pick_up"}, {Name: "home_delivery"}, {Name: "home_delivery"}, {Name: "province_fk"}, {Name: "municipality_fk"}, {Name: "business_brand_fk"}, {Name: "create_time"}, {Name: "update_time"}}}).Where(where).Updates(&data)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
