@@ -16,6 +16,7 @@ type Config struct {
 	ObjectStorageServerSecretAccessKey string `mapstructure:"OBJECT_STORAGE_SERVER_SECRET_ACCESS_KEY"`
 	ObjectStorageServerEndpoint        string `mapstructure:"OBJECT_STORAGE_SERVER_ENDPOINT"`
 	BusinessAvatarBulkName             string `mapstructure:"BUSINESS_AVATAR_BULK_NAME"`
+	BusinessAvatarDeletedBulkName      string `mapstructure:"BUSINESS_AVATAR_DELETED_BULK_NAME"`
 	ItemsBulkName                      string `mapstructure:"ITEMS_BULK_NAME"`
 	UsersBulkName                      string `mapstructure:"USERS_BULK_NAME"`
 	UsersDeletedBulkName               string `mapstructure:"USERS_DELETED_BULK_NAME"`

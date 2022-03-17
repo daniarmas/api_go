@@ -14,6 +14,8 @@ type BusinessQuery interface {
 	GetBusiness(tx *gorm.DB, where *models.Business) (*models.Business, error)
 	GetBusinessWithLocation(tx *gorm.DB, where *models.Business) (*models.Business, error)
 	GetBusinessProvinceAndMunicipality(tx *gorm.DB, businessFk uuid.UUID) (*dto.GetBusinessProvinceAndMunicipality, error)
+	UpdateBusiness(tx *gorm.DB, data *models.Business, where *models.Business) (*models.Business, error)
+	UpdateBusinessCoordinate(tx *gorm.DB, data *models.Business, where *models.Business) error
 }
 
 type businessQuery struct{}
@@ -24,6 +26,22 @@ func (b *businessQuery) CreateBusiness(tx *gorm.DB, data *models.Business) (*mod
 		return nil, err
 	}
 	return res, nil
+}
+
+func (b *businessQuery) UpdateBusiness(tx *gorm.DB, data *models.Business, where *models.Business) (*models.Business, error) {
+	res, err := Datasource.NewBusinessDatasource().UpdateBusiness(tx, data, where)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (b *businessQuery) UpdateBusinessCoordinate(tx *gorm.DB, data *models.Business, where *models.Business) error {
+	err := Datasource.NewBusinessDatasource().UpdateBusinessCoordinate(tx, data, where)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (b *businessQuery) Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceFk string, municipalityFk string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]models.Business, error) {

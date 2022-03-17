@@ -36,13 +36,13 @@ type BusinessSchedule struct {
 	OpeningTimeDeliveryThursday  string         `gorm:"column:opening_time_delivery_thursday"`
 	OpeningTimeDeliveryFriday    string         `gorm:"column:opening_time_delivery_friday"`
 	OpeningTimeDeliverySaturday  string         `gorm:"column:opening_time_delivery_saturday"`
-	ClosingTimeDeliverySunday    string         `gorm:"column:opening_time_delivery_sunday"`
-	ClosingTimeDeliveryMonday    string         `gorm:"column:opening_time_delivery_monday"`
-	ClosingTimeDeliveryTuesday   string         `gorm:"column:opening_time_delivery_tuesday"`
-	ClosingTimeDeliveryWednesday string         `gorm:"column:opening_time_delivery_wednesday"`
-	ClosingTimeDeliveryThursday  string         `gorm:"column:opening_time_delivery_thursday"`
-	ClosingTimeDeliveryFriday    string         `gorm:"column:opening_time_delivery_friday"`
-	ClosingTimeDeliverySaturday  string         `gorm:"column:opening_time_delivery_saturday"`
+	ClosingTimeDeliverySunday    string         `gorm:"column:closing_time_delivery_sunday"`
+	ClosingTimeDeliveryMonday    string         `gorm:"column:closing_time_delivery_monday"`
+	ClosingTimeDeliveryTuesday   string         `gorm:"column:closing_time_delivery_tuesday"`
+	ClosingTimeDeliveryWednesday string         `gorm:"column:closing_time_delivery_wednesday"`
+	ClosingTimeDeliveryThursday  string         `gorm:"column:closing_time_delivery_thursday"`
+	ClosingTimeDeliveryFriday    string         `gorm:"column:closing_time_delivery_friday"`
+	ClosingTimeDeliverySaturday  string         `gorm:"column:closing_time_delivery_saturday"`
 	BusinessFk                   uuid.UUID      `gorm:"column:business_fk;not null"`
 	CreateTime                   time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime                   time.Time      `gorm:"column:update_time;not null"`
