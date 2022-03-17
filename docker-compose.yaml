@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   api:
-    image: danielarmasjuarez/api:v0.30.0
+    image: danielarmasjuarez/api:v0.30.1
     container_name: api
     ports:
       - 22210:22210
@@ -50,7 +50,7 @@ services:
     depends_on:
       - cockroach
   minio:
-    image: docker.uclv.cu/minio/minio:RELEASE.2021-10-23T03-28-24Z
+    image: docker.uclv.cu/minio/minio:RELEASE.2022-01-08T03-11-54Z
     container_name: minio
     volumes:
       - miniodata:/data
