@@ -23,6 +23,15 @@ services:
       - DATABASE_URL=postgres://root:root@cockroach:26257/postgres?sslmode=disable
     depends_on:
       - cockroach
+  gendocu:
+    container_name: gendocu
+    restart: always
+    image: docker.uclv.cu/gendocu/grpc-docs
+    ports: 
+      - "8085:8080" 
+    volumes:
+      - ./proto:/input
+      - gendocu:/output
   # db:
   #   image: ownpostgis:v0.1.0
   #   container_name: ownpostgis
@@ -66,8 +75,31 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
+  createbuckets:
+    image: docker.uclv.cu/minio/mc:RELEASE.2022-04-16T21-11-21Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    restart: on-failure
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set minio http://minio:9000 root root1234;
+      /usr/bin/mc mb minio/business-avatar;
+      /usr/bin/mc mb minio/business-avatar-deleted;
+      /usr/bin/mc mb minio/items;
+      /usr/bin/mc mb minio/items-deleted;
+      /usr/bin/mc mb minio/user-avatar;
+      /usr/bin/mc mb minio/users-deleted;
+      /usr/bin/mc policy set public minio/business-avatar;
+      /usr/bin/mc policy set public minio/business-avatar-deleted;
+      /usr/bin/mc policy set public minio/items;
+      /usr/bin/mc policy set public minio/items-deleted;
+      /usr/bin/mc policy set public minio/user-avatar;
+      /usr/bin/mc policy set public minio/users-deleted;
+      "
 volumes:
   cockroach:
   miniodata:
   postgres:
+  gendocu:
   # pgadmin4:
