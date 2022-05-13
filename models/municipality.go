@@ -20,7 +20,7 @@ type Municipality struct {
 	Zoom        float32        `gorm:"column:zoom;not null"`
 	Coordinates ewkb.Point     `gorm:"column:coordinates"`
 	Polygon     ewkb.Polygon   `gorm:"column:polygon"`
-	ProvinceFk  uuid.UUID      `gorm:"column:province_fk;not null"`
+	ProvinceId  uuid.UUID      `gorm:"column:province_id;not null"`
 	CreateTime  time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime  time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime  gorm.DeletedAt `gorm:"index;column:delete_time"`
