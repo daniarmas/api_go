@@ -43,6 +43,7 @@ type Business struct {
 	ProvinceFk               uuid.UUID              `gorm:"column:province_fk"`
 	MunicipalityFk           uuid.UUID              `gorm:"column:municipality_fk"`
 	BusinessBrandFk          uuid.UUID              `gorm:"column:business_brand_fk"`
+	BusinessBrand            BusinessBrand          `gorm:"foreignKey:BusinessBrandFk"`
 	BusinessItemCategory     []BusinessItemCategory `gorm:"foreignKey:BusinessFk"`
 	BusinessSchedule         BusinessSchedule       `gorm:"foreignKey:BusinessFk"`
 	Status                   string                 `gorm:"column:status"`
