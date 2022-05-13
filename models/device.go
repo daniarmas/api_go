@@ -17,7 +17,7 @@ type Device struct {
 	ID                       uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Platform                 string         `gorm:"column:platform;not null"`
 	SystemVersion            string         `gorm:"column:system_version;not null"`
-	DeviceId                 string         `gorm:"column:device_id;not null"`
+	DeviceIdentifier         string         `gorm:"column:device_identifier;not null"`
 	FirebaseCloudMessagingId string         `gorm:"column:firebase_cloud_messaging_id;not null"`
 	Model                    string         `gorm:"column:model;not null"`
 	CreateTime               time.Time      `gorm:"column:create_time;not null"`
