@@ -14,14 +14,14 @@ func (VerificationCode) TableName() string {
 }
 
 type VerificationCode struct {
-	ID         uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
-	Code       string         `gorm:"column:code;not null"`
-	Email      string         `gorm:"column:email;not null"`
-	Type       string         `gorm:"column:type;not null"`
-	DeviceId   string         `gorm:"column:device_id;not null"`
-	CreateTime time.Time      `gorm:"column:create_time;not null"`
-	UpdateTime time.Time      `gorm:"column:update_time;not null"`
-	DeleteTime gorm.DeletedAt `gorm:"index;column:delete_time"`
+	ID               uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
+	Code             string         `gorm:"column:code;not null"`
+	Email            string         `gorm:"column:email;not null"`
+	Type             string         `gorm:"column:type;not null"`
+	DeviceIdentifier  string         `gorm:"column:device_identifier;not null"`
+	CreateTime       time.Time      `gorm:"column:create_time;not null"`
+	UpdateTime       time.Time      `gorm:"column:update_time;not null"`
+	DeleteTime       gorm.DeletedAt `gorm:"index;column:delete_time"`
 }
 
 // Note: Gorm will fail if the function signature
