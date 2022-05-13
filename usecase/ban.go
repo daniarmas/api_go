@@ -6,7 +6,6 @@ import (
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
 	"github.com/daniarmas/api_go/repository"
-	"github.com/google/uuid"
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
 )
@@ -44,7 +43,8 @@ func (i *banService) GetBannedUser(metadata *metadata.MD) (*models.BannedUser, e
 	var bannedUser *models.BannedUser
 	var bannedUserErr error
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &metadata.Get("authorization")[0]}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
 			case "Token is expired":
@@ -57,13 +57,13 @@ func (i *banService) GetBannedUser(metadata *metadata.MD) (*models.BannedUser, e
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_fk"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		bannedUser, bannedUserErr = i.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{UserFk: authorizationTokenRes.UserFk}, &[]string{"create_time", "ban_expiration_time"})
+		bannedUser, bannedUserErr = i.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{UserFk: *authorizationTokenRes.UserFk}, &[]string{"create_time", "ban_expiration_time"})
 		if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
 			return bannedUserErr
 		}
