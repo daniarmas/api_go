@@ -7,7 +7,6 @@ import (
 	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/models"
 	"github.com/daniarmas/api_go/repository"
-	"github.com/google/uuid"
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
 )
@@ -156,7 +155,7 @@ func (v *authenticationService) SignIn(verificationCode *models.VerificationCode
 			return deleteRefreshTokenErr
 		}
 		if len(*deleteRefreshTokenRes) != 0 {
-			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenFk: (*deleteRefreshTokenRes)[0].ID})
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenFk: &(*deleteRefreshTokenRes)[0].ID})
 			if deleteAuthorizationTokenErr != nil {
 				return deleteAuthorizationTokenErr
 			}
@@ -165,17 +164,17 @@ func (v *authenticationService) SignIn(verificationCode *models.VerificationCode
 		if refreshTokenErr != nil {
 			return refreshTokenErr
 		}
-		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().CreateAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenFk: refreshTokenRes.ID, UserFk: userRes.ID, DeviceFk: deviceRes.ID, App: metadata.Get("app")[0], AppVersion: metadata.Get("appversion")[0]})
+		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().CreateAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenFk: &refreshTokenRes.ID, UserFk: &userRes.ID, DeviceFk: &deviceRes.ID, App: &metadata.Get("app")[0], AppVersion: &metadata.Get("appversion")[0]})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		authorizationTokenId := authorizationTokenRes.ID.String()
-		refreshTokenId := refreshTokenRes.ID.String()
-		jwtRefreshTokenRes, jwtRefreshTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtRefreshToken(&refreshTokenId)
+		jwtRefreshToken := &datasource.JsonWebTokenMetadata{TokenId: &refreshTokenRes.ID}
+		jwtRefreshTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtRefreshToken(jwtRefreshToken)
 		if jwtRefreshTokenErr != nil {
 			return jwtRefreshTokenErr
 		}
-		jwtAuthorizationTokenRes, jwtAuthorizationTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtAuthorizationToken(&authorizationTokenId)
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{TokenId: authorizationTokenRes.ID}
+		jwtAuthorizationTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtAuthorizationToken(jwtAuthorizationToken)
 		if jwtAuthorizationTokenErr != nil {
 			return jwtAuthorizationTokenErr
 		}
@@ -256,7 +255,7 @@ func (v *authenticationService) SignUp(fullname *string, alias *string, verifica
 			return deleteRefreshTokenErr
 		}
 		if len(*deleteRefreshTokenRes) != 0 {
-			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenFk: (*deleteRefreshTokenRes)[0].ID})
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenFk: &(*deleteRefreshTokenRes)[0].ID})
 			if deleteAuthorizationTokenErr != nil {
 				return deleteAuthorizationTokenErr
 			}
@@ -265,17 +264,17 @@ func (v *authenticationService) SignUp(fullname *string, alias *string, verifica
 		if refreshTokenErr != nil {
 			return refreshTokenErr
 		}
-		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().CreateAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenFk: refreshTokenRes.ID, UserFk: createUserRes.ID, DeviceFk: deviceRes.ID, App: metadata.Get("app")[0], AppVersion: metadata.Get("appversion")[0]})
+		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().CreateAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenFk: &refreshTokenRes.ID, UserFk: &createUserRes.ID, DeviceFk: &deviceRes.ID, App: &metadata.Get("app")[0], AppVersion: &metadata.Get("appversion")[0]})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		authorizationTokenId := authorizationTokenRes.ID.String()
-		refreshTokenId := refreshTokenRes.ID.String()
-		jwtRefreshTokenRes, jwtRefreshTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtRefreshToken(&refreshTokenId)
+		jwtRefreshToken := &datasource.JsonWebTokenMetadata{TokenId: &refreshTokenRes.ID}
+		jwtRefreshTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtRefreshToken(jwtRefreshToken)
 		if jwtRefreshTokenErr != nil {
 			return jwtRefreshTokenErr
 		}
-		jwtAuthorizationTokenRes, jwtAuthorizationTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtAuthorizationToken(&authorizationTokenId)
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{TokenId: authorizationTokenRes.ID}
+		jwtAuthorizationTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtAuthorizationToken(jwtAuthorizationToken)
 		if jwtAuthorizationTokenErr != nil {
 			return jwtAuthorizationTokenErr
 		}
@@ -343,7 +342,8 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 			} else if bannedDeviceRes != nil {
 				return errors.New("device banned")
 			}
-			authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
+			jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &metadata.Get("authorization")[0]}
+			authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 			if authorizationTokenParseErr != nil {
 				switch authorizationTokenParseErr.Error() {
 				case "Token is expired":
@@ -356,25 +356,25 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 					return authorizationTokenParseErr
 				}
 			}
-			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk", "refresh_token_fk"})
+			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_fk", "refresh_token_fk"})
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
 			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &models.RefreshToken{ID: authorizationTokenRes.RefreshTokenFk}, &[]string{"id"})
+			refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &models.RefreshToken{ID: *authorizationTokenRes.RefreshTokenFk}, &[]string{"id"})
 			if refreshTokenErr != nil {
 				return refreshTokenErr
 			} else if refreshTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserFk})
+			userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserFk})
 			if userErr != nil {
 				return userErr
 			} else if userRes == nil {
 				return errors.New("user not found")
 			}
-			bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{UserFk: authorizationTokenRes.UserFk}, &[]string{"id"})
+			bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{UserFk: *authorizationTokenRes.UserFk}, &[]string{"id"})
 			if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
 				return bannedUserErr
 			} else if bannedUserRes != nil {
@@ -426,7 +426,8 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 func (v *authenticationService) SignOut(all *bool, authorizationTokenFk *string, metadata *metadata.MD) error {
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 		if *all {
-			authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
+			authorizationWebToken := &datasource.JsonWebTokenMetadata{Token: &metadata.Get("authorization")[0]}
+			authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(authorizationWebToken)
 			if authorizationTokenParseErr != nil {
 				switch authorizationTokenParseErr.Error() {
 				case "Token is expired":
@@ -439,14 +440,14 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenFk *string,
 					return authorizationTokenParseErr
 				}
 			}
-			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: authorizationWebToken.TokenId}, &[]string{"id", "user_fk"})
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
 			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
 			var refreshTokenIds []string
-			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserFk: authorizationTokenRes.UserFk}, &[]string{"id"})
+			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserFk: *authorizationTokenRes.UserFk}, &[]string{"id"})
 			if deleteRefreshTokenErr != nil {
 				return deleteRefreshTokenErr
 			}
@@ -459,7 +460,8 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenFk *string,
 			}
 			return nil
 		} else if *authorizationTokenFk != "" {
-			authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
+			jwtTokenAuthorization := &datasource.JsonWebTokenMetadata{Token: &metadata.Get("authorization")[0]}
+			authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtTokenAuthorization)
 			if authorizationTokenParseErr != nil {
 				switch authorizationTokenParseErr.Error() {
 				case "Token is expired":
@@ -472,11 +474,11 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenFk *string,
 					return authorizationTokenParseErr
 				}
 			}
-			authorizationTokenByReqRes, authorizationTokenByReqErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenFk)}, &[]string{"id", "user_fk", "device_fk"})
+			authorizationTokenByReqRes, authorizationTokenByReqErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId}, &[]string{"id", "user_fk", "device_fk"})
 			if authorizationTokenByReqErr != nil {
 				return authorizationTokenByReqErr
 			}
-			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId}, &[]string{"id", "user_fk"})
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
 			} else if authorizationTokenRes == nil {
@@ -484,17 +486,18 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenFk *string,
 			} else if authorizationTokenRes.UserFk != authorizationTokenByReqRes.UserFk {
 				return errors.New("permission denied")
 			}
-			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserFk: authorizationTokenByReqRes.UserFk, DeviceFk: authorizationTokenByReqRes.DeviceFk}, &[]string{"id"})
+			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserFk: *authorizationTokenByReqRes.UserFk, DeviceFk: *authorizationTokenByReqRes.DeviceFk}, &[]string{"id"})
 			if deleteRefreshTokenErr != nil {
 				return deleteRefreshTokenErr
 			}
-			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenFk: (*deleteRefreshTokenRes)[0].ID})
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenFk: &(*deleteRefreshTokenRes)[0].ID})
 			if deleteAuthorizationTokenErr != nil {
 				return deleteAuthorizationTokenErr
 			}
 			return nil
 		} else {
-			authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
+			jwtTokenAuthorization := &datasource.JsonWebTokenMetadata{Token: &metadata.Get("authorization")[0]}
+			authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtTokenAuthorization)
 			if authorizationTokenParseErr != nil {
 				switch authorizationTokenParseErr.Error() {
 				case "Token is expired":
@@ -507,17 +510,17 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenFk *string,
 					return authorizationTokenParseErr
 				}
 			}
-			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk", "device_fk"})
+			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId}, &[]string{"id", "user_fk", "device_fk"})
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
 			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserFk: authorizationTokenRes.UserFk, DeviceFk: authorizationTokenRes.DeviceFk}, &[]string{"id"})
+			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserFk: *authorizationTokenRes.UserFk, DeviceFk: *authorizationTokenRes.DeviceFk}, &[]string{"id"})
 			if deleteRefreshTokenErr != nil {
 				return deleteRefreshTokenErr
 			}
-			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenFk: (*deleteRefreshTokenRes)[0].ID})
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenFk: &(*deleteRefreshTokenRes)[0].ID})
 			if deleteAuthorizationTokenErr != nil {
 				return deleteAuthorizationTokenErr
 			}
@@ -536,7 +539,8 @@ func (v *authenticationService) ListSession(metadata *metadata.MD) (*dto.ListSes
 	var authorizationTokenErr error
 	var listSessionErr error
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&metadata.Get("authorization")[0])
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &metadata.Get("authorization")[0]}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
 			case "Token is expired":
@@ -549,13 +553,13 @@ func (v *authenticationService) ListSession(metadata *metadata.MD) (*dto.ListSes
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk", "device_fk"})
+		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_fk", "device_fk"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		listSessionRes, listSessionErr = v.dao.NewSessionQuery().ListSession(tx, &models.Session{UserFk: authorizationTokenRes.UserFk}, nil)
+		listSessionRes, listSessionErr = v.dao.NewSessionQuery().ListSession(tx, &models.Session{UserFk: *authorizationTokenRes.UserFk}, nil)
 		if listSessionErr != nil {
 			return listSessionErr
 		}
@@ -564,14 +568,15 @@ func (v *authenticationService) ListSession(metadata *metadata.MD) (*dto.ListSes
 	if err != nil {
 		return nil, err
 	}
-	return &dto.ListSessionResponse{Sessions: listSessionRes, ActualDeviceId: authorizationTokenRes.DeviceFk}, nil
+	return &dto.ListSessionResponse{Sessions: listSessionRes, ActualDeviceId: *authorizationTokenRes.DeviceFk}, nil
 }
 
 func (v *authenticationService) RefreshToken(refreshToken *string, metadata *metadata.MD) (*dto.RefreshToken, error) {
 	var jwtAuthorizationTokenRes, jwtRefreshTokenRes *string
 	var jwtAuthorizationTokenErr, jwtRefreshTokenErr error
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		refreshTokenParseRes, refreshTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtRefreshToken(refreshToken)
+		jwtRefreshToken := &datasource.JsonWebTokenMetadata{Token: refreshToken}
+		refreshTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtRefreshToken(jwtRefreshToken)
 		if refreshTokenParseErr != nil {
 			switch refreshTokenParseErr.Error() {
 			case "Token is expired":
@@ -584,7 +589,7 @@ func (v *authenticationService) RefreshToken(refreshToken *string, metadata *met
 				return refreshTokenParseErr
 			}
 		}
-		refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &models.RefreshToken{ID: uuid.MustParse(*refreshTokenParseRes)}, &[]string{"id", "user_fk", "device_fk"})
+		refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &models.RefreshToken{ID: *jwtRefreshToken.TokenId}, &[]string{"id", "user_fk", "device_fk"})
 		if refreshTokenErr != nil {
 			return refreshTokenErr
 		} else if refreshTokenRes == nil {
@@ -600,7 +605,7 @@ func (v *authenticationService) RefreshToken(refreshToken *string, metadata *met
 		if deleteRefreshTokenErr != nil {
 			return deleteRefreshTokenErr
 		}
-		_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenFk: (*deleteRefreshTokenRes)[0].ID})
+		_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenFk: &(*deleteRefreshTokenRes)[0].ID})
 		if deleteAuthorizationTokenErr != nil {
 			return deleteAuthorizationTokenErr
 		}
@@ -622,17 +627,17 @@ func (v *authenticationService) RefreshToken(refreshToken *string, metadata *met
 		if refreshTokenErr != nil {
 			return refreshTokenErr
 		}
-		authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().CreateAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenFk: refreshTokenRes.ID, UserFk: userRes.ID, DeviceFk: deviceRes.ID, App: metadata.Get("app")[0], AppVersion: metadata.Get("appversion")[0]})
+		authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().CreateAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenFk: &refreshTokenRes.ID, UserFk: &userRes.ID, DeviceFk: &deviceRes.ID, App: &metadata.Get("app")[0], AppVersion: &metadata.Get("appversion")[0]})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		authorizationTokenId := authorizationTokenRes.ID.String()
-		refreshTokenId := refreshTokenRes.ID.String()
-		jwtRefreshTokenRes, jwtRefreshTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtRefreshToken(&refreshTokenId)
+		jwtRefreshTokenNew := &datasource.JsonWebTokenMetadata{TokenId: &refreshTokenRes.ID}
+		jwtAuthorizationTokenNew := &datasource.JsonWebTokenMetadata{TokenId: authorizationTokenRes.ID}
+		jwtRefreshTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtRefreshToken(jwtRefreshTokenNew)
 		if jwtRefreshTokenErr != nil {
 			return jwtRefreshTokenErr
 		}
-		jwtAuthorizationTokenRes, jwtAuthorizationTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtAuthorizationToken(&authorizationTokenId)
+		jwtAuthorizationTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtAuthorizationToken(jwtAuthorizationTokenNew)
 		if jwtAuthorizationTokenErr != nil {
 			return jwtAuthorizationTokenErr
 		}

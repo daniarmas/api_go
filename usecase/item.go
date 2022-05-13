@@ -39,7 +39,8 @@ func (i *itemService) UpdateItem(request *dto.UpdateItemRequest) (*models.Item, 
 	var lowQualityPhoto string = ""
 	var thumbnail string = ""
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&request.Metadata.Get("authorization")[0])
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
 			case "Token is expired":
@@ -52,13 +53,13 @@ func (i *itemService) UpdateItem(request *dto.UpdateItemRequest) (*models.Item, 
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_fk"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		permissionExistsErr := i.dao.NewPermissionRepository().PermissionExists(tx, &models.Permission{Name: "update_item", UserFk: authorizationTokenRes.UserFk, BusinessFk: request.BusinessFk})
+		permissionExistsErr := i.dao.NewPermissionRepository().PermissionExists(tx, &models.Permission{Name: "update_item", UserFk: *authorizationTokenRes.UserFk, BusinessFk: request.BusinessFk})
 		if permissionExistsErr != nil && permissionExistsErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		} else if permissionExistsErr != nil {
@@ -147,7 +148,8 @@ func (i *itemService) UpdateItem(request *dto.UpdateItemRequest) (*models.Item, 
 
 func (i *itemService) DeleteItem(request *dto.DeleteItemRequest) error {
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&request.Metadata.Get("authorization")[0])
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
 			case "Token is expired":
@@ -160,7 +162,7 @@ func (i *itemService) DeleteItem(request *dto.DeleteItemRequest) error {
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_fk"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
@@ -170,7 +172,7 @@ func (i *itemService) DeleteItem(request *dto.DeleteItemRequest) error {
 		if getItemErr != nil {
 			return getItemErr
 		}
-		permissionExistsErr := i.dao.NewPermissionRepository().PermissionExists(tx, &models.Permission{Name: "delete_item", UserFk: authorizationTokenRes.UserFk, BusinessFk: getItemRes.BusinessFk})
+		permissionExistsErr := i.dao.NewPermissionRepository().PermissionExists(tx, &models.Permission{Name: "delete_item", UserFk: *authorizationTokenRes.UserFk, BusinessFk: getItemRes.BusinessFk})
 		if permissionExistsErr != nil && permissionExistsErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		} else if permissionExistsErr != nil {
@@ -234,7 +236,8 @@ func (i *itemService) CreateItem(request *dto.CreateItemRequest) (*models.Item, 
 	var itemRes *models.Item
 	var itemErr error
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		authorizationTokenParseRes, authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&request.Metadata.Get("authorization")[0])
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
 			case "Token is expired":
@@ -247,13 +250,13 @@ func (i *itemService) CreateItem(request *dto.CreateItemRequest) (*models.Item, 
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: uuid.MustParse(*authorizationTokenParseRes)}, &[]string{"id", "user_fk"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_fk"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		permissionExistsErr := i.dao.NewPermissionRepository().PermissionExists(tx, &models.Permission{Name: "create_item", UserFk: authorizationTokenRes.UserFk, BusinessFk: request.BusinessFk})
+		permissionExistsErr := i.dao.NewPermissionRepository().PermissionExists(tx, &models.Permission{Name: "create_item", UserFk: *authorizationTokenRes.UserFk, BusinessFk: request.BusinessFk})
 		if permissionExistsErr != nil && permissionExistsErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		} else if permissionExistsErr != nil {

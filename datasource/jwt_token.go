@@ -6,52 +6,60 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
 )
 
+type JsonWebTokenMetadata struct {
+	TokenId *uuid.UUID
+	Token   *string
+}
+
 type JwtTokenDatasource interface {
-	CreateJwtRefreshToken(refreshTokenFk *string) (*string, error)
-	CreateJwtAuthorizationToken(authorizationTokenFk *string) (*string, error)
-	ParseJwtRefreshToken(tokenValue *string) (*string, error)
-	ParseJwtAuthorizationToken(tokenValue *string) (*string, error)
+	CreateJwtRefreshToken(tokenMetadata *JsonWebTokenMetadata) error
+	CreateJwtAuthorizationToken(tokenMetadata *JsonWebTokenMetadata) error
+	ParseJwtRefreshToken(tokenMetadata *JsonWebTokenMetadata) error
+	ParseJwtAuthorizationToken(tokenMetadata *JsonWebTokenMetadata) error
 }
 
 type jwtTokenDatasource struct{}
 
-func (v *jwtTokenDatasource) CreateJwtRefreshToken(refreshTokenFk *string) (*string, error) {
+func (v *jwtTokenDatasource) CreateJwtRefreshToken(tokenMetadata *JsonWebTokenMetadata) error {
 	hmacSecret := []byte(Config.JwtSecret)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		ExpiresAt: time.Now().Add(time.Hour * 720).Unix(),
-		Subject:   *refreshTokenFk,
+		Subject:   tokenMetadata.TokenId.String(),
 	})
 	// Sign and get the complete encoded token as a string using the secret
 	tokenString, err := token.SignedString(hmacSecret)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &tokenString, nil
+	*tokenMetadata.Token = tokenString
+	return nil
 }
 
-func (r *jwtTokenDatasource) CreateJwtAuthorizationToken(authorizationTokenFk *string) (*string, error) {
+func (r *jwtTokenDatasource) CreateJwtAuthorizationToken(tokenMetadata *JsonWebTokenMetadata) error {
 	hmacSecret := []byte(Config.JwtSecret)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
-		Subject:   *authorizationTokenFk,
+		Subject:   tokenMetadata.TokenId.String(),
 	})
 	// Sign and get the complete encoded token as a string using the secret
 	tokenString, err := token.SignedString(hmacSecret)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &tokenString, nil
+	*tokenMetadata.Token = tokenString
+	return nil
 }
 
-func (r *jwtTokenDatasource) ParseJwtRefreshToken(tokenValue *string) (*string, error) {
+func (r *jwtTokenDatasource) ParseJwtRefreshToken(tokenMetadata *JsonWebTokenMetadata) error {
 	hmacSecret := []byte(Config.JwtSecret)
 	// Parse takes the token string and a function for looking up the key. The latter is especially
 	// useful if you use multiple keys for your application.  The standard is to use 'kid' in the
 	// head of the token to identify which key to use, but the parsed token (head and claims) is provided
 	// to the callback, providing flexibility.
-	token, err := jwt.Parse(*tokenValue, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(*tokenMetadata.Token, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			tokenErr := fmt.Sprintf("Unexpected signing method: %v", token.Header["alg"])
@@ -62,22 +70,23 @@ func (r *jwtTokenDatasource) ParseJwtRefreshToken(tokenValue *string) (*string, 
 		return hmacSecret, nil
 	})
 	if err != nil {
-		return nil, err
+		return err
 	} else if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		data := fmt.Sprintf("%s", claims["sub"])
-		return &data, nil
+		*tokenMetadata.TokenId = uuid.MustParse(data)
+		return nil
 	} else {
-		return nil, err
+		return err
 	}
 }
 
-func (r *jwtTokenDatasource) ParseJwtAuthorizationToken(tokenValue *string) (*string, error) {
+func (r *jwtTokenDatasource) ParseJwtAuthorizationToken(tokenMetadata *JsonWebTokenMetadata) error {
 	hmacSecret := []byte(Config.JwtSecret)
 	// Parse takes the token string and a function for looking up the key. The latter is especially
 	// useful if you use multiple keys for your application.  The standard is to use 'kid' in the
 	// head of the token to identify which key to use, but the parsed token (head and claims) is provided
 	// to the callback, providing flexibility.
-	token, err := jwt.Parse(*tokenValue, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(*tokenMetadata.Token, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			tokenErr := fmt.Sprintf("Unexpected signing method: %v", token.Header["alg"])
@@ -88,11 +97,12 @@ func (r *jwtTokenDatasource) ParseJwtAuthorizationToken(tokenValue *string) (*st
 		return hmacSecret, nil
 	})
 	if err != nil {
-		return nil, err
+		return err
 	} else if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		data := fmt.Sprintf("%s", claims["sub"])
-		return &data, nil
+		*tokenMetadata.TokenId = uuid.MustParse(data)
+		return nil
 	} else {
-		return nil, err
+		return err
 	}
 }
