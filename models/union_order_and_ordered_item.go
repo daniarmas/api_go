@@ -15,8 +15,8 @@ func (UnionOrderAndOrderedItem) TableName() string {
 
 type UnionOrderAndOrderedItem struct {
 	ID            uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
-	OrderFk       uuid.UUID      `gorm:"column:order_fk;not null"`
-	OrderedItemFk uuid.UUID      `gorm:"column:ordered_item_fk;not null"`
+	OrderId       uuid.UUID      `gorm:"column:order_id;not null"`
+	OrderedItemId uuid.UUID      `gorm:"column:ordered_item_id;not null"`
 	CreateTime    time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime    time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime    gorm.DeletedAt `gorm:"index;column:delete_time"`
