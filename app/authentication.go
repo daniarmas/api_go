@@ -7,6 +7,7 @@ import (
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
 	utils "github.com/daniarmas/api_go/utils"
+	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -15,8 +16,31 @@ import (
 )
 
 func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest) (*gp.Empty, error) {
+	invArgsDetails := []*epb.QuotaFailure_Violation{}
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
+	if req.Email == "" {
+		invArgsDetails = append(invArgsDetails, &epb.QuotaFailure_Violation{
+			Subject:     "Email field is required",
+			Description: "",
+		})
+	}
+	if req.Type == pb.VerificationCodeType_VerificationCodeTypeUnspecified {
+		invArgsDetails = append(invArgsDetails, &epb.QuotaFailure_Violation{
+			Subject:     "Type field is required",
+			Description: "",
+		})
+	}
+	if len(invArgsDetails) != 0 {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		ds, _ := st.WithDetails(
+			&epb.QuotaFailure{
+				Violations: invArgsDetails,
+			},
+		)
+		st = ds
+		return nil, st.Err()
+	}
 	verificationCode := models.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: md.Get("deviceid")[0], CreateTime: time.Now(), UpdateTime: time.Now()}
 	err := m.authenticationService.CreateVerificationCode(&verificationCode, &md)
 	if err != nil {
