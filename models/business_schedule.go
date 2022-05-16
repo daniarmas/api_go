@@ -43,7 +43,7 @@ type BusinessSchedule struct {
 	ClosingTimeDeliveryThursday  string         `gorm:"column:closing_time_delivery_thursday"`
 	ClosingTimeDeliveryFriday    string         `gorm:"column:closing_time_delivery_friday"`
 	ClosingTimeDeliverySaturday  string         `gorm:"column:closing_time_delivery_saturday"`
-	BusinessFk                   uuid.UUID      `gorm:"column:business_fk;not null"`
+	BusinessId                   uuid.UUID      `gorm:"column:business_id;not null"`
 	CreateTime                   time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime                   time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime                   gorm.DeletedAt `gorm:"index;column:delete_time"`

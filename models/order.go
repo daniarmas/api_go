@@ -30,7 +30,7 @@ type Order struct {
 	UserId               uuid.UUID      `gorm:"column:user_id;not null"`
 	User                 User           `gorm:"foreignKey:UserId"`
 	BusinessId           uuid.UUID      `gorm:"column:business_id;not null"`
-	Business             Business       `gorm:"foreignKey:BusinessFk"`
+	Business             Business       `gorm:"foreignKey:BusinessId"`
 	CreateTime           time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime           time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime           gorm.DeletedAt `gorm:"index;column:delete_time"`
@@ -52,7 +52,7 @@ type OrderBusiness struct {
 	UserId               uuid.UUID      `gorm:"column:user_id;not null"`
 	User                 User           `gorm:"foreignKey:UserId"`
 	BusinessId           uuid.UUID      `gorm:"column:business_id;not null"`
-	Business             Business       `gorm:"foreignKey:BusinessFk"`
+	Business             Business       `gorm:"foreignKey:BusinessId"`
 	CreateTime           time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime           time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime           gorm.DeletedAt `gorm:"index;column:delete_time"`

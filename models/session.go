@@ -9,7 +9,7 @@ import (
 
 type Session struct {
 	ID                       uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
-	RefreshTokenId           uuid.UUID      `gorm:"type:uuid;column:refresh_token_fk;not null"`
+	RefreshTokenId           uuid.UUID      `gorm:"type:uuid;column:refresh_token_id;not null"`
 	UserId                   uuid.UUID      `gorm:"column:user_id;not null"`
 	User                     User           `gorm:"foreignKey:UserId"`
 	DeviceId                 uuid.UUID      `gorm:"column:device_id;not null"`

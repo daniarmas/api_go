@@ -1,0 +1,7 @@
+{
+  "email": "{{ faker.internet.example_email }}",
+  "alias": "fooBar",
+  "fullName": "{{ faker.name.full_name }}",
+  "code": "fooBar",
+  "signUpType": "SignUpUnspecified"
+}

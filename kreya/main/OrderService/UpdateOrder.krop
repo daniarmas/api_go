@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.OrderService.UpdateOrder"
+  },
+  "requests": [
+    {
+      "location": "UpdateOrder-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

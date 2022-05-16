@@ -17,10 +17,10 @@ type Order struct {
 	Price                float64
 	BuildingNumber       string
 	HouseNumber          string
-	BusinessFk           uuid.UUID
+	BusinessId           uuid.UUID
 	Coordinates          ewkb.Point
-	UserFk               uuid.UUID
-	AuthorizationTokenFk uuid.UUID
+	UserId               uuid.UUID
+	AuthorizationTokenId uuid.UUID
 	DeliveryDate         time.Time
 	CreateTime           time.Time
 	UpdateTime           time.Time

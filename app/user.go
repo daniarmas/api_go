@@ -124,9 +124,9 @@ func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) 
 	// 		HouseNumber:    e.HouseNumber,
 	// 		Coordinates:    &pb.Point{Latitude: e.Coordinates.Coords()[0], Longitude: e.Coordinates.Coords()[1]},
 	// 		Description:    e.Description,
-	// 		UserFk:         e.UserFk.String(),
-	// 		ProvinceFk:     e.ProvinceFk.String(),
-	// 		MunicipalityFk: e.MunicipalityFk.String(),
+	// 		UserId:         e.UserId.String(),
+	// 		ProvinceId:     e.ProvinceId.String(),
+	// 		MunicipalityId: e.MunicipalityId.String(),
 	// 		CreateTime:     e.CreateTime.String(),
 	// 		UpdateTime:     e.UpdateTime.String(),
 	// 	})

@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.BusinessService.Feed"
+  },
+  "requests": [
+    {
+      "location": "Feed-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

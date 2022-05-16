@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.AuthenticationService.RefreshToken"
+  },
+  "requests": [
+    {
+      "location": "RefreshToken-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

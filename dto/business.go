@@ -29,9 +29,9 @@ type Business struct {
 	TimeMarginOrderMinute    int32
 	ToPickUp                 bool
 	HomeDelivery             bool
-	BusinessBrandFk          uuid.UUID
-	ProvinceFk               uuid.UUID
-	MunicipalityFk           uuid.UUID
+	BusinessBrandId          uuid.UUID
+	ProvinceId               uuid.UUID
+	MunicipalityId           uuid.UUID
 	Distance                 float32
 	Status                   string
 	Cursor                   int32

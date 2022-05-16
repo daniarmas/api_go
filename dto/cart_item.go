@@ -11,9 +11,9 @@ type CartItem struct {
 	Name                 string
 	Price                string
 	Quantity             int32
-	ItemFk               uuid.UUID
-	UserFk               uuid.UUID
-	AuthorizationTokenFk uuid.UUID
+	ItemId               uuid.UUID
+	UserId               uuid.UUID
+	AuthorizationTokenId uuid.UUID
 	Thumbnail            string
 	ThumbnailBlurHash    string
 	Cursor               int32

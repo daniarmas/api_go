@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.AuthenticationService.SignIn"
+  },
+  "requests": [
+    {
+      "location": "SignIn-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

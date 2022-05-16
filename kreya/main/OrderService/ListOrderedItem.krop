@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.OrderService.ListOrderedItem"
+  },
+  "requests": [
+    {
+      "location": "ListOrderedItem-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

@@ -3,7 +3,7 @@ package dto
 import "github.com/google/uuid"
 
 type CreateBusinessScheduleRequest struct {
-	BusinessFk                   uuid.UUID
+	BusinessId                   uuid.UUID
 	OpeningTimeSunday            string
 	OpeningTimeMonday            string
 	OpeningTimeTuesday           string

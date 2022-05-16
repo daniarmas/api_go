@@ -47,7 +47,7 @@ func (i *businessService) UpdateBusiness(request *dto.UpdateBusinessRequest) (*m
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_fk"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
@@ -60,13 +60,13 @@ func (i *businessService) UpdateBusiness(request *dto.UpdateBusinessRequest) (*m
 		if !businessOwnerRes.IsBusinessOwner {
 			return errors.New("permission denied")
 		}
-		businessIsOpenRes, businessIsOpenErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessFk: request.Id}, "OrderTypePickUp")
+		businessIsOpenRes, businessIsOpenErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessId: request.Id}, "OrderTypePickUp")
 		if businessIsOpenErr != nil && businessIsOpenErr.Error() != "business closed" {
 			return businessIsOpenErr
 		} else if businessIsOpenRes {
 			return errors.New("business is open")
 		}
-		businessHomeDeliveryRes, businessHomeDeliveryErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessFk: request.Id}, "OrderTypeHomeDelivery")
+		businessHomeDeliveryRes, businessHomeDeliveryErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessId: request.Id}, "OrderTypeHomeDelivery")
 		if businessHomeDeliveryErr != nil && businessIsOpenErr.Error() != "business closed" {
 			return businessHomeDeliveryErr
 		} else if businessHomeDeliveryRes {
@@ -128,11 +128,11 @@ func (i *businessService) UpdateBusiness(request *dto.UpdateBusinessRequest) (*m
 		}
 		var provinceId uuid.UUID
 		var municipalityId uuid.UUID
-		if request.ProvinceFk != "" {
-			provinceId = uuid.MustParse(request.ProvinceFk)
+		if request.ProvinceId != "" {
+			provinceId = uuid.MustParse(request.ProvinceId)
 		}
-		if request.MunicipalityFk != "" {
-			municipalityId = uuid.MustParse(request.MunicipalityFk)
+		if request.MunicipalityId != "" {
+			municipalityId = uuid.MustParse(request.MunicipalityId)
 		}
 		businessRes, businessErr = i.dao.NewBusinessQuery().UpdateBusiness(tx, &models.Business{
 			Name:                     request.Name,
@@ -184,7 +184,7 @@ func (i *businessService) CreateBusiness(request *dto.CreateBusinessRequest) (*d
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_fk"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
@@ -369,10 +369,10 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 				TimeMarginOrderMinute:    e.TimeMarginOrderMinute,
 				ToPickUp:                 e.ToPickUp,
 				HomeDelivery:             e.HomeDelivery,
-				BusinessBrandFk:          e.BusinessBrandId,
-				ProvinceFk:               e.ProvinceId,
+				BusinessBrandId:          e.BusinessBrandId,
+				ProvinceId:               e.ProvinceId,
 				Cursor:                   int32(e.Cursor),
-				MunicipalityFk:           e.MunicipalityId,
+				MunicipalityId:           e.MunicipalityId,
 			})
 		}
 	}

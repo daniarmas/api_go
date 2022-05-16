@@ -68,7 +68,7 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 	// for _, e := range item.ItemPhoto {
 	// 	itemPhotos = append(itemPhotos, &pb.ItemPhoto{
 	// 		Id:                       e.ID.String(),
-	// 		ItemFk:                   e.ItemFk.String(),
+	// 		ItemId:                   e.ItemId.String(),
 	// 		HighQualityPhoto:         e.HighQualityPhoto,
 	// 		HighQualityPhotoBlurHash: e.HighQualityPhotoBlurHash,
 	// 		LowQualityPhoto:          e.LowQualityPhoto,

@@ -17,7 +17,7 @@ type BannedApp struct {
 	ID                            uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Description                   string         `gorm:"column:description;not null"`
 	Version                       string         `gorm:"column:version;not null"`
-	ModeratorAuthorizationTokenFk uuid.UUID      `gorm:"column:moderator_authorization_token_fk;not null"`
+	ModeratorAuthorizationTokenId uuid.UUID      `gorm:"column:moderator_authorization_token_id;not null"`
 	CreateTime                    time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime                    time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime                    gorm.DeletedAt `gorm:"index;column:delete_time"`

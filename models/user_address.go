@@ -18,6 +18,7 @@ type UserAddress struct {
 	ID             uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Tag            string         `gorm:"column:tag;not null"`
 	UserId         uuid.UUID      `gorm:"column:user_id;not null"`
+	User           User           `gorm:"foreignKey:UserId"`
 	Coordinates    ewkb.Point     `gorm:"column:coordinates;not null"`
 	ResidenceType  string         `gorm:"column:residence_type;not null"`
 	Address        string         `gorm:"column:address;not null"`

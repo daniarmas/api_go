@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.AuthenticationService.SignOut"
+  },
+  "requests": [
+    {
+      "location": "SignOut-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

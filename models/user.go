@@ -17,8 +17,8 @@ type User struct {
 	ID                       uuid.UUID        `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Email                    string           `gorm:"column:email;not null"`
 	PhoneNumber              string           `gorm:"column:phone_number"`
-	UserAddress              []UserAddress    `gorm:"foreignKey:UserFk"`
-	UserPermissions          []UserPermission `gorm:"foreignKey:UserFk"`
+	UserAddress              []UserAddress    `gorm:"foreignKey:UserId"`
+	UserPermissions          []UserPermission `gorm:"foreignKey:UserId"`
 	FullName                 string           `gorm:"column:fullname;not null"`
 	IsLegalAge               bool             `gorm:"column:is_legal_age;not null"`
 	HighQualityPhoto         string           `gorm:"column:high_quality_photo;not null"`

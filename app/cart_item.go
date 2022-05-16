@@ -49,7 +49,7 @@ func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemR
 	if req.NextPage.Nanos == 0 && req.NextPage.Seconds == 0 {
 		nextPage = time.Now()
 	}
-	listCartItemsResponse, err := m.cartItemService.ListCartItemAndItem(&dto.ListCartItemRequest{NextPage: nextPage, Metadata: &md, MunicipalityFk: uuid.MustParse(req.MunicipalityId)})
+	listCartItemsResponse, err := m.cartItemService.ListCartItemAndItem(&dto.ListCartItemRequest{NextPage: nextPage, Metadata: &md, MunicipalityId: uuid.MustParse(req.MunicipalityId)})
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -137,7 +137,7 @@ func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemReq
 func (m *CartItemServer) ReduceCartItem(ctx context.Context, req *pb.ReduceCartItemRequest) (*pb.ReduceCartItemResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	cartItemsResponse, err := m.cartItemService.ReduceCartItem(&dto.ReduceCartItem{ItemFk: req.ItemId, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, Metadata: &md, MunicipalityFk: uuid.MustParse(req.MunicipalityId)})
+	cartItemsResponse, err := m.cartItemService.ReduceCartItem(&dto.ReduceCartItem{ItemId: req.ItemId, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, Metadata: &md, MunicipalityId: uuid.MustParse(req.MunicipalityId)})
 	if err != nil {
 		errorr := strings.Split(err.Error(), ":")
 		switch errorr[0] {

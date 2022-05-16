@@ -1,0 +1,15 @@
+{
+  "id": "{{ faker.random.uuid }}",
+  "name": "{{ faker.name.last_name }}",
+  "description": "fooBar",
+  "price": "{{ faker.commerce.price }}",
+  "businessCollectionId": "fooBar",
+  "highQualityPhoto": "fooBar",
+  "highQualityPhotoBlurHash": "fooBar",
+  "lowQualityPhoto": "fooBar",
+  "lowQualityPhotoBlurHash": "fooBar",
+  "thumbnail": "fooBar",
+  "thumbnailBlurHash": "fooBar",
+  "availability": "123",
+  "status": "ItemStatusTypeUnspecified"
+}

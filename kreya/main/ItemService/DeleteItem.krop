@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.ItemService.DeleteItem"
+  },
+  "requests": [
+    {
+      "location": "DeleteItem-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

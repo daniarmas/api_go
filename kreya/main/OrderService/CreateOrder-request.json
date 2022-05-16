@@ -1,0 +1,16 @@
+{
+  "cartItems": [
+    "fooBar",
+    "fooBar"
+  ],
+  "orderType": "OrderTypeUnspecified",
+  "residenceType": "ResidenceTypeUnspecified",
+  "number": "fooBar",
+  "address": "fooBar",
+  "instructions": "fooBar",
+  "coordinates": {
+    "latitude": 1.23,
+    "longitude": 1.23
+  },
+  "orderDate": "1970-01-01T00:02:03.000000123Z"
+}

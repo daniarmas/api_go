@@ -1,0 +1,23 @@
+{
+  "details": {
+    "methodFqn": "main.AuthenticationService.CreateVerificationCode",
+    "metadata": [
+      {
+        "key": "deviceid",
+        "value": "1"
+      },
+      {
+        "key": "appversion",
+        "value": "1.0.0"
+      }
+    ],
+    "disableServerCertificateValidation": true
+  },
+  "requests": [
+    {
+      "location": "CreateVerificationCode-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

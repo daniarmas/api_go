@@ -54,12 +54,12 @@ func (v *authenticationService) CreateVerificationCode(verificationCode *models.
 		if bannedDeviceResult != nil {
 			return errors.New("banned device")
 		}
-		bannedAppRes, bannedAppErr := v.dao.NewBannedAppRepository().GetBannedApp(tx, &models.BannedApp{Version: metadata.Get("appversion")[0]})
-		if bannedAppErr != nil && bannedAppErr.Error() != "record not found" {
-			return bannedAppErr
-		} else if bannedAppRes != nil {
-			return errors.New("app banned")
-		}
+		// bannedAppRes, bannedAppErr := v.dao.NewBannedAppRepository().GetBannedApp(tx, &models.BannedApp{Version: metadata.Get("appversion")[0]})
+		// if bannedAppErr != nil && bannedAppErr.Error() != "record not found" {
+		// 	return bannedAppErr
+		// } else if bannedAppRes != nil {
+		// 	return errors.New("app banned")
+		// }
 		v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{Email: verificationCode.Email, Type: verificationCode.Type, DeviceIdentifier: verificationCode.DeviceIdentifier})
 		verificationCodeResult := v.dao.NewVerificationCodeQuery().CreateVerificationCode(tx, verificationCode)
 		if verificationCodeResult != nil {

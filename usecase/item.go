@@ -18,7 +18,7 @@ import (
 type ItemService interface {
 	GetItem(request *dto.GetItemRequest) (*models.ItemBusiness, error)
 	ListItem(itemRequest *dto.ListItemRequest) (*dto.ListItemResponse, error)
-	SearchItem(name string, provinceFk string, municipalityFk string, cursor int64, searchMunicipalityType string) (*dto.SearchItemResponse, error)
+	SearchItem(name string, provinceId string, municipalityId string, cursor int64, searchMunicipalityType string) (*dto.SearchItemResponse, error)
 	CreateItem(request *dto.CreateItemRequest) (*models.Item, error)
 	UpdateItem(request *dto.UpdateItemRequest) (*models.Item, error)
 	DeleteItem(request *dto.DeleteItemRequest) error
@@ -50,7 +50,7 @@ func (i *itemService) UpdateItem(request *dto.UpdateItemRequest) (*models.Item, 
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_fk"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
@@ -62,13 +62,13 @@ func (i *itemService) UpdateItem(request *dto.UpdateItemRequest) (*models.Item, 
 		} else if permissionExistsErr != nil {
 			return permissionExistsErr
 		}
-		businessRes, businessErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessFk: request.BusinessId}, "OrderTypePickUp")
+		businessRes, businessErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessId: request.BusinessId}, "OrderTypePickUp")
 		if businessErr != nil {
 			return businessErr
 		} else if businessRes {
 			return errors.New("business is open")
 		}
-		businessHomeDeliveryRes, businessHomeDeliveryErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessFk: request.BusinessId}, "OrderTypeHomeDelivery")
+		businessHomeDeliveryRes, businessHomeDeliveryErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessId: request.BusinessId}, "OrderTypeHomeDelivery")
 		if businessHomeDeliveryErr != nil {
 			return businessHomeDeliveryErr
 		} else if businessHomeDeliveryRes {
@@ -156,7 +156,7 @@ func (i *itemService) DeleteItem(request *dto.DeleteItemRequest) error {
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_fk"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
@@ -172,13 +172,13 @@ func (i *itemService) DeleteItem(request *dto.DeleteItemRequest) error {
 		} else if permissionExistsErr != nil {
 			return permissionExistsErr
 		}
-		businessRes, businessErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessFk: getItemRes.BusinessId}, "OrderTypePickUp")
+		businessRes, businessErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessId: getItemRes.BusinessId}, "OrderTypePickUp")
 		if businessErr != nil {
 			return businessErr
 		} else if businessRes {
 			return errors.New("business is open")
 		}
-		businessHomeDeliveryRes, businessHomeDeliveryErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessFk: getItemRes.BusinessId}, "OrderTypeHomeDelivery")
+		businessHomeDeliveryRes, businessHomeDeliveryErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessId: getItemRes.BusinessId}, "OrderTypeHomeDelivery")
 		if businessHomeDeliveryErr != nil {
 			return businessHomeDeliveryErr
 		} else if businessHomeDeliveryRes {
@@ -244,7 +244,7 @@ func (i *itemService) CreateItem(request *dto.CreateItemRequest) (*models.Item, 
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_fk"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
@@ -342,13 +342,13 @@ func (i *itemService) GetItem(request *dto.GetItemRequest) (*models.ItemBusiness
 	return item, nil
 }
 
-func (i *itemService) SearchItem(name string, provinceFk string, municipalityFk string, cursor int64, searchMunicipalityType string) (*dto.SearchItemResponse, error) {
+func (i *itemService) SearchItem(name string, provinceId string, municipalityId string, cursor int64, searchMunicipalityType string) (*dto.SearchItemResponse, error) {
 	var response *[]models.Item
 	var searchItemResponse dto.SearchItemResponse
 	var responseErr error
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 		if searchMunicipalityType == "More" {
-			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, name, provinceFk, municipalityFk, cursor, false, 10)
+			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, name, provinceId, municipalityId, cursor, false, 10)
 			if responseErr != nil {
 				return responseErr
 			}
@@ -358,7 +358,7 @@ func (i *itemService) SearchItem(name string, provinceFk string, municipalityFk 
 				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_More.String()
 			} else if len(*response) <= 10 && len(*response) != 0 {
 				length := 10 - len(*response)
-				responseAdd, responseErr := i.dao.NewItemQuery().SearchItem(tx, name, provinceFk, municipalityFk, cursor, true, int64(length))
+				responseAdd, responseErr := i.dao.NewItemQuery().SearchItem(tx, name, provinceId, municipalityId, cursor, true, int64(length))
 				if responseErr != nil {
 					return responseErr
 				}
@@ -369,7 +369,7 @@ func (i *itemService) SearchItem(name string, provinceFk string, municipalityFk 
 				searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
 				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore.String()
 			} else if len(*response) == 0 {
-				response, responseErr = i.dao.NewItemQuery().SearchItem(tx, name, provinceFk, municipalityFk, cursor, true, 10)
+				response, responseErr = i.dao.NewItemQuery().SearchItem(tx, name, provinceId, municipalityId, cursor, true, 10)
 				if responseErr != nil {
 					return responseErr
 				}
@@ -382,7 +382,7 @@ func (i *itemService) SearchItem(name string, provinceFk string, municipalityFk 
 				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore.String()
 			}
 		} else {
-			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, name, provinceFk, municipalityFk, cursor, true, 10)
+			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, name, provinceId, municipalityId, cursor, true, 10)
 			if responseErr != nil {
 				return responseErr
 			}

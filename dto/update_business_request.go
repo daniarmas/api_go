@@ -26,6 +26,6 @@ type UpdateBusinessRequest struct {
 	TimeMarginOrderMinute    int32
 	ToPickUp                 bool
 	HomeDelivery             bool
-	ProvinceFk               string
-	MunicipalityFk           string
+	ProvinceId               string
+	MunicipalityId           string
 }

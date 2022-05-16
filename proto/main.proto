@@ -812,6 +812,11 @@ message Polygon {
   repeated double coordinates = 1;
 }
 
+message ErrorDetail {
+  string subject = 1;
+  string description = 2;
+}
+
 // // Enums
 
 enum SearchMunicipalityType {

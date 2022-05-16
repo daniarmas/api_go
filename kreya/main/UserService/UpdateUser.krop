@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.UserService.UpdateUser"
+  },
+  "requests": [
+    {
+      "location": "UpdateUser-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

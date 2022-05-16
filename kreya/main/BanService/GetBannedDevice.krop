@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.BanService.GetBannedDevice"
+  },
+  "requests": [
+    {
+      "location": "GetBannedDevice-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

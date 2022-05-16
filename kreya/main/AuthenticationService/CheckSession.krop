@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.AuthenticationService.CheckSession"
+  },
+  "requests": [
+    {
+      "location": "CheckSession-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

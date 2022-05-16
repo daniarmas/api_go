@@ -7,8 +7,8 @@ import (
 )
 
 type ReduceCartItem struct {
-	ItemFk         string
+	ItemId         string
 	Location       ewkb.Point
 	Metadata       *metadata.MD
-	MunicipalityFk uuid.UUID
+	MunicipalityId uuid.UUID
 }

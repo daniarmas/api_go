@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.AuthenticationService.ListSession"
+  },
+  "requests": [
+    {
+      "location": "ListSession-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

@@ -16,29 +16,33 @@ import (
 )
 
 func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest) (*gp.Empty, error) {
-	invArgsDetails := []*epb.QuotaFailure_Violation{}
+	var invalidEmail *epb.BadRequest_FieldViolation
+	var invalidType *epb.BadRequest_FieldViolation
+	var invalidArgs bool
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
 	if req.Email == "" {
-		invArgsDetails = append(invArgsDetails, &epb.QuotaFailure_Violation{
-			Subject:     "Email field is required",
-			Description: "",
-		})
+		invalidArgs = true
+		invalidEmail = &epb.BadRequest_FieldViolation{
+			Field:       "Email",
+			Description: "The email field is required",
+		}
 	}
 	if req.Type == pb.VerificationCodeType_VerificationCodeTypeUnspecified {
-		invArgsDetails = append(invArgsDetails, &epb.QuotaFailure_Violation{
-			Subject:     "Type field is required",
-			Description: "",
-		})
+		invalidArgs = true
+		invalidType = &epb.BadRequest_FieldViolation{
+			Field:       "Type",
+			Description: "The type field is required",
+		}
 	}
-	if len(invArgsDetails) != 0 {
+	if invalidArgs {
 		st = status.New(codes.InvalidArgument, "Invalid Arguments")
-		ds, _ := st.WithDetails(
-			&epb.QuotaFailure{
-				Violations: invArgsDetails,
-			},
+		st, _ = st.WithDetails(
+			invalidEmail,
 		)
-		st = ds
+		st, _ = st.WithDetails(
+			invalidType,
+		)
 		return nil, st.Err()
 	}
 	verificationCode := models.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: md.Get("deviceid")[0], CreateTime: time.Now(), UpdateTime: time.Now()}

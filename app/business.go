@@ -103,8 +103,8 @@ func (m *BusinessServer) UpdateBusiness(ctx context.Context, req *pb.UpdateBusin
 		TimeMarginOrderMinute:    req.TimeMarginOrderMinute,
 		ToPickUp:                 req.ToPickUp,
 		HomeDelivery:             req.HomeDelivery,
-		ProvinceFk:               req.ProvinceId,
-		MunicipalityFk:           req.MunicipalityId,
+		ProvinceId:               req.ProvinceId,
+		MunicipalityId:           req.MunicipalityId,
 		Metadata:                 &md,
 	})
 	if err != nil {
@@ -189,9 +189,9 @@ func (m *BusinessServer) Feed(ctx context.Context, req *pb.FeedRequest) (*pb.Fee
 			TimeMarginOrderMinute:    e.TimeMarginOrderMinute,
 			ToPickUp:                 e.ToPickUp,
 			HomeDelivery:             e.HomeDelivery,
-			BusinessBrandId:          e.BusinessBrandFk.String(),
-			ProvinceId:               e.ProvinceFk.String(),
-			MunicipalityId:           e.MunicipalityFk.String(),
+			BusinessBrandId:          e.BusinessBrandId.String(),
+			ProvinceId:               e.ProvinceId.String(),
+			MunicipalityId:           e.MunicipalityId.String(),
 			Cursor:                   e.Cursor,
 		})
 	}

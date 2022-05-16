@@ -24,7 +24,7 @@ func (u *userDatasource) GetUserWithAddress(tx *gorm.DB, where *models.User, fie
 	var userAddressResult []models.UserAddress
 	var userAddressErr error
 	var result *gorm.DB
-	query := fmt.Sprintf("SELECT id, tag, residence_type, building_number, house_number, description, user_fk, province_fk, municipality_fk, create_time, update_time, ST_AsEWKB(coordinates) AS coordinates FROM user_address WHERE user_address.user_fk = '%v';", where.ID)
+	query := fmt.Sprintf("SELECT id, tag, residence_type, building_number, house_number, description, user_id, province_id, municipality_id, create_time, update_time, ST_AsEWKB(coordinates) AS coordinates FROM user_address WHERE user_address.user_id = '%v';", where.ID)
 	userAddressErr = tx.Raw(query).Scan(&userAddressResult).Error
 	if userAddressErr != nil {
 		return nil, userAddressErr

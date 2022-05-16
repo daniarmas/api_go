@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.AuthenticationService.GetVerificationCode"
+  },
+  "requests": [
+    {
+      "location": "GetVerificationCode-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}
