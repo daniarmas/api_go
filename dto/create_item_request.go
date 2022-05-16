@@ -8,14 +8,14 @@ import (
 type CreateItemRequest struct {
 	Name                     string
 	Description              string
-	Price                    float32
-	BusinessItemCategoryFk   string
-	HighQualityPhotoObject   string
+	Price                    string
+	BusinessCollectionId     string
+	HighQualityPhoto         string
 	HighQualityPhotoBlurHash string
-	LowQualityPhotoObject    string
+	LowQualityPhoto          string
 	LowQualityPhotoBlurHash  string
-	ThumbnailObject          string
+	Thumbnail                string
 	ThumbnailBlurHash        string
-	BusinessFk               uuid.UUID
+	BusinessId               uuid.UUID
 	Metadata                 *metadata.MD
 }

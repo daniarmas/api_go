@@ -13,13 +13,13 @@ type UpdateBusinessRequest struct {
 	Address                  string
 	Phone                    string
 	Email                    string
-	HighQualityPhotoObject   string
+	HighQualityPhoto         string
 	HighQualityPhotoBlurHash string
-	LowQualityPhotoObject    string
+	LowQualityPhoto          string
 	LowQualityPhotoBlurHash  string
-	ThumbnailObject          string
+	Thumbnail                string
 	ThumbnailBlurHash        string
-	DeliveryPrice            float64
+	DeliveryPrice            string
 	TimeMarginOrderMonth     int32
 	TimeMarginOrderDay       int32
 	TimeMarginOrderHour      int32

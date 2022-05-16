@@ -5,23 +5,23 @@ import (
 	"gorm.io/gorm"
 )
 
-type ItemCategoryQuery interface {
-	GetItemCategory(tx *gorm.DB, where *models.BusinessItemCategory) (*models.BusinessItemCategory, error)
-	ListItemCategory(tx *gorm.DB, where *models.BusinessItemCategory) (*[]models.BusinessItemCategory, error)
+type BusinessCollectionQuery interface {
+	GetBusinessCollection(tx *gorm.DB, where *models.BusinessCollection) (*models.BusinessCollection, error)
+	ListBusinessCollection(tx *gorm.DB, where *models.BusinessCollection) (*[]models.BusinessCollection, error)
 }
 
-type itemCategoryQuery struct{}
+type businessCollectionQuery struct{}
 
-func (i *itemCategoryQuery) ListItemCategory(tx *gorm.DB, where *models.BusinessItemCategory) (*[]models.BusinessItemCategory, error) {
-	result, err := Datasource.NewItemCategoryDatasource().ListItemCategory(tx, where)
+func (i *businessCollectionQuery) ListBusinessCollection(tx *gorm.DB, where *models.BusinessCollection) (*[]models.BusinessCollection, error) {
+	result, err := Datasource.NewBusinessCollectionDatasource().ListBusinessCollection(tx, where)
 	if err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func (i *itemCategoryQuery) GetItemCategory(tx *gorm.DB, where *models.BusinessItemCategory) (*models.BusinessItemCategory, error) {
-	result, err := Datasource.NewItemCategoryDatasource().GetItemCategory(tx, where)
+func (i *businessCollectionQuery) GetBusinessCollection(tx *gorm.DB, where *models.BusinessCollection) (*models.BusinessCollection, error) {
+	result, err := Datasource.NewBusinessCollectionDatasource().GetBusinessCollection(tx, where)
 	if err != nil {
 		return nil, err
 	}

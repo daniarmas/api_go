@@ -6,8 +6,8 @@ import (
 )
 
 type FeedRequest struct {
-	ProvinceFk             string
-	MunicipalityFk         string
+	ProvinceId             string
+	MunicipalityId         string
 	HomeDelivery           bool
 	ToPickUp               bool
 	NextPage               int32

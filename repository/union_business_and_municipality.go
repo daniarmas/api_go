@@ -14,7 +14,7 @@ type UnionBusinessAndMunicipalityRepository interface {
 type unionBusinessAndMunicipality struct{}
 
 func (v *unionBusinessAndMunicipality) UnionBusinessAndMunicipalityExists(tx *gorm.DB, where *models.UnionBusinessAndMunicipality) error {
-	err := Datasource.NewUnionBusinessAndMunicipalityDatasource().UnionBusinessAndMunicipalityExists(tx, &models.UnionBusinessAndMunicipality{MunicipalityFk: where.MunicipalityFk, BusinessFk: where.BusinessFk})
+	err := Datasource.NewUnionBusinessAndMunicipalityDatasource().UnionBusinessAndMunicipalityExists(tx, &models.UnionBusinessAndMunicipality{MunicipalityId: where.MunicipalityId, BusinessId: where.BusinessId})
 	if err != nil {
 		return err
 	}

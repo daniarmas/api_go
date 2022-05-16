@@ -16,7 +16,7 @@ func (CartItem) TableName() string {
 type CartItem struct {
 	ID                   uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Name                 string         `gorm:"column:name;not null"`
-	Price                float64        `gorm:"column:price;not null"`
+	Price                string         `gorm:"column:price;not null"`
 	Quantity             int32          `gorm:"column:quantity;not null"`
 	ItemId               uuid.UUID      `gorm:"column:item_id;not null"`
 	BusinessId           uuid.UUID      `gorm:"column:business_id;not null"`

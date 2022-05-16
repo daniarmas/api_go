@@ -27,7 +27,7 @@ func (i *banService) GetBannedDevice(metadata *metadata.MD) (*models.BannedDevic
 	var bannedDevice *models.BannedDevice
 	var bannedDeviceErr error
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		bannedDevice, bannedDeviceErr = i.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceId: metadata.Get("deviceid")[0]}, &[]string{"create_time", "ban_expiration_time"})
+		bannedDevice, bannedDeviceErr = i.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: metadata.Get("deviceid")[0]}, &[]string{"create_time", "ban_expiration_time"})
 		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
 			return bannedDeviceErr
 		}
@@ -63,7 +63,7 @@ func (i *banService) GetBannedUser(metadata *metadata.MD) (*models.BannedUser, e
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		bannedUser, bannedUserErr = i.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{UserFk: *authorizationTokenRes.UserFk}, &[]string{"create_time", "ban_expiration_time"})
+		bannedUser, bannedUserErr = i.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{UserId: *authorizationTokenRes.UserId}, &[]string{"create_time", "ban_expiration_time"})
 		if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
 			return bannedUserErr
 		}

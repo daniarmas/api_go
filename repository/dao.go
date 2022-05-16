@@ -19,10 +19,10 @@ type DAO interface {
 	NewBusinessQuery() BusinessQuery
 	NewMunicipalityRepository() MunicipalityRepository
 	NewProvinceRepository() ProvinceRepository
-	NewItemCategoryQuery() ItemCategoryQuery
+	NewBusinessCollectionQuery() BusinessCollectionQuery
 	NewObjectStorageRepository() ObjectStorageRepository
 	NewCartItemRepository() CartItemQuery
-	NewPermissionRepository() PermissionRepository
+	NewUserPermissionRepository() UserPermissionRepository
 	NewUnionBusinessAndMunicipalityRepository() UnionBusinessAndMunicipalityRepository
 	NewOrderRepository() OrderRepository
 	NewOrderedRepository() OrderedRepository
@@ -157,8 +157,8 @@ func (d *dao) NewBusinessQuery() BusinessQuery {
 	return &businessQuery{}
 }
 
-func (d *dao) NewItemCategoryQuery() ItemCategoryQuery {
-	return &itemCategoryQuery{}
+func (d *dao) NewBusinessCollectionQuery() BusinessCollectionQuery {
+	return &businessCollectionQuery{}
 }
 
 func (d *dao) NewUnionBusinessAndMunicipalityRepository() UnionBusinessAndMunicipalityRepository {
@@ -173,6 +173,6 @@ func (d *dao) NewCartItemRepository() CartItemQuery {
 	return &cartItemQuery{}
 }
 
-func (d *dao) NewPermissionRepository() PermissionRepository {
-	return &permissionRepository{}
+func (d *dao) NewUserPermissionRepository() UserPermissionRepository {
+	return &userPermissionRepository{}
 }

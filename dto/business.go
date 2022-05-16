@@ -20,7 +20,7 @@ type Business struct {
 	ThumbnailBlurHash        string
 	IsOpen                   bool
 	IsInRange                bool
-	DeliveryPrice            float32
+	DeliveryPrice            string
 	Coordinates              ewkb.Point
 	Polygon                  ewkb.Polygon
 	TimeMarginOrderMonth     int32

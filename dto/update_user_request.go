@@ -5,13 +5,12 @@ import "google.golang.org/grpc/metadata"
 type UpdateUserRequest struct {
 	Id                       string
 	Email                    string
-	Alias                    string
 	FullName                 string
-	ThumbnailObject          string
+	Thumbnail                string
 	ThumbnailBlurHash        string
-	HighQualityPhotoObject   string
+	HighQualityPhoto         string
 	HighQualityPhotoBlurHash string
-	LowQualityPhotoObject    string
+	LowQualityPhoto          string
 	LowQualityPhotoBlurHash  string
 	Code                     string
 	Metadata                 *metadata.MD

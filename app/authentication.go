@@ -17,7 +17,7 @@ import (
 func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest) (*gp.Empty, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	verificationCode := models.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceId: md.Get("deviceid")[0], CreateTime: time.Now(), UpdateTime: time.Now()}
+	verificationCode := models.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: md.Get("deviceid")[0], CreateTime: time.Now(), UpdateTime: time.Now()}
 	err := m.authenticationService.CreateVerificationCode(&verificationCode, &md)
 	if err != nil {
 		switch err.Error() {
@@ -42,7 +42,7 @@ func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *
 func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.GetVerificationCodeRequest) (*gp.Empty, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	_, err := m.authenticationService.GetVerificationCode(&models.VerificationCode{Code: req.Code, Email: req.Email, Type: req.Type.String(), DeviceId: md.Get("deviceid")[0]}, &[]string{"id"})
+	_, err := m.authenticationService.GetVerificationCode(&models.VerificationCode{Code: req.Code, Email: req.Email, Type: req.Type.String(), DeviceIdentifier: md.Get("deviceid")[0]}, &[]string{"id"})
 	if err != nil {
 		switch err.Error() {
 		case "record not found":
@@ -59,7 +59,7 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest) (*pb.SignInResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	result, err := m.authenticationService.SignIn(&models.VerificationCode{Code: req.Code, Email: req.Email, Type: "SignIn", DeviceId: md.Get("deviceid")[0]}, &md)
+	result, err := m.authenticationService.SignIn(&models.VerificationCode{Code: req.Code, Email: req.Email, Type: "SignIn", DeviceIdentifier: md.Get("deviceid")[0]}, &md)
 	if err != nil {
 		switch err.Error() {
 		case "verification code not found":
@@ -77,26 +77,26 @@ func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest
 		}
 		return nil, st.Err()
 	}
-	permissions := make([]*pb.Permission, 0, len(result.User.Permission))
-	for _, item := range result.User.Permission {
+	permissions := make([]*pb.Permission, 0, len(result.User.UserPermissions))
+	for _, item := range result.User.UserPermissions {
 		permissions = append(permissions, &pb.Permission{
 			Id:         item.ID.String(),
 			Name:       item.Name,
-			UserFk:     item.UserFk.String(),
-			BusinessFk: item.BusinessFk.String(),
+			UserId:     item.UserId.String(),
+			BusinessId: item.BusinessId.String(),
 			CreateTime: timestamppb.New(item.CreateTime),
 			UpdateTime: timestamppb.New(item.UpdateTime),
 		})
 	}
 
-	return &pb.SignInResponse{RefreshToken: result.RefreshToken, AuthorizationToken: result.AuthorizationToken, User: &pb.User{Id: result.User.ID.String(), FullName: result.User.FullName, Alias: result.User.Alias, HighQualityPhoto: result.User.HighQualityPhoto, HighQualityPhotoBlurHash: result.User.HighQualityPhotoBlurHash, LowQualityPhoto: result.User.LowQualityPhoto, LowQualityPhotoBlurHash: result.User.LowQualityPhotoBlurHash, Thumbnail: result.User.Thumbnail, ThumbnailBlurHash: result.User.ThumbnailBlurHash, UserAddress: nil, Email: result.User.Email, Permissions: permissions, HighQualityPhotoObject: result.User.LowQualityPhotoObject, LowQualityPhotoObject: result.User.LowQualityPhotoObject, ThumbnailObject: result.User.ThumbnailObject, CreateTime: timestamppb.New(result.User.CreateTime), UpdateTime: timestamppb.New(result.User.UpdateTime)}}, nil
+	return &pb.SignInResponse{RefreshToken: result.RefreshToken, AuthorizationToken: result.AuthorizationToken, User: &pb.User{Id: result.User.ID.String(), FullName: result.User.FullName, HighQualityPhoto: result.User.HighQualityPhoto, HighQualityPhotoBlurHash: result.User.HighQualityPhotoBlurHash, LowQualityPhoto: result.User.LowQualityPhoto, LowQualityPhotoBlurHash: result.User.LowQualityPhotoBlurHash, Thumbnail: result.User.Thumbnail, ThumbnailBlurHash: result.User.ThumbnailBlurHash, UserAddress: nil, Email: result.User.Email, Permissions: permissions, CreateTime: timestamppb.New(result.User.CreateTime), UpdateTime: timestamppb.New(result.User.UpdateTime)}}, nil
 }
 
 func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest) (*pb.SignUpResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
 	signUpType := req.SignUpType.String()
-	result, err := m.authenticationService.SignUp(&req.FullName, &req.Alias, &models.VerificationCode{Code: req.Code, Email: req.Email, Type: "SignIn", DeviceId: md.Get("deviceid")[0]}, &signUpType, &md)
+	result, err := m.authenticationService.SignUp(&req.FullName, &req.Alias, &models.VerificationCode{Code: req.Code, Email: req.Email, Type: "SignIn", DeviceIdentifier: md.Get("deviceid")[0]}, &signUpType, &md)
 	if err != nil {
 		switch err.Error() {
 		case "verification code not found":
@@ -114,22 +114,7 @@ func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest
 		}
 		return nil, st.Err()
 	}
-	return &pb.SignUpResponse{RefreshToken: result.RefreshToken, AuthorizationToken: result.AuthorizationToken, User: &pb.User{Id: result.User.ID.String(), FullName: result.User.FullName, Alias: result.User.Alias, HighQualityPhoto: result.User.HighQualityPhoto, HighQualityPhotoBlurHash: result.User.HighQualityPhotoBlurHash, LowQualityPhoto: result.User.LowQualityPhoto, LowQualityPhotoBlurHash: result.User.LowQualityPhotoBlurHash, Thumbnail: result.User.Thumbnail, ThumbnailBlurHash: result.User.ThumbnailBlurHash, UserAddress: nil, Email: result.User.Email}}, nil
-}
-
-func (m *AuthenticationServer) UserExists(ctx context.Context, req *pb.UserExistsRequest) (*gp.Empty, error) {
-	var st *status.Status
-	err := m.authenticationService.UserExists(&req.Alias)
-	if err != nil {
-		switch err.Error() {
-		case "user already exists":
-			st = status.New(codes.AlreadyExists, "User already exists")
-		default:
-			st = status.New(codes.Internal, "Internal server error")
-		}
-		return nil, st.Err()
-	}
-	return &gp.Empty{}, nil
+	return &pb.SignUpResponse{RefreshToken: result.RefreshToken, AuthorizationToken: result.AuthorizationToken, User: &pb.User{Id: result.User.ID.String(), FullName: result.User.FullName, HighQualityPhoto: result.User.HighQualityPhoto, HighQualityPhotoBlurHash: result.User.HighQualityPhotoBlurHash, LowQualityPhoto: result.User.LowQualityPhoto, LowQualityPhotoBlurHash: result.User.LowQualityPhotoBlurHash, Thumbnail: result.User.Thumbnail, ThumbnailBlurHash: result.User.ThumbnailBlurHash, UserAddress: nil, Email: result.User.Email}}, nil
 }
 
 func (m *AuthenticationServer) CheckSession(ctx context.Context, req *gp.Empty) (*pb.CheckSessionResponse, error) {
@@ -165,7 +150,7 @@ func (m *AuthenticationServer) CheckSession(ctx context.Context, req *gp.Empty) 
 func (m *AuthenticationServer) SignOut(ctx context.Context, req *pb.SignOutRequest) (*gp.Empty, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	err := m.authenticationService.SignOut(&req.All, &req.AuthorizationTokenFk, &md)
+	err := m.authenticationService.SignOut(&req.All, &req.AuthorizationTokenId, &md)
 	if err != nil {
 		switch err.Error() {
 		case "unauthenticated":
@@ -234,7 +219,7 @@ func (m *AuthenticationServer) ListSession(ctx context.Context, req *pb.ListSess
 	sessions := make([]*pb.Session, 0, len(*result.Sessions))
 	for _, e := range *result.Sessions {
 		var actual bool = false
-		if e.DeviceFk == result.ActualDeviceId {
+		if e.Device.ID == result.ActualDeviceId {
 			actual = true
 		}
 		sessions = append(sessions, &pb.Session{
@@ -244,7 +229,7 @@ func (m *AuthenticationServer) ListSession(ctx context.Context, req *pb.ListSess
 			Model:         e.Model,
 			App:           *utils.ParseAppType(&e.App),
 			AppVersion:    e.AppVersion,
-			DeviceId:      e.DeviceId,
+			DeviceId:      e.DeviceId.String(),
 			Actual:        actual,
 		})
 	}

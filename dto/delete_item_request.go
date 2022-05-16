@@ -6,6 +6,6 @@ import (
 )
 
 type DeleteItemRequest struct {
-	Metadata   *metadata.MD
-	ItemFk     uuid.UUID
+	Metadata *metadata.MD
+	ItemId   uuid.UUID
 }

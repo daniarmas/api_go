@@ -17,7 +17,7 @@ func (Order) TableName() string {
 type Order struct {
 	ID                   uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Status               string         `gorm:"column:status"`
-	Quantity             int32          `gorm:"column:quantity;not null"`
+	ItemsQuantity        int32          `gorm:"column:items_quantity;not null"`
 	OrderType            string         `gorm:"column:order_type;not null"`
 	ResidenceType        string         `gorm:"column:residence_type;not null"`
 	Price                string         `gorm:"column:price;not null"`

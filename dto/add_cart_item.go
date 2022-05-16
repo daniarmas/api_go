@@ -7,9 +7,9 @@ import (
 )
 
 type AddCartItem struct {
-	ItemFk         string
+	ItemId         string
 	Quantity       int32
 	Location       ewkb.Point
-	MunicipalityFk uuid.UUID
+	MunicipalityId uuid.UUID
 	Metadata       *metadata.MD
 }

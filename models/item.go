@@ -23,7 +23,7 @@ type Item struct {
 	Availability             int64          `gorm:"column:availability;not null"`
 	BusinessId               uuid.UUID      `gorm:"column:business_fk;not null"`
 	Business                 Business       `gorm:"foreignKey:BusinessId"`
-	BusinessItemCategoryId   uuid.UUID      `gorm:"column:business_item_category_id;not null"`
+	BusinessCollectionId     uuid.UUID      `gorm:"column:business_collection_id;not null"`
 	ProvinceId               uuid.UUID      `gorm:"column:province_id;not null"`
 	MunicipalityId           uuid.UUID      `gorm:"column:municipality_id;not null"`
 	HighQualityPhoto         string         `gorm:"column:high_quality_photo;not null"`
@@ -49,7 +49,7 @@ type ItemBusiness struct {
 	Availability             int64          `gorm:"column:availability;not null"`
 	BusinessId               uuid.UUID      `gorm:"column:business_id;not null"`
 	Business                 Business       `gorm:"foreignKey:BusinessFk"`
-	BusinessItemCategoryId   uuid.UUID      `gorm:"column:business_item_category_id;not null"`
+	BusinessCollectionId     uuid.UUID      `gorm:"column:business_item_category_id;not null"`
 	HighQualityPhoto         string         `gorm:"column:high_quality_photo;not null"`
 	HighQualityPhotoBlurHash string         `gorm:"column:high_quality_photo_blurhash;not null"`
 	LowQualityPhoto          string         `gorm:"column:low_quality_photo;not null"`

@@ -36,7 +36,7 @@ func (i *userService) GetAddressInfo(request *dto.GetAddressInfoRequest) (*dto.G
 		} else if municipalityErr != nil {
 			return municipalityErr
 		}
-		provinceRes, provinceErr := i.dao.NewProvinceRepository().GetProvince(tx, &models.Province{ID: muncipalityRes.ProvinceFk})
+		provinceRes, provinceErr := i.dao.NewProvinceRepository().GetProvince(tx, &models.Province{ID: muncipalityRes.ProvinceId})
 		if provinceErr != nil && provinceErr.Error() == "record not found" {
 			return errors.New("province not found")
 		} else if provinceErr != nil {
@@ -46,7 +46,6 @@ func (i *userService) GetAddressInfo(request *dto.GetAddressInfoRequest) (*dto.G
 		response.MunicipalityName = muncipalityRes.Name
 		response.ProvinceId = provinceRes.ID
 		response.ProvinceName = provinceRes.Name
-		response.ProvinceNameAbbreviation = provinceRes.ProvinceNameAbbreviation
 		return nil
 	})
 	if err != nil {
@@ -79,7 +78,7 @@ func (i *userService) GetUser(metadata *metadata.MD) (*models.User, error) {
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		user, userErr = i.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{ID: *authorizationTokenRes.UserFk}, nil)
+		user, userErr = i.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{ID: *authorizationTokenRes.UserId}, nil)
 		if userErr != nil {
 			return userErr
 		}
@@ -110,17 +109,17 @@ func (i *userService) UpdateUser(request *dto.UpdateUserRequest) (*dto.UpdateUse
 					return authorizationTokenParseErr
 				}
 			}
-			authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_fk"})
+			authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
 			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserFk})
+			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserId})
 			if userErr != nil {
 				return userErr
 			}
-			verificationCode, verificationCodeErr := i.dao.NewVerificationCodeQuery().GetVerificationCode(tx, &models.VerificationCode{Email: userRes.Email, Code: request.Code, DeviceId: request.Metadata.Get("deviceid")[0], Type: "ChangeUserEmail"}, &[]string{"id"})
+			verificationCode, verificationCodeErr := i.dao.NewVerificationCodeQuery().GetVerificationCode(tx, &models.VerificationCode{Email: userRes.Email, Code: request.Code, DeviceIdentifier: request.Metadata.Get("deviceid")[0], Type: "ChangeUserEmail"}, &[]string{"id"})
 			if verificationCodeErr != nil && verificationCodeErr.Error() == "record not found" {
 				return errors.New("verification code not found")
 			} else if verificationCodeErr != nil {
@@ -135,7 +134,7 @@ func (i *userService) UpdateUser(request *dto.UpdateUserRequest) (*dto.UpdateUse
 				return updatedUserErr
 			}
 
-		} else if request.Alias != "" {
+		} else if request.HighQualityPhoto != "" && request.HighQualityPhotoBlurHash != "" && request.LowQualityPhoto != "" && request.LowQualityPhotoBlurHash != "" && request.Thumbnail != "" && request.ThumbnailBlurHash != "" {
 			jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
 			authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 			if authorizationTokenParseErr != nil {
@@ -156,85 +155,47 @@ func (i *userService) UpdateUser(request *dto.UpdateUserRequest) (*dto.UpdateUse
 			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			user, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserFk})
-			if userErr != nil && userErr.Error() == "record not found" {
-				return errors.New("unauthenticated")
-			} else if userErr != nil {
-				return userErr
-			}
-			alias, aliasErr := i.dao.NewUserQuery().GetUser(tx, &models.User{Alias: request.Alias})
-			if aliasErr != nil && aliasErr.Error() != "record not found" {
-				return aliasErr
-			} else if alias != nil && aliasErr == nil {
-				return errors.New("user already exist")
-			}
-			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: user.ID}, &models.User{Alias: request.Alias})
-			if updatedUserErr != nil {
-				return updatedUserErr
-			}
-
-		} else if request.HighQualityPhotoObject != "" && request.HighQualityPhotoBlurHash != "" && request.LowQualityPhotoObject != "" && request.LowQualityPhotoBlurHash != "" && request.ThumbnailObject != "" && request.ThumbnailBlurHash != "" {
-			jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
-			authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-			if authorizationTokenParseErr != nil {
-				switch authorizationTokenParseErr.Error() {
-				case "Token is expired":
-					return errors.New("authorizationtoken expired")
-				case "signature is invalid":
-					return errors.New("signature is invalid")
-				case "token contains an invalid number of segments":
-					return errors.New("token contains an invalid number of segments")
-				default:
-					return authorizationTokenParseErr
-				}
-			}
-			authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_fk"})
-			if authorizationTokenErr != nil {
-				return authorizationTokenErr
-			} else if authorizationTokenRes == nil {
-				return errors.New("unauthenticated")
-			}
-			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserFk})
+			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserId})
 			if userErr != nil {
 				return userErr
 			}
-			_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.UsersBulkName, request.HighQualityPhotoObject)
+			_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.UsersBulkName, request.HighQualityPhoto)
 			if hqErr != nil {
 				return hqErr
 			}
-			_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.UsersBulkName, request.LowQualityPhotoObject)
+			_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.UsersBulkName, request.LowQualityPhoto)
 			if lqErr != nil {
 				return lqErr
 			}
-			_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.UsersBulkName, request.ThumbnailObject)
+			_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.UsersBulkName, request.Thumbnail)
 			if tnErr != nil {
 				return tnErr
 			}
-			_, copyHqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.UsersDeletedBulkName, Object: userRes.HighQualityPhotoObject}, minio.CopySrcOptions{Bucket: repository.Config.UsersBulkName, Object: userRes.HighQualityPhotoObject})
+			_, copyHqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.UsersDeletedBulkName, Object: userRes.HighQualityPhoto}, minio.CopySrcOptions{Bucket: repository.Config.UsersBulkName, Object: userRes.HighQualityPhoto})
 			if copyHqErr != nil {
 				return copyHqErr
 			}
-			_, copyLqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.UsersDeletedBulkName, Object: userRes.LowQualityPhotoObject}, minio.CopySrcOptions{Bucket: repository.Config.UsersBulkName, Object: userRes.LowQualityPhotoObject})
+			_, copyLqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.UsersDeletedBulkName, Object: userRes.LowQualityPhoto}, minio.CopySrcOptions{Bucket: repository.Config.UsersBulkName, Object: userRes.LowQualityPhoto})
 			if copyLqErr != nil {
 				return copyLqErr
 			}
-			_, copyThErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.UsersDeletedBulkName, Object: userRes.ThumbnailObject}, minio.CopySrcOptions{Bucket: repository.Config.UsersBulkName, Object: userRes.ThumbnailObject})
+			_, copyThErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.UsersDeletedBulkName, Object: userRes.Thumbnail}, minio.CopySrcOptions{Bucket: repository.Config.UsersBulkName, Object: userRes.Thumbnail})
 			if copyThErr != nil {
 				return copyThErr
 			}
-			rmHqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.UsersBulkName, userRes.HighQualityPhotoObject, minio.RemoveObjectOptions{})
+			rmHqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.UsersBulkName, userRes.HighQualityPhoto, minio.RemoveObjectOptions{})
 			if rmHqErr != nil {
 				return rmHqErr
 			}
-			rmLqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.UsersBulkName, userRes.LowQualityPhotoObject, minio.RemoveObjectOptions{})
+			rmLqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.UsersBulkName, userRes.LowQualityPhoto, minio.RemoveObjectOptions{})
 			if rmLqErr != nil {
 				return rmLqErr
 			}
-			rmThErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.UsersBulkName, userRes.ThumbnailObject, minio.RemoveObjectOptions{})
+			rmThErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.UsersBulkName, userRes.Thumbnail, minio.RemoveObjectOptions{})
 			if rmThErr != nil {
 				return rmThErr
 			}
-			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: userRes.ID}, &models.User{HighQualityPhotoObject: request.HighQualityPhotoObject, HighQualityPhotoBlurHash: request.HighQualityPhotoBlurHash, HighQualityPhoto: datasource.Config.UsersBulkName + "/" + request.HighQualityPhotoObject, LowQualityPhoto: datasource.Config.UsersBulkName + "/" + request.LowQualityPhotoObject, LowQualityPhotoBlurHash: request.LowQualityPhotoBlurHash, LowQualityPhotoObject: request.LowQualityPhotoObject, Thumbnail: datasource.Config.UsersBulkName + "/" + request.ThumbnailObject, ThumbnailObject: request.ThumbnailObject, ThumbnailBlurHash: request.ThumbnailBlurHash})
+			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: userRes.ID}, &models.User{HighQualityPhoto: request.HighQualityPhoto, HighQualityPhotoBlurHash: request.HighQualityPhotoBlurHash, LowQualityPhoto: request.LowQualityPhoto, LowQualityPhotoBlurHash: request.LowQualityPhotoBlurHash, Thumbnail: request.Thumbnail, ThumbnailBlurHash: request.ThumbnailBlurHash})
 			if updatedUserErr != nil {
 				return updatedUserErr
 			}
@@ -253,13 +214,13 @@ func (i *userService) UpdateUser(request *dto.UpdateUserRequest) (*dto.UpdateUse
 					return authorizationTokenParseErr
 				}
 			}
-			authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_fk"})
+			authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
 			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserFk})
+			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserId})
 			if userErr != nil {
 				return userErr
 			}

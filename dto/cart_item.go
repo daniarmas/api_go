@@ -9,7 +9,7 @@ import (
 type CartItem struct {
 	ID                   uuid.UUID
 	Name                 string
-	Price                float64
+	Price                string
 	Quantity             int32
 	ItemFk               uuid.UUID
 	UserFk               uuid.UUID
