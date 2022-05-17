@@ -80,7 +80,7 @@ func (i *itemService) UpdateItem(request *dto.UpdateItemRequest) (*models.Item, 
 		} else if getCartItemRes != nil {
 			return errors.New("item in the cart")
 		}
-		getItemRes, getItemErr := i.dao.NewItemQuery().GetItem(tx, &models.Item{ID: request.ItemId})
+		getItemRes, getItemErr := i.dao.NewItemQuery().GetItem(tx, &models.Item{ID: request.ItemId}, &[]string{})
 		if getItemErr != nil {
 			return getItemErr
 		}
@@ -162,7 +162,7 @@ func (i *itemService) DeleteItem(request *dto.DeleteItemRequest) error {
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		getItemRes, getItemErr := i.dao.NewItemQuery().GetItem(tx, &models.Item{ID: request.ItemId})
+		getItemRes, getItemErr := i.dao.NewItemQuery().GetItem(tx, &models.Item{ID: request.ItemId}, &[]string{})
 		if getItemErr != nil {
 			return getItemErr
 		}
@@ -348,7 +348,7 @@ func (i *itemService) SearchItem(name string, provinceId string, municipalityId 
 	var responseErr error
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
 		if searchMunicipalityType == "More" {
-			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, name, provinceId, municipalityId, cursor, false, 10)
+			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, name, provinceId, municipalityId, cursor, false, 10, &[]string{})
 			if responseErr != nil {
 				return responseErr
 			}
@@ -358,7 +358,7 @@ func (i *itemService) SearchItem(name string, provinceId string, municipalityId 
 				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_More.String()
 			} else if len(*response) <= 10 && len(*response) != 0 {
 				length := 10 - len(*response)
-				responseAdd, responseErr := i.dao.NewItemQuery().SearchItem(tx, name, provinceId, municipalityId, cursor, true, int64(length))
+				responseAdd, responseErr := i.dao.NewItemQuery().SearchItem(tx, name, provinceId, municipalityId, cursor, true, int64(length), &[]string{})
 				if responseErr != nil {
 					return responseErr
 				}
@@ -369,7 +369,7 @@ func (i *itemService) SearchItem(name string, provinceId string, municipalityId 
 				searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
 				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore.String()
 			} else if len(*response) == 0 {
-				response, responseErr = i.dao.NewItemQuery().SearchItem(tx, name, provinceId, municipalityId, cursor, true, 10)
+				response, responseErr = i.dao.NewItemQuery().SearchItem(tx, name, provinceId, municipalityId, cursor, true, 10, &[]string{})
 				if responseErr != nil {
 					return responseErr
 				}
@@ -382,7 +382,7 @@ func (i *itemService) SearchItem(name string, provinceId string, municipalityId 
 				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore.String()
 			}
 		} else {
-			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, name, provinceId, municipalityId, cursor, true, 10)
+			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, name, provinceId, municipalityId, cursor, true, 10, &[]string{})
 			if responseErr != nil {
 				return responseErr
 			}
