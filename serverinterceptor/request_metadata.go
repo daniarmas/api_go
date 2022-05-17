@@ -24,13 +24,16 @@ func UnaryMetadataRequestInterceptor() grpc.UnaryServerInterceptor {
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler) (_ interface{}, err error) {
-		var st = status.New(codes.Unauthenticated, "Incorrect metadata")
-		var invalidDeviceId *epb.ErrorInfo
-		var invalidAccessToken *epb.ErrorInfo
-		var invalidPlatform *epb.ErrorInfo
-		var invalidSystemVersion *epb.ErrorInfo
-		var invalidModel *epb.ErrorInfo
+		var (
+			invalidDeviceId      *epb.ErrorInfo
+			invalidAccessToken   *epb.ErrorInfo
+			invalidAppVersion    *epb.ErrorInfo
+			invalidPlatform      *epb.ErrorInfo
+			invalidSystemVersion *epb.ErrorInfo
+			invalidModel         *epb.ErrorInfo
+		)
 		var invalidArgs bool
+		var st = status.New(codes.Unauthenticated, "Incorrect metadata")
 		md, _ := metadata.FromIncomingContext(ctx)
 		if len(md.Get("Device-Id")) == 0 {
 			invalidArgs = true
@@ -67,6 +70,12 @@ func UnaryMetadataRequestInterceptor() grpc.UnaryServerInterceptor {
 				Reason: "model metadata missing",
 			}
 		}
+		if len(md.Get("App-Version")) == 0 {
+			invalidArgs = true
+			invalidAppVersion = &epb.ErrorInfo{
+				Reason: "app-version metadata missing",
+			}
+		}
 		if invalidArgs {
 			if invalidDeviceId != nil {
 				st, _ = st.WithDetails(
@@ -76,6 +85,11 @@ func UnaryMetadataRequestInterceptor() grpc.UnaryServerInterceptor {
 			if invalidAccessToken != nil {
 				st, _ = st.WithDetails(
 					invalidAccessToken,
+				)
+			}
+			if invalidAppVersion != nil {
+				st, _ = st.WithDetails(
+					invalidAppVersion,
 				)
 			}
 			if invalidPlatform != nil {
@@ -109,12 +123,15 @@ func StreamMetadataRequestInterceptor() grpc.StreamServerInterceptor {
 		stream grpc.ServerStream,
 		info *grpc.StreamServerInfo,
 		handler grpc.StreamHandler) (err error) {
+		var (
+			invalidDeviceId      *epb.ErrorInfo
+			invalidAccessToken   *epb.ErrorInfo
+			invalidAppVersion    *epb.ErrorInfo
+			invalidPlatform      *epb.ErrorInfo
+			invalidSystemVersion *epb.ErrorInfo
+			invalidModel         *epb.ErrorInfo
+		)
 		var st = status.New(codes.Unauthenticated, "Incorrect metadata")
-		var invalidDeviceId *epb.ErrorInfo
-		var invalidAccessToken *epb.ErrorInfo
-		var invalidPlatform *epb.ErrorInfo
-		var invalidSystemVersion *epb.ErrorInfo
-		var invalidModel *epb.ErrorInfo
 		var invalidArgs bool
 		md, _ := metadata.FromIncomingContext(stream.Context())
 		if len(md.Get("Device-Id")) == 0 {
@@ -146,6 +163,12 @@ func StreamMetadataRequestInterceptor() grpc.StreamServerInterceptor {
 				Reason: "system-version metadata missing",
 			}
 		}
+		if len(md.Get("App-Version")) == 0 {
+			invalidArgs = true
+			invalidAppVersion = &epb.ErrorInfo{
+				Reason: "app-version metadata missing",
+			}
+		}
 		if len(md.Get("Model")) == 0 {
 			invalidArgs = true
 			invalidModel = &epb.ErrorInfo{
@@ -153,21 +176,36 @@ func StreamMetadataRequestInterceptor() grpc.StreamServerInterceptor {
 			}
 		}
 		if invalidArgs {
-			st, _ = st.WithDetails(
-				invalidDeviceId,
-			)
-			st, _ = st.WithDetails(
-				invalidAccessToken,
-			)
-			st, _ = st.WithDetails(
-				invalidPlatform,
-			)
-			st, _ = st.WithDetails(
-				invalidSystemVersion,
-			)
-			st, _ = st.WithDetails(
-				invalidModel,
-			)
+			if invalidDeviceId != nil {
+				st, _ = st.WithDetails(
+					invalidDeviceId,
+				)
+			}
+			if invalidAccessToken != nil {
+				st, _ = st.WithDetails(
+					invalidAccessToken,
+				)
+			}
+			if invalidAppVersion != nil {
+				st, _ = st.WithDetails(
+					invalidAppVersion,
+				)
+			}
+			if invalidPlatform != nil {
+				st, _ = st.WithDetails(
+					invalidPlatform,
+				)
+			}
+			if invalidSystemVersion != nil {
+				st, _ = st.WithDetails(
+					invalidSystemVersion,
+				)
+			}
+			if invalidModel != nil {
+				st, _ = st.WithDetails(
+					invalidModel,
+				)
+			}
 			return st.Err()
 		}
 		handlerErr := handler(srv, newWrappedStream(stream))

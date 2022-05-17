@@ -11,6 +11,7 @@ import (
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/utils"
+	"github.com/google/uuid"
 	"google.golang.org/grpc/metadata"
 	gp "google.golang.org/protobuf/types/known/emptypb"
 	"gorm.io/gorm"
@@ -59,12 +60,12 @@ func (v *authenticationService) CreateVerificationCode(ctx context.Context, req 
 		if bannedDeviceResult != nil {
 			return errors.New("banned device")
 		}
-		// bannedAppRes, bannedAppErr := v.dao.NewBannedAppRepository().GetBannedApp(tx, &models.BannedApp{Version: metadata.Get("appversion")[0]})
-		// if bannedAppErr != nil && bannedAppErr.Error() != "record not found" {
-		// 	return bannedAppErr
-		// } else if bannedAppRes != nil {
-		// 	return errors.New("app banned")
-		// }
+		deprecatedVersionAppRes, err := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: *meta.AppVersion})
+		if err != nil && err.Error() != "record not found" {
+			return err
+		} else if deprecatedVersionAppRes != nil {
+			return errors.New("app banned")
+		}
 		v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{Email: req.Email, Type: req.Type.String(), DeviceIdentifier: *meta.DeviceIdentifier})
 		verificationCodeResult := v.dao.NewVerificationCodeQuery().CreateVerificationCode(tx, &models.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: *meta.DeviceIdentifier, CreateTime: time.Now(), UpdateTime: time.Now()})
 		if verificationCodeResult != nil {
@@ -130,7 +131,7 @@ func (v *authenticationService) SignIn(verificationCode *models.VerificationCode
 		} else if bannedDeviceRes != nil {
 			return errors.New("device banned")
 		}
-		bannedAppRes, bannedAppErr := v.dao.NewBannedAppRepository().GetBannedApp(tx, &models.BannedApp{Version: metadata.Get("appversion")[0]})
+		bannedAppRes, bannedAppErr := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: metadata.Get("appversion")[0]})
 		if bannedAppErr != nil && bannedAppErr.Error() != "record not found" {
 			return bannedAppErr
 		} else if bannedAppRes != nil {
@@ -226,7 +227,7 @@ func (v *authenticationService) SignUp(fullname *string, alias *string, verifica
 		} else if bannedDeviceRes != nil {
 			return errors.New("device banned")
 		}
-		bannedAppRes, bannedAppErr := v.dao.NewBannedAppRepository().GetBannedApp(tx, &models.BannedApp{Version: metadata.Get("appversion")[0]})
+		bannedAppRes, bannedAppErr := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: metadata.Get("appversion")[0]})
 		if bannedAppErr != nil && bannedAppErr.Error() != "record not found" {
 			return bannedAppErr
 		} else if bannedAppRes != nil {
@@ -366,7 +367,7 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 			} else if bannedUserRes != nil {
 				return errors.New("user banned")
 			}
-			bannedAppRes, bannedAppErr := v.dao.NewBannedAppRepository().GetBannedApp(tx, &models.BannedApp{Version: metadata.Get("appversion")[0]})
+			bannedAppRes, bannedAppErr := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: metadata.Get("appversion")[0]})
 			if bannedAppErr != nil && bannedAppErr.Error() != "record not found" {
 				return bannedAppErr
 			} else if bannedAppRes != nil {
@@ -388,7 +389,7 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 					return deviceErr
 				}
 			}
-			bannedAppRes, bannedAppErr := v.dao.NewBannedAppRepository().GetBannedApp(tx, &models.BannedApp{Version: metadata.Get("appversion")[0]})
+			bannedAppRes, bannedAppErr := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: metadata.Get("appversion")[0]})
 			if bannedAppErr != nil && bannedAppErr.Error() != "record not found" {
 				return bannedAppErr
 			} else if bannedAppRes != nil {
@@ -432,15 +433,15 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenid *string,
 			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			var refreshTokenIds []string
+			var refreshTokenIds []uuid.UUID
 			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserId: *authorizationTokenRes.UserId}, nil)
 			if deleteRefreshTokenErr != nil {
 				return deleteRefreshTokenErr
 			}
 			for _, e := range *deleteRefreshTokenRes {
-				refreshTokenIds = append(refreshTokenIds, e.ID.String())
+				refreshTokenIds = append(refreshTokenIds, e.ID)
 			}
-			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, "refresh_token_id IN ?", refreshTokenIds)
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationTokenByRefreshTokenIds(tx, &refreshTokenIds)
 			if deleteAuthorizationTokenErr != nil {
 				return deleteAuthorizationTokenErr
 			}

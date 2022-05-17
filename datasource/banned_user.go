@@ -18,7 +18,7 @@ func (v *bannedUserDatasource) GetBannedUser(tx *gorm.DB, where *models.BannedUs
 	result := tx.Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
-			return nil, errors.New("banned user not found")
+			return nil, errors.New("record not found")
 		} else {
 			return nil, result.Error
 		}

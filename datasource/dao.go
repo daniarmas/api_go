@@ -38,7 +38,7 @@ type DAO interface {
 	NewOrderDatasource() OrderDatasource
 	NewOrderedItemDatasource() OrderedItemDatasource
 	NewUnionOrderAndOrderedItemDatasource() UnionOrderAndOrderedItemDatasource
-	NewBannedAppDatasource() BannedAppDatasource
+	NewDeprecatedVersionAppDatasource() DeprecatedVersionAppDatasource
 	NewBusinessScheduleDatasource() BusinessScheduleDatasource
 	NewOrderLifecycleDatasource() OrderLifecycleDatasource
 }
@@ -235,8 +235,8 @@ func (d *dao) NewOrderedItemDatasource() OrderedItemDatasource {
 	return &orderedItemDatasource{}
 }
 
-func (d *dao) NewBannedAppDatasource() BannedAppDatasource {
-	return &bannedAppDatasource{}
+func (d *dao) NewDeprecatedVersionAppDatasource() DeprecatedVersionAppDatasource {
+	return &deprecatedVersionAppDatasource{}
 }
 
 func (d *dao) NewOrderLifecycleDatasource() OrderLifecycleDatasource {

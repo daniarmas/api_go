@@ -18,7 +18,7 @@ func (v *bannedDeviceDatasource) GetBannedDevice(tx *gorm.DB, where *models.Bann
 	result := tx.Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
-			return nil, errors.New("banned device not found")
+			return nil, errors.New("record not found")
 		} else {
 			return nil, result.Error
 		}

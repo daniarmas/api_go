@@ -28,7 +28,7 @@ type DAO interface {
 	NewOrderedRepository() OrderedRepository
 	NewUnionOrderAndOrderedItemRepository() UnionOrderAndOrderedItemRepository
 	NewBusinessUserRepository() BusinessUserRepository
-	NewBannedAppRepository() BannedAppRepository
+	NewDeprecatedVersionAppRepository() DeprecatedVersionAppRepository
 	NewBusinessScheduleRepository() BusinessScheduleRepository
 	NewOrderLifecycleRepository() OrderLifecycleRepository
 }
@@ -89,8 +89,8 @@ func (d *dao) NewVerificationCodeQuery() VerificationCodeQuery {
 	return &municipalityRepository{}
 }
 
-func (d *dao) NewBannedAppRepository() BannedAppRepository {
-	return &bannedAppRepository{}
+func (d *dao) NewDeprecatedVersionAppRepository() DeprecatedVersionAppRepository {
+	return &deprecatedVersionAppRepository{}
 }
 
 func (d *dao) NewUserQuery() UserQuery {

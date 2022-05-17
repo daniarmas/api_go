@@ -14,17 +14,25 @@ type ClientMetadata struct {
 	Platform         *string
 	DeviceIdentifier *string
 	SystemVersion    *string
+	AppVersion       *string
 	Model            *string
 }
 
 func GetMetadata(metadata *metadata.MD) (*ClientMetadata, error) {
 	var st *status.Status
-	var authorization, accessToken, platform, deviceIdentifier, systemVersion, model *string
+	var authorization, accessToken, appVersion, platform, deviceIdentifier, systemVersion, model *string
 	if len(metadata.Get("Authorization")) != 0 {
 		splitValue := strings.Split(metadata.Get("Authorization")[0], " ")
 		if len(splitValue) > 1 {
 			authorization = &splitValue[1]
 		}
+	}
+	if len(metadata.Get("App-Version")) != 0 {
+		value := metadata.Get("App-Version")[0]
+		appVersion = &value
+	} else {
+		st = status.New(codes.Unauthenticated, "Incorrect metadata")
+		return nil, st.Err()
 	}
 	if len(metadata.Get("Access-Token")) != 0 {
 		value := metadata.Get("access-token")[0]
@@ -63,6 +71,7 @@ func GetMetadata(metadata *metadata.MD) (*ClientMetadata, error) {
 	}
 	resMetadata := ClientMetadata{
 		Authorization:    authorization,
+		AppVersion:       appVersion,
 		AccessToken:      accessToken,
 		Platform:         platform,
 		DeviceIdentifier: deviceIdentifier,
