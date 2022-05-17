@@ -26,8 +26,8 @@ type BusinessDatasource interface {
 type businessDatasource struct{}
 
 func (b *businessDatasource) GetBusiness(tx *gorm.DB, where *models.Business) (*models.Business, error) {
-	var businessResult *models.Business
-	result := tx.Select(`"id", "name", "description", "address", "phone", "email", "high_quality_photo", "high_quality_photo_object", "high_quality_photo_blurhash", "low_quality_photo", "low_quality_photo_object", "low_quality_photo_blurhash", "thumbnail", "thumbnail_object", "thumbnail_blurhash", "time_margin_order_month", "time_margin_order_day", "time_margin_order_hour", "time_margin_order_minute", "delivery_price", "to_pick_up", "home_delivery", ST_AsEWKB(coordinates) AS coordinates, "province_id", "municipality_id", "business_brand_id",  "create_time", "update_time", "cursor"`).Where(where).Take(&businessResult)
+	var res *models.Business
+	result := tx.Select(`"id", "name", "description", "address", "high_quality_photo", "high_quality_photo_blurhash", "low_quality_photo", "low_quality_photo_blurhash", "thumbnail", "thumbnail_blurhash", "time_margin_order_month", "time_margin_order_day", "time_margin_order_hour", "time_margin_order_minute", "delivery_price", "to_pick_up", "home_delivery", ST_AsEWKB(coordinates) AS coordinates, "province_id", "municipality_id", "business_brand_id",  "create_time", "update_time", "cursor"`).Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
@@ -35,20 +35,20 @@ func (b *businessDatasource) GetBusiness(tx *gorm.DB, where *models.Business) (*
 			return nil, result.Error
 		}
 	}
-	return businessResult, nil
+	return res, nil
 }
 
 func (b *businessDatasource) CreateBusiness(tx *gorm.DB, data *models.Business) (*models.Business, error) {
 	point := fmt.Sprintf("POINT(%v %v)", data.Coordinates.Point.Coords()[1], data.Coordinates.Point.Coords()[0])
 	var time = time.Now().UTC()
-	var response models.Business
-	var countResponse []models.Business
-	number := tx.Select("id").Where("municipality_id = ?", data.MunicipalityId).Find(&countResponse)
-	result := tx.Raw(`INSERT INTO "business" ("id", "name", "description", "address", "high_quality_photo", "high_quality_photo_blurhash", "low_quality_photo", "low_quality_photo_blurhash", "thumbnail", "thumbnail_blurhash", "time_margin_order_month", "time_margin_order_day", "time_margin_order_hour", "time_margin_order_minute", "delivery_price", "to_pick_up", "home_delivery", "coordinates", "province_id", "municipality_id", "business_brand_id",  "create_time", "update_time", "cursor") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ST_GeomFromText(?, 4326), ?, ?, ?, ?, ?, ?) RETURNING "id", "name", "description", "address", "high_quality_photo", "high_quality_photo_blurhash", "low_quality_photo", "low_quality_photo_blurhash", "thumbnail", "thumbnail_blurhash", "time_margin_order_month", "time_margin_order_day", "time_margin_order_hour", "time_margin_order_minute", "delivery_price", "to_pick_up", "home_delivery", ST_AsEWKB(coordinates) AS coordinates, "province_id", "municipality_id", "business_brand_id",  "create_time", "update_time", "cursor"`, uuid.New().String(), data.Name, data.Description, data.Address, data.HighQualityPhoto, data.HighQualityPhotoBlurHash, data.LowQualityPhoto, data.LowQualityPhotoBlurHash, data.Thumbnail, data.ThumbnailBlurHash, data.TimeMarginOrderMonth, data.TimeMarginOrderDay, data.TimeMarginOrderHour, data.TimeMarginOrderMinute, data.DeliveryPrice, data.ToPickUp, data.HomeDelivery, point, data.ProvinceId, data.MunicipalityId, data.BusinessBrandId, time, time, number.RowsAffected+1).Scan(&response)
+	var res models.Business
+	var countRes []models.Business
+	number := tx.Select("id").Where("municipality_id = ?", data.MunicipalityId).Find(&countRes)
+	result := tx.Raw(`INSERT INTO "business" ("id", "name", "description", "address", "high_quality_photo", "high_quality_photo_blurhash", "low_quality_photo", "low_quality_photo_blurhash", "thumbnail", "thumbnail_blurhash", "time_margin_order_month", "time_margin_order_day", "time_margin_order_hour", "time_margin_order_minute", "delivery_price", "to_pick_up", "home_delivery", "coordinates", "province_id", "municipality_id", "business_brand_id",  "create_time", "update_time", "cursor") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ST_GeomFromText(?, 4326), ?, ?, ?, ?, ?, ?) RETURNING "id", "name", "description", "address", "high_quality_photo", "high_quality_photo_blurhash", "low_quality_photo", "low_quality_photo_blurhash", "thumbnail", "thumbnail_blurhash", "time_margin_order_month", "time_margin_order_day", "time_margin_order_hour", "time_margin_order_minute", "delivery_price", "to_pick_up", "home_delivery", ST_AsEWKB(coordinates) AS coordinates, "province_id", "municipality_id", "business_brand_id",  "create_time", "update_time", "cursor"`, uuid.New().String(), data.Name, data.Description, data.Address, data.HighQualityPhoto, data.HighQualityPhotoBlurHash, data.LowQualityPhoto, data.LowQualityPhotoBlurHash, data.Thumbnail, data.ThumbnailBlurHash, data.TimeMarginOrderMonth, data.TimeMarginOrderDay, data.TimeMarginOrderHour, data.TimeMarginOrderMinute, data.DeliveryPrice, data.ToPickUp, data.HomeDelivery, point, data.ProvinceId, data.MunicipalityId, data.BusinessBrandId, time, time, number.RowsAffected+1).Scan(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return &response, nil
+	return &res, nil
 }
 
 func (b *businessDatasource) UpdateBusiness(tx *gorm.DB, data *models.Business, where *models.Business) (*models.Business, error) {
@@ -101,7 +101,7 @@ func (b *businessDatasource) Feed(tx *gorm.DB, coordinates ewkb.Point, limit int
 	} else {
 		where = fmt.Sprintf("WHERE cursor > %v AND province_id = '%v' AND municipality_id = '%v' AND %v", cursor, provinceId, municipalityId, delivery)
 	}
-	query := fmt.Sprintf("SELECT id, name, address, high_quality_photo, high_quality_photo_blurhash, low_quality_photo, low_quality_photo_blurhash, delivery_price, home_delivery, to_pick_up, cursor FROM business %v AND status = 'BusinessAvailable' ORDER BY cursor asc LIMIT 6;", where)
+	query := fmt.Sprintf("SELECT id, name, address, high_quality_photo, high_quality_photo_blurhash, low_quality_photo, low_quality_photo_blurhash, delivery_price, home_delivery, to_pick_up, cursor FROM business %v ORDER BY cursor asc LIMIT 6;", where)
 	err := tx.Raw(query).Scan(&businessResult).Error
 	if err != nil {
 		return nil, err
@@ -113,12 +113,12 @@ func (b *businessDatasource) GetBusinessWithLocation(tx *gorm.DB, where *models.
 	var businessResult *models.Business
 	// point := fmt.Sprintf("'POINT(%v %v)'", where.Coordinates.Point.Coords()[1], where.Coordinates.Point.Coords()[0])
 	distance := fmt.Sprintf(`ST_Distance("coordinates", ST_GeomFromText('POINT(%v %v)', 4326)) AS "distance"`, where.Coordinates.Point.Coords()[1], where.Coordinates.Point.Coords()[0])
-	query := fmt.Sprintf("SELECT business.id, business.name, business.phone, business.description, business.email, business.address, business.high_quality_photo, business.high_quality_photo_blurhash, business.time_margin_order_month, business.time_margin_order_day, business.time_margin_order_hour, business.time_margin_order_minute, business.low_quality_photo, business.low_quality_photo_blurhash, business.delivery_price, business.home_delivery, business.to_pick_up, business.cursor, ST_AsEWKB(business.coordinates) AS coordinates, %v FROM business WHERE business.id = '%v' ORDER BY business.cursor asc LIMIT 1;", distance, where.ID)
+	query := fmt.Sprintf("SELECT business.id, business.name, business.description, business.address, business.high_quality_photo, business.high_quality_photo_blurhash, business.time_margin_order_month, business.time_margin_order_day, business.time_margin_order_hour, business.time_margin_order_minute, business.low_quality_photo, business.low_quality_photo_blurhash, business.delivery_price, business.home_delivery, business.to_pick_up, business.cursor, ST_AsEWKB(business.coordinates) AS coordinates, %v FROM business WHERE business.id = '%v' ORDER BY business.cursor asc LIMIT 1;", distance, where.ID)
 	err := tx.Raw(query).Scan(&businessResult).Error
 	if err != nil {
 		return nil, err
 	} else if businessResult == nil {
-		return nil, errors.New("business not found")
+		return nil, errors.New("record not found")
 	}
 	return businessResult, nil
 }
