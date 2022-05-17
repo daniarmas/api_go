@@ -12,7 +12,7 @@ type DAO interface {
 	NewUserQuery() UserQuery
 	NewBannedUserQuery() BannedUserQuery
 	NewBannedDeviceQuery() BannedDeviceQuery
-	NewDeviceQuery() DeviceQuery
+	NewDeviceQuery() DeviceRepository
 	NewRefreshTokenQuery() RefreshTokenQuery
 	NewAuthorizationTokenQuery() AuthorizationTokenQuery
 	NewSessionQuery() SessionQuery
@@ -137,8 +137,8 @@ func (d *dao) NewBannedDeviceQuery() BannedDeviceQuery {
 	return &bannedDeviceQuery{}
 }
 
-func (d *dao) NewDeviceQuery() DeviceQuery {
-	return &deviceQuery{}
+func (d *dao) NewDeviceQuery() DeviceRepository {
+	return &deviceRepository{}
 }
 
 func (d *dao) NewRefreshTokenQuery() RefreshTokenQuery {
