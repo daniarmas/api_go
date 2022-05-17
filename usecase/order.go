@@ -61,7 +61,7 @@ func (i *orderService) ListOrderedItemWithItem(request *dto.ListOrderedItemReque
 		for _, item := range *unionOrderAndOrderedItemRes {
 			orderedItemFks = append(orderedItemFks, item.OrderedItemId)
 		}
-		orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, &orderedItemFks)
+		orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, &orderedItemFks, &[]string{})
 		if orderedItemsErr != nil {
 			return orderedItemsErr
 		}
@@ -114,7 +114,7 @@ func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.Update
 			for _, item := range *unionOrderAndOrderedItemRes {
 				orderedItemFks = append(orderedItemFks, item.OrderedItemId)
 			}
-			orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, &orderedItemFks)
+			orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, &orderedItemFks, &[]string{})
 			if orderedItemsErr != nil {
 				return orderedItemsErr
 			}
@@ -162,7 +162,7 @@ func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.Update
 			for _, item := range *unionOrderAndOrderedItemRes {
 				orderedItemFks = append(orderedItemFks, item.OrderedItemId)
 			}
-			orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, &orderedItemFks)
+			orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, &orderedItemFks, &[]string{})
 			if orderedItemsErr != nil {
 				return orderedItemsErr
 			}
