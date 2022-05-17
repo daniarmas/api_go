@@ -7,7 +7,7 @@ import (
 )
 
 type RefreshTokenQuery interface {
-	GetRefreshToken(tx *gorm.DB, where *models.RefreshToken) (*models.RefreshToken, error)
+	GetRefreshToken(tx *gorm.DB, where *models.RefreshToken, fields *[]string) (*models.RefreshToken, error)
 	CreateRefreshToken(tx *gorm.DB, data *models.RefreshToken) (*models.RefreshToken, error)
 	DeleteRefreshToken(tx *gorm.DB, where *models.RefreshToken, ids *[]uuid.UUID) (*[]models.RefreshToken, error)
 }
@@ -30,8 +30,8 @@ func (r *refreshTokenQuery) DeleteRefreshToken(tx *gorm.DB, where *models.Refres
 	return res, nil
 }
 
-func (r *refreshTokenQuery) GetRefreshToken(tx *gorm.DB, where *models.RefreshToken) (*models.RefreshToken, error) {
-	res, err := Datasource.NewRefreshTokenDatasource().GetRefreshToken(tx, where)
+func (r *refreshTokenQuery) GetRefreshToken(tx *gorm.DB, where *models.RefreshToken, fields *[]string) (*models.RefreshToken, error) {
+	res, err := Datasource.NewRefreshTokenDatasource().GetRefreshToken(tx, where, fields)
 	if err != nil {
 		return nil, err
 	}

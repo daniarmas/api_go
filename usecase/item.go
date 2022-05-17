@@ -50,7 +50,7 @@ func (i *itemService) UpdateItem(request *dto.UpdateItemRequest) (*models.Item, 
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, nil)
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
@@ -156,7 +156,7 @@ func (i *itemService) DeleteItem(request *dto.DeleteItemRequest) error {
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, nil)
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
@@ -244,7 +244,7 @@ func (i *itemService) CreateItem(request *dto.CreateItemRequest) (*models.Item, 
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, nil)
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {

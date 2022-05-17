@@ -7,7 +7,7 @@ import (
 )
 
 type AuthorizationTokenQuery interface {
-	GetAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken) (*models.AuthorizationToken, error)
+	GetAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken, fields *[]string) (*models.AuthorizationToken, error)
 	CreateAuthorizationToken(tx *gorm.DB, data *models.AuthorizationToken) (*models.AuthorizationToken, error)
 	DeleteAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error)
 	DeleteAuthorizationTokenByRefreshTokenIds(tx *gorm.DB, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error)
@@ -39,8 +39,8 @@ func (r *authorizationTokenQuery) DeleteAuthorizationTokenByRefreshTokenIds(tx *
 	return res, nil
 }
 
-func (v *authorizationTokenQuery) GetAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken) (*models.AuthorizationToken, error) {
-	res, err := Datasource.NewAuthorizationTokenDatasource().GetAuthorizationToken(tx, where)
+func (v *authorizationTokenQuery) GetAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken, fields *[]string) (*models.AuthorizationToken, error) {
+	res, err := Datasource.NewAuthorizationTokenDatasource().GetAuthorizationToken(tx, where, fields)
 	if err != nil {
 		return nil, err
 	}

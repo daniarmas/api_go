@@ -10,7 +10,7 @@ import (
 )
 
 type AuthorizationTokenDatasource interface {
-	GetAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken) (*models.AuthorizationToken, error)
+	GetAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken, fields *[]string) (*models.AuthorizationToken, error)
 	CreateAuthorizationToken(tx *gorm.DB, data *models.AuthorizationToken) (*models.AuthorizationToken, error)
 	DeleteAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error)
 	DeleteAuthorizationTokenByRefreshTokenIds(tx *gorm.DB, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error)
@@ -53,9 +53,9 @@ func (r *authorizationTokenDatasource) DeleteAuthorizationTokenByRefreshTokenIds
 	return res, nil
 }
 
-func (v *authorizationTokenDatasource) GetAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken) (*models.AuthorizationToken, error) {
+func (v *authorizationTokenDatasource) GetAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken, fields *[]string) (*models.AuthorizationToken, error) {
 	var res *models.AuthorizationToken
-	result := tx.Where(where).Take(&res)
+	result := tx.Where(where).Select(fields).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("authorizationtoken not found")

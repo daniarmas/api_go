@@ -343,13 +343,13 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 					return authorizationTokenParseErr
 				}
 			}
-			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, nil)
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
 			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &models.RefreshToken{ID: *authorizationTokenRes.RefreshTokenId})
+			refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &models.RefreshToken{ID: *authorizationTokenRes.RefreshTokenId}, nil)
 			if refreshTokenErr != nil {
 				return refreshTokenErr
 			} else if refreshTokenRes == nil {
@@ -427,7 +427,7 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenid *string,
 					return authorizationTokenParseErr
 				}
 			}
-			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: authorizationWebToken.TokenId})
+			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: authorizationWebToken.TokenId}, nil)
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
 			} else if authorizationTokenRes == nil {
@@ -461,11 +461,11 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenid *string,
 					return authorizationTokenParseErr
 				}
 			}
-			authorizationTokenByReqRes, authorizationTokenByReqErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId})
+			authorizationTokenByReqRes, authorizationTokenByReqErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId}, nil)
 			if authorizationTokenByReqErr != nil {
 				return authorizationTokenByReqErr
 			}
-			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId})
+			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId}, nil)
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
 			} else if authorizationTokenRes == nil {
@@ -497,7 +497,7 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenid *string,
 					return authorizationTokenParseErr
 				}
 			}
-			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId})
+			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId}, nil)
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
 			} else if authorizationTokenRes == nil {
@@ -540,7 +540,7 @@ func (v *authenticationService) ListSession(metadata *metadata.MD) (*dto.ListSes
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, nil)
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
@@ -576,7 +576,7 @@ func (v *authenticationService) RefreshToken(refreshToken *string, metadata *met
 				return refreshTokenParseErr
 			}
 		}
-		refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &models.RefreshToken{ID: *jwtRefreshToken.TokenId})
+		refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &models.RefreshToken{ID: *jwtRefreshToken.TokenId}, nil)
 		if refreshTokenErr != nil {
 			return refreshTokenErr
 		} else if refreshTokenRes == nil {
