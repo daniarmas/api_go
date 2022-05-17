@@ -6,19 +6,19 @@ import (
 )
 
 type UnionBusinessAndMunicipalityRepository interface {
-	UnionBusinessAndMunicipalityExists(tx *gorm.DB, where *models.UnionBusinessAndMunicipality) error
+	GetUnionBusinessAndMunicipality(tx *gorm.DB, where *models.UnionBusinessAndMunicipality, fields *[]string) (*models.UnionBusinessAndMunicipality, error)
 	BatchCreateUnionBusinessAndMunicipality(tx *gorm.DB, data []*models.UnionBusinessAndMunicipality) ([]*models.UnionBusinessAndMunicipality, error)
 	ListUnionBusinessAndMunicipalityWithMunicipality(tx *gorm.DB, ids []string) (*[]models.UnionBusinessAndMunicipalityWithMunicipality, error)
 }
 
 type unionBusinessAndMunicipality struct{}
 
-func (v *unionBusinessAndMunicipality) UnionBusinessAndMunicipalityExists(tx *gorm.DB, where *models.UnionBusinessAndMunicipality) error {
-	err := Datasource.NewUnionBusinessAndMunicipalityDatasource().UnionBusinessAndMunicipalityExists(tx, &models.UnionBusinessAndMunicipality{MunicipalityId: where.MunicipalityId, BusinessId: where.BusinessId})
+func (v *unionBusinessAndMunicipality) GetUnionBusinessAndMunicipality(tx *gorm.DB, where *models.UnionBusinessAndMunicipality, fields *[]string) (*models.UnionBusinessAndMunicipality, error) {
+	res, err := Datasource.NewUnionBusinessAndMunicipalityDatasource().GetUnionBusinessAndMunicipality(tx, &models.UnionBusinessAndMunicipality{MunicipalityId: where.MunicipalityId, BusinessId: where.BusinessId}, fields)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return res, nil
 }
 
 func (v *unionBusinessAndMunicipality) BatchCreateUnionBusinessAndMunicipality(tx *gorm.DB, data []*models.UnionBusinessAndMunicipality) ([]*models.UnionBusinessAndMunicipality, error) {

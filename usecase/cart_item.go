@@ -227,11 +227,11 @@ func (i *cartItemService) AddCartItem(request *dto.AddCartItem) (*models.CartIte
 		} else {
 			itemAvailability = item.Availability - int64(request.Quantity)
 		}
-		municipalityErr := i.dao.NewUnionBusinessAndMunicipalityRepository().UnionBusinessAndMunicipalityExists(tx, &models.UnionBusinessAndMunicipality{BusinessId: item.BusinessId, MunicipalityId: request.MunicipalityId})
-		if municipalityErr != nil && municipalityErr.Error() == "record not found" {
+		_, err := i.dao.NewUnionBusinessAndMunicipalityRepository().GetUnionBusinessAndMunicipality(tx, &models.UnionBusinessAndMunicipality{BusinessId: item.BusinessId, MunicipalityId: request.MunicipalityId}, &[]string{"id"})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("out of range")
-		} else if municipalityErr != nil {
-			return municipalityErr
+		} else if err != nil {
+			return err
 		}
 		_, updateItemErr := i.dao.NewItemQuery().UpdateItem(tx, &models.Item{ID: item.ID}, &models.Item{Availability: itemAvailability})
 		if updateItemErr != nil {
@@ -292,11 +292,11 @@ func (i *cartItemService) ReduceCartItem(request *dto.ReduceCartItem) (*models.C
 		if item.Availability == -1 {
 			item.Availability += 1
 		}
-		municipalityErr := i.dao.NewUnionBusinessAndMunicipalityRepository().UnionBusinessAndMunicipalityExists(tx, &models.UnionBusinessAndMunicipality{BusinessId: item.BusinessId, MunicipalityId: request.MunicipalityId})
-		if municipalityErr != nil && municipalityErr.Error() == "record not found" {
+		_, err := i.dao.NewUnionBusinessAndMunicipalityRepository().GetUnionBusinessAndMunicipality(tx, &models.UnionBusinessAndMunicipality{BusinessId: item.BusinessId, MunicipalityId: request.MunicipalityId}, &[]string{"id"})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("out of range")
-		} else if municipalityErr != nil {
-			return municipalityErr
+		} else if err != nil {
+			return err
 		}
 		result, resultErr = i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{ItemId: uuid.MustParse(request.ItemId), UserId: *authorizationTokenRes.UserId}, nil)
 		if resultErr != nil && resultErr.Error() != "record not found" {
@@ -359,7 +359,7 @@ func (i *cartItemService) DeleteCartItem(request *dto.DeleteCartItemRequest) err
 		if item.Availability == -1 {
 			item.Availability += 1
 		}
-		municipalityErr := i.dao.NewUnionBusinessAndMunicipalityRepository().UnionBusinessAndMunicipalityExists(tx, &models.UnionBusinessAndMunicipality{BusinessId: item.BusinessId, MunicipalityId: request.MunicipalityId})
+		_, municipalityErr := i.dao.NewUnionBusinessAndMunicipalityRepository().GetUnionBusinessAndMunicipality(tx, &models.UnionBusinessAndMunicipality{BusinessId: item.BusinessId, MunicipalityId: request.MunicipalityId}, &[]string{"id"})
 		if municipalityErr != nil && municipalityErr.Error() == "record not found" {
 			return errors.New("out of range")
 		} else if municipalityErr != nil {

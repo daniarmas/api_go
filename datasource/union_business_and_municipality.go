@@ -8,24 +8,24 @@ import (
 )
 
 type UnionBusinessAndMunicipalityDatasource interface {
-	UnionBusinessAndMunicipalityExists(tx *gorm.DB, where *models.UnionBusinessAndMunicipality) error
+	GetUnionBusinessAndMunicipality(tx *gorm.DB, where *models.UnionBusinessAndMunicipality, fields *[]string) (*models.UnionBusinessAndMunicipality, error)
 	BatchCreateUnionBusinessAndMunicipality(tx *gorm.DB, data []*models.UnionBusinessAndMunicipality) ([]*models.UnionBusinessAndMunicipality, error)
 	ListUnionBusinessAndMunicipalityWithMunicipality(tx *gorm.DB, ids []string) (*[]models.UnionBusinessAndMunicipalityWithMunicipality, error)
 }
 
 type unionBusinessAndMunicipalityDatasource struct{}
 
-func (v *unionBusinessAndMunicipalityDatasource) UnionBusinessAndMunicipalityExists(tx *gorm.DB, where *models.UnionBusinessAndMunicipality) error {
-	var res models.UnionBusinessAndMunicipality
-	result := tx.Where(where).Take(&res)
+func (v *unionBusinessAndMunicipalityDatasource) GetUnionBusinessAndMunicipality(tx *gorm.DB, where *models.UnionBusinessAndMunicipality, fields *[]string) (*models.UnionBusinessAndMunicipality, error) {
+	var res *models.UnionBusinessAndMunicipality
+	result := tx.Where(where).Select(*fields).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
-			return errors.New("record not found")
+			return nil, errors.New("refreshtoken not found")
 		} else {
-			return result.Error
+			return nil, result.Error
 		}
 	}
-	return nil
+	return res, nil
 }
 
 func (v *unionBusinessAndMunicipalityDatasource) BatchCreateUnionBusinessAndMunicipality(tx *gorm.DB, data []*models.UnionBusinessAndMunicipality) ([]*models.UnionBusinessAndMunicipality, error) {
