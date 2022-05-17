@@ -8,20 +8,20 @@ import (
 )
 
 type BannedDeviceDatasource interface {
-	GetBannedDevice(tx *gorm.DB, bannedDevice *models.BannedDevice, fields *[]string) (*models.BannedDevice, error)
+	GetBannedDevice(tx *gorm.DB, where *models.BannedDevice) (*models.BannedDevice, error)
 }
 
 type bannedDeviceDatasource struct{}
 
-func (i *bannedDeviceDatasource) GetBannedDevice(tx *gorm.DB, bannedDevice *models.BannedDevice, fields *[]string) (*models.BannedDevice, error) {
-	var bannedDeviceResult *models.BannedDevice
-	result := tx.Where(bannedDevice).Select(*fields).Take(&bannedDeviceResult)
+func (v *bannedDeviceDatasource) GetBannedDevice(tx *gorm.DB, where *models.BannedDevice) (*models.BannedDevice, error) {
+	var res *models.BannedDevice
+	result := tx.Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
-			return nil, errors.New("record not found")
+			return nil, errors.New("banned device not found")
 		} else {
 			return nil, result.Error
 		}
 	}
-	return bannedDeviceResult, nil
+	return res, nil
 }
