@@ -21,11 +21,7 @@ func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *
 	)
 	var invalidArgs bool
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	meta, metaErr := utils.GetMetadata(&md)
-	if metaErr != nil {
-		return nil, metaErr
-	}
+	meta := utils.GetMetadata(ctx)
 	if req.Email == "" {
 		invalidArgs = true
 		invalidEmail = &epb.BadRequest_FieldViolation{
@@ -83,11 +79,7 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 	)
 	var invalidArgs bool
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	meta, metaErr := utils.GetMetadata(&md)
-	if metaErr != nil {
-		return nil, metaErr
-	}
+	md := utils.GetMetadata(ctx)
 	if req.Email == "" {
 		invalidArgs = true
 		invalidEmail = &epb.BadRequest_FieldViolation{
@@ -128,7 +120,7 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 		}
 		return nil, st.Err()
 	}
-	res, err := m.authenticationService.GetVerificationCode(ctx, req, meta)
+	res, err := m.authenticationService.GetVerificationCode(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "record not found":

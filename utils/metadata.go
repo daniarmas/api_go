@@ -1,11 +1,10 @@
 package utils
 
 import (
+	"context"
 	"strings"
 
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
 )
 
 type ClientMetadata struct {
@@ -18,65 +17,29 @@ type ClientMetadata struct {
 	Model            *string
 }
 
-func GetMetadata(metadata *metadata.MD) (*ClientMetadata, error) {
-	var st *status.Status
-	var authorization, accessToken, appVersion, platform, deviceIdentifier, systemVersion, model *string
-	if len(metadata.Get("Authorization")) != 0 {
-		splitValue := strings.Split(metadata.Get("Authorization")[0], " ")
+func GetMetadata(ctx context.Context) *ClientMetadata {
+	var authorization *string
+	md, _ := metadata.FromIncomingContext(ctx)
+	if len(md.Get("Authorization")) != 0 {
+		splitValue := strings.Split(md.Get("Authorization")[0], " ")
 		if len(splitValue) > 1 {
 			authorization = &splitValue[1]
 		}
 	}
-	if len(metadata.Get("App-Version")) != 0 {
-		value := metadata.Get("App-Version")[0]
-		appVersion = &value
-	} else {
-		st = status.New(codes.Unauthenticated, "Incorrect metadata")
-		return nil, st.Err()
-	}
-	if len(metadata.Get("Access-Token")) != 0 {
-		value := metadata.Get("access-token")[0]
-		accessToken = &value
-	} else {
-		st = status.New(codes.Unauthenticated, "Incorrect metadata")
-		return nil, st.Err()
-	}
-	if len(metadata.Get("Platform")) != 0 {
-		value := metadata.Get("Platform")[0]
-		platform = &value
-	} else {
-		st = status.New(codes.Unauthenticated, "Incorrect metadata")
-		return nil, st.Err()
-	}
-	if len(metadata.Get("Device-Id")) != 0 {
-		value := metadata.Get("Device-Id")[0]
-		deviceIdentifier = &value
-	} else {
-		st = status.New(codes.Unauthenticated, "Incorrect metadata")
-		return nil, st.Err()
-	}
-	if len(metadata.Get("System-Version")) != 0 {
-		value := metadata.Get("System-Version")[0]
-		systemVersion = &value
-	} else {
-		st = status.New(codes.Unauthenticated, "Incorrect metadata")
-		return nil, st.Err()
-	}
-	if len(metadata.Get("Model")) != 0 {
-		value := metadata.Get("Model")[0]
-		model = &value
-	} else {
-		st = status.New(codes.Unauthenticated, "Incorrect metadata")
-		return nil, st.Err()
-	}
+	appVersion := md.Get("App-Version")[0]
+	accessToken := md.Get("Access-Token")[0]
+	platform := md.Get("Platform")[0]
+	deviceIdentifier := md.Get("Device-Id")[0]
+	systemVersion := md.Get("System-Version")[0]
+	model := md.Get("Model")[0]
 	resMetadata := ClientMetadata{
 		Authorization:    authorization,
-		AppVersion:       appVersion,
-		AccessToken:      accessToken,
-		Platform:         platform,
-		DeviceIdentifier: deviceIdentifier,
-		SystemVersion:    systemVersion,
-		Model:            model,
+		AppVersion:       &appVersion,
+		AccessToken:      &accessToken,
+		Platform:         &platform,
+		DeviceIdentifier: &deviceIdentifier,
+		SystemVersion:    &systemVersion,
+		Model:            &model,
 	}
-	return &resMetadata, nil
+	return &resMetadata
 }
