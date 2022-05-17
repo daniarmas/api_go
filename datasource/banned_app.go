@@ -13,15 +13,15 @@ type BannedAppDatasource interface {
 
 type bannedAppDatasource struct{}
 
-func (i *bannedAppDatasource) GetBannedApp(tx *gorm.DB, where *models.BannedApp) (*models.BannedApp, error) {
-	var bannedAppResult *models.BannedApp
-	result := tx.Where(where).Take(&bannedAppResult)
+func (v *bannedAppDatasource) GetBannedApp(tx *gorm.DB, where *models.BannedApp) (*models.BannedApp, error) {
+	var res *models.BannedApp
+	result := tx.Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
-			return nil, errors.New("record not found")
+			return nil, errors.New("banned App not found")
 		} else {
 			return nil, result.Error
 		}
 	}
-	return bannedAppResult, nil
+	return res, nil
 }
