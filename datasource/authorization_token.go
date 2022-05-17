@@ -58,7 +58,7 @@ func (v *authorizationTokenDatasource) GetAuthorizationToken(tx *gorm.DB, where 
 	result := tx.Where(where).Select(fields).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
-			return nil, errors.New("authorizationtoken not found")
+			return nil, errors.New("record not found")
 		} else {
 			return nil, result.Error
 		}
