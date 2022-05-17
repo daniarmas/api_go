@@ -3,12 +3,28 @@
     "methodFqn": "main.AuthenticationService.CreateVerificationCode",
     "metadata": [
       {
-        "key": "deviceid",
+        "key": "Device-Id",
         "value": "1"
       },
       {
-        "key": "appversion",
+        "key": "App-Version",
         "value": "1.0.0"
+      },
+      {
+        "key": "Access-Token",
+        "value": "O8pzXjp4QMk4cAD60dHeoOnxdVsDc9"
+      },
+      {
+        "key": "Platform",
+        "value": "Android"
+      },
+      {
+        "key": "System-Version",
+        "value": "11"
+      },
+      {
+        "key": "Model",
+        "value": "Google Pixel 3XL"
       }
     ],
     "disableServerCertificateValidation": true

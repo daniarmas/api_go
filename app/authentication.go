@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"time"
 
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
@@ -21,6 +20,10 @@ func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *
 	var invalidArgs bool
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
+	meta, metaErr := utils.GetMetadata(&md)
+	if metaErr != nil {
+		return nil, metaErr
+	}
 	if req.Email == "" {
 		invalidArgs = true
 		invalidEmail = &epb.BadRequest_FieldViolation{
@@ -37,16 +40,19 @@ func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *
 	}
 	if invalidArgs {
 		st = status.New(codes.InvalidArgument, "Invalid Arguments")
-		st, _ = st.WithDetails(
-			invalidEmail,
-		)
-		st, _ = st.WithDetails(
-			invalidType,
-		)
+		if invalidEmail != nil {
+			st, _ = st.WithDetails(
+				invalidEmail,
+			)
+		}
+		if invalidType != nil {
+			st, _ = st.WithDetails(
+				invalidType,
+			)
+		}
 		return nil, st.Err()
 	}
-	verificationCode := models.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: md.Get("deviceid")[0], CreateTime: time.Now(), UpdateTime: time.Now()}
-	err := m.authenticationService.CreateVerificationCode(&verificationCode, &md)
+	res, err := m.authenticationService.CreateVerificationCode(ctx, req, meta)
 	if err != nil {
 		switch err.Error() {
 		case "banned user":
@@ -64,7 +70,7 @@ func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *
 		}
 		return nil, st.Err()
 	}
-	return &gp.Empty{}, nil
+	return res, nil
 }
 
 func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.GetVerificationCodeRequest) (*gp.Empty, error) {
