@@ -27,7 +27,7 @@ func (i *banService) GetBannedDevice(metadata *metadata.MD) (*models.BannedDevic
 	var bannedDevice *models.BannedDevice
 	var bannedDeviceErr error
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		bannedDevice, bannedDeviceErr = i.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: metadata.Get("deviceid")[0]})
+		bannedDevice, bannedDeviceErr = i.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: metadata.Get("deviceid")[0]}, nil)
 		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
 			return bannedDeviceErr
 		}
@@ -63,7 +63,7 @@ func (i *banService) GetBannedUser(metadata *metadata.MD) (*models.BannedUser, e
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		bannedUser, bannedUserErr = i.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{UserId: *authorizationTokenRes.UserId})
+		bannedUser, bannedUserErr = i.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{UserId: *authorizationTokenRes.UserId}, nil)
 		if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
 			return bannedUserErr
 		}

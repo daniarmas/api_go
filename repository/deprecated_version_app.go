@@ -6,13 +6,13 @@ import (
 )
 
 type DeprecatedVersionAppRepository interface {
-	GetDeprecatedVersionApp(tx *gorm.DB, where *models.DeprecatedVersionApp) (*models.DeprecatedVersionApp, error)
+	GetDeprecatedVersionApp(tx *gorm.DB, where *models.DeprecatedVersionApp, fields *[]string) (*models.DeprecatedVersionApp, error)
 }
 
 type deprecatedVersionAppRepository struct{}
 
-func (i *deprecatedVersionAppRepository) GetDeprecatedVersionApp(tx *gorm.DB, where *models.DeprecatedVersionApp) (*models.DeprecatedVersionApp, error) {
-	res, err := Datasource.NewDeprecatedVersionAppDatasource().GetDeprecatedVersionApp(tx, where)
+func (i *deprecatedVersionAppRepository) GetDeprecatedVersionApp(tx *gorm.DB, where *models.DeprecatedVersionApp, fields *[]string) (*models.DeprecatedVersionApp, error) {
+	res, err := Datasource.NewDeprecatedVersionAppDatasource().GetDeprecatedVersionApp(tx, where, fields)
 	if err != nil {
 		return nil, err
 	}

@@ -8,14 +8,14 @@ import (
 )
 
 type DeprecatedVersionAppDatasource interface {
-	GetDeprecatedVersionApp(tx *gorm.DB, where *models.DeprecatedVersionApp) (*models.DeprecatedVersionApp, error)
+	GetDeprecatedVersionApp(tx *gorm.DB, where *models.DeprecatedVersionApp, fields *[]string) (*models.DeprecatedVersionApp, error)
 }
 
 type deprecatedVersionAppDatasource struct{}
 
-func (v *deprecatedVersionAppDatasource) GetDeprecatedVersionApp(tx *gorm.DB, where *models.DeprecatedVersionApp) (*models.DeprecatedVersionApp, error) {
+func (v *deprecatedVersionAppDatasource) GetDeprecatedVersionApp(tx *gorm.DB, where *models.DeprecatedVersionApp, fields *[]string) (*models.DeprecatedVersionApp, error) {
 	var res *models.DeprecatedVersionApp
-	result := tx.Where(where).Take(&res)
+	result := tx.Where(where).Select(*fields).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

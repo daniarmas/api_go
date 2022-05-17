@@ -151,7 +151,7 @@ func (i *cartItemService) ListCartItemAndItem(itemRequest *dto.ListCartItemReque
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		user, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserId})
+		user, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserId}, &[]string{})
 		if userErr != nil {
 			return userErr
 		}

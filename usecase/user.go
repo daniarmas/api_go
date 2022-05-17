@@ -115,7 +115,7 @@ func (i *userService) UpdateUser(request *dto.UpdateUserRequest) (*dto.UpdateUse
 			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserId})
+			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserId}, &[]string{})
 			if userErr != nil {
 				return userErr
 			}
@@ -155,7 +155,7 @@ func (i *userService) UpdateUser(request *dto.UpdateUserRequest) (*dto.UpdateUse
 			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserId})
+			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserId}, &[]string{})
 			if userErr != nil {
 				return userErr
 			}
@@ -220,7 +220,7 @@ func (i *userService) UpdateUser(request *dto.UpdateUserRequest) (*dto.UpdateUse
 			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserId})
+			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserId}, &[]string{})
 			if userErr != nil {
 				return userErr
 			}

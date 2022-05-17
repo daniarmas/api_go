@@ -38,7 +38,7 @@ func NewAuthenticationService(dao repository.DAO) AuthenticationService {
 
 func (v *authenticationService) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest, meta *utils.ClientMetadata) (*gp.Empty, error) {
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		user, err := v.dao.NewUserQuery().GetUser(tx, &models.User{Email: req.Email})
+		user, err := v.dao.NewUserQuery().GetUser(tx, &models.User{Email: req.Email}, &[]string{"id"})
 		if err != nil {
 			if err.Error() == "record not found" && (req.Type.String() == "SignIn" || req.Type.String() == "ChangeUserEmail") {
 				return errors.New("user not found")
@@ -46,21 +46,21 @@ func (v *authenticationService) CreateVerificationCode(ctx context.Context, req 
 				return errors.New("user already exists")
 			}
 		}
-		bannedUserResult, err := v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: req.Email})
+		bannedUserResult, err := v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: req.Email}, &[]string{"id"})
 		if err != nil && err.Error() != "record not found" {
 			return err
 		}
 		if bannedUserResult != nil {
 			return errors.New("banned user")
 		}
-		bannedDeviceResult, err := v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: *meta.DeviceIdentifier})
+		bannedDeviceResult, err := v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: *meta.DeviceIdentifier}, &[]string{"id"})
 		if err != nil && err.Error() != "record not found" {
 			return err
 		}
 		if bannedDeviceResult != nil {
 			return errors.New("banned device")
 		}
-		deprecatedVersionAppRes, err := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: *meta.AppVersion})
+		deprecatedVersionAppRes, err := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: *meta.AppVersion}, &[]string{"id"})
 		if err != nil && err.Error() != "record not found" {
 			return err
 		} else if deprecatedVersionAppRes != nil {
@@ -119,19 +119,19 @@ func (v *authenticationService) SignIn(verificationCode *models.VerificationCode
 				return userErr
 			}
 		}
-		bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: verificationCode.Email})
+		bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: verificationCode.Email}, nil)
 		if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
 			return bannedUserErr
 		} else if bannedUserRes != nil {
 			return errors.New("user banned")
 		}
-		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: verificationCode.DeviceIdentifier})
+		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: verificationCode.DeviceIdentifier}, nil)
 		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
 			return bannedDeviceErr
 		} else if bannedDeviceRes != nil {
 			return errors.New("device banned")
 		}
-		bannedAppRes, bannedAppErr := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: metadata.Get("appversion")[0]})
+		bannedAppRes, bannedAppErr := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: metadata.Get("appversion")[0]}, &[]string{})
 		if bannedAppErr != nil && bannedAppErr.Error() != "record not found" {
 			return bannedAppErr
 		} else if bannedAppRes != nil {
@@ -215,19 +215,19 @@ func (v *authenticationService) SignUp(fullname *string, alias *string, verifica
 		} else if userRes.Email != "" {
 			return errors.New("user exists")
 		}
-		bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: verificationCode.Email})
+		bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: verificationCode.Email}, nil)
 		if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
 			return bannedUserErr
 		} else if bannedUserRes != nil {
 			return errors.New("user banned")
 		}
-		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceId: verificationCode.ID})
+		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceId: verificationCode.ID}, nil)
 		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
 			return bannedDeviceErr
 		} else if bannedDeviceRes != nil {
 			return errors.New("device banned")
 		}
-		bannedAppRes, bannedAppErr := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: metadata.Get("appversion")[0]})
+		bannedAppRes, bannedAppErr := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: metadata.Get("appversion")[0]}, &[]string{})
 		if bannedAppErr != nil && bannedAppErr.Error() != "record not found" {
 			return bannedAppErr
 		} else if bannedAppRes != nil {
@@ -323,7 +323,7 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 					return deviceErr
 				}
 			}
-			bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: metadata.Get("deviceid")[0]})
+			bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: metadata.Get("deviceid")[0]}, nil)
 			if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
 				return bannedDeviceErr
 			} else if bannedDeviceRes != nil {
@@ -355,19 +355,19 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 			} else if refreshTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserId})
+			userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserId}, &[]string{})
 			if userErr != nil {
 				return userErr
 			} else if userRes == nil {
 				return errors.New("user not found")
 			}
-			bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{UserId: *authorizationTokenRes.UserId})
+			bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{UserId: *authorizationTokenRes.UserId}, nil)
 			if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
 				return bannedUserErr
 			} else if bannedUserRes != nil {
 				return errors.New("user banned")
 			}
-			bannedAppRes, bannedAppErr := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: metadata.Get("appversion")[0]})
+			bannedAppRes, bannedAppErr := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: metadata.Get("appversion")[0]}, &[]string{})
 			if bannedAppErr != nil && bannedAppErr.Error() != "record not found" {
 				return bannedAppErr
 			} else if bannedAppRes != nil {
@@ -389,13 +389,13 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 					return deviceErr
 				}
 			}
-			bannedAppRes, bannedAppErr := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: metadata.Get("appversion")[0]})
+			bannedAppRes, bannedAppErr := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: metadata.Get("appversion")[0]}, &[]string{})
 			if bannedAppErr != nil && bannedAppErr.Error() != "record not found" {
 				return bannedAppErr
 			} else if bannedAppRes != nil {
 				return errors.New("app banned")
 			}
-			bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: metadata.Get("deviceid")[0]})
+			bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: metadata.Get("deviceid")[0]}, nil)
 			if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
 				return bannedDeviceErr
 			} else if bannedDeviceRes != nil {
