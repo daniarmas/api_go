@@ -6,15 +6,15 @@ import (
 )
 
 type UserPermissionRepository interface {
-	UserPermissionExists(tx *gorm.DB, where *models.UserPermission) error
+	GetUserPermission(tx *gorm.DB, where *models.UserPermission, fields *[]string) (*models.UserPermission, error)
 }
 
 type userPermissionRepository struct{}
 
-func (v *userPermissionRepository) UserPermissionExists(tx *gorm.DB, where *models.UserPermission) error {
-	err := Datasource.NewUserPermissionDatasource().UserPermissionExists(tx, where)
+func (v *userPermissionRepository) GetUserPermission(tx *gorm.DB, where *models.UserPermission, fields *[]string) (*models.UserPermission, error) {
+	res, err := Datasource.NewUserPermissionDatasource().GetUserPermission(tx, where, fields)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return res, nil
 }

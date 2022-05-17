@@ -56,11 +56,11 @@ func (i *itemService) UpdateItem(request *dto.UpdateItemRequest) (*models.Item, 
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		permissionExistsErr := i.dao.NewUserPermissionRepository().UserPermissionExists(tx, &models.UserPermission{Name: "update_item", UserId: *&authorizationTokenRes.RefreshToken.UserId, BusinessId: request.BusinessId})
-		if permissionExistsErr != nil && permissionExistsErr.Error() == "record not found" {
+		_, err := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{Name: "update_item", UserId: authorizationTokenRes.RefreshToken.UserId, BusinessId: request.BusinessId}, &[]string{"id"})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
-		} else if permissionExistsErr != nil {
-			return permissionExistsErr
+		} else if err != nil {
+			return err
 		}
 		businessRes, businessErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessId: request.BusinessId}, "OrderTypePickUp")
 		if businessErr != nil {
@@ -166,11 +166,11 @@ func (i *itemService) DeleteItem(request *dto.DeleteItemRequest) error {
 		if getItemErr != nil {
 			return getItemErr
 		}
-		permissionExistsErr := i.dao.NewUserPermissionRepository().UserPermissionExists(tx, &models.UserPermission{Name: "delete_item", UserId: *authorizationTokenRes.UserId, BusinessId: getItemRes.BusinessId})
-		if permissionExistsErr != nil && permissionExistsErr.Error() == "record not found" {
+		_, err := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{Name: "delete_item", UserId: *authorizationTokenRes.UserId, BusinessId: getItemRes.BusinessId}, &[]string{"id"})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
-		} else if permissionExistsErr != nil {
-			return permissionExistsErr
+		} else if err != nil {
+			return err
 		}
 		businessRes, businessErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessId: getItemRes.BusinessId}, "OrderTypePickUp")
 		if businessErr != nil {
@@ -250,11 +250,11 @@ func (i *itemService) CreateItem(request *dto.CreateItemRequest) (*models.Item, 
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		permissionExistsErr := i.dao.NewUserPermissionRepository().UserPermissionExists(tx, &models.UserPermission{Name: "create_item", UserId: *authorizationTokenRes.UserId, BusinessId: request.BusinessId})
-		if permissionExistsErr != nil && permissionExistsErr.Error() == "record not found" {
+		_, err := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{Name: "create_item", UserId: *authorizationTokenRes.UserId, BusinessId: request.BusinessId}, &[]string{"id"})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
-		} else if permissionExistsErr != nil {
-			return permissionExistsErr
+		} else if err != nil {
+			return err
 		}
 		_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, request.HighQualityPhoto)
 		if hqErr != nil && hqErr.Error() == "ObjectMissing" {
