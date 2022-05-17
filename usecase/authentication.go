@@ -17,8 +17,8 @@ import (
 )
 
 type AuthenticationService interface {
-	CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest, metadata *utils.ClientMetadata) (*gp.Empty, error)
-	GetVerificationCode(verificationCode *models.VerificationCode, fields *[]string) (*models.VerificationCode, error)
+	CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest, meta *utils.ClientMetadata) (*gp.Empty, error)
+	GetVerificationCode(ctx context.Context, req *pb.GetVerificationCodeRequest, meta *utils.ClientMetadata) (*gp.Empty, error)
 	SignIn(verificationCode *models.VerificationCode, metadata *metadata.MD) (*dto.SignIn, error)
 	SignUp(fullname *string, alias *string, verificationCode *models.VerificationCode, signUpType *string, metadata *metadata.MD) (*dto.SignIn, error)
 	SignOut(all *bool, authorizationTokenid *string, metadata *metadata.MD) error
@@ -35,26 +35,26 @@ func NewAuthenticationService(dao repository.DAO) AuthenticationService {
 	return &authenticationService{dao: dao}
 }
 
-func (v *authenticationService) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest, metadata *utils.ClientMetadata) (*gp.Empty, error) {
+func (v *authenticationService) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest, meta *utils.ClientMetadata) (*gp.Empty, error) {
 	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		user, userErr := v.dao.NewUserQuery().GetUser(tx, &models.User{Email: req.Email})
-		if userErr != nil {
-			if userErr.Error() == "record not found" && (req.Type.String() == "SignIn" || req.Type.String() == "ChangeUserEmail") {
+		user, err := v.dao.NewUserQuery().GetUser(tx, &models.User{Email: req.Email})
+		if err != nil {
+			if err.Error() == "record not found" && (req.Type.String() == "SignIn" || req.Type.String() == "ChangeUserEmail") {
 				return errors.New("user not found")
 			} else if user != nil && req.Type.String() == "SignUp" {
 				return errors.New("user already exists")
 			}
 		}
-		bannedUserResult, bannedUserError := v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: req.Email}, &[]string{"id"})
-		if bannedUserError != nil && bannedUserError.Error() != "record not found" {
-			return bannedUserError
+		bannedUserResult, err := v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: req.Email}, &[]string{"id"})
+		if err != nil && err.Error() != "record not found" {
+			return err
 		}
 		if bannedUserResult != nil {
 			return errors.New("banned user")
 		}
-		bannedDeviceResult, bannedDeviceError := v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: *metadata.DeviceIdentifier}, &[]string{"id"})
-		if bannedDeviceError != nil && bannedUserError.Error() != "record not found" {
-			return bannedDeviceError
+		bannedDeviceResult, err := v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: *meta.DeviceIdentifier}, &[]string{"id"})
+		if err != nil && err.Error() != "record not found" {
+			return err
 		}
 		if bannedDeviceResult != nil {
 			return errors.New("banned device")
@@ -65,8 +65,8 @@ func (v *authenticationService) CreateVerificationCode(ctx context.Context, req 
 		// } else if bannedAppRes != nil {
 		// 	return errors.New("app banned")
 		// }
-		v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{Email: req.Email, Type: req.Type.String(), DeviceIdentifier: *metadata.DeviceIdentifier})
-		verificationCodeResult := v.dao.NewVerificationCodeQuery().CreateVerificationCode(tx, &models.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: *metadata.DeviceIdentifier, CreateTime: time.Now(), UpdateTime: time.Now()})
+		v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{Email: req.Email, Type: req.Type.String(), DeviceIdentifier: *meta.DeviceIdentifier})
+		verificationCodeResult := v.dao.NewVerificationCodeQuery().CreateVerificationCode(tx, &models.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: *meta.DeviceIdentifier, CreateTime: time.Now(), UpdateTime: time.Now()})
 		if verificationCodeResult != nil {
 			return verificationCodeResult
 		}
@@ -78,18 +78,18 @@ func (v *authenticationService) CreateVerificationCode(ctx context.Context, req 
 	return &gp.Empty{}, nil
 }
 
-func (v *authenticationService) GetVerificationCode(verificationCode *models.VerificationCode, fields *[]string) (*models.VerificationCode, error) {
-	txErr := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		_, err := v.dao.NewVerificationCodeQuery().GetVerificationCode(tx, verificationCode, fields)
+func (v *authenticationService) GetVerificationCode(ctx context.Context, req *pb.GetVerificationCodeRequest, meta *utils.ClientMetadata) (*gp.Empty, error) {
+	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+		_, err := v.dao.NewVerificationCodeQuery().GetVerificationCode(tx, &models.VerificationCode{Code: req.Code, Email: req.Email, Type: req.Type.String(), DeviceIdentifier: *meta.DeviceIdentifier}, &[]string{"id"})
 		if err != nil {
 			return err
 		}
 		return nil
 	})
-	if txErr != nil {
-		return nil, txErr
+	if err != nil {
+		return nil, err
 	}
-	return verificationCode, nil
+	return &gp.Empty{}, nil
 }
 
 func (v *authenticationService) SignIn(verificationCode *models.VerificationCode, metadata *metadata.MD) (*dto.SignIn, error) {

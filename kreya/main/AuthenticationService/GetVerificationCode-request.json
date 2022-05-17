@@ -1,5 +1,5 @@
 {
-  "code": "fooBar",
-  "email": "{{ faker.internet.example_email }}",
-  "type": "VerificationCodeTypeUnspecified"
+  "code": "",
+  "email": "prueba10@correo.cup",
+  "type": "SignUp"
 }

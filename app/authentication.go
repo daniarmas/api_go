@@ -15,8 +15,10 @@ import (
 )
 
 func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest) (*gp.Empty, error) {
-	var invalidEmail *epb.BadRequest_FieldViolation
-	var invalidType *epb.BadRequest_FieldViolation
+	var (
+		invalidEmail *epb.BadRequest_FieldViolation
+		invalidType  *epb.BadRequest_FieldViolation
+	)
 	var invalidArgs bool
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
@@ -74,9 +76,59 @@ func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *
 }
 
 func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.GetVerificationCodeRequest) (*gp.Empty, error) {
+	var (
+		invalidEmail *epb.BadRequest_FieldViolation
+		invalidType  *epb.BadRequest_FieldViolation
+		invalidCode  *epb.BadRequest_FieldViolation
+	)
+	var invalidArgs bool
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	_, err := m.authenticationService.GetVerificationCode(&models.VerificationCode{Code: req.Code, Email: req.Email, Type: req.Type.String(), DeviceIdentifier: md.Get("deviceid")[0]}, &[]string{"id"})
+	meta, metaErr := utils.GetMetadata(&md)
+	if metaErr != nil {
+		return nil, metaErr
+	}
+	if req.Email == "" {
+		invalidArgs = true
+		invalidEmail = &epb.BadRequest_FieldViolation{
+			Field:       "Email",
+			Description: "The email field is required",
+		}
+	}
+	if req.Code == "" {
+		invalidArgs = true
+		invalidEmail = &epb.BadRequest_FieldViolation{
+			Field:       "Code",
+			Description: "The code field is required",
+		}
+	}
+	if req.Type == pb.VerificationCodeType_VerificationCodeTypeUnspecified {
+		invalidArgs = true
+		invalidType = &epb.BadRequest_FieldViolation{
+			Field:       "Type",
+			Description: "The type field is required",
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidEmail != nil {
+			st, _ = st.WithDetails(
+				invalidEmail,
+			)
+		}
+		if invalidCode != nil {
+			st, _ = st.WithDetails(
+				invalidCode,
+			)
+		}
+		if invalidType != nil {
+			st, _ = st.WithDetails(
+				invalidType,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.authenticationService.GetVerificationCode(ctx, req, meta)
 	if err != nil {
 		switch err.Error() {
 		case "record not found":
@@ -87,7 +139,7 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 			return nil, st.Err()
 		}
 	}
-	return &gp.Empty{}, nil
+	return res, nil
 }
 
 func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest) (*pb.SignInResponse, error) {
