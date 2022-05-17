@@ -53,7 +53,7 @@ func (i *businessService) UpdateBusiness(request *dto.UpdateBusinessRequest) (*m
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: *authorizationTokenRes.UserId}, nil)
+		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: *authorizationTokenRes.UserId})
 		if businessOwnerErr != nil {
 			return businessOwnerErr
 		}
@@ -190,7 +190,7 @@ func (i *businessService) CreateBusiness(request *dto.CreateBusinessRequest) (*d
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: *authorizationTokenRes.UserId}, nil)
+		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: *authorizationTokenRes.UserId})
 		if businessOwnerErr != nil {
 			return businessOwnerErr
 		}
