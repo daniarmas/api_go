@@ -4,13 +4,14 @@ import (
 	"errors"
 
 	"github.com/daniarmas/api_go/models"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type VerificationCodeDatasource interface {
 	GetVerificationCode(tx *gorm.DB, verificationCode *models.VerificationCode, fields *[]string) (*models.VerificationCode, error)
 	CreateVerificationCode(tx *gorm.DB, verificationCode *models.VerificationCode) error
-	DeleteVerificationCode(tx *gorm.DB, verificationCode *models.VerificationCode) error
+	DeleteVerificationCode(tx *gorm.DB, verificationCode *models.VerificationCode, ids *[]uuid.UUID) (*[]models.VerificationCode, error)
 }
 
 type verificationCodeDatasource struct{}
@@ -36,11 +37,11 @@ func (v *verificationCodeDatasource) GetVerificationCode(tx *gorm.DB, verificati
 	return verificationCodeResult, nil
 }
 
-func (v *verificationCodeDatasource) DeleteVerificationCode(tx *gorm.DB, verificationCode *models.VerificationCode) error {
-	var verificationCodeResult *[]models.VerificationCode
-	result := tx.Where(verificationCode).Delete(&verificationCodeResult)
+func (v *verificationCodeDatasource) DeleteVerificationCode(tx *gorm.DB, verificationCode *models.VerificationCode, ids *[]uuid.UUID) (*[]models.VerificationCode, error) {
+	var res *[]models.VerificationCode
+	result := tx.Where(verificationCode).Delete(&res)
 	if result.Error != nil {
-		return result.Error
+		return nil, result.Error
 	}
-	return nil
+	return res, nil
 }

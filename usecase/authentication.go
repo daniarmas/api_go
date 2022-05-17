@@ -66,7 +66,7 @@ func (v *authenticationService) CreateVerificationCode(ctx context.Context, req 
 		} else if deprecatedVersionAppRes != nil {
 			return errors.New("app banned")
 		}
-		v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{Email: req.Email, Type: req.Type.String(), DeviceIdentifier: *meta.DeviceIdentifier})
+		v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{Email: req.Email, Type: req.Type.String(), DeviceIdentifier: *meta.DeviceIdentifier}, nil)
 		verificationCodeResult := v.dao.NewVerificationCodeQuery().CreateVerificationCode(tx, &models.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: *meta.DeviceIdentifier, CreateTime: time.Now(), UpdateTime: time.Now()})
 		if verificationCodeResult != nil {
 			return verificationCodeResult
@@ -137,9 +137,9 @@ func (v *authenticationService) SignIn(verificationCode *models.VerificationCode
 		} else if bannedAppRes != nil {
 			return errors.New("app banned")
 		}
-		deleteVerificationCodeErr := v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{Email: verificationCode.Email, Type: "SignIn", DeviceIdentifier: verificationCode.DeviceIdentifier})
-		if deleteVerificationCodeErr != nil {
-			return deleteVerificationCodeErr
+		_, err := v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{Email: verificationCode.Email, Type: "SignIn", DeviceIdentifier: verificationCode.DeviceIdentifier}, nil)
+		if err != nil {
+			return err
 		}
 		deviceRes, deviceErr = v.dao.NewDeviceQuery().GetDevice(tx, &models.Device{DeviceIdentifier: verificationCode.DeviceIdentifier}, &[]string{"id"})
 		if deviceErr != nil && deviceErr.Error() != "record not found" {
@@ -233,9 +233,9 @@ func (v *authenticationService) SignUp(fullname *string, alias *string, verifica
 		} else if bannedAppRes != nil {
 			return errors.New("app banned")
 		}
-		deleteVerificationCodeErr := v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{Email: verificationCode.Email, Type: "SignIn", DeviceIdentifier: verificationCode.DeviceIdentifier})
-		if deleteVerificationCodeErr != nil {
-			return deleteVerificationCodeErr
+		_, err := v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{Email: verificationCode.Email, Type: "SignIn", DeviceIdentifier: verificationCode.DeviceIdentifier}, nil)
+		if err != nil {
+			return err
 		}
 		deviceRes, deviceErr = v.dao.NewDeviceQuery().GetDevice(tx, &models.Device{DeviceIdentifier: verificationCode.DeviceIdentifier}, &[]string{"id"})
 		if deviceErr != nil && deviceErr.Error() != "record not found" {

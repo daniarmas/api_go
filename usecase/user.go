@@ -125,9 +125,9 @@ func (i *userService) UpdateUser(request *dto.UpdateUserRequest) (*dto.UpdateUse
 			} else if verificationCodeErr != nil {
 				return verificationCodeErr
 			}
-			deleteVerificationCodeErr := i.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{ID: verificationCode.ID})
-			if deleteVerificationCodeErr != nil {
-				return deleteVerificationCodeErr
+			_, err := i.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{ID: verificationCode.ID}, nil)
+			if err != nil {
+				return err
 			}
 			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: userRes.ID}, &models.User{Email: request.Email})
 			if updatedUserErr != nil {
