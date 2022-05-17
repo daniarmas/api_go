@@ -74,7 +74,7 @@ func (i *itemService) UpdateItem(request *dto.UpdateItemRequest) (*models.Item, 
 		} else if businessHomeDeliveryRes {
 			return errors.New("business is open")
 		}
-		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{ItemId: request.ItemId})
+		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{ItemId: request.ItemId}, nil)
 		if getCartItemErr != nil && getCartItemErr.Error() != "record not found" {
 			return getCartItemErr
 		} else if getCartItemRes != nil {
@@ -184,7 +184,7 @@ func (i *itemService) DeleteItem(request *dto.DeleteItemRequest) error {
 		} else if businessHomeDeliveryRes {
 			return errors.New("business is open")
 		}
-		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{ItemId: request.ItemId})
+		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{ItemId: request.ItemId}, nil)
 		if getCartItemErr != nil && getCartItemErr.Error() != "record not found" {
 			return getCartItemErr
 		} else if getCartItemRes != nil {

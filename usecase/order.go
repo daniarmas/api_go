@@ -284,7 +284,7 @@ func (i *orderService) CreateOrder(request *dto.CreateOrderRequest) (*dto.Create
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		listCartItemRes, listCartItemErr := i.dao.NewCartItemRepository().ListCartItemInIds(tx, *request.CartItems)
+		listCartItemRes, listCartItemErr := i.dao.NewCartItemRepository().ListCartItemInIds(tx, *request.CartItems, nil)
 		if listCartItemErr != nil {
 			return listCartItemErr
 		}
@@ -678,9 +678,9 @@ func (i *orderService) CreateOrder(request *dto.CreateOrderRequest) (*dto.Create
 		if createUnionOrderAndOrderedItemsErr != nil {
 			return createUnionOrderAndOrderedItemsErr
 		}
-		deleteCartItemErr := i.dao.NewCartItemRepository().DeleteCartItem(tx, &models.CartItem{UserId: *authorizationTokenRes.UserId})
-		if deleteCartItemErr != nil {
-			return deleteCartItemErr
+		_, err := i.dao.NewCartItemRepository().DeleteCartItem(tx, &models.CartItem{UserId: *authorizationTokenRes.UserId}, nil)
+		if err != nil {
+			return err
 		}
 		response.Order = models.Order{ItemsQuantity: quantity, Status: createOrderRes.Status, OrderType: createOrderRes.OrderType, ResidenceType: createOrderRes.ResidenceType, Number: createOrderRes.Number, BusinessId: createOrderRes.BusinessId, AuthorizationTokenId: createOrderRes.AuthorizationTokenId, UserId: createOrderRes.UserId, OrderDate: createOrderRes.OrderDate, Coordinates: createOrderRes.Coordinates, Price: price.String(), CreateTime: createOrderRes.CreateTime, UpdateTime: createOrderRes.UpdateTime, ID: createOrderRes.ID, Address: createOrderRes.Address, Instructions: createOrderRes.Instructions}
 		return nil

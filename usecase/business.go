@@ -72,7 +72,7 @@ func (i *businessService) UpdateBusiness(request *dto.UpdateBusinessRequest) (*m
 		} else if businessHomeDeliveryRes {
 			return errors.New("business is open")
 		}
-		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{BusinessId: request.Id})
+		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{BusinessId: request.Id}, nil)
 		if getCartItemErr != nil && getCartItemErr.Error() != "record not found" {
 			return getCartItemErr
 		} else if getCartItemRes != nil {
