@@ -45,14 +45,14 @@ func (v *authenticationService) CreateVerificationCode(ctx context.Context, req 
 				return errors.New("user already exists")
 			}
 		}
-		bannedUserResult, err := v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: req.Email}, &[]string{"id"})
+		bannedUserResult, err := v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: req.Email})
 		if err != nil && err.Error() != "record not found" {
 			return err
 		}
 		if bannedUserResult != nil {
 			return errors.New("banned user")
 		}
-		bannedDeviceResult, err := v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: *meta.DeviceIdentifier}, &[]string{"id"})
+		bannedDeviceResult, err := v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: *meta.DeviceIdentifier})
 		if err != nil && err.Error() != "record not found" {
 			return err
 		}
@@ -118,13 +118,13 @@ func (v *authenticationService) SignIn(verificationCode *models.VerificationCode
 				return userErr
 			}
 		}
-		bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: verificationCode.Email}, &[]string{"id"})
+		bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: verificationCode.Email})
 		if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
 			return bannedUserErr
 		} else if bannedUserRes != nil {
 			return errors.New("user banned")
 		}
-		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: verificationCode.DeviceIdentifier}, &[]string{"id"})
+		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: verificationCode.DeviceIdentifier})
 		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
 			return bannedDeviceErr
 		} else if bannedDeviceRes != nil {
@@ -154,12 +154,12 @@ func (v *authenticationService) SignIn(verificationCode *models.VerificationCode
 				return deviceErr
 			}
 		}
-		deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserId: userRes.ID, DeviceId: deviceRes.ID}, &[]string{"id"})
+		deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserId: userRes.ID, DeviceId: deviceRes.ID}, nil)
 		if deleteRefreshTokenErr != nil {
 			return deleteRefreshTokenErr
 		}
 		if len(*deleteRefreshTokenRes) != 0 {
-			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: &(*deleteRefreshTokenRes)[0].ID})
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: &(*deleteRefreshTokenRes)[0].ID}, nil)
 			if deleteAuthorizationTokenErr != nil {
 				return deleteAuthorizationTokenErr
 			}
@@ -214,13 +214,13 @@ func (v *authenticationService) SignUp(fullname *string, alias *string, verifica
 		} else if userRes.Email != "" {
 			return errors.New("user exists")
 		}
-		bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: verificationCode.Email}, &[]string{"id"})
+		bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: verificationCode.Email})
 		if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
 			return bannedUserErr
 		} else if bannedUserRes != nil {
 			return errors.New("user banned")
 		}
-		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceId: verificationCode.ID}, &[]string{"id"})
+		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceId: verificationCode.ID})
 		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
 			return bannedDeviceErr
 		} else if bannedDeviceRes != nil {
@@ -254,12 +254,12 @@ func (v *authenticationService) SignUp(fullname *string, alias *string, verifica
 		if createUserErr != nil {
 			return createUserErr
 		}
-		deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserId: userRes.ID, DeviceId: deviceRes.ID}, &[]string{"id"})
+		deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserId: userRes.ID, DeviceId: deviceRes.ID}, nil)
 		if deleteRefreshTokenErr != nil {
 			return deleteRefreshTokenErr
 		}
 		if len(*deleteRefreshTokenRes) != 0 {
-			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: &(*deleteRefreshTokenRes)[0].ID})
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: &(*deleteRefreshTokenRes)[0].ID}, nil)
 			if deleteAuthorizationTokenErr != nil {
 				return deleteAuthorizationTokenErr
 			}
@@ -322,7 +322,7 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 					return deviceErr
 				}
 			}
-			bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: metadata.Get("deviceid")[0]}, &[]string{"id"})
+			bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: metadata.Get("deviceid")[0]})
 			if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
 				return bannedDeviceErr
 			} else if bannedDeviceRes != nil {
@@ -342,13 +342,13 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 					return authorizationTokenParseErr
 				}
 			}
-			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id", "refresh_token_id"})
+			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
 			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &models.RefreshToken{ID: *authorizationTokenRes.RefreshTokenId}, &[]string{"id"})
+			refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &models.RefreshToken{ID: *authorizationTokenRes.RefreshTokenId})
 			if refreshTokenErr != nil {
 				return refreshTokenErr
 			} else if refreshTokenRes == nil {
@@ -360,7 +360,7 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 			} else if userRes == nil {
 				return errors.New("user not found")
 			}
-			bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{UserId: *authorizationTokenRes.UserId}, &[]string{"id"})
+			bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{UserId: *authorizationTokenRes.UserId})
 			if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
 				return bannedUserErr
 			} else if bannedUserRes != nil {
@@ -394,7 +394,7 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 			} else if bannedAppRes != nil {
 				return errors.New("app banned")
 			}
-			bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: metadata.Get("deviceid")[0]}, &[]string{"id"})
+			bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: metadata.Get("deviceid")[0]})
 			if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
 				return bannedDeviceErr
 			} else if bannedDeviceRes != nil {
@@ -426,21 +426,21 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenid *string,
 					return authorizationTokenParseErr
 				}
 			}
-			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: authorizationWebToken.TokenId}, &[]string{"id", "user_id"})
+			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: authorizationWebToken.TokenId})
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
 			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
 			var refreshTokenIds []string
-			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserId: *authorizationTokenRes.UserId}, &[]string{"id"})
+			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserId: *authorizationTokenRes.UserId}, nil)
 			if deleteRefreshTokenErr != nil {
 				return deleteRefreshTokenErr
 			}
 			for _, e := range *deleteRefreshTokenRes {
 				refreshTokenIds = append(refreshTokenIds, e.ID.String())
 			}
-			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationTokenIn(tx, "refresh_token_id IN ?", &refreshTokenIds)
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, "refresh_token_id IN ?", refreshTokenIds)
 			if deleteAuthorizationTokenErr != nil {
 				return deleteAuthorizationTokenErr
 			}
@@ -460,11 +460,11 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenid *string,
 					return authorizationTokenParseErr
 				}
 			}
-			authorizationTokenByReqRes, authorizationTokenByReqErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId}, &[]string{"id", "user_id", "device_id"})
+			authorizationTokenByReqRes, authorizationTokenByReqErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId})
 			if authorizationTokenByReqErr != nil {
 				return authorizationTokenByReqErr
 			}
-			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId}, &[]string{"id", "user_id"})
+			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId})
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
 			} else if authorizationTokenRes == nil {
@@ -472,11 +472,11 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenid *string,
 			} else if authorizationTokenRes.UserId != authorizationTokenByReqRes.UserId {
 				return errors.New("permission denied")
 			}
-			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserId: *authorizationTokenByReqRes.UserId, DeviceId: *authorizationTokenByReqRes.DeviceId}, &[]string{"id"})
+			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserId: *authorizationTokenByReqRes.UserId, DeviceId: *authorizationTokenByReqRes.DeviceId}, nil)
 			if deleteRefreshTokenErr != nil {
 				return deleteRefreshTokenErr
 			}
-			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: &(*deleteRefreshTokenRes)[0].ID})
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: &(*deleteRefreshTokenRes)[0].ID}, nil)
 			if deleteAuthorizationTokenErr != nil {
 				return deleteAuthorizationTokenErr
 			}
@@ -496,17 +496,17 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenid *string,
 					return authorizationTokenParseErr
 				}
 			}
-			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId}, &[]string{"id", "user_id", "device_id"})
+			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId})
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
 			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserId: *authorizationTokenRes.UserId, DeviceId: *authorizationTokenRes.DeviceId}, &[]string{"id"})
+			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserId: *authorizationTokenRes.UserId, DeviceId: *authorizationTokenRes.DeviceId}, nil)
 			if deleteRefreshTokenErr != nil {
 				return deleteRefreshTokenErr
 			}
-			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: &(*deleteRefreshTokenRes)[0].ID})
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: &(*deleteRefreshTokenRes)[0].ID}, nil)
 			if deleteAuthorizationTokenErr != nil {
 				return deleteAuthorizationTokenErr
 			}
@@ -539,7 +539,7 @@ func (v *authenticationService) ListSession(metadata *metadata.MD) (*dto.ListSes
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id", "device_id"})
+		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
@@ -575,7 +575,7 @@ func (v *authenticationService) RefreshToken(refreshToken *string, metadata *met
 				return refreshTokenParseErr
 			}
 		}
-		refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &models.RefreshToken{ID: *jwtRefreshToken.TokenId}, &[]string{"id", "user_id", "device_id"})
+		refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &models.RefreshToken{ID: *jwtRefreshToken.TokenId})
 		if refreshTokenErr != nil {
 			return refreshTokenErr
 		} else if refreshTokenRes == nil {
@@ -587,11 +587,11 @@ func (v *authenticationService) RefreshToken(refreshToken *string, metadata *met
 		} else if userRes == nil {
 			return errors.New("user not found")
 		}
-		deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{ID: refreshTokenRes.ID}, &[]string{"id"})
+		deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{ID: refreshTokenRes.ID}, nil)
 		if deleteRefreshTokenErr != nil {
 			return deleteRefreshTokenErr
 		}
-		_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: &(*deleteRefreshTokenRes)[0].ID})
+		_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: &(*deleteRefreshTokenRes)[0].ID}, nil)
 		if deleteAuthorizationTokenErr != nil {
 			return deleteAuthorizationTokenErr
 		}

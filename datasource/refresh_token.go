@@ -12,7 +12,7 @@ import (
 type RefreshTokenDatasource interface {
 	GetRefreshToken(tx *gorm.DB, where *models.RefreshToken) (*models.RefreshToken, error)
 	CreateRefreshToken(tx *gorm.DB, data *models.RefreshToken) (*models.RefreshToken, error)
-	DeleteRefreshToken(tx *gorm.DB, where *models.RefreshToken, ids []uuid.UUID) (*[]models.RefreshToken, error)
+	DeleteRefreshToken(tx *gorm.DB, where *models.RefreshToken, ids *[]uuid.UUID) (*[]models.RefreshToken, error)
 }
 
 type refreshTokenDatasource struct{}
@@ -25,10 +25,10 @@ func (v *refreshTokenDatasource) CreateRefreshToken(tx *gorm.DB, data *models.Re
 	return data, nil
 }
 
-func (r *refreshTokenDatasource) DeleteRefreshToken(tx *gorm.DB, where *models.RefreshToken, ids []uuid.UUID) (*[]models.RefreshToken, error) {
+func (r *refreshTokenDatasource) DeleteRefreshToken(tx *gorm.DB, where *models.RefreshToken, ids *[]uuid.UUID) (*[]models.RefreshToken, error) {
 	var res *[]models.RefreshToken
 	var result *gorm.DB
-	if len(ids) != 0 {
+	if ids != nil {
 		result = tx.Clauses(clause.Returning{}).Where(`id IN ?`, ids).Delete(&res)
 	} else {
 		result = tx.Clauses(clause.Returning{}).Where(where).Delete(&res)

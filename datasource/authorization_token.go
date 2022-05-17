@@ -12,7 +12,8 @@ import (
 type AuthorizationTokenDatasource interface {
 	GetAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken) (*models.AuthorizationToken, error)
 	CreateAuthorizationToken(tx *gorm.DB, data *models.AuthorizationToken) (*models.AuthorizationToken, error)
-	DeleteAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken, ids []uuid.UUID) (*[]models.AuthorizationToken, error)
+	DeleteAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error)
+	DeleteAuthorizationTokenByRefreshTokenIds(tx *gorm.DB, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error)
 }
 
 type authorizationTokenDatasource struct{}
@@ -25,14 +26,25 @@ func (v *authorizationTokenDatasource) CreateAuthorizationToken(tx *gorm.DB, dat
 	return data, nil
 }
 
-func (r *authorizationTokenDatasource) DeleteAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken, ids []uuid.UUID) (*[]models.AuthorizationToken, error) {
+func (r *authorizationTokenDatasource) DeleteAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error) {
 	var res *[]models.AuthorizationToken
 	var result *gorm.DB
-	if len(ids) != 0 {
+	if ids != nil {
 		result = tx.Clauses(clause.Returning{}).Where(`id IN ?`, ids).Delete(&res)
 	} else {
 		result = tx.Clauses(clause.Returning{}).Where(where).Delete(&res)
 	}
+	if result.Error != nil {
+		return nil, result.Error
+	} else if result.RowsAffected == 0 {
+		return nil, errors.New("record not found")
+	}
+	return res, nil
+}
+
+func (r *authorizationTokenDatasource) DeleteAuthorizationTokenByRefreshTokenIds(tx *gorm.DB, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error) {
+	var res *[]models.AuthorizationToken
+	result := tx.Clauses(clause.Returning{}).Where(`refresh_token_id IN ?`, ids).Delete(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	} else if result.RowsAffected == 0 {
