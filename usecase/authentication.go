@@ -67,9 +67,9 @@ func (v *authenticationService) CreateVerificationCode(ctx context.Context, req 
 			return errors.New("app banned")
 		}
 		v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{Email: req.Email, Type: req.Type.String(), DeviceIdentifier: *meta.DeviceIdentifier}, nil)
-		verificationCodeResult := v.dao.NewVerificationCodeQuery().CreateVerificationCode(tx, &models.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: *meta.DeviceIdentifier, CreateTime: time.Now(), UpdateTime: time.Now()})
-		if verificationCodeResult != nil {
-			return verificationCodeResult
+		_, createVerificationCodeErr := v.dao.NewVerificationCodeQuery().CreateVerificationCode(tx, &models.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: *meta.DeviceIdentifier, CreateTime: time.Now(), UpdateTime: time.Now()})
+		if createVerificationCodeErr != nil {
+			return createVerificationCodeErr
 		}
 		return nil
 	})
