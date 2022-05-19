@@ -612,20 +612,21 @@ message Order {
 message User {
   string id = 1;
   string fullName = 2;
-  string highQualityPhoto = 3;
-  string highQualityPhotoUrl = 4;
-  string highQualityPhotoBlurHash = 5;
-  string lowQualityPhoto = 6;
-  string lowQualityPhotoUrl = 7;
-  string lowQualityPhotoBlurHash = 8;
-  string thumbnail = 9;
-  string thumbnailUrl = 10;
-  string thumbnailBlurHash = 11;
-  repeated UserAddress userAddress = 12;
-  string email = 13; 
-  repeated Permission permissions = 14;
-  google.protobuf.Timestamp createTime = 15;
-  google.protobuf.Timestamp updateTime = 16;
+  string email = 3; 
+  string phoneNumber = 4;
+  string highQualityPhoto = 5;
+  string highQualityPhotoUrl = 6;
+  string highQualityPhotoBlurHash = 7;
+  string lowQualityPhoto = 8;
+  string lowQualityPhotoUrl = 9;
+  string lowQualityPhotoBlurHash = 10;
+  string thumbnail = 11;
+  string thumbnailUrl = 12;
+  string thumbnailBlurHash = 13;
+  repeated UserAddress userAddress = 14;
+  repeated Permission permissions = 15;
+  google.protobuf.Timestamp createTime = 16;
+  google.protobuf.Timestamp updateTime = 17;
 }
 
 message Municipality {

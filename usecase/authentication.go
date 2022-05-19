@@ -225,6 +225,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 	return &pb.SignInResponse{AuthorizationToken: *jwtAuthorizationToken.Token, RefreshToken: *jwtRefreshToken.Token, User: &pb.User{
 		Id:                       userRes.ID.String(),
 		FullName:                 userRes.FullName,
+		PhoneNumber:              userRes.PhoneNumber,
 		Email:                    userRes.Email,
 		HighQualityPhoto:         userRes.HighQualityPhoto,
 		HighQualityPhotoUrl:      userRes.HighQualityPhoto,
@@ -257,6 +258,18 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 		jwtAuthorizationToken *datasource.JsonWebTokenMetadata
 	)
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		bannedAppRes, bannedAppErr := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: *meta.AppVersion}, &[]string{})
+		if bannedAppErr != nil && bannedAppErr.Error() != "record not found" {
+			return bannedAppErr
+		} else if bannedAppRes != nil {
+			return errors.New("app banned")
+		}
+		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceId: verificationCodeRes.ID}, &[]string{"id"})
+		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
+			return bannedDeviceErr
+		} else if bannedDeviceRes != nil {
+			return errors.New("device banned")
+		}
 		verificationCodeRes, verificationCodeErr = v.dao.NewVerificationCodeQuery().GetVerificationCode(tx, &models.VerificationCode{Email: req.Email, Code: req.Code, DeviceIdentifier: *meta.DeviceIdentifier, Type: "SignUp"}, &[]string{"id"})
 		if verificationCodeErr != nil && verificationCodeErr.Error() == "record not found" {
 			return errors.New("verification code not found")
@@ -274,18 +287,6 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 			return bannedUserErr
 		} else if bannedUserRes != nil {
 			return errors.New("user banned")
-		}
-		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceId: verificationCodeRes.ID}, &[]string{"id"})
-		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
-			return bannedDeviceErr
-		} else if bannedDeviceRes != nil {
-			return errors.New("device banned")
-		}
-		bannedAppRes, bannedAppErr := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: *meta.AppVersion}, &[]string{})
-		if bannedAppErr != nil && bannedAppErr.Error() != "record not found" {
-			return bannedAppErr
-		} else if bannedAppRes != nil {
-			return errors.New("app banned")
 		}
 		_, err := v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{ID: verificationCodeRes.ID}, nil)
 		if err != nil {
