@@ -5,7 +5,6 @@ import (
 	"net/mail"
 	"strconv"
 
-	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
 	utils "github.com/daniarmas/api_go/utils"
 	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -13,7 +12,6 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	gp "google.golang.org/protobuf/types/known/emptypb"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest) (*gp.Empty, error) {
@@ -215,7 +213,7 @@ func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest
 		}
 		return nil, st.Err()
 	}
-	res, err := m.authenticationService.SignIn(&models.VerificationCode{Code: req.Code, Email: req.Email, Type: "SignIn", DeviceIdentifier: *md.DeviceIdentifier}, md)
+	res, err := m.authenticationService.SignIn(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "verification code not found":
@@ -233,18 +231,7 @@ func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest
 		}
 		return nil, st.Err()
 	}
-	permissions := make([]*pb.Permission, 0, len(res.User.UserPermissions))
-	for _, item := range res.User.UserPermissions {
-		permissions = append(permissions, &pb.Permission{
-			Id:         item.ID.String(),
-			Name:       item.Name,
-			UserId:     item.UserId.String(),
-			BusinessId: item.BusinessId.String(),
-			CreateTime: timestamppb.New(item.CreateTime),
-			UpdateTime: timestamppb.New(item.UpdateTime),
-		})
-	}
-	return &pb.SignInResponse{RefreshToken: res.RefreshToken, AuthorizationToken: res.AuthorizationToken, User: &pb.User{Id: res.User.ID.String(), FullName: res.User.FullName, HighQualityPhoto: res.User.HighQualityPhoto, HighQualityPhotoBlurHash: res.User.HighQualityPhotoBlurHash, LowQualityPhoto: res.User.LowQualityPhoto, LowQualityPhotoBlurHash: res.User.LowQualityPhotoBlurHash, Thumbnail: res.User.Thumbnail, ThumbnailBlurHash: res.User.ThumbnailBlurHash, UserAddress: nil, Email: res.User.Email, Permissions: permissions, CreateTime: timestamppb.New(res.User.CreateTime), UpdateTime: timestamppb.New(res.User.UpdateTime)}}, nil
+	return res, nil
 }
 
 func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest) (*pb.SignUpResponse, error) {

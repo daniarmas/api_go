@@ -29,7 +29,7 @@ func (u *userDatasource) GetUserWithAddress(tx *gorm.DB, where *models.User, fie
 	if userAddressErr != nil {
 		return nil, userAddressErr
 	}
-	result = tx.Joins("Company").Where(where).Take(&res)
+	result = tx.Preload("UserPermissions").Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return res, nil
@@ -56,7 +56,7 @@ func (u *userDatasource) GetUser(tx *gorm.DB, where *models.User, fields *[]stri
 
 func (u *userDatasource) GetUserWithPermission(tx *gorm.DB, where *models.User) (*models.User, error) {
 	var res *models.User
-	result := tx.Preload("Permission").Where(where).Take(&res)
+	result := tx.Preload("UserPermissions").Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

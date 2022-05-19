@@ -1,4 +1,4 @@
 {
-  "email": "{{ faker.internet.example_email }}",
-  "code": "fooBar"
+  "email": "prueba10@correo.cup",
+  "code": "093843"
 }

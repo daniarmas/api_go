@@ -6,6 +6,7 @@ import (
 	"github.com/daniarmas/api_go/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type VerificationCodeDatasource interface {
@@ -37,11 +38,18 @@ func (v *verificationCodeDatasource) GetVerificationCode(tx *gorm.DB, verificati
 	return res, nil
 }
 
-func (v *verificationCodeDatasource) DeleteVerificationCode(tx *gorm.DB, verificationCode *models.VerificationCode, ids *[]uuid.UUID) (*[]models.VerificationCode, error) {
+func (v *verificationCodeDatasource) DeleteVerificationCode(tx *gorm.DB, where *models.VerificationCode, ids *[]uuid.UUID) (*[]models.VerificationCode, error) {
 	var res *[]models.VerificationCode
-	result := tx.Where(verificationCode).Delete(&res)
+	var result *gorm.DB
+	if ids != nil {
+		result = tx.Clauses(clause.Returning{}).Where(`id IN ?`, ids).Delete(&res)
+	} else {
+		result = tx.Clauses(clause.Returning{}).Where(where).Delete(&res)
+	}
 	if result.Error != nil {
 		return nil, result.Error
+	} else if result.RowsAffected == 0 {
+		return nil, errors.New("record not found")
 	}
 	return res, nil
 }
