@@ -25,16 +25,30 @@ func UnaryMetadataRequestInterceptor() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler) (_ interface{}, err error) {
 		var (
-			invalidDeviceId      *epb.ErrorInfo
-			invalidAccessToken   *epb.ErrorInfo
-			invalidAppVersion    *epb.ErrorInfo
-			invalidPlatform      *epb.ErrorInfo
-			invalidSystemVersion *epb.ErrorInfo
-			invalidModel         *epb.ErrorInfo
+			invalidApp                      *epb.ErrorInfo
+			invalidFirebaseCloudMessagingId *epb.ErrorInfo
+			invalidDeviceId                 *epb.ErrorInfo
+			invalidAccessToken              *epb.ErrorInfo
+			invalidAppVersion               *epb.ErrorInfo
+			invalidPlatform                 *epb.ErrorInfo
+			invalidSystemVersion            *epb.ErrorInfo
+			invalidModel                    *epb.ErrorInfo
 		)
 		var invalidArgs bool
 		var st = status.New(codes.Unauthenticated, "Incorrect metadata")
 		md, _ := metadata.FromIncomingContext(ctx)
+		if len(md.Get("App")) == 0 {
+			invalidArgs = true
+			invalidApp = &epb.ErrorInfo{
+				Reason: "app metadata missing",
+			}
+		}
+		if len(md.Get("Firebase-Cloud-Messaging-Id")) == 0 {
+			invalidArgs = true
+			invalidFirebaseCloudMessagingId = &epb.ErrorInfo{
+				Reason: "firebase-cloud-messaging-id metadata missing",
+			}
+		}
 		if len(md.Get("Device-Id")) == 0 {
 			invalidArgs = true
 			invalidDeviceId = &epb.ErrorInfo{
@@ -82,6 +96,11 @@ func UnaryMetadataRequestInterceptor() grpc.UnaryServerInterceptor {
 					invalidDeviceId,
 				)
 			}
+			if invalidApp != nil {
+				st, _ = st.WithDetails(
+					invalidApp,
+				)
+			}
 			if invalidAccessToken != nil {
 				st, _ = st.WithDetails(
 					invalidAccessToken,
@@ -95,6 +114,11 @@ func UnaryMetadataRequestInterceptor() grpc.UnaryServerInterceptor {
 			if invalidPlatform != nil {
 				st, _ = st.WithDetails(
 					invalidPlatform,
+				)
+			}
+			if invalidFirebaseCloudMessagingId != nil {
+				st, _ = st.WithDetails(
+					invalidFirebaseCloudMessagingId,
 				)
 			}
 			if invalidSystemVersion != nil {

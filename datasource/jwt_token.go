@@ -34,7 +34,7 @@ func (v *jwtTokenDatasource) CreateJwtRefreshToken(tokenMetadata *JsonWebTokenMe
 	if err != nil {
 		return err
 	}
-	*tokenMetadata.Token = tokenString
+	tokenMetadata.Token = &tokenString
 	return nil
 }
 
@@ -49,7 +49,7 @@ func (r *jwtTokenDatasource) CreateJwtAuthorizationToken(tokenMetadata *JsonWebT
 	if err != nil {
 		return err
 	}
-	*tokenMetadata.Token = tokenString
+	tokenMetadata.Token = &tokenString
 	return nil
 }
 

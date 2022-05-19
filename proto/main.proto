@@ -500,10 +500,9 @@ message GetBusinessResponse {
 
 message SignUpRequest {
   string email = 1;
-  string alias = 2;
-  string fullName = 3;
-  string code = 5;
-  SignUpType signUpType = 6;
+  string fullName = 2;
+  string code = 3;
+  SignUpType signUpType = 4;
 }
 
 message SignUpResponse {
@@ -612,19 +611,21 @@ message Order {
 
 message User {
   string id = 1;
-  string fullName = 2; 
-  string alias = 3;
-  string highQualityPhoto = 4;
+  string fullName = 2;
+  string highQualityPhoto = 3;
+  string highQualityPhotoUrl = 4;
   string highQualityPhotoBlurHash = 5;
   string lowQualityPhoto = 6;
-  string lowQualityPhotoBlurHash = 7;
-  string thumbnail = 8;
-  string thumbnailBlurHash = 9;
-  repeated UserAddress userAddress = 10;
-  string email = 11; 
-  repeated Permission permissions = 12;
-  google.protobuf.Timestamp createTime = 13;
-  google.protobuf.Timestamp updateTime = 14;
+  string lowQualityPhotoUrl = 7;
+  string lowQualityPhotoBlurHash = 8;
+  string thumbnail = 9;
+  string thumbnailUrl = 10;
+  string thumbnailBlurHash = 11;
+  repeated UserAddress userAddress = 12;
+  string email = 13; 
+  repeated Permission permissions = 14;
+  google.protobuf.Timestamp createTime = 15;
+  google.protobuf.Timestamp updateTime = 16;
 }
 
 message Municipality {
