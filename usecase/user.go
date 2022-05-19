@@ -29,7 +29,7 @@ func NewUserService(dao repository.DAO) UserService {
 
 func (i *userService) GetAddressInfo(request *dto.GetAddressInfoRequest) (*dto.GetAddressInfoResponse, error) {
 	var response dto.GetAddressInfoResponse
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		muncipalityRes, err := i.dao.NewMunicipalityRepository().GetMunicipalityByCoordinate(tx, request.Coordinates)
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("municipality not found")
@@ -57,7 +57,7 @@ func (i *userService) GetAddressInfo(request *dto.GetAddressInfoRequest) (*dto.G
 func (i *userService) GetUser(metadata *metadata.MD) (*models.User, error) {
 	var user *models.User
 	var userErr error
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &metadata.Get("authorization")[0]}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -78,7 +78,7 @@ func (i *userService) GetUser(metadata *metadata.MD) (*models.User, error) {
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		user, userErr = i.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{ID: *authorizationTokenRes.UserId}, nil)
+		user, userErr = i.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{ID: authorizationTokenRes.UserId}, nil)
 		if userErr != nil {
 			return userErr
 		}
@@ -93,7 +93,7 @@ func (i *userService) GetUser(metadata *metadata.MD) (*models.User, error) {
 func (i *userService) UpdateUser(request *dto.UpdateUserRequest) (*dto.UpdateUserResponse, error) {
 	var updatedUserRes *models.User
 	var updatedUserErr error
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		if request.Email != "" && request.Code != "" {
 			jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
 			authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
@@ -115,7 +115,7 @@ func (i *userService) UpdateUser(request *dto.UpdateUserRequest) (*dto.UpdateUse
 			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserId}, &[]string{})
+			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserId}, &[]string{})
 			if userErr != nil {
 				return userErr
 			}
@@ -155,7 +155,7 @@ func (i *userService) UpdateUser(request *dto.UpdateUserRequest) (*dto.UpdateUse
 			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserId}, &[]string{})
+			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserId}, &[]string{})
 			if userErr != nil {
 				return userErr
 			}
@@ -220,7 +220,7 @@ func (i *userService) UpdateUser(request *dto.UpdateUserRequest) (*dto.UpdateUse
 			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: *authorizationTokenRes.UserId}, &[]string{})
+			userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserId}, &[]string{})
 			if userErr != nil {
 				return userErr
 			}

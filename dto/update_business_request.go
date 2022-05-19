@@ -6,7 +6,7 @@ import (
 )
 
 type UpdateBusinessRequest struct {
-	Id                       uuid.UUID
+	Id                       *uuid.UUID
 	Metadata                 *metadata.MD
 	Name                     string
 	Description              string

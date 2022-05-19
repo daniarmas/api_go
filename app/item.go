@@ -106,7 +106,8 @@ func (m *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) 
 	if req.BusinessCollectionId != "" {
 		businessCollectionId = uuid.MustParse(req.BusinessCollectionId)
 	}
-	item, err := m.itemService.UpdateItem(&dto.UpdateItemRequest{ItemId: uuid.MustParse(req.Id), Name: req.Name, Description: req.Description, Price: req.Price, HighQualityPhoto: req.HighQualityPhoto, HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash, LowQualityPhoto: req.LowQualityPhoto, LowQualityPhotoBlurHash: req.LowQualityPhotoBlurHash, Thumbnail: req.Thumbnail, ThumbnailBlurHash: req.ThumbnailBlurHash, Availability: req.Availability, Status: req.Status.String(), BusinessColletionId: businessCollectionId, Metadata: &md})
+	itemId := uuid.MustParse(req.Id)
+	item, err := m.itemService.UpdateItem(&dto.UpdateItemRequest{ItemId: &itemId, Name: req.Name, Description: req.Description, Price: req.Price, HighQualityPhoto: req.HighQualityPhoto, HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash, LowQualityPhoto: req.LowQualityPhoto, LowQualityPhotoBlurHash: req.LowQualityPhotoBlurHash, Thumbnail: req.Thumbnail, ThumbnailBlurHash: req.ThumbnailBlurHash, Availability: req.Availability, Status: req.Status.String(), BusinessColletionId: &businessCollectionId, Metadata: &md})
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -185,7 +186,8 @@ func (m *ItemServer) SearchItem(ctx context.Context, req *pb.SearchItemRequest) 
 func (m *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) (*gp.Empty, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	err := m.itemService.DeleteItem(&dto.DeleteItemRequest{ItemId: uuid.MustParse(req.Id), Metadata: &md})
+	itemId := uuid.MustParse(req.Id)
+	err := m.itemService.DeleteItem(&dto.DeleteItemRequest{ItemId: &itemId, Metadata: &md})
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -223,7 +225,8 @@ func (m *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) 
 func (m *ItemServer) CreateItem(ctx context.Context, req *pb.CreateItemRequest) (*pb.CreateItemResponse, error) {
 	md, _ := metadata.FromIncomingContext(ctx)
 	var st *status.Status
-	res, err := m.itemService.CreateItem(&dto.CreateItemRequest{Name: req.Name, Description: req.Description, Price: req.Price, BusinessCollectionId: req.BusinessCollectionId, HighQualityPhoto: req.HighQualityPhoto, HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash, LowQualityPhoto: req.LowQualityPhoto, LowQualityPhotoBlurHash: req.LowQualityPhotoBlurHash, Thumbnail: req.Thumbnail, ThumbnailBlurHash: req.ThumbnailBlurHash, BusinessId: uuid.MustParse(req.BusinessId), Metadata: &md})
+	businessId := uuid.MustParse(req.BusinessId)
+	res, err := m.itemService.CreateItem(&dto.CreateItemRequest{Name: req.Name, Description: req.Description, Price: req.Price, BusinessCollectionId: req.BusinessCollectionId, HighQualityPhoto: req.HighQualityPhoto, HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash, LowQualityPhoto: req.LowQualityPhoto, LowQualityPhotoBlurHash: req.LowQualityPhotoBlurHash, Thumbnail: req.Thumbnail, ThumbnailBlurHash: req.ThumbnailBlurHash, BusinessId: &businessId, Metadata: &md})
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":

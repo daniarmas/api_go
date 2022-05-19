@@ -14,9 +14,9 @@ func (BusinessCollection) TableName() string {
 }
 
 type BusinessCollection struct {
-	ID          uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ID          *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Name        string         `gorm:"column:name;not null"`
-	BusinessId  uuid.UUID      `gorm:"column:business_id;not null"`
+	BusinessId  *uuid.UUID     `gorm:"column:business_id;not null"`
 	Index       int32          `gorm:"column:index;not null"`
 	EnabledFlag int32          `gorm:"column:enabled_flag;not null"`
 	Item        []Item         `gorm:"foreignKey:BusinessCollectionId"`

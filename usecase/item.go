@@ -35,7 +35,7 @@ func NewItemService(dao repository.DAO) ItemService {
 func (i *itemService) UpdateItem(request *dto.UpdateItemRequest) (*models.Item, error) {
 	var updateItemRes *models.Item
 	var updateItemErr error
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -141,7 +141,7 @@ func (i *itemService) UpdateItem(request *dto.UpdateItemRequest) (*models.Item, 
 }
 
 func (i *itemService) DeleteItem(request *dto.DeleteItemRequest) error {
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -166,7 +166,7 @@ func (i *itemService) DeleteItem(request *dto.DeleteItemRequest) error {
 		if getItemErr != nil {
 			return getItemErr
 		}
-		_, err := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{Name: "delete_item", UserId: *authorizationTokenRes.UserId, BusinessId: getItemRes.BusinessId}, &[]string{"id"})
+		_, err := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{Name: "delete_item", UserId: authorizationTokenRes.UserId, BusinessId: getItemRes.BusinessId}, &[]string{"id"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		} else if err != nil {
@@ -229,7 +229,7 @@ func (i *itemService) DeleteItem(request *dto.DeleteItemRequest) error {
 func (i *itemService) CreateItem(request *dto.CreateItemRequest) (*models.Item, error) {
 	var itemRes *models.Item
 	var itemErr error
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -250,7 +250,7 @@ func (i *itemService) CreateItem(request *dto.CreateItemRequest) (*models.Item, 
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		_, err := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{Name: "create_item", UserId: *authorizationTokenRes.UserId, BusinessId: request.BusinessId}, &[]string{"id"})
+		_, err := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{Name: "create_item", UserId: authorizationTokenRes.UserId, BusinessId: request.BusinessId}, &[]string{"id"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		} else if err != nil {
@@ -274,11 +274,12 @@ func (i *itemService) CreateItem(request *dto.CreateItemRequest) (*models.Item, 
 		} else if tnErr != nil {
 			return tnErr
 		}
-		businessRes, businessErr := i.dao.NewBusinessQuery().GetBusinessProvinceAndMunicipality(tx, request.BusinessId)
+		businessRes, businessErr := i.dao.NewBusinessQuery().GetBusinessProvinceAndMunicipality(tx, *request.BusinessId)
 		if businessErr != nil {
 			return businessErr
 		}
-		itemRes, itemErr = i.dao.NewItemQuery().CreateItem(tx, &models.Item{Name: request.Name, Description: request.Description, Price: request.Price, Availability: -1, BusinessId: request.BusinessId, BusinessCollectionId: uuid.MustParse(request.BusinessCollectionId), HighQualityPhoto: request.HighQualityPhoto, LowQualityPhoto: request.LowQualityPhoto, Thumbnail: request.Thumbnail, HighQualityPhotoBlurHash: request.HighQualityPhotoBlurHash, LowQualityPhotoBlurHash: request.LowQualityPhotoBlurHash, ThumbnailBlurHash: request.ThumbnailBlurHash, Status: "Unavailable", ProvinceId: businessRes.ProvinceId, MunicipalityId: businessRes.MunicipalityId})
+		businessCollectionId := uuid.MustParse(request.BusinessCollectionId)
+		itemRes, itemErr = i.dao.NewItemQuery().CreateItem(tx, &models.Item{Name: request.Name, Description: request.Description, Price: request.Price, Availability: -1, BusinessId: request.BusinessId, BusinessCollectionId: &businessCollectionId, HighQualityPhoto: request.HighQualityPhoto, LowQualityPhoto: request.LowQualityPhoto, Thumbnail: request.Thumbnail, HighQualityPhotoBlurHash: request.HighQualityPhotoBlurHash, LowQualityPhotoBlurHash: request.LowQualityPhotoBlurHash, ThumbnailBlurHash: request.ThumbnailBlurHash, Status: "Unavailable", ProvinceId: businessRes.ProvinceId, MunicipalityId: businessRes.MunicipalityId})
 		if itemErr != nil {
 			return itemErr
 		}
@@ -294,13 +295,14 @@ func (i *itemService) ListItem(itemRequest *dto.ListItemRequest) (*dto.ListItemR
 	var items *[]models.Item
 	var listItemResponse dto.ListItemResponse
 	var itemsErr error
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+	businessId := uuid.MustParse(itemRequest.BusinessId)
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		if itemRequest.BusinessId != "" && itemRequest.BusinessCollectionId == "" {
-			itemCategoryRes, itemCategoryErr := i.dao.NewBusinessCollectionQuery().GetBusinessCollection(tx, &models.BusinessCollection{Index: 0, BusinessId: uuid.MustParse(itemRequest.BusinessId)})
+			itemCategoryRes, itemCategoryErr := i.dao.NewBusinessCollectionQuery().GetBusinessCollection(tx, &models.BusinessCollection{Index: 0, BusinessId: &businessId})
 			if itemCategoryErr != nil {
 				return itemCategoryErr
 			}
-			items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &models.Item{BusinessId: uuid.MustParse(itemRequest.BusinessId), BusinessCollectionId: itemCategoryRes.ID}, itemRequest.NextPage)
+			items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &models.Item{BusinessId: &businessId, BusinessCollectionId: itemCategoryRes.ID}, itemRequest.NextPage)
 			if itemsErr != nil {
 				return itemsErr
 			} else if len(*items) > 10 {
@@ -312,7 +314,8 @@ func (i *itemService) ListItem(itemRequest *dto.ListItemRequest) (*dto.ListItemR
 				listItemResponse.NextPage = (*items)[len(*items)-1].CreateTime
 			}
 		} else if itemRequest.BusinessId != "" && itemRequest.BusinessCollectionId != "" {
-			items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &models.Item{BusinessId: uuid.MustParse(itemRequest.BusinessId), BusinessCollectionId: uuid.MustParse(itemRequest.BusinessCollectionId)}, itemRequest.NextPage)
+			businessCollectionId := uuid.MustParse(itemRequest.BusinessCollectionId)
+			items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &models.Item{BusinessId: &businessId, BusinessCollectionId: &businessCollectionId}, itemRequest.NextPage)
 			if itemsErr != nil {
 				return itemsErr
 			}
@@ -329,7 +332,7 @@ func (i *itemService) ListItem(itemRequest *dto.ListItemRequest) (*dto.ListItemR
 func (i *itemService) GetItem(request *dto.GetItemRequest) (*models.ItemBusiness, error) {
 	var item *models.ItemBusiness
 	var itemErr error
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		item, itemErr = i.dao.NewItemQuery().GetItemWithLocation(tx, request.Id, request.Location)
 		if itemErr != nil {
 			return itemErr
@@ -346,7 +349,7 @@ func (i *itemService) SearchItem(name string, provinceId string, municipalityId 
 	var response *[]models.Item
 	var searchItemResponse dto.SearchItemResponse
 	var responseErr error
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		if searchMunicipalityType == "More" {
 			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, name, provinceId, municipalityId, cursor, false, 10, &[]string{})
 			if responseErr != nil {

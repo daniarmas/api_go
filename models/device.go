@@ -14,7 +14,7 @@ func (Device) TableName() string {
 }
 
 type Device struct {
-	ID                       uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ID                       *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Platform                 string         `gorm:"column:platform;not null"`
 	SystemVersion            string         `gorm:"column:system_version;not null"`
 	DeviceIdentifier         string         `gorm:"column:device_identifier;not null"`

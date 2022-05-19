@@ -49,7 +49,8 @@ func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemR
 	if req.NextPage.Nanos == 0 && req.NextPage.Seconds == 0 {
 		nextPage = time.Now()
 	}
-	listCartItemsResponse, err := m.cartItemService.ListCartItemAndItem(&dto.ListCartItemRequest{NextPage: nextPage, Metadata: &md, MunicipalityId: uuid.MustParse(req.MunicipalityId)})
+	municipalityId := uuid.MustParse(req.MunicipalityId)
+	listCartItemsResponse, err := m.cartItemService.ListCartItemAndItem(&dto.ListCartItemRequest{NextPage: nextPage, Metadata: &md, MunicipalityId: &municipalityId})
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -88,7 +89,8 @@ func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemR
 func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemRequest) (*pb.AddCartItemResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	cartItemsResponse, err := m.cartItemService.AddCartItem(&dto.AddCartItem{ItemId: req.ItemId, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, Metadata: &md, Quantity: req.Quantity, MunicipalityId: uuid.MustParse(req.MunicipalityId)})
+	municipalityId := uuid.MustParse(req.MunicipalityId)
+	cartItemsResponse, err := m.cartItemService.AddCartItem(&dto.AddCartItem{ItemId: req.ItemId, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, Metadata: &md, Quantity: req.Quantity, MunicipalityId: &municipalityId})
 	if err != nil {
 		errorr := strings.Split(err.Error(), ":")
 		switch errorr[0] {
@@ -137,7 +139,8 @@ func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemReq
 func (m *CartItemServer) ReduceCartItem(ctx context.Context, req *pb.ReduceCartItemRequest) (*pb.ReduceCartItemResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	cartItemsResponse, err := m.cartItemService.ReduceCartItem(&dto.ReduceCartItem{ItemId: req.ItemId, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, Metadata: &md, MunicipalityId: uuid.MustParse(req.MunicipalityId)})
+	municipalityId := uuid.MustParse(req.MunicipalityId)
+	cartItemsResponse, err := m.cartItemService.ReduceCartItem(&dto.ReduceCartItem{ItemId: req.ItemId, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, Metadata: &md, MunicipalityId: &municipalityId})
 	if err != nil {
 		errorr := strings.Split(err.Error(), ":")
 		switch errorr[0] {
@@ -192,7 +195,8 @@ func (m *CartItemServer) ReduceCartItem(ctx context.Context, req *pb.ReduceCartI
 func (m *CartItemServer) DeleteCartItem(ctx context.Context, req *pb.DeleteCartItemRequest) (*gp.Empty, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	err := m.cartItemService.DeleteCartItem(&dto.DeleteCartItemRequest{CartItemId: req.Id, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, Metadata: &md, MunicipalityId: uuid.MustParse(req.MunicipalityId)})
+	municipalityId := uuid.MustParse(req.MunicipalityId)
+	err := m.cartItemService.DeleteCartItem(&dto.DeleteCartItemRequest{CartItemId: req.Id, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, Metadata: &md, MunicipalityId: &municipalityId})
 	if err != nil {
 		errorr := strings.Split(err.Error(), ":")
 		switch errorr[0] {

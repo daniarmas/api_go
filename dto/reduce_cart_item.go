@@ -10,5 +10,5 @@ type ReduceCartItem struct {
 	ItemId         string
 	Location       ewkb.Point
 	Metadata       *metadata.MD
-	MunicipalityId uuid.UUID
+	MunicipalityId *uuid.UUID
 }

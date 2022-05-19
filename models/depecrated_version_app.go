@@ -14,7 +14,7 @@ func (DeprecatedVersionApp) TableName() string {
 }
 
 type DeprecatedVersionApp struct {
-	ID          uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ID          *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Version     string         `gorm:"column:version;not null"`
 	Description string         `gorm:"column:description;not null"`
 	CreateTime  time.Time      `gorm:"column:create_time;not null"`

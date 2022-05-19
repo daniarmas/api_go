@@ -123,7 +123,8 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderRequest) (*pb.UpdateOrderResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	updateOrderRes, updateOrderErr := m.orderService.UpdateOrder(&dto.UpdateOrderRequest{Id: uuid.MustParse(req.Id), Status: req.Status.String(), Metadata: &md})
+	id := uuid.MustParse(req.Id)
+	updateOrderRes, updateOrderErr := m.orderService.UpdateOrder(&dto.UpdateOrderRequest{Id: &id, Status: req.Status.String(), Metadata: &md})
 	if updateOrderErr != nil {
 		switch updateOrderErr.Error() {
 		case "authorizationtoken not found":
@@ -149,7 +150,8 @@ func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReques
 func (m *OrderServer) ListOrderedItem(ctx context.Context, req *pb.ListOrderedItemRequest) (*pb.ListOrderedItemResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	listOrderedItemRes, listOrderedItemErr := m.orderService.ListOrderedItemWithItem(&dto.ListOrderedItemRequest{OrderId: uuid.MustParse(req.OrderId), Metadata: &md})
+	orderId := uuid.MustParse(req.OrderId)
+	listOrderedItemRes, listOrderedItemErr := m.orderService.ListOrderedItemWithItem(&dto.ListOrderedItemRequest{OrderId: &orderId, Metadata: &md})
 	if listOrderedItemErr != nil {
 		switch listOrderedItemErr.Error() {
 		case "authorizationtoken not found":

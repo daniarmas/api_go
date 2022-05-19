@@ -7,13 +7,13 @@ import (
 )
 
 type CartItem struct {
-	ID                   uuid.UUID
+	ID                   *uuid.UUID
 	Name                 string
 	Price                string
 	Quantity             int32
-	ItemId               uuid.UUID
-	UserId               uuid.UUID
-	AuthorizationTokenId uuid.UUID
+	ItemId               *uuid.UUID
+	UserId               *uuid.UUID
+	AuthorizationTokenId *uuid.UUID
 	Thumbnail            string
 	ThumbnailBlurHash    string
 	Cursor               int32

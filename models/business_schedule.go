@@ -14,7 +14,7 @@ func (BusinessSchedule) TableName() string {
 }
 
 type BusinessSchedule struct {
-	ID                           uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ID                           *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
 	OpeningTimeSunday            string         `gorm:"column:opening_time_sunday"`
 	OpeningTimeMonday            string         `gorm:"column:opening_time_monday"`
 	OpeningTimeTuesday           string         `gorm:"column:opening_time_tuesday"`
@@ -43,7 +43,7 @@ type BusinessSchedule struct {
 	ClosingTimeDeliveryThursday  string         `gorm:"column:closing_time_delivery_thursday"`
 	ClosingTimeDeliveryFriday    string         `gorm:"column:closing_time_delivery_friday"`
 	ClosingTimeDeliverySaturday  string         `gorm:"column:closing_time_delivery_saturday"`
-	BusinessId                   uuid.UUID      `gorm:"column:business_id;not null"`
+	BusinessId                   *uuid.UUID     `gorm:"column:business_id;not null"`
 	CreateTime                   time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime                   time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime                   gorm.DeletedAt `gorm:"index;column:delete_time"`

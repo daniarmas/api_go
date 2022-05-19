@@ -7,5 +7,5 @@ import (
 
 type DeleteItemRequest struct {
 	Metadata *metadata.MD
-	ItemId   uuid.UUID
+	ItemId   *uuid.UUID
 }

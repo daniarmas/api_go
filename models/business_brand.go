@@ -14,9 +14,9 @@ func (BusinessBrand) TableName() string {
 }
 
 type BusinessBrand struct {
-	ID              uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ID              *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Name            string         `gorm:"column:name;not null"`
-	BusinessOwnerId uuid.UUID      `gorm:"column:business_owner_id;not null"`
+	BusinessOwnerId *uuid.UUID     `gorm:"column:business_owner_id;not null"`
 	CreateTime      time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime      time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime      gorm.DeletedAt `gorm:"index;column:delete_time"`

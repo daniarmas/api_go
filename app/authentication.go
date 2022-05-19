@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"net/mail"
+	"strconv"
 
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
@@ -27,6 +29,15 @@ func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *
 		invalidEmail = &epb.BadRequest_FieldViolation{
 			Field:       "Email",
 			Description: "The email field is required",
+		}
+	} else {
+		_, err := mail.ParseAddress(req.Email)
+		if err != nil {
+			invalidArgs = true
+			invalidEmail = &epb.BadRequest_FieldViolation{
+				Field:       "Email",
+				Description: "The email field is invalid",
+			}
 		}
 	}
 	if req.Type == pb.VerificationCodeType_VerificationCodeTypeUnspecified {
@@ -86,12 +97,29 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 			Field:       "Email",
 			Description: "The email field is required",
 		}
+	} else {
+		_, err := mail.ParseAddress(req.Email)
+		if err != nil {
+			invalidArgs = true
+			invalidEmail = &epb.BadRequest_FieldViolation{
+				Field:       "Email",
+				Description: "The email field is invalid",
+			}
+		}
 	}
 	if req.Code == "" {
 		invalidArgs = true
-		invalidEmail = &epb.BadRequest_FieldViolation{
+		invalidCode = &epb.BadRequest_FieldViolation{
 			Field:       "Code",
 			Description: "The code field is required",
+		}
+	} else {
+		if _, err := strconv.Atoi(req.Code); err != nil {
+			invalidArgs = true
+			invalidCode = &epb.BadRequest_FieldViolation{
+				Field:       "Code",
+				Description: "The code field is invalid",
+			}
 		}
 	}
 	if req.Type == pb.VerificationCodeType_VerificationCodeTypeUnspecified {

@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	logg "github.com/sirupsen/logrus"
+
 	"github.com/daniarmas/api_go/utils"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -45,12 +47,12 @@ type DAO interface {
 
 type dao struct{}
 
-var DB *gorm.DB
+var Connection *gorm.DB
 var Config *utils.Config
 var MinioClient *minio.Client
 
 func NewDAO(db *gorm.DB, config *utils.Config, minio *minio.Client) DAO {
-	DB = db
+	Connection = db
 	Config = config
 	MinioClient = minio
 	return &dao{}
@@ -197,6 +199,16 @@ func NewConfig() (*utils.Config, error) {
 		return nil, err
 	}
 	return &Config, nil
+}
+
+func CloseDB() error {
+	sqlDB, err := Connection.DB()
+	if err != nil {
+		return err
+	}
+	sqlDB.Close()
+	logg.Info("Database connection closed")
+	return nil
 }
 
 func NewDB(config *utils.Config) (*gorm.DB, error) {

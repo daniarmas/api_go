@@ -14,7 +14,7 @@ func (BusinessCategory) TableName() string {
 }
 
 type BusinessCategory struct {
-	ID         uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ID         *uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Name       string         `gorm:"column:name;not null"`
 	Photo      string         `gorm:"column:photo;not null"`
 	CreateTime time.Time      `gorm:"column:create_time;not null"`

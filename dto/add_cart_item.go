@@ -10,6 +10,6 @@ type AddCartItem struct {
 	ItemId         string
 	Quantity       int32
 	Location       ewkb.Point
-	MunicipalityId uuid.UUID
+	MunicipalityId *uuid.UUID
 	Metadata       *metadata.MD
 }

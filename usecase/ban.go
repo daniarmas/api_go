@@ -26,7 +26,7 @@ func NewBanService(dao repository.DAO) BanService {
 func (i *banService) GetBannedDevice(metadata *metadata.MD) (*models.BannedDevice, error) {
 	var bannedDevice *models.BannedDevice
 	var bannedDeviceErr error
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		bannedDevice, bannedDeviceErr = i.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: metadata.Get("deviceid")[0]}, nil)
 		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
 			return bannedDeviceErr
@@ -42,7 +42,7 @@ func (i *banService) GetBannedDevice(metadata *metadata.MD) (*models.BannedDevic
 func (i *banService) GetBannedUser(metadata *metadata.MD) (*models.BannedUser, error) {
 	var bannedUser *models.BannedUser
 	var bannedUserErr error
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &metadata.Get("authorization")[0]}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -63,7 +63,7 @@ func (i *banService) GetBannedUser(metadata *metadata.MD) (*models.BannedUser, e
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		bannedUser, bannedUserErr = i.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{UserId: *authorizationTokenRes.UserId}, nil)
+		bannedUser, bannedUserErr = i.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{UserId: authorizationTokenRes.UserId}, nil)
 		if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
 			return bannedUserErr
 		}

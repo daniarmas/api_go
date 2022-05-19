@@ -16,6 +16,6 @@ type CreateItemRequest struct {
 	LowQualityPhotoBlurHash  string
 	Thumbnail                string
 	ThumbnailBlurHash        string
-	BusinessId               uuid.UUID
+	BusinessId               *uuid.UUID
 	Metadata                 *metadata.MD
 }

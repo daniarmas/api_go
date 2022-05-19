@@ -15,7 +15,7 @@ func (Business) TableName() string {
 }
 
 type Business struct {
-	ID                       uuid.UUID            `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ID                       *uuid.UUID           `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Name                     string               `gorm:"column:name"`
 	Description              string               `gorm:"column:description"`
 	Address                  string               `gorm:"column:address"`
@@ -34,9 +34,9 @@ type Business struct {
 	ToPickUp                 bool                 `gorm:"column:to_pick_up"`
 	HomeDelivery             bool                 `gorm:"column:home_delivery"`
 	Coordinates              ewkb.Point           `gorm:"column:coordinates"`
-	ProvinceId               uuid.UUID            `gorm:"column:province_id"`
-	MunicipalityId           uuid.UUID            `gorm:"column:municipality_id"`
-	BusinessBrandId          uuid.UUID            `gorm:"column:business_brand_id"`
+	ProvinceId               *uuid.UUID           `gorm:"column:province_id"`
+	MunicipalityId           *uuid.UUID           `gorm:"column:municipality_id"`
+	BusinessBrandId          *uuid.UUID           `gorm:"column:business_brand_id"`
 	BusinessBrand            BusinessBrand        `gorm:"foreignKey:BusinessBrandId"`
 	BusinessCollection       []BusinessCollection `gorm:"foreignKey:BusinessId"`
 	BusinessSchedule         BusinessSchedule     `gorm:"foreignKey:BusinessId"`

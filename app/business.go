@@ -83,8 +83,9 @@ func (m *BusinessServer) CreateBusiness(ctx context.Context, req *pb.CreateBusin
 func (m *BusinessServer) UpdateBusiness(ctx context.Context, req *pb.UpdateBusinessRequest) (*pb.UpdateBusinessResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
+	id := uuid.MustParse(req.Id)
 	res, err := m.businessService.UpdateBusiness(&dto.UpdateBusinessRequest{
-		Id:                       uuid.MustParse(req.Id),
+		Id:                       &id,
 		Name:                     req.Name,
 		Description:              req.Description,
 		Address:                  req.Address,

@@ -6,7 +6,7 @@ import (
 )
 
 type UpdateItemRequest struct {
-	ItemId                   uuid.UUID
+	ItemId                   *uuid.UUID
 	Name                     string
 	Description              string
 	Price                    string
@@ -18,7 +18,7 @@ type UpdateItemRequest struct {
 	ThumbnailBlurHash        string
 	Availability             int64
 	Status                   string
-	BusinessColletionId      uuid.UUID
-	BusinessId               uuid.UUID
+	BusinessColletionId      *uuid.UUID
+	BusinessId               *uuid.UUID
 	Metadata                 *metadata.MD
 }

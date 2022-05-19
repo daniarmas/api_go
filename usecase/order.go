@@ -32,7 +32,7 @@ func NewOrderService(dao repository.DAO) OrderService {
 
 func (i *orderService) ListOrderedItemWithItem(request *dto.ListOrderedItemRequest) (*dto.ListOrderedItemResponse, error) {
 	var response dto.ListOrderedItemResponse
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -59,7 +59,7 @@ func (i *orderService) ListOrderedItemWithItem(request *dto.ListOrderedItemReque
 		}
 		orderedItemFks := make([]uuid.UUID, 0, len(*unionOrderAndOrderedItemRes))
 		for _, item := range *unionOrderAndOrderedItemRes {
-			orderedItemFks = append(orderedItemFks, item.OrderedItemId)
+			orderedItemFks = append(orderedItemFks, *item.OrderedItemId)
 		}
 		orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, &orderedItemFks, &[]string{})
 		if orderedItemsErr != nil {
@@ -76,7 +76,7 @@ func (i *orderService) ListOrderedItemWithItem(request *dto.ListOrderedItemReque
 
 func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.UpdateOrderResponse, error) {
 	var response dto.UpdateOrderResponse
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -112,7 +112,7 @@ func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.Update
 			}
 			orderedItemFks := make([]uuid.UUID, 0, len(*unionOrderAndOrderedItemRes))
 			for _, item := range *unionOrderAndOrderedItemRes {
-				orderedItemFks = append(orderedItemFks, item.OrderedItemId)
+				orderedItemFks = append(orderedItemFks, *item.OrderedItemId)
 			}
 			orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, &orderedItemFks, &[]string{})
 			if orderedItemsErr != nil {
@@ -120,7 +120,7 @@ func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.Update
 			}
 			itemFks := make([]uuid.UUID, 0, len(*orderedItemsRes))
 			for _, item := range *orderedItemsRes {
-				itemFks = append(itemFks, item.ItemId)
+				itemFks = append(itemFks, *item.ItemId)
 			}
 			itemsRes, itemsErr := i.dao.NewItemQuery().ListItemInIds(tx, itemFks)
 			if itemsErr != nil {
@@ -129,7 +129,7 @@ func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.Update
 			for _, item := range *orderedItemsRes {
 				var index = -1
 				for i, n := range *itemsRes {
-					if n.ID == item.ItemId {
+					if *n.ID == *item.ItemId {
 						index = i
 					}
 				}
@@ -141,7 +141,7 @@ func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.Update
 					return updateItemsErr
 				}
 			}
-			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: request.Id, UserId: *authorizationTokenRes.UserId}, &models.Order{Status: request.Status})
+			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: request.Id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: request.Status})
 			if updateOrderErr != nil {
 				return updateOrderErr
 			}
@@ -160,7 +160,7 @@ func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.Update
 			}
 			orderedItemFks := make([]uuid.UUID, 0, len(*unionOrderAndOrderedItemRes))
 			for _, item := range *unionOrderAndOrderedItemRes {
-				orderedItemFks = append(orderedItemFks, item.OrderedItemId)
+				orderedItemFks = append(orderedItemFks, *item.OrderedItemId)
 			}
 			orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, &orderedItemFks, &[]string{})
 			if orderedItemsErr != nil {
@@ -168,7 +168,7 @@ func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.Update
 			}
 			itemFks := make([]uuid.UUID, 0, len(*orderedItemsRes))
 			for _, item := range *orderedItemsRes {
-				itemFks = append(itemFks, item.ItemId)
+				itemFks = append(itemFks, *item.ItemId)
 			}
 			itemsRes, itemsErr := i.dao.NewItemQuery().ListItemInIds(tx, itemFks)
 			if itemsErr != nil {
@@ -177,7 +177,7 @@ func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.Update
 			for _, item := range *orderedItemsRes {
 				var index = -1
 				for i, n := range *itemsRes {
-					if n.ID == item.ItemId {
+					if *n.ID == *item.ItemId {
 						index = i
 					}
 				}
@@ -189,7 +189,7 @@ func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.Update
 					return updateItemsErr
 				}
 			}
-			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: request.Id, UserId: *authorizationTokenRes.UserId}, &models.Order{Status: request.Status})
+			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: request.Id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: request.Status})
 			if updateOrderErr != nil {
 				return updateOrderErr
 			}
@@ -202,7 +202,7 @@ func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.Update
 			if orderRes.Status != "OrderStatusTypeStarted" {
 				return errors.New("status error")
 			}
-			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: request.Id, UserId: *authorizationTokenRes.UserId}, &models.Order{Status: request.Status})
+			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: request.Id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: request.Status})
 			if updateOrderErr != nil {
 				return updateOrderErr
 			}
@@ -215,7 +215,7 @@ func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.Update
 			if orderRes.Status != "OrderStatusTypePending" {
 				return errors.New("status error")
 			}
-			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: request.Id, UserId: *authorizationTokenRes.UserId}, &models.Order{Status: request.Status})
+			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: request.Id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: request.Status})
 			if updateOrderErr != nil {
 				return updateOrderErr
 			}
@@ -228,7 +228,7 @@ func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.Update
 			if orderRes.Status != "OrderStatusTypeApproved" {
 				return errors.New("status error")
 			}
-			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: request.Id, UserId: *authorizationTokenRes.UserId}, &models.Order{Status: request.Status})
+			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: request.Id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: request.Status})
 			if updateOrderErr != nil {
 				return updateOrderErr
 			}
@@ -241,7 +241,7 @@ func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.Update
 			if orderRes.Status != "OrderStatusTypeApproved" && orderRes.Status != "OrderStatusTypeDone" {
 				return errors.New("status error")
 			}
-			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: request.Id, UserId: *authorizationTokenRes.UserId}, &models.Order{Status: request.Status})
+			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: request.Id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: request.Status})
 			if updateOrderErr != nil {
 				return updateOrderErr
 			}
@@ -261,7 +261,7 @@ func (i *orderService) UpdateOrder(request *dto.UpdateOrderRequest) (*dto.Update
 
 func (i *orderService) CreateOrder(request *dto.CreateOrderRequest) (*dto.CreateOrderResponse, error) {
 	var response dto.CreateOrderResponse
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		createTime := time.Now().UTC()
 		weekday := request.OrderDate.Weekday().String()
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
@@ -662,7 +662,7 @@ func (i *orderService) CreateOrder(request *dto.CreateOrderRequest) (*dto.Create
 		if createOrderedItemsErr != nil {
 			return createOrderedItemsErr
 		}
-		createOrderRes, createOrderErr := i.dao.NewOrderRepository().CreateOrder(tx, &models.Order{ItemsQuantity: quantity, OrderType: request.OrderType, ResidenceType: request.ResidenceType, UserId: *authorizationTokenRes.UserId, OrderDate: request.OrderDate, Coordinates: request.Coordinates, AuthorizationTokenId: *authorizationTokenRes.ID, BusinessId: (*listCartItemRes)[0].BusinessId, Price: price.String(), CreateTime: createTime, UpdateTime: createTime, Number: request.Number, Address: request.Address, Instructions: request.Instructions})
+		createOrderRes, createOrderErr := i.dao.NewOrderRepository().CreateOrder(tx, &models.Order{ItemsQuantity: quantity, OrderType: request.OrderType, ResidenceType: request.ResidenceType, UserId: authorizationTokenRes.UserId, OrderDate: request.OrderDate, Coordinates: request.Coordinates, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: (*listCartItemRes)[0].BusinessId, Price: price.String(), CreateTime: createTime, UpdateTime: createTime, Number: request.Number, Address: request.Address, Instructions: request.Instructions})
 		if createOrderErr != nil {
 			return createOrderErr
 		}
@@ -678,7 +678,7 @@ func (i *orderService) CreateOrder(request *dto.CreateOrderRequest) (*dto.Create
 		if createUnionOrderAndOrderedItemsErr != nil {
 			return createUnionOrderAndOrderedItemsErr
 		}
-		_, err := i.dao.NewCartItemRepository().DeleteCartItem(tx, &models.CartItem{UserId: *authorizationTokenRes.UserId}, nil)
+		_, err := i.dao.NewCartItemRepository().DeleteCartItem(tx, &models.CartItem{UserId: authorizationTokenRes.UserId}, nil)
 		if err != nil {
 			return err
 		}
@@ -693,7 +693,7 @@ func (i *orderService) CreateOrder(request *dto.CreateOrderRequest) (*dto.Create
 
 func (i *orderService) ListOrder(request *dto.ListOrderRequest) (*dto.ListOrderResponse, error) {
 	var listOrderResponse dto.ListOrderResponse
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -714,7 +714,7 @@ func (i *orderService) ListOrder(request *dto.ListOrderRequest) (*dto.ListOrderR
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		ordersRes, ordersErr := i.dao.NewOrderRepository().ListOrderWithBusiness(tx, &models.OrderBusiness{CreateTime: request.NextPage, UserId: *authorizationTokenRes.UserId})
+		ordersRes, ordersErr := i.dao.NewOrderRepository().ListOrderWithBusiness(tx, &models.OrderBusiness{CreateTime: request.NextPage, UserId: authorizationTokenRes.UserId})
 		if ordersErr != nil {
 			return ordersErr
 		}

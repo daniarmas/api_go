@@ -32,7 +32,7 @@ func NewBusinessService(dao repository.DAO) BusinessService {
 func (i *businessService) UpdateBusiness(request *dto.UpdateBusinessRequest) (*models.Business, error) {
 	var businessRes *models.Business
 	var businessErr error
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -53,7 +53,7 @@ func (i *businessService) UpdateBusiness(request *dto.UpdateBusinessRequest) (*m
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: *authorizationTokenRes.UserId})
+		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: authorizationTokenRes.UserId})
 		if businessOwnerErr != nil {
 			return businessOwnerErr
 		}
@@ -151,8 +151,8 @@ func (i *businessService) UpdateBusiness(request *dto.UpdateBusinessRequest) (*m
 			DeliveryPrice:            request.DeliveryPrice,
 			ToPickUp:                 request.ToPickUp,
 			HomeDelivery:             request.HomeDelivery,
-			ProvinceId:               provinceId,
-			MunicipalityId:           municipalityId,
+			ProvinceId:               &provinceId,
+			MunicipalityId:           &municipalityId,
 		}, &models.Business{ID: request.Id})
 		if businessErr != nil {
 			return businessErr
@@ -169,7 +169,7 @@ func (i *businessService) CreateBusiness(request *dto.CreateBusinessRequest) (*d
 	var businessRes *models.Business
 	var businessErr error
 	var response dto.CreateBusinessResponse
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -190,7 +190,7 @@ func (i *businessService) CreateBusiness(request *dto.CreateBusinessRequest) (*d
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: *authorizationTokenRes.UserId})
+		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: authorizationTokenRes.UserId})
 		if businessOwnerErr != nil {
 			return businessOwnerErr
 		}
@@ -215,6 +215,9 @@ func (i *businessService) CreateBusiness(request *dto.CreateBusinessRequest) (*d
 		} else if tnErr != nil {
 			return tnErr
 		}
+		provinceId := uuid.MustParse(request.ProvinceId)
+		municipalityId := uuid.MustParse(request.MunicipalityId)
+		businessBrandId := uuid.MustParse(request.BusinessBrandId)
 		businessRes, businessErr = i.dao.NewBusinessQuery().CreateBusiness(tx, &models.Business{
 			Name:                     request.Name,
 			Description:              request.Description,
@@ -233,9 +236,9 @@ func (i *businessService) CreateBusiness(request *dto.CreateBusinessRequest) (*d
 			ToPickUp:                 request.ToPickUp,
 			HomeDelivery:             request.HomeDelivery,
 			Coordinates:              request.Coordinates,
-			ProvinceId:               uuid.MustParse(request.ProvinceId),
-			MunicipalityId:           uuid.MustParse(request.MunicipalityId),
-			BusinessBrandId:          uuid.MustParse(request.BusinessBrandId),
+			ProvinceId:               &provinceId,
+			MunicipalityId:           &municipalityId,
+			BusinessBrandId:          &businessBrandId,
 		})
 		if businessErr != nil {
 			return businessErr
@@ -243,9 +246,10 @@ func (i *businessService) CreateBusiness(request *dto.CreateBusinessRequest) (*d
 		response.Business = businessRes
 		var unionBusinessAndMunicipalities = make([]*models.UnionBusinessAndMunicipality, 0, len(request.Municipalities))
 		for _, item := range request.Municipalities {
+			municipalityId := uuid.MustParse(item)
 			unionBusinessAndMunicipalities = append(unionBusinessAndMunicipalities, &models.UnionBusinessAndMunicipality{
 				BusinessId:     businessRes.ID,
-				MunicipalityId: uuid.MustParse(item),
+				MunicipalityId: &municipalityId,
 			})
 		}
 		unionBusinessAndMunicipalityRes, unionBusinessAndMunicipalityErr := i.dao.NewUnionBusinessAndMunicipalityRepository().BatchCreateUnionBusinessAndMunicipality(tx, unionBusinessAndMunicipalities)
@@ -275,7 +279,7 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 	var businessErr, businessErrAdd error
 	var response dto.FeedResponse
 	if feedRequest.SearchMunicipalityType == pb.SearchMunicipalityType_More.String() {
-		err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+		err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 			businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceId, feedRequest.MunicipalityId, feedRequest.NextPage, false, feedRequest.HomeDelivery, feedRequest.ToPickUp)
 			if businessErr != nil {
 				return businessErr
@@ -291,7 +295,7 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 			response.SearchMunicipalityType = pb.SearchMunicipalityType_More.String()
 		} else if len(*businessRes) <= 5 && len(*businessRes) != 0 {
 			length := 5 - len(*businessRes)
-			err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+			err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 				businessResAdd, businessErrAdd = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, int32(length), feedRequest.ProvinceId, feedRequest.MunicipalityId, 0, true, feedRequest.HomeDelivery, feedRequest.ToPickUp)
 				if businessErrAdd != nil {
 					return businessErrAdd
@@ -310,7 +314,7 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 			response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
 			response.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore.String()
 		} else if len(*businessRes) == 0 {
-			err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+			err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 				businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceId, feedRequest.MunicipalityId, 0, true, feedRequest.HomeDelivery, feedRequest.ToPickUp)
 				if businessErr != nil {
 					return businessErr
@@ -327,7 +331,7 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 			}
 		}
 	} else {
-		err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+		err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 			businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceId, feedRequest.MunicipalityId, feedRequest.NextPage, true, feedRequest.HomeDelivery, feedRequest.ToPickUp)
 			if businessErr != nil {
 				return businessErr
@@ -384,12 +388,13 @@ func (v *businessService) GetBusiness(request *dto.GetBusinessRequest) (*dto.Get
 	var businessRes *models.Business
 	var businessCollectionRes *[]models.BusinessCollection
 	var businessErr, itemCategoryErr error
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		businessRes, businessErr = v.dao.NewBusinessQuery().GetBusiness(tx, &models.Business{ID: uuid.MustParse(request.Id)})
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		businessId := uuid.MustParse(request.Id)
+		businessRes, businessErr = v.dao.NewBusinessQuery().GetBusiness(tx, &models.Business{ID: &businessId})
 		if businessErr != nil {
 			return businessErr
 		}
-		businessCollectionRes, itemCategoryErr = v.dao.NewBusinessCollectionQuery().ListBusinessCollection(tx, &models.BusinessCollection{BusinessId: uuid.MustParse(request.Id)})
+		businessCollectionRes, itemCategoryErr = v.dao.NewBusinessCollectionQuery().ListBusinessCollection(tx, &models.BusinessCollection{BusinessId: &businessId})
 		if itemCategoryErr != nil {
 			return itemCategoryErr
 		}

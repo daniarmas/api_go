@@ -14,7 +14,7 @@ func (Permission) TableName() string {
 }
 
 type Permission struct {
-	ID         uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ID         *uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Name       string         `gorm:"column:name;not null"`
 	CreateTime time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime time.Time      `gorm:"column:update_time;not null"`

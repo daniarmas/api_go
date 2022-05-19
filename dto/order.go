@@ -8,7 +8,7 @@ import (
 )
 
 type Order struct {
-	ID                   uuid.UUID
+	ID                   *uuid.UUID
 	BusinessName         string
 	ItemQuantity         int
 	Status               string
@@ -17,10 +17,10 @@ type Order struct {
 	Price                float64
 	BuildingNumber       string
 	HouseNumber          string
-	BusinessId           uuid.UUID
+	BusinessId           *uuid.UUID
 	Coordinates          ewkb.Point
-	UserId               uuid.UUID
-	AuthorizationTokenId uuid.UUID
+	UserId               *uuid.UUID
+	AuthorizationTokenId *uuid.UUID
 	DeliveryDate         time.Time
 	CreateTime           time.Time
 	UpdateTime           time.Time

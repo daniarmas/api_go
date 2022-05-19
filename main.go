@@ -8,9 +8,9 @@ import (
 	"github.com/daniarmas/api_go/datasource"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
+	"github.com/daniarmas/api_go/tlscert"
 	"github.com/daniarmas/api_go/usecase"
 	"github.com/daniarmas/api_go/utils"
-	"github.com/daniarmas/api_go/tlscert"
 	"google.golang.org/grpc"
 )
 

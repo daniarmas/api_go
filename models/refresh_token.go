@@ -14,10 +14,10 @@ func (RefreshToken) TableName() string {
 }
 
 type RefreshToken struct {
-	ID         uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
-	UserId     uuid.UUID      `gorm:"column:user_id;not null"`
+	ID         *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
+	UserId     *uuid.UUID     `gorm:"column:user_id;not null"`
 	User       User           `gorm:"foreignKey:UserId"`
-	DeviceId   uuid.UUID      `gorm:"column:device_id;not null"`
+	DeviceId   *uuid.UUID     `gorm:"column:device_id;not null"`
 	Device     Device         `gorm:"foreignKey:DeviceId"`
 	CreateTime time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime time.Time      `gorm:"column:update_time;not null"`
