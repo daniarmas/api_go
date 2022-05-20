@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.CartItemService.CartItemQuantity"
+  },
+  "requests": [
+    {
+      "location": "CartItemQuantity-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

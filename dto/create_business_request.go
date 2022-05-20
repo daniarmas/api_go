@@ -12,14 +12,14 @@ type CreateBusinessRequest struct {
 	Address                  string
 	Phone                    string
 	Email                    string
-	HighQualityPhotoObject   string
+	HighQualityPhoto         string
 	HighQualityPhotoBlurHash string
-	LowQualityPhotoObject    string
+	LowQualityPhoto          string
 	LowQualityPhotoBlurHash  string
-	ThumbnailObject          string
+	Thumbnail                string
 	ThumbnailBlurHash        string
 	Municipalities           []string
-	DeliveryPrice            float64
+	DeliveryPrice            string
 	Coordinates              ewkb.Point
 	TimeMarginOrderMonth     int32
 	TimeMarginOrderDay       int32
@@ -27,7 +27,7 @@ type CreateBusinessRequest struct {
 	TimeMarginOrderMinute    int32
 	ToPickUp                 bool
 	HomeDelivery             bool
-	BusinessBrandFk          string
-	ProvinceFk               string
-	MunicipalityFk           string
+	BusinessBrandId          string
+	ProvinceId               string
+	MunicipalityId           string
 }

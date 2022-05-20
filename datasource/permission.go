@@ -8,20 +8,20 @@ import (
 )
 
 type PermissionDatasource interface {
-	PermissionExists(tx *gorm.DB, where *models.Permission) error
+	GetPermission(tx *gorm.DB, where *models.Permission, fields *[]string) (*models.Permission, error)
 }
 
 type permissionDatasource struct{}
 
-func (i *permissionDatasource) PermissionExists(tx *gorm.DB, where *models.Permission) error {
-	var permissionResult *models.Permission
-	result := tx.Where(where).Select("id").Take(&permissionResult)
+func (i *permissionDatasource) GetPermission(tx *gorm.DB, where *models.Permission, fields *[]string) (*models.Permission, error) {
+	var res *models.Permission
+	result := tx.Where(where).Select(*fields).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
-			return errors.New("record not found")
+			return nil, errors.New("record not found")
 		} else {
-			return result.Error
+			return nil, result.Error
 		}
 	}
-	return nil
+	return res, nil
 }

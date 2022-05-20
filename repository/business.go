@@ -9,11 +9,11 @@ import (
 )
 
 type BusinessQuery interface {
-	Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceFk string, municipalityFk string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]models.Business, error)
+	Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceId string, municipalityId string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]models.Business, error)
 	CreateBusiness(tx *gorm.DB, data *models.Business) (*models.Business, error)
 	GetBusiness(tx *gorm.DB, where *models.Business) (*models.Business, error)
 	GetBusinessWithLocation(tx *gorm.DB, where *models.Business) (*models.Business, error)
-	GetBusinessProvinceAndMunicipality(tx *gorm.DB, businessFk uuid.UUID) (*dto.GetBusinessProvinceAndMunicipality, error)
+	GetBusinessProvinceAndMunicipality(tx *gorm.DB, businessId uuid.UUID) (*dto.GetBusinessProvinceAndMunicipality, error)
 	UpdateBusiness(tx *gorm.DB, data *models.Business, where *models.Business) (*models.Business, error)
 	UpdateBusinessCoordinate(tx *gorm.DB, data *models.Business, where *models.Business) error
 }
@@ -44,8 +44,8 @@ func (b *businessQuery) UpdateBusinessCoordinate(tx *gorm.DB, data *models.Busin
 	return nil
 }
 
-func (b *businessQuery) Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceFk string, municipalityFk string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]models.Business, error) {
-	result, err := Datasource.NewBusinessDatasource().Feed(tx, coordinates, limit, provinceFk, municipalityFk, cursor, municipalityNotEqual, homeDelivery, toPickUp)
+func (b *businessQuery) Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceId string, municipalityId string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]models.Business, error) {
+	result, err := Datasource.NewBusinessDatasource().Feed(tx, coordinates, limit, provinceId, municipalityId, cursor, municipalityNotEqual, homeDelivery, toPickUp)
 	if err != nil {
 		return nil, err
 	}
@@ -68,8 +68,8 @@ func (b *businessQuery) GetBusiness(tx *gorm.DB, where *models.Business) (*model
 	return result, nil
 }
 
-func (b *businessQuery) GetBusinessProvinceAndMunicipality(tx *gorm.DB, businessFk uuid.UUID) (*dto.GetBusinessProvinceAndMunicipality, error) {
-	result, err := Datasource.NewBusinessDatasource().GetBusinessProvinceAndMunicipality(tx, businessFk)
+func (b *businessQuery) GetBusinessProvinceAndMunicipality(tx *gorm.DB, businessId uuid.UUID) (*dto.GetBusinessProvinceAndMunicipality, error) {
+	result, err := Datasource.NewBusinessDatasource().GetBusinessProvinceAndMunicipality(tx, businessId)
 	if err != nil {
 		return nil, err
 	}

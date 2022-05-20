@@ -4,13 +4,15 @@ import (
 	"errors"
 
 	"github.com/daniarmas/api_go/models"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type BusinessUserDatasource interface {
-	GetBusinessUser(tx *gorm.DB, where *models.BusinessUser, fields *[]string) (*models.BusinessUser, error)
+	GetBusinessUser(tx *gorm.DB, where *models.BusinessUser) (*models.BusinessUser, error)
 	CreateBusinessUser(tx *gorm.DB, data *models.BusinessUser) (*models.BusinessUser, error)
-	DeleteBusinessUser(tx *gorm.DB, where *models.BusinessUser) error
+	DeleteBusinessUser(tx *gorm.DB, where *models.BusinessUser, ids *[]uuid.UUID) (*[]models.BusinessUser, error)
 }
 
 type businessUserDatasource struct{}
@@ -23,9 +25,9 @@ func (v *businessUserDatasource) CreateBusinessUser(tx *gorm.DB, data *models.Bu
 	return data, nil
 }
 
-func (v *businessUserDatasource) GetBusinessUser(tx *gorm.DB, where *models.BusinessUser, fields *[]string) (*models.BusinessUser, error) {
-	var response *models.BusinessUser
-	result := tx.Where(where).Take(&response)
+func (v *businessUserDatasource) GetBusinessUser(tx *gorm.DB, where *models.BusinessUser) (*models.BusinessUser, error) {
+	var res *models.BusinessUser
+	result := tx.Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
@@ -33,14 +35,21 @@ func (v *businessUserDatasource) GetBusinessUser(tx *gorm.DB, where *models.Busi
 			return nil, result.Error
 		}
 	}
-	return response, nil
+	return res, nil
 }
 
-func (v *businessUserDatasource) DeleteBusinessUser(tx *gorm.DB, where *models.BusinessUser) error {
-	var response *[]models.BusinessUser
-	result := tx.Where(where).Delete(&response)
-	if result.Error != nil {
-		return result.Error
+func (v *businessUserDatasource) DeleteBusinessUser(tx *gorm.DB, where *models.BusinessUser, ids *[]uuid.UUID) (*[]models.BusinessUser, error) {
+	var res *[]models.BusinessUser
+	var result *gorm.DB
+	if ids != nil {
+		result = tx.Clauses(clause.Returning{}).Where(`id IN ?`, ids).Delete(&res)
+	} else {
+		result = tx.Clauses(clause.Returning{}).Where(where).Delete(&res)
 	}
-	return nil
+	if result.Error != nil {
+		return nil, result.Error
+	} else if result.RowsAffected == 0 {
+		return nil, errors.New("record not found")
+	}
+	return res, nil
 }

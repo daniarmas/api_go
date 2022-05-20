@@ -10,5 +10,5 @@ import (
 type ListCartItemRequest struct {
 	Metadata       *metadata.MD
 	NextPage       time.Time
-	MunicipalityFk uuid.UUID
+	MunicipalityId *uuid.UUID
 }

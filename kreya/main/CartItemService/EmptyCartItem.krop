@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.CartItemService.EmptyCartItem"
+  },
+  "requests": [
+    {
+      "location": "EmptyCartItem-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

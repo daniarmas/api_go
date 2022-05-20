@@ -6,7 +6,7 @@ import (
 )
 
 type Business struct {
-	ID                       uuid.UUID
+	ID                       *uuid.UUID
 	Name                     string
 	Description              string
 	Address                  string
@@ -20,7 +20,7 @@ type Business struct {
 	ThumbnailBlurHash        string
 	IsOpen                   bool
 	IsInRange                bool
-	DeliveryPrice            float32
+	DeliveryPrice            string
 	Coordinates              ewkb.Point
 	Polygon                  ewkb.Polygon
 	TimeMarginOrderMonth     int32
@@ -29,9 +29,9 @@ type Business struct {
 	TimeMarginOrderMinute    int32
 	ToPickUp                 bool
 	HomeDelivery             bool
-	BusinessBrandFk          uuid.UUID
-	ProvinceFk               uuid.UUID
-	MunicipalityFk           uuid.UUID
+	BusinessBrandId          *uuid.UUID
+	ProvinceId               *uuid.UUID
+	MunicipalityId           *uuid.UUID
 	Distance                 float32
 	Status                   string
 	Cursor                   int32

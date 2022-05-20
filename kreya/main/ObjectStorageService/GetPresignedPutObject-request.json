@@ -1,0 +1,6 @@
+{
+  "lowQualityPhoto": "fooBar",
+  "highQualityPhoto": "fooBar",
+  "thumbnailQualityPhoto": "fooBar",
+  "PhotoType": "PhotoTypeUnspecified"
+}

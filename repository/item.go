@@ -10,12 +10,12 @@ import (
 )
 
 type ItemQuery interface {
-	GetItem(tx *gorm.DB, where *models.Item) (*models.Item, error)
+	GetItem(tx *gorm.DB, where *models.Item, fields *[]string) (*models.Item, error)
 	GetItemWithLocation(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error)
 	ListItem(tx *gorm.DB, where *models.Item, cursor time.Time) (*[]models.Item, error)
 	ListItemInIds(tx *gorm.DB, ids []uuid.UUID) (*[]models.Item, error)
 	CreateItem(tx *gorm.DB, data *models.Item) (*models.Item, error)
-	SearchItem(tx *gorm.DB, name string, provinceFk string, municipalityFk string, cursor int64, municipalityNotEqual bool, limit int64) (*[]models.Item, error)
+	SearchItem(tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64, fields *[]string) (*[]models.Item, error)
 	UpdateItem(tx *gorm.DB, where *models.Item, data *models.Item) (*models.Item, error)
 	UpdateItems(tx *gorm.DB, data *[]models.Item) (*[]models.Item, error)
 	DeleteItem(tx *gorm.DB, where *models.Item) error
@@ -55,8 +55,8 @@ func (i *itemQuery) ListItemInIds(tx *gorm.DB, ids []uuid.UUID) (*[]models.Item,
 	return result, nil
 }
 
-func (i *itemQuery) GetItem(tx *gorm.DB, where *models.Item) (*models.Item, error) {
-	result, err := Datasource.NewItemDatasource().GetItem(tx, where)
+func (i *itemQuery) GetItem(tx *gorm.DB, where *models.Item, fields *[]string) (*models.Item, error) {
+	result, err := Datasource.NewItemDatasource().GetItem(tx, where, fields)
 	if err != nil {
 		return nil, err
 	}
@@ -87,8 +87,8 @@ func (i *itemQuery) UpdateItems(tx *gorm.DB, data *[]models.Item) (*[]models.Ite
 	return result, nil
 }
 
-func (i *itemQuery) SearchItem(tx *gorm.DB, name string, provinceFk string, municipalityFk string, cursor int64, municipalityNotEqual bool, limit int64) (*[]models.Item, error) {
-	result, err := Datasource.NewItemDatasource().SearchItem(tx, name, provinceFk, municipalityFk, cursor, municipalityNotEqual, limit)
+func (i *itemQuery) SearchItem(tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64, fields *[]string) (*[]models.Item, error) {
+	result, err := Datasource.NewItemDatasource().SearchItem(tx, name, provinceId, municipalityId, cursor, municipalityNotEqual, limit, fields)
 	if err != nil {
 		return nil, err
 	}

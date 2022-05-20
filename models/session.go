@@ -9,16 +9,16 @@ import (
 
 type Session struct {
 	ID                       uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
-	RefreshTokenFk           uuid.UUID      `gorm:"type:uuid;column:refresh_token_fk;not null"`
-	UserFk                   uuid.UUID      `gorm:"column:user_fk;not null"`
-	User                     User           `gorm:"foreignKey:UserFk"`
-	DeviceFk                 uuid.UUID      `gorm:"column:device_fk;not null"`
-	Device                   Device         `gorm:"foreignKey:DeviceFk"`
+	RefreshTokenId           uuid.UUID      `gorm:"type:uuid;column:refresh_token_id;not null"`
+	UserId                   uuid.UUID      `gorm:"column:user_id;not null"`
+	User                     User           `gorm:"foreignKey:UserId"`
+	DeviceId                 uuid.UUID      `gorm:"column:device_id;not null"`
+	Device                   Device         `gorm:"foreignKey:DeviceId"`
 	App                      string         `gorm:"column:app;not null"`
 	AppVersion               string         `gorm:"column:app_version;not null"`
 	Platform                 string         `gorm:"column:platform;not null"`
 	SystemVersion            string         `gorm:"column:system_version;not null"`
-	DeviceId                 string         `gorm:"column:device_id;not null"`
+	DeviceIdentifier                 string         `gorm:"column:device_id;not null"`
 	FirebaseCloudMessagingId string         `gorm:"column:firebase_cloud_messaging_id;not null"`
 	Model                    string         `gorm:"column:model;not null"`
 	CreateTime               time.Time      `gorm:"column:create_time;not null"`

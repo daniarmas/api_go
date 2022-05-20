@@ -15,40 +15,44 @@ func (Order) TableName() string {
 }
 
 type Order struct {
-	ID                   uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ID                   *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Status               string         `gorm:"column:status"`
-	Quantity             int32          `gorm:"column:quantity"`
-	OrderType            string         `gorm:"column:order_type"`
-	ResidenceType        string         `gorm:"column:residence_type"`
-	Price                float64        `gorm:"column:price"`
-	BuildingNumber       string         `gorm:"column:building_number"`
-	HouseNumber          string         `gorm:"column:house_number"`
-	BusinessFk           uuid.UUID      `gorm:"column:business_fk;not null"`
-	Business             Business       `gorm:"foreignKey:BusinessFk"`
-	Coordinates          ewkb.Point     `gorm:"column:coordinates"`
-	UserFk               uuid.UUID      `gorm:"column:user_fk;not null"`
-	AuthorizationTokenFk uuid.UUID      `gorm:"column:authorization_token_fk;not null"`
+	ItemsQuantity        int32          `gorm:"column:items_quantity;not null"`
+	OrderType            string         `gorm:"column:order_type;not null"`
+	ResidenceType        string         `gorm:"column:residence_type;not null"`
+	Price                string         `gorm:"column:price;not null"`
+	Number               string         `gorm:"column:number;not null"`
+	Address              string         `gorm:"column:address;not null"`
+	Instructions         string         `gorm:"column:instructions"`
+	Coordinates          ewkb.Point     `gorm:"column:coordinates;not null"`
 	OrderDate            time.Time      `gorm:"column:order_date;not null"`
+	AuthorizationTokenId *uuid.UUID     `gorm:"column:authorization_token_id;not null"`
+	UserId               *uuid.UUID     `gorm:"column:user_id;not null"`
+	User                 User           `gorm:"foreignKey:UserId"`
+	BusinessId           *uuid.UUID     `gorm:"column:business_id;not null"`
+	Business             Business       `gorm:"foreignKey:BusinessId"`
 	CreateTime           time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime           time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime           gorm.DeletedAt `gorm:"index;column:delete_time"`
 }
 type OrderBusiness struct {
-	ID                   uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ID                   *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
 	BusinessName         string         `gorm:"column:business_name"`
-	Quantity             int32          `gorm:"column:quantity"`
 	Status               string         `gorm:"column:status"`
-	OrderType            string         `gorm:"column:order_type"`
-	ResidenceType        string         `gorm:"column:residence_type"`
-	Price                float64        `gorm:"column:price"`
-	BuildingNumber       string         `gorm:"column:building_number"`
-	HouseNumber          string         `gorm:"column:house_number"`
-	BusinessFk           uuid.UUID      `gorm:"column:business_fk;not null"`
-	Business             Business       `gorm:"foreignKey:BusinessFk"`
-	Coordinates          ewkb.Point     `gorm:"column:coordinates"`
-	UserFk               uuid.UUID      `gorm:"column:user_fk;not null"`
-	AuthorizationTokenFk uuid.UUID      `gorm:"column:authorization_token_fk;not null"`
+	Quantity             int32          `gorm:"column:quantity;not null"`
+	OrderType            string         `gorm:"column:order_type;not null"`
+	ResidenceType        string         `gorm:"column:residence_type;not null"`
+	Price                string         `gorm:"column:price;not null"`
+	Number               string         `gorm:"column:number;not null"`
+	Address              string         `gorm:"column:address;not null"`
+	Instructions         string         `gorm:"column:instructions"`
+	Coordinates          ewkb.Point     `gorm:"column:coordinates;not null"`
 	OrderDate            time.Time      `gorm:"column:order_date;not null"`
+	AuthorizationTokenId *uuid.UUID     `gorm:"column:authorization_token_id;not null"`
+	UserId               *uuid.UUID     `gorm:"column:user_id;not null"`
+	User                 User           `gorm:"foreignKey:UserId"`
+	BusinessId           *uuid.UUID     `gorm:"column:business_id;not null"`
+	Business             Business       `gorm:"foreignKey:BusinessId"`
 	CreateTime           time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime           time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime           gorm.DeletedAt `gorm:"index;column:delete_time"`

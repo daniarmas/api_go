@@ -30,8 +30,7 @@ type AuthenticationServiceClient interface {
 	SignOut(ctx context.Context, in *SignOutRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	CheckSession(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CheckSessionResponse, error)
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
-	UserExists(ctx context.Context, in *UserExistsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	ListSession(ctx context.Context, in *ListSessionRequest, opts ...grpc.CallOption) (*ListSessionResponse, error)
+	ListSession(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListSessionResponse, error)
 }
 
 type authenticationServiceClient struct {
@@ -105,16 +104,7 @@ func (c *authenticationServiceClient) RefreshToken(ctx context.Context, in *Refr
 	return out, nil
 }
 
-func (c *authenticationServiceClient) UserExists(ctx context.Context, in *UserExistsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/main.AuthenticationService/UserExists", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *authenticationServiceClient) ListSession(ctx context.Context, in *ListSessionRequest, opts ...grpc.CallOption) (*ListSessionResponse, error) {
+func (c *authenticationServiceClient) ListSession(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListSessionResponse, error) {
 	out := new(ListSessionResponse)
 	err := c.cc.Invoke(ctx, "/main.AuthenticationService/ListSession", in, out, opts...)
 	if err != nil {
@@ -134,8 +124,7 @@ type AuthenticationServiceServer interface {
 	SignOut(context.Context, *SignOutRequest) (*emptypb.Empty, error)
 	CheckSession(context.Context, *emptypb.Empty) (*CheckSessionResponse, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
-	UserExists(context.Context, *UserExistsRequest) (*emptypb.Empty, error)
-	ListSession(context.Context, *ListSessionRequest) (*ListSessionResponse, error)
+	ListSession(context.Context, *emptypb.Empty) (*ListSessionResponse, error)
 	mustEmbedUnimplementedAuthenticationServiceServer()
 }
 
@@ -164,10 +153,7 @@ func (UnimplementedAuthenticationServiceServer) CheckSession(context.Context, *e
 func (UnimplementedAuthenticationServiceServer) RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RefreshToken not implemented")
 }
-func (UnimplementedAuthenticationServiceServer) UserExists(context.Context, *UserExistsRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UserExists not implemented")
-}
-func (UnimplementedAuthenticationServiceServer) ListSession(context.Context, *ListSessionRequest) (*ListSessionResponse, error) {
+func (UnimplementedAuthenticationServiceServer) ListSession(context.Context, *emptypb.Empty) (*ListSessionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListSession not implemented")
 }
 func (UnimplementedAuthenticationServiceServer) mustEmbedUnimplementedAuthenticationServiceServer() {}
@@ -309,26 +295,8 @@ func _AuthenticationService_RefreshToken_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AuthenticationService_UserExists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UserExistsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthenticationServiceServer).UserExists(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/main.AuthenticationService/UserExists",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthenticationServiceServer).UserExists(ctx, req.(*UserExistsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _AuthenticationService_ListSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListSessionRequest)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -340,7 +308,7 @@ func _AuthenticationService_ListSession_Handler(srv interface{}, ctx context.Con
 		FullMethod: "/main.AuthenticationService/ListSession",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthenticationServiceServer).ListSession(ctx, req.(*ListSessionRequest))
+		return srv.(AuthenticationServiceServer).ListSession(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -379,10 +347,6 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RefreshToken",
 			Handler:    _AuthenticationService_RefreshToken_Handler,
-		},
-		{
-			MethodName: "UserExists",
-			Handler:    _AuthenticationService_UserExists_Handler,
 		},
 		{
 			MethodName: "ListSession",

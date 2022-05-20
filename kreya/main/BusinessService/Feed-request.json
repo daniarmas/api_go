@@ -1,0 +1,13 @@
+{
+  "location": {
+    "latitude": 1.23,
+    "longitude": 1.23
+  },
+  "provinceId": "fooBar",
+  "municipalityId": "fooBar",
+  "toPickUp": true,
+  "homeDelivery": true,
+  "searchMunicipalityType": "SearchMunicipalityTypeUnspecified",
+  "nextPage": 123,
+  "fieldMask": "fooBar,fooBar"
+}

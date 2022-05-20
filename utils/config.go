@@ -3,7 +3,9 @@ package utils
 import "github.com/spf13/viper"
 
 type Config struct {
+	Environment                        string `mapstructure:"ENVIRONMENT"`
 	DBUser                             string `mapstructure:"DB_USER"`
+	Tls                                string `mapstructure:"TLS"`
 	DBPassword                         string `mapstructure:"DB_PASSWORD"`
 	DBDatabase                         string `mapstructure:"DB_DATABASE"`
 	DBPort                             string `mapstructure:"DB_PORT"`

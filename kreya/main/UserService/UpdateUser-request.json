@@ -1,0 +1,13 @@
+{
+  "fieldMask": "fooBar,fooBar",
+  "updateMask": "fooBar,fooBar",
+  "email": "{{ faker.internet.example_email }}",
+  "fullName": "{{ faker.name.full_name }}",
+  "thumbnail": "fooBar",
+  "thumbnailBlurHash": "fooBar",
+  "highQualityPhoto": "fooBar",
+  "highQualityPhotoBlurHash": "fooBar",
+  "lowQualityPhoto": "fooBar",
+  "lowQualityPhotoBlurHash": "fooBar",
+  "code": "fooBar"
+}

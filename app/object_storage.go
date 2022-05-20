@@ -13,7 +13,7 @@ import (
 func (m *ObjectStorageServer) GetPresignedPutObject(ctx context.Context, req *pb.GetPresignedPutRequest) (*pb.GetPresignedPutResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	res, err := m.objectStorageService.GetPresignedPutObject(&dto.GetPresignedPutObjectRequest{Metadata: &md, PhotoType: req.PhotoType.String(), LowQualityPhotoObject: req.LowQualityPhotoObject, HighQualityPhotoObject: req.HighQualityPhotoObject, ThumbnailQualityPhotoObject: req.ThumbnailQualityPhotoObject})
+	res, err := m.objectStorageService.GetPresignedPutObject(&dto.GetPresignedPutObjectRequest{Metadata: &md, PhotoType: req.PhotoType.String(), LowQualityPhotoObject: req.LowQualityPhoto, HighQualityPhotoObject: req.HighQualityPhoto, ThumbnailQualityPhotoObject: req.ThumbnailQualityPhoto})
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":

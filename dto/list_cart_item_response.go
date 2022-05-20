@@ -7,6 +7,6 @@ import (
 )
 
 type ListCartItemResponse struct {
-	CartItems []models.CartItemAndItem
+	CartItems []models.CartItem
 	NextPage  time.Time
 }

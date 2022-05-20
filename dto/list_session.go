@@ -7,5 +7,5 @@ import (
 
 type ListSessionResponse struct {
 	Sessions       *[]models.Session
-	ActualDeviceId uuid.UUID
+	ActualDeviceId *uuid.UUID
 }

@@ -3,25 +3,48 @@ package main
 import (
 	"fmt"
 	"log"
-	"net"
-	"time"
 
 	"github.com/daniarmas/api_go/app"
 	"github.com/daniarmas/api_go/datasource"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
+	"github.com/daniarmas/api_go/tlscert"
 	"github.com/daniarmas/api_go/usecase"
+	"github.com/daniarmas/api_go/utils"
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func main() {
 	// Configurations
-	now := time.Now()
-	now = now.Add(time.Duration(20) * time.Minute)
-	now = now.Add(time.Duration(3) * time.Hour * 24)
-	fmt.Println(timestamppb.New(now.UTC()))
-	fmt.Println(now.UTC())
+	config, err := datasource.NewConfig()
+	if err != nil {
+		log.Fatal("cannot load config:", err)
+	}
+	// Starting gRPC server
+	//if we crash the go code, we get the file name and line number
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	builder := utils.GrpcServerBuilder{}
+	addInterceptors(&builder)
+	if config.Environment == "development" {
+		builder.EnableReflection(true)
+	}
+	if config.Tls == "true" {
+		builder.SetTlsCert(&tlscert.Cert)
+	}
+	s := builder.Build()
+	s.RegisterService(serviceRegister)
+	grpcServerAddress := fmt.Sprintf("0.0.0.0:%s", config.ApiPort)
+	startErr := s.Start(grpcServerAddress)
+	if startErr != nil {
+		log.Fatalf("%v", startErr)
+	}
+	s.AwaitTermination(func() {
+		log.Print("Shutting down the server")
+	})
+}
+
+func serviceRegister(sv *grpc.Server) {
+	// Configurations
 	config, err := datasource.NewConfig()
 	if err != nil {
 		log.Fatal("cannot load config:", err)
@@ -32,14 +55,14 @@ func main() {
 		log.Fatalf("Error connecting to database: %v", err)
 		return
 	}
-	// ObjectStorageServer
+	// ObjectStorageServer5
 	objectStorage, objectStorageErr := datasource.NewMinioClient(config)
 	if objectStorageErr != nil {
 		log.Fatalf("Error connecting to minio: %v", objectStorageErr)
 	}
 	// Datasource
 	datasourceDao := datasource.NewDAO(db, config, objectStorage)
-	// Register all services
+	// Repository
 	repositoryDao := repository.NewDAO(db, config, datasourceDao)
 	itemService := usecase.NewItemService(repositoryDao)
 	authenticationService := usecase.NewAuthenticationService(repositoryDao)
@@ -49,41 +72,33 @@ func main() {
 	orderService := usecase.NewOrderService(repositoryDao)
 	banService := usecase.NewBanService(repositoryDao)
 	objectStorageService := usecase.NewObjectStorageService(repositoryDao)
-	// Starting gRPC server
-	address := fmt.Sprintf("0.0.0.0:%s", config.ApiPort)
-	listener, err := net.Listen("tcp", address)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	grpcServer := grpc.NewServer()
-	// Registring the services
-	pb.RegisterItemServiceServer(grpcServer, app.NewItemServer(
+	pb.RegisterItemServiceServer(sv, app.NewItemServer(
 		itemService,
 	))
-	pb.RegisterAuthenticationServiceServer(grpcServer, app.NewAuthenticationServer(
+	pb.RegisterAuthenticationServiceServer(sv, app.NewAuthenticationServer(
 		authenticationService,
 	))
-	pb.RegisterBusinessServiceServer(grpcServer, app.NewBusinessServer(
+	pb.RegisterBusinessServiceServer(sv, app.NewBusinessServer(
 		businessService,
 	))
-	pb.RegisterUserServiceServer(grpcServer, app.NewUserServer(
+	pb.RegisterUserServiceServer(sv, app.NewUserServer(
 		userService,
 	))
-	pb.RegisterCartItemServiceServer(grpcServer, app.NewCartItemServer(
+	pb.RegisterCartItemServiceServer(sv, app.NewCartItemServer(
 		cartItemService,
 	))
-	pb.RegisterOrderServiceServer(grpcServer, app.NewOrderServer(
+	pb.RegisterOrderServiceServer(sv, app.NewOrderServer(
 		orderService,
 	))
-	pb.RegisterBanServiceServer(grpcServer, app.NewBanServer(
+	pb.RegisterBanServiceServer(sv, app.NewBanServer(
 		banService,
 	))
-	pb.RegisterObjectStorageServiceServer(grpcServer, app.NewObjectStorageServer(
+	pb.RegisterObjectStorageServiceServer(sv, app.NewObjectStorageServer(
 		objectStorageService,
 	))
-	err = grpcServer.Serve(listener)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	fmt.Println("Server running at localhost:8081")
+}
+
+func addInterceptors(s *utils.GrpcServerBuilder) {
+	s.SetUnaryInterceptors(utils.GetDefaultUnaryServerInterceptors())
+	s.SetStreamInterceptors(utils.GetDefaultStreamServerInterceptors())
 }

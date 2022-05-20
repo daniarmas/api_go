@@ -66,13 +66,13 @@ func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.GetUserRes
 			Id:             e.ID.String(),
 			Tag:            e.Tag,
 			ResidenceType:  *utils.ParseResidenceType(e.ResidenceType),
-			BuildingNumber: e.BuildingNumber,
-			HouseNumber:    e.HouseNumber,
+			Address:        e.Address,
+			Number:         e.Number,
 			Coordinates:    &pb.Point{Latitude: e.Coordinates.Coords()[0], Longitude: e.Coordinates.Coords()[1]},
-			Description:    e.Description,
-			UserFk:         e.UserFk.String(),
-			ProvinceFk:     e.ProvinceFk.String(),
-			MunicipalityFk: e.MunicipalityFk.String(),
+			Instructions:   e.Instructions,
+			UserId:         e.UserId.String(),
+			ProvinceId:     e.ProvinceId.String(),
+			MunicipalityId: e.MunicipalityId.String(),
 			CreateTime:     timestamppb.New(e.CreateTime),
 			UpdateTime:     timestamppb.New(e.UpdateTime),
 		})
@@ -80,7 +80,6 @@ func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.GetUserRes
 	return &pb.GetUserResponse{User: &pb.User{
 		Id:                       getUserResponse.ID.String(),
 		FullName:                 getUserResponse.FullName,
-		Alias:                    getUserResponse.Alias,
 		HighQualityPhoto:         getUserResponse.HighQualityPhoto,
 		HighQualityPhotoBlurHash: getUserResponse.HighQualityPhotoBlurHash,
 		LowQualityPhoto:          getUserResponse.LowQualityPhoto,
@@ -97,7 +96,7 @@ func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.GetUserRes
 func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
 	var st *status.Status
 	md, _ := metadata.FromIncomingContext(ctx)
-	updateUserResponse, err := m.userService.UpdateUser(&dto.UpdateUserRequest{Metadata: &md, Email: req.Email, Alias: req.Alias, FullName: req.FullName, ThumbnailObject: req.ThumbnailObject, ThumbnailBlurHash: req.ThumbnailBlurHash, HighQualityPhotoObject: req.HighQualityPhotoObject, HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash, LowQualityPhotoObject: req.LowQualityPhotoObject, LowQualityPhotoBlurHash: req.LowQualityPhotoBlurHash, Code: req.Code})
+	updateUserResponse, err := m.userService.UpdateUser(&dto.UpdateUserRequest{Metadata: &md, Email: req.Email, FullName: req.FullName, Thumbnail: req.Thumbnail, ThumbnailBlurHash: req.ThumbnailBlurHash, HighQualityPhoto: req.HighQualityPhoto, HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash, LowQualityPhoto: req.LowQualityPhoto, LowQualityPhotoBlurHash: req.LowQualityPhotoBlurHash, Code: req.Code})
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -125,9 +124,9 @@ func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) 
 	// 		HouseNumber:    e.HouseNumber,
 	// 		Coordinates:    &pb.Point{Latitude: e.Coordinates.Coords()[0], Longitude: e.Coordinates.Coords()[1]},
 	// 		Description:    e.Description,
-	// 		UserFk:         e.UserFk.String(),
-	// 		ProvinceFk:     e.ProvinceFk.String(),
-	// 		MunicipalityFk: e.MunicipalityFk.String(),
+	// 		UserId:         e.UserId.String(),
+	// 		ProvinceId:     e.ProvinceId.String(),
+	// 		MunicipalityId: e.MunicipalityId.String(),
 	// 		CreateTime:     e.CreateTime.String(),
 	// 		UpdateTime:     e.UpdateTime.String(),
 	// 	})
@@ -135,7 +134,6 @@ func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) 
 	return &pb.UpdateUserResponse{User: &pb.User{
 		Id:                       updateUserResponse.User.ID.String(),
 		FullName:                 updateUserResponse.User.FullName,
-		Alias:                    updateUserResponse.User.Alias,
 		HighQualityPhoto:         updateUserResponse.User.HighQualityPhoto,
 		HighQualityPhotoBlurHash: updateUserResponse.User.HighQualityPhotoBlurHash,
 		LowQualityPhoto:          updateUserResponse.User.LowQualityPhoto,

@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.OrderService.CreateOrder"
+  },
+  "requests": [
+    {
+      "location": "CreateOrder-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

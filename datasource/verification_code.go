@@ -4,28 +4,30 @@ import (
 	"errors"
 
 	"github.com/daniarmas/api_go/models"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type VerificationCodeDatasource interface {
-	GetVerificationCode(tx *gorm.DB, verificationCode *models.VerificationCode, fields *[]string) (*models.VerificationCode, error)
-	CreateVerificationCode(tx *gorm.DB, verificationCode *models.VerificationCode) error
-	DeleteVerificationCode(tx *gorm.DB, verificationCode *models.VerificationCode) error
+	GetVerificationCode(tx *gorm.DB, where *models.VerificationCode, fields *[]string) (*models.VerificationCode, error)
+	CreateVerificationCode(tx *gorm.DB, data *models.VerificationCode) (*models.VerificationCode, error)
+	DeleteVerificationCode(tx *gorm.DB, where *models.VerificationCode, ids *[]uuid.UUID) (*[]models.VerificationCode, error)
 }
 
 type verificationCodeDatasource struct{}
 
-func (v *verificationCodeDatasource) CreateVerificationCode(tx *gorm.DB, verificationCode *models.VerificationCode) error {
-	result := tx.Create(&verificationCode)
+func (v *verificationCodeDatasource) CreateVerificationCode(tx *gorm.DB, data *models.VerificationCode) (*models.VerificationCode, error) {
+	result := tx.Create(&data)
 	if result.Error != nil {
-		return result.Error
+		return nil, result.Error
 	}
-	return nil
+	return data, nil
 }
 
 func (v *verificationCodeDatasource) GetVerificationCode(tx *gorm.DB, verificationCode *models.VerificationCode, fields *[]string) (*models.VerificationCode, error) {
-	var verificationCodeResult *models.VerificationCode
-	result := tx.Where(verificationCode).Select(*fields).Take(&verificationCodeResult)
+	var res *models.VerificationCode
+	result := tx.Where(verificationCode).Select(*fields).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
@@ -33,14 +35,21 @@ func (v *verificationCodeDatasource) GetVerificationCode(tx *gorm.DB, verificati
 			return nil, result.Error
 		}
 	}
-	return verificationCodeResult, nil
+	return res, nil
 }
 
-func (v *verificationCodeDatasource) DeleteVerificationCode(tx *gorm.DB, verificationCode *models.VerificationCode) error {
-	var verificationCodeResult *[]models.VerificationCode
-	result := tx.Where(verificationCode).Delete(&verificationCodeResult)
-	if result.Error != nil {
-		return result.Error
+func (v *verificationCodeDatasource) DeleteVerificationCode(tx *gorm.DB, where *models.VerificationCode, ids *[]uuid.UUID) (*[]models.VerificationCode, error) {
+	var res *[]models.VerificationCode
+	var result *gorm.DB
+	if ids != nil {
+		result = tx.Clauses(clause.Returning{}).Where(`id IN ?`, ids).Delete(&res)
+	} else {
+		result = tx.Clauses(clause.Returning{}).Where(where).Delete(&res)
 	}
-	return nil
+	if result.Error != nil {
+		return nil, result.Error
+	} else if result.RowsAffected == 0 {
+		return nil, errors.New("record not found")
+	}
+	return res, nil
 }

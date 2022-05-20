@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.BusinessService.GetBusiness"
+  },
+  "requests": [
+    {
+      "location": "GetBusiness-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

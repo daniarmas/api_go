@@ -8,14 +8,14 @@ import (
 )
 
 type BannedUserDatasource interface {
-	GetBannedUser(tx *gorm.DB, bannedUser *models.BannedUser, fields *[]string) (*models.BannedUser, error)
+	GetBannedUser(tx *gorm.DB, where *models.BannedUser, fields *[]string) (*models.BannedUser, error)
 }
 
 type bannedUserDatasource struct{}
 
-func (i *bannedUserDatasource) GetBannedUser(tx *gorm.DB, bannedUser *models.BannedUser, fields *[]string) (*models.BannedUser, error) {
-	var bannedUserResult *models.BannedUser
-	result := tx.Where(bannedUser).Select(*fields).Take(&bannedUserResult)
+func (v *bannedUserDatasource) GetBannedUser(tx *gorm.DB, where *models.BannedUser, fields *[]string) (*models.BannedUser, error) {
+	var res *models.BannedUser
+	result := tx.Where(where).Select(*fields).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
@@ -23,5 +23,5 @@ func (i *bannedUserDatasource) GetBannedUser(tx *gorm.DB, bannedUser *models.Ban
 			return nil, result.Error
 		}
 	}
-	return bannedUserResult, nil
+	return res, nil
 }

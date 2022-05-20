@@ -32,7 +32,7 @@ func NewBusinessService(dao repository.DAO) BusinessService {
 func (i *businessService) UpdateBusiness(request *dto.UpdateBusinessRequest) (*models.Business, error) {
 	var businessRes *models.Business
 	var businessErr error
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -47,32 +47,32 @@ func (i *businessService) UpdateBusiness(request *dto.UpdateBusinessRequest) (*m
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_fk"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, nil)
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserFk: *authorizationTokenRes.UserFk}, nil)
+		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: authorizationTokenRes.UserId})
 		if businessOwnerErr != nil {
 			return businessOwnerErr
 		}
 		if !businessOwnerRes.IsBusinessOwner {
 			return errors.New("permission denied")
 		}
-		businessIsOpenRes, businessIsOpenErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessFk: request.Id}, "OrderTypePickUp")
+		businessIsOpenRes, businessIsOpenErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessId: request.Id}, "OrderTypePickUp")
 		if businessIsOpenErr != nil && businessIsOpenErr.Error() != "business closed" {
 			return businessIsOpenErr
 		} else if businessIsOpenRes {
 			return errors.New("business is open")
 		}
-		businessHomeDeliveryRes, businessHomeDeliveryErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessFk: request.Id}, "OrderTypeHomeDelivery")
+		businessHomeDeliveryRes, businessHomeDeliveryErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessId: request.Id}, "OrderTypeHomeDelivery")
 		if businessHomeDeliveryErr != nil && businessIsOpenErr.Error() != "business closed" {
 			return businessHomeDeliveryErr
 		} else if businessHomeDeliveryRes {
 			return errors.New("business is open")
 		}
-		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{BusinessFk: request.Id})
+		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{BusinessId: request.Id}, nil)
 		if getCartItemErr != nil && getCartItemErr.Error() != "record not found" {
 			return getCartItemErr
 		} else if getCartItemRes != nil {
@@ -82,82 +82,77 @@ func (i *businessService) UpdateBusiness(request *dto.UpdateBusinessRequest) (*m
 		if getBusinessErr != nil {
 			return getBusinessErr
 		}
-		if request.HighQualityPhotoObject != "" || request.LowQualityPhotoObject != "" || request.ThumbnailObject != "" {
-			_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.HighQualityPhotoObject)
+		if request.HighQualityPhoto != "" || request.LowQualityPhoto != "" || request.Thumbnail != "" {
+			_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.HighQualityPhoto)
 			if hqErr != nil && hqErr.Error() == "ObjectMissing" {
 				return errors.New("HighQualityPhotoObject missing")
 			} else if hqErr != nil {
 				return hqErr
 			}
-			_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.LowQualityPhotoObject)
+			_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.LowQualityPhoto)
 			if lqErr != nil && lqErr.Error() == "ObjectMissing" {
 				return errors.New("LowQualityPhotoObject missing")
 			} else if lqErr != nil {
 				return lqErr
 			}
-			_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.ThumbnailObject)
+			_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.Thumbnail)
 			if tnErr != nil && tnErr.Error() == "ObjectMissing" {
 				return errors.New("ThumbnailObject missing")
 			} else if tnErr != nil {
 				return tnErr
 			}
-			_, copyHqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getBusinessRes.HighQualityPhotoObject}, minio.CopySrcOptions{Bucket: repository.Config.BusinessAvatarBulkName, Object: getBusinessRes.HighQualityPhotoObject})
+			_, copyHqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getBusinessRes.HighQualityPhoto}, minio.CopySrcOptions{Bucket: repository.Config.BusinessAvatarBulkName, Object: getBusinessRes.HighQualityPhoto})
 			if copyHqErr != nil {
 				return copyHqErr
 			}
-			_, copyLqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getBusinessRes.LowQualityPhotoObject}, minio.CopySrcOptions{Bucket: repository.Config.BusinessAvatarBulkName, Object: getBusinessRes.LowQualityPhotoObject})
+			_, copyLqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getBusinessRes.LowQualityPhoto}, minio.CopySrcOptions{Bucket: repository.Config.BusinessAvatarBulkName, Object: getBusinessRes.LowQualityPhoto})
 			if copyLqErr != nil {
 				return copyLqErr
 			}
-			_, copyThErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getBusinessRes.ThumbnailObject}, minio.CopySrcOptions{Bucket: repository.Config.BusinessAvatarBulkName, Object: getBusinessRes.ThumbnailObject})
+			_, copyThErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getBusinessRes.Thumbnail}, minio.CopySrcOptions{Bucket: repository.Config.BusinessAvatarBulkName, Object: getBusinessRes.Thumbnail})
 			if copyThErr != nil {
 				return copyThErr
 			}
-			rmHqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.BusinessAvatarBulkName, getBusinessRes.HighQualityPhotoObject, minio.RemoveObjectOptions{})
+			rmHqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.BusinessAvatarBulkName, getBusinessRes.HighQualityPhoto, minio.RemoveObjectOptions{})
 			if rmHqErr != nil {
 				return rmHqErr
 			}
-			rmLqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.BusinessAvatarBulkName, getBusinessRes.LowQualityPhotoObject, minio.RemoveObjectOptions{})
+			rmLqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.BusinessAvatarBulkName, getBusinessRes.LowQualityPhoto, minio.RemoveObjectOptions{})
 			if rmLqErr != nil {
 				return rmLqErr
 			}
-			rmThErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.BusinessAvatarBulkName, getBusinessRes.ThumbnailObject, minio.RemoveObjectOptions{})
+			rmThErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.BusinessAvatarBulkName, getBusinessRes.Thumbnail, minio.RemoveObjectOptions{})
 			if rmThErr != nil {
 				return rmThErr
 			}
 		}
-		var provinceFk uuid.UUID
-		var municipalityFk uuid.UUID
-		if request.ProvinceFk != "" {
-			provinceFk = uuid.MustParse(request.ProvinceFk)
+		var provinceId uuid.UUID
+		var municipalityId uuid.UUID
+		if request.ProvinceId != "" {
+			provinceId = uuid.MustParse(request.ProvinceId)
 		}
-		if request.MunicipalityFk != "" {
-			municipalityFk = uuid.MustParse(request.MunicipalityFk)
+		if request.MunicipalityId != "" {
+			municipalityId = uuid.MustParse(request.MunicipalityId)
 		}
 		businessRes, businessErr = i.dao.NewBusinessQuery().UpdateBusiness(tx, &models.Business{
 			Name:                     request.Name,
 			Description:              request.Description,
 			Address:                  request.Address,
-			Phone:                    request.Phone,
-			Email:                    request.Email,
-			HighQualityPhoto:         datasource.Config.BusinessAvatarBulkName + "/" + request.HighQualityPhotoObject,
-			HighQualityPhotoObject:   request.HighQualityPhotoObject,
+			HighQualityPhoto:         datasource.Config.BusinessAvatarBulkName + "/" + request.HighQualityPhoto,
 			HighQualityPhotoBlurHash: request.HighQualityPhotoBlurHash,
-			LowQualityPhoto:          datasource.Config.BusinessAvatarBulkName + "/" + request.LowQualityPhotoObject,
-			LowQualityPhotoObject:    request.LowQualityPhotoObject,
+			LowQualityPhoto:          datasource.Config.BusinessAvatarBulkName + "/" + request.LowQualityPhoto,
 			LowQualityPhotoBlurHash:  request.LowQualityPhotoBlurHash,
-			Thumbnail:                datasource.Config.BusinessAvatarBulkName + "/" + request.ThumbnailObject,
-			ThumbnailObject:          request.ThumbnailObject,
+			Thumbnail:                datasource.Config.BusinessAvatarBulkName + "/" + request.Thumbnail,
 			ThumbnailBlurHash:        request.ThumbnailBlurHash,
 			TimeMarginOrderMonth:     request.TimeMarginOrderMonth,
 			TimeMarginOrderDay:       request.TimeMarginOrderDay,
 			TimeMarginOrderHour:      request.TimeMarginOrderHour,
 			TimeMarginOrderMinute:    request.TimeMarginOrderMinute,
-			DeliveryPrice:            float32(request.DeliveryPrice),
+			DeliveryPrice:            request.DeliveryPrice,
 			ToPickUp:                 request.ToPickUp,
 			HomeDelivery:             request.HomeDelivery,
-			ProvinceFk:               provinceFk,
-			MunicipalityFk:           municipalityFk,
+			ProvinceId:               &provinceId,
+			MunicipalityId:           &municipalityId,
 		}, &models.Business{ID: request.Id})
 		if businessErr != nil {
 			return businessErr
@@ -174,7 +169,7 @@ func (i *businessService) CreateBusiness(request *dto.CreateBusinessRequest) (*d
 	var businessRes *models.Business
 	var businessErr error
 	var response dto.CreateBusinessResponse
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -189,63 +184,61 @@ func (i *businessService) CreateBusiness(request *dto.CreateBusinessRequest) (*d
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_fk"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, nil)
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserFk: *authorizationTokenRes.UserFk}, nil)
+		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: authorizationTokenRes.UserId})
 		if businessOwnerErr != nil {
 			return businessOwnerErr
 		}
 		if !businessOwnerRes.IsBusinessOwner {
 			return errors.New("permission denied")
 		}
-		_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.HighQualityPhotoObject)
+		_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.HighQualityPhoto)
 		if hqErr != nil && hqErr.Error() == "ObjectMissing" {
 			return errors.New("HighQualityPhotoObject missing")
 		} else if hqErr != nil {
 			return hqErr
 		}
-		_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.LowQualityPhotoObject)
+		_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.LowQualityPhoto)
 		if lqErr != nil && lqErr.Error() == "ObjectMissing" {
 			return errors.New("LowQualityPhotoObject missing")
 		} else if lqErr != nil {
 			return lqErr
 		}
-		_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.ThumbnailObject)
+		_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, request.Thumbnail)
 		if tnErr != nil && tnErr.Error() == "ObjectMissing" {
 			return errors.New("ThumbnailObject missing")
 		} else if tnErr != nil {
 			return tnErr
 		}
+		provinceId := uuid.MustParse(request.ProvinceId)
+		municipalityId := uuid.MustParse(request.MunicipalityId)
+		businessBrandId := uuid.MustParse(request.BusinessBrandId)
 		businessRes, businessErr = i.dao.NewBusinessQuery().CreateBusiness(tx, &models.Business{
 			Name:                     request.Name,
 			Description:              request.Description,
 			Address:                  request.Address,
-			Phone:                    request.Phone,
-			Email:                    request.Email,
-			HighQualityPhoto:         datasource.Config.BusinessAvatarBulkName + "/" + request.HighQualityPhotoObject,
-			HighQualityPhotoObject:   request.HighQualityPhotoObject,
+			HighQualityPhoto:         request.HighQualityPhoto,
 			HighQualityPhotoBlurHash: request.HighQualityPhotoBlurHash,
-			LowQualityPhoto:          datasource.Config.BusinessAvatarBulkName + "/" + request.LowQualityPhotoObject,
-			LowQualityPhotoObject:    request.LowQualityPhotoObject,
+			LowQualityPhoto:          request.LowQualityPhoto,
 			LowQualityPhotoBlurHash:  request.LowQualityPhotoBlurHash,
-			Thumbnail:                datasource.Config.BusinessAvatarBulkName + "/" + request.ThumbnailObject,
-			ThumbnailObject:          request.ThumbnailObject,
+			Thumbnail:                request.Thumbnail,
 			ThumbnailBlurHash:        request.ThumbnailBlurHash,
 			TimeMarginOrderMonth:     request.TimeMarginOrderMonth,
 			TimeMarginOrderDay:       request.TimeMarginOrderDay,
 			TimeMarginOrderHour:      request.TimeMarginOrderHour,
 			TimeMarginOrderMinute:    request.TimeMarginOrderMinute,
-			DeliveryPrice:            float32(request.DeliveryPrice),
+			DeliveryPrice:            request.DeliveryPrice,
 			ToPickUp:                 request.ToPickUp,
 			HomeDelivery:             request.HomeDelivery,
 			Coordinates:              request.Coordinates,
-			ProvinceFk:               uuid.MustParse(request.ProvinceFk),
-			MunicipalityFk:           uuid.MustParse(request.MunicipalityFk),
-			BusinessBrandFk:          uuid.MustParse(request.BusinessBrandFk),
+			ProvinceId:               &provinceId,
+			MunicipalityId:           &municipalityId,
+			BusinessBrandId:          &businessBrandId,
 		})
 		if businessErr != nil {
 			return businessErr
@@ -253,9 +246,10 @@ func (i *businessService) CreateBusiness(request *dto.CreateBusinessRequest) (*d
 		response.Business = businessRes
 		var unionBusinessAndMunicipalities = make([]*models.UnionBusinessAndMunicipality, 0, len(request.Municipalities))
 		for _, item := range request.Municipalities {
+			municipalityId := uuid.MustParse(item)
 			unionBusinessAndMunicipalities = append(unionBusinessAndMunicipalities, &models.UnionBusinessAndMunicipality{
-				BusinessFk:     businessRes.ID,
-				MunicipalityFk: uuid.MustParse(item),
+				BusinessId:     businessRes.ID,
+				MunicipalityId: &municipalityId,
 			})
 		}
 		unionBusinessAndMunicipalityRes, unionBusinessAndMunicipalityErr := i.dao.NewUnionBusinessAndMunicipalityRepository().BatchCreateUnionBusinessAndMunicipality(tx, unionBusinessAndMunicipalities)
@@ -285,8 +279,8 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 	var businessErr, businessErrAdd error
 	var response dto.FeedResponse
 	if feedRequest.SearchMunicipalityType == pb.SearchMunicipalityType_More.String() {
-		err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-			businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceFk, feedRequest.MunicipalityFk, feedRequest.NextPage, false, feedRequest.HomeDelivery, feedRequest.ToPickUp)
+		err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+			businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceId, feedRequest.MunicipalityId, feedRequest.NextPage, false, feedRequest.HomeDelivery, feedRequest.ToPickUp)
 			if businessErr != nil {
 				return businessErr
 			}
@@ -301,8 +295,8 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 			response.SearchMunicipalityType = pb.SearchMunicipalityType_More.String()
 		} else if len(*businessRes) <= 5 && len(*businessRes) != 0 {
 			length := 5 - len(*businessRes)
-			err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-				businessResAdd, businessErrAdd = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, int32(length), feedRequest.ProvinceFk, feedRequest.MunicipalityFk, 0, true, feedRequest.HomeDelivery, feedRequest.ToPickUp)
+			err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+				businessResAdd, businessErrAdd = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, int32(length), feedRequest.ProvinceId, feedRequest.MunicipalityId, 0, true, feedRequest.HomeDelivery, feedRequest.ToPickUp)
 				if businessErrAdd != nil {
 					return businessErrAdd
 				}
@@ -320,8 +314,8 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 			response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
 			response.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore.String()
 		} else if len(*businessRes) == 0 {
-			err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-				businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceFk, feedRequest.MunicipalityFk, 0, true, feedRequest.HomeDelivery, feedRequest.ToPickUp)
+			err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+				businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceId, feedRequest.MunicipalityId, 0, true, feedRequest.HomeDelivery, feedRequest.ToPickUp)
 				if businessErr != nil {
 					return businessErr
 				}
@@ -337,8 +331,8 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 			}
 		}
 	} else {
-		err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-			businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceFk, feedRequest.MunicipalityFk, feedRequest.NextPage, true, feedRequest.HomeDelivery, feedRequest.ToPickUp)
+		err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+			businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceId, feedRequest.MunicipalityId, feedRequest.NextPage, true, feedRequest.HomeDelivery, feedRequest.ToPickUp)
 			if businessErr != nil {
 				return businessErr
 			}
@@ -366,26 +360,23 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 				Name:                     e.Name,
 				Description:              e.Description,
 				Address:                  e.Address,
-				Phone:                    e.Phone,
-				Email:                    e.Email,
 				HighQualityPhoto:         e.HighQualityPhoto,
 				HighQualityPhotoBlurHash: e.HighQualityPhotoBlurHash,
 				LowQualityPhoto:          e.LowQualityPhoto,
 				LowQualityPhotoBlurHash:  e.LowQualityPhotoBlurHash,
 				Thumbnail:                e.Thumbnail,
 				ThumbnailBlurHash:        e.ThumbnailBlurHash,
-				// IsOpen:                   e.IsOpen,
-				DeliveryPrice:         e.DeliveryPrice,
-				TimeMarginOrderMonth:  e.TimeMarginOrderMonth,
-				TimeMarginOrderDay:    e.TimeMarginOrderDay,
-				TimeMarginOrderHour:   e.TimeMarginOrderHour,
-				TimeMarginOrderMinute: e.TimeMarginOrderMinute,
-				ToPickUp:              e.ToPickUp,
-				HomeDelivery:          e.HomeDelivery,
-				BusinessBrandFk:       e.BusinessBrandFk,
-				ProvinceFk:            e.ProvinceFk,
-				Cursor:                int32(e.Cursor),
-				MunicipalityFk:        e.MunicipalityFk,
+				DeliveryPrice:            e.DeliveryPrice,
+				TimeMarginOrderMonth:     e.TimeMarginOrderMonth,
+				TimeMarginOrderDay:       e.TimeMarginOrderDay,
+				TimeMarginOrderHour:      e.TimeMarginOrderHour,
+				TimeMarginOrderMinute:    e.TimeMarginOrderMinute,
+				ToPickUp:                 e.ToPickUp,
+				HomeDelivery:             e.HomeDelivery,
+				BusinessBrandId:          e.BusinessBrandId,
+				ProvinceId:               e.ProvinceId,
+				Cursor:                   int32(e.Cursor),
+				MunicipalityId:           e.MunicipalityId,
 			})
 		}
 	}
@@ -395,14 +386,15 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 
 func (v *businessService) GetBusiness(request *dto.GetBusinessRequest) (*dto.GetBusinessResponse, error) {
 	var businessRes *models.Business
-	var itemCategoryRes *[]models.BusinessItemCategory
+	var businessCollectionRes *[]models.BusinessCollection
 	var businessErr, itemCategoryErr error
-	err := datasource.DB.Transaction(func(tx *gorm.DB) error {
-		businessRes, businessErr = v.dao.NewBusinessQuery().GetBusiness(tx, &models.Business{ID: uuid.MustParse(request.Id)})
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		businessId := uuid.MustParse(request.Id)
+		businessRes, businessErr = v.dao.NewBusinessQuery().GetBusiness(tx, &models.Business{ID: &businessId})
 		if businessErr != nil {
 			return businessErr
 		}
-		itemCategoryRes, itemCategoryErr = v.dao.NewItemCategoryQuery().ListItemCategory(tx, &models.BusinessItemCategory{BusinessFk: uuid.MustParse(request.Id)})
+		businessCollectionRes, itemCategoryErr = v.dao.NewBusinessCollectionQuery().ListBusinessCollection(tx, &models.BusinessCollection{BusinessId: &businessId})
 		if itemCategoryErr != nil {
 			return itemCategoryErr
 		}
@@ -411,5 +403,5 @@ func (v *businessService) GetBusiness(request *dto.GetBusinessRequest) (*dto.Get
 	if err != nil {
 		return nil, err
 	}
-	return &dto.GetBusinessResponse{Business: businessRes, ItemCategory: itemCategoryRes}, nil
+	return &dto.GetBusinessResponse{Business: businessRes, BusinessCollections: businessCollectionRes}, nil
 }
