@@ -1,4 +1,3 @@
 {
-  "refreshToken": "fooBar",
-  "fieldMask": "fooBar,fooBar"
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTU2NDg1MzgsInN1YiI6IjEzNDczODUyLWVlMzctNGQwNC05MjgyLTYzNGU1YzJiMjY2NiJ9._QiqguJqCpJS5EWiKPtlcQ3TyzPQ9jG0BJ4_DJcuzEs"
 }

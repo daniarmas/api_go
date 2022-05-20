@@ -398,9 +398,27 @@ func (m *AuthenticationServer) SignOut(ctx context.Context, req *pb.SignOutReque
 }
 
 func (m *AuthenticationServer) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.RefreshTokenResponse, error) {
+	var invalidRefreshToken *epb.BadRequest_FieldViolation
+	var invalidArgs bool
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	result, err := m.authenticationService.RefreshToken(&req.RefreshToken, &md)
+	md := utils.GetMetadata(ctx)
+	if req.RefreshToken == "" {
+		invalidArgs = true
+		invalidRefreshToken = &epb.BadRequest_FieldViolation{
+			Field:       "RefreshToken",
+			Description: "The RefreshToken field is required",
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidRefreshToken != nil {
+			st, _ = st.WithDetails(
+				invalidRefreshToken,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.authenticationService.RefreshToken(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "unauthenticated":
@@ -420,7 +438,7 @@ func (m *AuthenticationServer) RefreshToken(ctx context.Context, req *pb.Refresh
 		}
 		return nil, st.Err()
 	}
-	return &pb.RefreshTokenResponse{RefreshToken: result.RefreshToken, AuthorizationToken: result.AuthorizationToken}, nil
+	return res, nil
 }
 
 func (m *AuthenticationServer) ListSession(ctx context.Context, req *pb.ListSessionRequest) (*pb.ListSessionResponse, error) {

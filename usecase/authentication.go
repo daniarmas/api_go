@@ -26,7 +26,7 @@ type AuthenticationService interface {
 	SignOut(ctx context.Context, req *pb.SignOutRequest, meta *utils.ClientMetadata) (*gp.Empty, error)
 	CheckSession(ctx context.Context, meta *utils.ClientMetadata) (*[]string, error)
 	ListSession(metadata *metadata.MD) (*dto.ListSessionResponse, error)
-	RefreshToken(refreshToken *string, metadata *metadata.MD) (*dto.RefreshToken, error)
+	RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest, meta *utils.ClientMetadata) (*pb.RefreshTokenResponse, error)
 }
 
 type authenticationService struct {
@@ -543,11 +543,25 @@ func (v *authenticationService) ListSession(metadata *metadata.MD) (*dto.ListSes
 	return &dto.ListSessionResponse{Sessions: listSessionRes, ActualDeviceId: authorizationTokenRes.DeviceId}, nil
 }
 
-func (v *authenticationService) RefreshToken(refreshToken *string, metadata *metadata.MD) (*dto.RefreshToken, error) {
-	var jwtAuthorizationTokenRes, jwtRefreshTokenRes *string
+func (v *authenticationService) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest, meta *utils.ClientMetadata) (*pb.RefreshTokenResponse, error) {
 	var jwtAuthorizationTokenErr, jwtRefreshTokenErr error
+	var jwtRefreshTokenNew, jwtAuthorizationTokenNew *datasource.JsonWebTokenMetadata
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		jwtRefreshToken := &datasource.JsonWebTokenMetadata{Token: refreshToken}
+		deviceRes, deviceErr := v.dao.NewDeviceQuery().GetDevice(tx, &models.Device{DeviceIdentifier: *meta.DeviceIdentifier}, &[]string{"id"})
+		if deviceErr != nil {
+			return deviceErr
+		} else if *deviceRes == (models.Device{}) {
+			deviceRes, deviceErr = v.dao.NewDeviceQuery().CreateDevice(tx, &models.Device{DeviceIdentifier: *meta.DeviceIdentifier, Platform: *meta.Platform, SystemVersion: *meta.SystemVersion, FirebaseCloudMessagingId: *meta.FirebaseCloudMessagingId, Model: *meta.Model})
+			if deviceErr != nil {
+				return deviceErr
+			}
+		} else if *deviceRes != (models.Device{}) {
+			_, deviceErr := v.dao.NewDeviceQuery().UpdateDevice(tx, &models.Device{DeviceIdentifier: *meta.DeviceIdentifier}, &models.Device{SystemVersion: *meta.SystemVersion, FirebaseCloudMessagingId: *meta.FirebaseCloudMessagingId})
+			if deviceErr != nil {
+				return deviceErr
+			}
+		}
+		jwtRefreshToken := &datasource.JsonWebTokenMetadata{Token: &req.RefreshToken}
 		refreshTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtRefreshToken(jwtRefreshToken)
 		if refreshTokenParseErr != nil {
 			switch refreshTokenParseErr.Error() {
@@ -561,13 +575,13 @@ func (v *authenticationService) RefreshToken(refreshToken *string, metadata *met
 				return refreshTokenParseErr
 			}
 		}
-		refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &models.RefreshToken{ID: jwtRefreshToken.TokenId}, nil)
+		refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &models.RefreshToken{ID: jwtRefreshToken.TokenId}, &[]string{"id"})
 		if refreshTokenErr != nil {
 			return refreshTokenErr
 		} else if refreshTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		userRes, userErr := v.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{ID: refreshTokenRes.UserId}, &[]string{"id"})
+		userRes, userErr := v.dao.NewUserQuery().GetUser(tx, &models.User{ID: refreshTokenRes.UserId}, &[]string{"id"})
 		if userErr != nil {
 			return userErr
 		} else if userRes == nil {
@@ -581,30 +595,16 @@ func (v *authenticationService) RefreshToken(refreshToken *string, metadata *met
 		if deleteAuthorizationTokenErr != nil {
 			return deleteAuthorizationTokenErr
 		}
-		deviceRes, deviceErr := v.dao.NewDeviceQuery().GetDevice(tx, &models.Device{DeviceIdentifier: metadata.Get("deviceid")[0]}, &[]string{"id"})
-		if deviceErr != nil {
-			return deviceErr
-		} else if *deviceRes == (models.Device{}) {
-			deviceRes, deviceErr = v.dao.NewDeviceQuery().CreateDevice(tx, &models.Device{DeviceIdentifier: metadata.Get("deviceid")[0], Platform: metadata.Get("platform")[0], SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0], Model: metadata.Get("model")[0]})
-			if deviceErr != nil {
-				return deviceErr
-			}
-		} else if *deviceRes != (models.Device{}) {
-			_, deviceErr := v.dao.NewDeviceQuery().UpdateDevice(tx, &models.Device{DeviceIdentifier: metadata.Get("deviceid")[0]}, &models.Device{SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0]})
-			if deviceErr != nil {
-				return deviceErr
-			}
-		}
 		refreshTokenRes, refreshTokenErr = v.dao.NewRefreshTokenQuery().CreateRefreshToken(tx, &models.RefreshToken{UserId: userRes.ID, DeviceId: deviceRes.ID})
 		if refreshTokenErr != nil {
 			return refreshTokenErr
 		}
-		authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().CreateAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: refreshTokenRes.ID, UserId: userRes.ID, DeviceId: deviceRes.ID, App: &metadata.Get("app")[0], AppVersion: &metadata.Get("appversion")[0]})
+		authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().CreateAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: refreshTokenRes.ID, UserId: userRes.ID, DeviceId: deviceRes.ID, App: meta.App, AppVersion: meta.AppVersion})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		jwtRefreshTokenNew := &datasource.JsonWebTokenMetadata{TokenId: refreshTokenRes.ID}
-		jwtAuthorizationTokenNew := &datasource.JsonWebTokenMetadata{TokenId: authorizationTokenRes.ID}
+		jwtRefreshTokenNew = &datasource.JsonWebTokenMetadata{TokenId: refreshTokenRes.ID}
+		jwtAuthorizationTokenNew = &datasource.JsonWebTokenMetadata{TokenId: authorizationTokenRes.ID}
 		jwtRefreshTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtRefreshToken(jwtRefreshTokenNew)
 		if jwtRefreshTokenErr != nil {
 			return jwtRefreshTokenErr
@@ -618,5 +618,5 @@ func (v *authenticationService) RefreshToken(refreshToken *string, metadata *met
 	if err != nil {
 		return nil, err
 	}
-	return &dto.RefreshToken{RefreshToken: *jwtRefreshTokenRes, AuthorizationToken: *jwtAuthorizationTokenRes}, nil
+	return &pb.RefreshTokenResponse{RefreshToken: *jwtRefreshTokenNew.Token, AuthorizationToken: *jwtAuthorizationTokenNew.Token}, nil
 }

@@ -383,7 +383,6 @@ message SignOutRequest {
  
 message RefreshTokenRequest {
   string refreshToken = 1;
-  google.protobuf.FieldMask fieldMask = 2;
 }
 
 message RefreshTokenResponse {
