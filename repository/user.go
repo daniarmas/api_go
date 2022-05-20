@@ -7,7 +7,6 @@ import (
 
 type UserQuery interface {
 	GetUser(tx *gorm.DB, where *models.User, fields *[]string) (*models.User, error)
-	GetUserWithPermission(tx *gorm.DB, where *models.User) (*models.User, error)
 	GetUserWithAddress(tx *gorm.DB, where *models.User, fields *[]string) (*models.User, error)
 	CreateUser(tx *gorm.DB, data *models.User) (*models.User, error)
 	UpdateUser(tx *gorm.DB, where *models.User, data *models.User) (*models.User, error)
@@ -25,14 +24,6 @@ func (u *userQuery) GetUserWithAddress(tx *gorm.DB, where *models.User, fields *
 
 func (u *userQuery) GetUser(tx *gorm.DB, where *models.User, fields *[]string) (*models.User, error) {
 	res, err := Datasource.NewUserDatasource().GetUser(tx, where, fields)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
-}
-
-func (u *userQuery) GetUserWithPermission(tx *gorm.DB, where *models.User) (*models.User, error) {
-	res, err := Datasource.NewUserDatasource().GetUserWithPermission(tx, where)
 	if err != nil {
 		return nil, err
 	}

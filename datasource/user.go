@@ -11,7 +11,6 @@ import (
 
 type UserDatasource interface {
 	GetUser(tx *gorm.DB, user *models.User, fields *[]string) (*models.User, error)
-	GetUserWithPermission(tx *gorm.DB, user *models.User) (*models.User, error)
 	GetUserWithAddress(tx *gorm.DB, user *models.User, fields *[]string) (*models.User, error)
 	CreateUser(tx *gorm.DB, data *models.User) (*models.User, error)
 	UpdateUser(tx *gorm.DB, where *models.User, data *models.User) (*models.User, error)
@@ -24,7 +23,7 @@ func (u *userDatasource) GetUserWithAddress(tx *gorm.DB, where *models.User, fie
 	var userAddressResult []models.UserAddress
 	var userAddressErr error
 	var result *gorm.DB
-	query := fmt.Sprintf("SELECT id, tag, residence_type, building_number, house_number, description, user_id, province_id, municipality_id, create_time, update_time, ST_AsEWKB(coordinates) AS coordinates FROM user_address WHERE user_address.user_id = '%v';", where.ID)
+	query := fmt.Sprintf("SELECT id, tag, residence_type, address, instructions, number, user_id, province_id, municipality_id, create_time, update_time, ST_AsEWKB(coordinates) AS coordinates FROM user_address WHERE user_address.user_id = '%v';", where.ID)
 	userAddressErr = tx.Raw(query).Scan(&userAddressResult).Error
 	if userAddressErr != nil {
 		return nil, userAddressErr
@@ -44,19 +43,6 @@ func (u *userDatasource) GetUserWithAddress(tx *gorm.DB, where *models.User, fie
 func (u *userDatasource) GetUser(tx *gorm.DB, where *models.User, fields *[]string) (*models.User, error) {
 	var res *models.User
 	result := tx.Where(where).Select(*fields).Take(&res)
-	if result.Error != nil {
-		if result.Error.Error() == "record not found" {
-			return nil, errors.New("record not found")
-		} else {
-			return nil, result.Error
-		}
-	}
-	return res, nil
-}
-
-func (u *userDatasource) GetUserWithPermission(tx *gorm.DB, where *models.User) (*models.User, error) {
-	var res *models.User
-	result := tx.Preload("UserPermissions").Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

@@ -7,14 +7,16 @@ import (
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/models"
+	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
+	"github.com/daniarmas/api_go/utils"
 	"github.com/minio/minio-go/v7"
-	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 )
 
 type UserService interface {
-	GetUser(metadata *metadata.MD) (*models.User, error)
+	GetUser(ctx context.Context, md *utils.ClientMetadata) (*pb.GetUserResponse, error)
 	UpdateUser(request *dto.UpdateUserRequest) (*dto.UpdateUserResponse, error)
 	GetAddressInfo(request *dto.GetAddressInfoRequest) (*dto.GetAddressInfoResponse, error)
 }
@@ -54,11 +56,11 @@ func (i *userService) GetAddressInfo(request *dto.GetAddressInfoRequest) (*dto.G
 	return &response, nil
 }
 
-func (i *userService) GetUser(metadata *metadata.MD) (*models.User, error) {
-	var user *models.User
+func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*pb.GetUserResponse, error) {
+	var userRes *models.User
 	var userErr error
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &metadata.Get("authorization")[0]}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
@@ -72,13 +74,13 @@ func (i *userService) GetUser(metadata *metadata.MD) (*models.User, error) {
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, nil)
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		user, userErr = i.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{ID: authorizationTokenRes.UserId}, nil)
+		userRes, userErr = i.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{ID: authorizationTokenRes.UserId}, nil)
 		if userErr != nil {
 			return userErr
 		}
@@ -87,7 +89,53 @@ func (i *userService) GetUser(metadata *metadata.MD) (*models.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	return user, nil
+	userAddress := make([]*pb.UserAddress, 0, len(userRes.UserAddress))
+	permissions := make([]*pb.Permission, 0, len(userRes.UserPermissions))
+	for _, item := range userRes.UserPermissions {
+		permissions = append(permissions, &pb.Permission{
+			Id:         item.ID.String(),
+			Name:       item.Name,
+			UserId:     item.UserId.String(),
+			BusinessId: item.BusinessId.String(),
+			CreateTime: timestamppb.New(item.CreateTime),
+			UpdateTime: timestamppb.New(item.UpdateTime),
+		})
+	}
+	for _, item := range userRes.UserAddress {
+		userAddress = append(userAddress, &pb.UserAddress{
+			Id:             item.ID.String(),
+			Tag:            item.Tag,
+			Number:         item.Number,
+			Address:        item.Address,
+			Instructions:   item.Instructions,
+			ResidenceType:  *utils.ParseResidenceType(item.ResidenceType),
+			ProvinceId:     item.ProvinceId.String(),
+			MunicipalityId: item.MunicipalityId.String(),
+			Coordinates:    &pb.Point{Latitude: item.Coordinates.Coords()[0], Longitude: item.Coordinates.Coords()[1]},
+			UserId:         item.UserId.String(),
+			CreateTime:     timestamppb.New(item.CreateTime),
+			UpdateTime:     timestamppb.New(item.UpdateTime),
+		})
+	}
+	return &pb.GetUserResponse{User: &pb.User{
+		Id:                       userRes.ID.String(),
+		FullName:                 userRes.FullName,
+		Email:                    userRes.Email,
+		PhoneNumber:              userRes.PhoneNumber,
+		HighQualityPhoto:         userRes.HighQualityPhoto,
+		HighQualityPhotoUrl:      userRes.HighQualityPhoto,
+		HighQualityPhotoBlurHash: userRes.HighQualityPhotoBlurHash,
+		LowQualityPhoto:          userRes.LowQualityPhoto,
+		LowQualityPhotoUrl:       userRes.LowQualityPhoto,
+		LowQualityPhotoBlurHash:  userRes.LowQualityPhotoBlurHash,
+		Thumbnail:                userRes.Thumbnail,
+		ThumbnailUrl:             userRes.Thumbnail,
+		ThumbnailBlurHash:        userRes.ThumbnailBlurHash,
+		UserAddress:              userAddress,
+		Permissions:              permissions,
+		CreateTime:               timestamppb.New(userRes.CreateTime),
+		UpdateTime:               timestamppb.New(userRes.UpdateTime),
+	}}, nil
 }
 
 func (i *userService) UpdateUser(request *dto.UpdateUserRequest) (*dto.UpdateUserResponse, error) {

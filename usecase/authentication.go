@@ -124,7 +124,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		} else if verificationCodeRes == nil {
 			return verificationCodeErr
 		}
-		userRes, userErr = v.dao.NewUserQuery().GetUserWithPermission(tx, &models.User{Email: req.Email})
+		userRes, userErr = v.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{Email: req.Email}, nil)
 		if userErr != nil {
 			switch userErr.Error() {
 			case "record not found":

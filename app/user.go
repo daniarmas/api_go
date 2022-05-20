@@ -43,8 +43,8 @@ func (m *UserServer) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoR
 
 func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.GetUserResponse, error) {
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	getUserResponse, err := m.userService.GetUser(&md)
+	meta := utils.GetMetadata(ctx)
+	res, err := m.userService.GetUser(ctx, meta)
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -60,37 +60,7 @@ func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.GetUserRes
 		}
 		return nil, st.Err()
 	}
-	userAddress := make([]*pb.UserAddress, 0, len(getUserResponse.UserAddress))
-	for _, e := range getUserResponse.UserAddress {
-		userAddress = append(userAddress, &pb.UserAddress{
-			Id:             e.ID.String(),
-			Tag:            e.Tag,
-			ResidenceType:  *utils.ParseResidenceType(e.ResidenceType),
-			Address:        e.Address,
-			Number:         e.Number,
-			Coordinates:    &pb.Point{Latitude: e.Coordinates.Coords()[0], Longitude: e.Coordinates.Coords()[1]},
-			Instructions:   e.Instructions,
-			UserId:         e.UserId.String(),
-			ProvinceId:     e.ProvinceId.String(),
-			MunicipalityId: e.MunicipalityId.String(),
-			CreateTime:     timestamppb.New(e.CreateTime),
-			UpdateTime:     timestamppb.New(e.UpdateTime),
-		})
-	}
-	return &pb.GetUserResponse{User: &pb.User{
-		Id:                       getUserResponse.ID.String(),
-		FullName:                 getUserResponse.FullName,
-		HighQualityPhoto:         getUserResponse.HighQualityPhoto,
-		HighQualityPhotoBlurHash: getUserResponse.HighQualityPhotoBlurHash,
-		LowQualityPhoto:          getUserResponse.LowQualityPhoto,
-		LowQualityPhotoBlurHash:  getUserResponse.LowQualityPhotoBlurHash,
-		Thumbnail:                getUserResponse.Thumbnail,
-		ThumbnailBlurHash:        getUserResponse.ThumbnailBlurHash,
-		Email:                    getUserResponse.Email,
-		UserAddress:              userAddress,
-		CreateTime:               timestamppb.New(getUserResponse.CreateTime),
-		UpdateTime:               timestamppb.New(getUserResponse.UpdateTime),
-	}}, nil
+	return res, nil
 }
 
 func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
