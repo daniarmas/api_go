@@ -323,8 +323,8 @@ func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest
 
 func (m *AuthenticationServer) CheckSession(ctx context.Context, req *gp.Empty) (*pb.CheckSessionResponse, error) {
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	result, err := m.authenticationService.CheckSession(&md)
+	md := utils.GetMetadata(ctx)
+	result, err := m.authenticationService.CheckSession(ctx, md)
 	if err != nil {
 		switch err.Error() {
 		case "unauthenticated":

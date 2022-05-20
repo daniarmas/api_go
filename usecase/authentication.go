@@ -24,7 +24,7 @@ type AuthenticationService interface {
 	SignIn(ctx context.Context, req *pb.SignInRequest, meta *utils.ClientMetadata) (*pb.SignInResponse, error)
 	SignUp(ctx context.Context, req *pb.SignUpRequest, meta *utils.ClientMetadata) (*pb.SignUpResponse, error)
 	SignOut(ctx context.Context, req *pb.SignOutRequest, meta *utils.ClientMetadata) (*gp.Empty, error)
-	CheckSession(metadata *metadata.MD) (*[]string, error)
+	CheckSession(ctx context.Context, meta *utils.ClientMetadata) (*[]string, error)
 	ListSession(metadata *metadata.MD) (*dto.ListSessionResponse, error)
 	RefreshToken(refreshToken *string, metadata *metadata.MD) (*dto.RefreshToken, error)
 }
@@ -160,10 +160,10 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 			}
 		}
 		deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserId: userRes.ID, DeviceId: deviceRes.ID}, nil)
-		if deleteRefreshTokenErr != nil {
+		if deleteRefreshTokenErr != nil && deleteRefreshTokenErr.Error() != "record not found" {
 			return deleteRefreshTokenErr
 		}
-		if len(*deleteRefreshTokenRes) != 0 {
+		if deleteRefreshTokenRes != nil && len(*deleteRefreshTokenRes) != 0 {
 			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: (*deleteRefreshTokenRes)[0].ID}, nil)
 			if deleteAuthorizationTokenErr != nil {
 				return deleteAuthorizationTokenErr
@@ -352,35 +352,41 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 	}}, nil
 }
 
-func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, error) {
+func (v *authenticationService) CheckSession(ctx context.Context, meta *utils.ClientMetadata) (*[]string, error) {
 	var userRes *models.User
 	var bannedUserRes *models.BannedUser
 	var bannedDeviceRes *models.BannedDevice
 	var deviceRes *models.Device
 	var bannedDeviceErr, deviceErr, userErr, bannedUserErr error
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		if len(metadata.Get("authorization")) != 0 && metadata.Get("authorization")[0] != "" {
-			deviceRes, deviceErr = v.dao.NewDeviceQuery().GetDevice(tx, &models.Device{DeviceIdentifier: metadata.Get("deviceid")[0]}, &[]string{"id"})
+		deviceRes, deviceErr = v.dao.NewDeviceQuery().GetDevice(tx, &models.Device{DeviceIdentifier: *meta.DeviceIdentifier}, &[]string{"id"})
+		if deviceErr != nil {
+			return deviceErr
+		} else if deviceRes == nil {
+			deviceRes, deviceErr = v.dao.NewDeviceQuery().CreateDevice(tx, &models.Device{DeviceIdentifier: *meta.DeviceIdentifier, Platform: *meta.Platform, SystemVersion: *meta.SystemVersion, FirebaseCloudMessagingId: *meta.FirebaseCloudMessagingId, Model: *meta.Model})
 			if deviceErr != nil {
 				return deviceErr
-			} else if deviceRes == nil {
-				deviceRes, deviceErr = v.dao.NewDeviceQuery().CreateDevice(tx, &models.Device{DeviceIdentifier: metadata.Get("deviceid")[0], Platform: metadata.Get("platform")[0], SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0], Model: metadata.Get("model")[0]})
-				if deviceErr != nil {
-					return deviceErr
-				}
-			} else if deviceRes != nil {
-				_, deviceErr := v.dao.NewDeviceQuery().UpdateDevice(tx, &models.Device{DeviceIdentifier: metadata.Get("deviceid")[0]}, &models.Device{SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0]})
-				if deviceErr != nil {
-					return deviceErr
-				}
 			}
-			bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: metadata.Get("deviceid")[0]}, nil)
-			if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
-				return bannedDeviceErr
-			} else if bannedDeviceRes != nil {
-				return errors.New("device banned")
+		} else if deviceRes != nil {
+			_, deviceErr := v.dao.NewDeviceQuery().UpdateDevice(tx, &models.Device{DeviceIdentifier: *meta.DeviceIdentifier}, &models.Device{SystemVersion: *meta.SystemVersion, FirebaseCloudMessagingId: *meta.FirebaseCloudMessagingId})
+			if deviceErr != nil {
+				return deviceErr
 			}
-			jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &metadata.Get("authorization")[0]}
+		}
+		bannedAppRes, bannedAppErr := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: *meta.AppVersion}, &[]string{"id"})
+		if bannedAppErr != nil && bannedAppErr.Error() != "record not found" {
+			return bannedAppErr
+		} else if bannedAppRes != nil {
+			return errors.New("app banned")
+		}
+		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: *meta.DeviceIdentifier}, &[]string{"id"})
+		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
+			return bannedDeviceErr
+		} else if bannedDeviceRes != nil {
+			return errors.New("device banned")
+		}
+		if meta.Authorization != nil && *meta.Authorization != "" {
+			jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: meta.Authorization}
 			authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 			if authorizationTokenParseErr != nil {
 				switch authorizationTokenParseErr.Error() {
@@ -394,66 +400,32 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 					return authorizationTokenParseErr
 				}
 			}
-			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, nil)
+			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "user_id"})
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
 			} else if authorizationTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &models.RefreshToken{ID: authorizationTokenRes.RefreshTokenId}, nil)
+			refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenQuery().GetRefreshToken(tx, &models.RefreshToken{ID: authorizationTokenRes.RefreshTokenId}, &[]string{"id"})
 			if refreshTokenErr != nil {
 				return refreshTokenErr
 			} else if refreshTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserId}, &[]string{})
+			userRes, userErr = v.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserId}, &[]string{"id"})
 			if userErr != nil {
 				return userErr
 			} else if userRes == nil {
 				return errors.New("user not found")
 			}
-			bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{UserId: authorizationTokenRes.UserId}, nil)
+			bannedUserRes, bannedUserErr = v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{UserId: authorizationTokenRes.UserId}, &[]string{"id"})
 			if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
 				return bannedUserErr
 			} else if bannedUserRes != nil {
 				return errors.New("user banned")
 			}
-			bannedAppRes, bannedAppErr := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: metadata.Get("appversion")[0]}, &[]string{})
-			if bannedAppErr != nil && bannedAppErr.Error() != "record not found" {
-				return bannedAppErr
-			} else if bannedAppRes != nil {
-				return errors.New("app banned")
-			}
-			return nil
-		} else {
-			deviceRes, deviceErr = v.dao.NewDeviceQuery().GetDevice(tx, &models.Device{DeviceIdentifier: metadata.Get("deviceid")[0]}, &[]string{"id"})
-			if deviceErr != nil {
-				return deviceErr
-			} else if deviceRes == nil {
-				deviceRes, deviceErr = v.dao.NewDeviceQuery().CreateDevice(tx, &models.Device{DeviceIdentifier: metadata.Get("deviceid")[0], Platform: metadata.Get("platform")[0], SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0], Model: metadata.Get("model")[0]})
-				if deviceErr != nil {
-					return deviceErr
-				}
-			} else if deviceRes != nil {
-				_, deviceErr := v.dao.NewDeviceQuery().UpdateDevice(tx, &models.Device{DeviceIdentifier: metadata.Get("deviceid")[0]}, &models.Device{SystemVersion: metadata.Get("systemversion")[0], FirebaseCloudMessagingId: metadata.Get("firebasecloudmessagingid")[0]})
-				if deviceErr != nil {
-					return deviceErr
-				}
-			}
-			bannedAppRes, bannedAppErr := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: metadata.Get("appversion")[0]}, &[]string{})
-			if bannedAppErr != nil && bannedAppErr.Error() != "record not found" {
-				return bannedAppErr
-			} else if bannedAppRes != nil {
-				return errors.New("app banned")
-			}
-			bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: metadata.Get("deviceid")[0]}, nil)
-			if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
-				return bannedDeviceErr
-			} else if bannedDeviceRes != nil {
-				return errors.New("device banned")
-			}
-			return nil
 		}
+		return nil
 	})
 	if err != nil {
 		return nil, err
