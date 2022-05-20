@@ -30,7 +30,7 @@ type AuthenticationServiceClient interface {
 	SignOut(ctx context.Context, in *SignOutRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	CheckSession(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CheckSessionResponse, error)
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
-	ListSession(ctx context.Context, in *ListSessionRequest, opts ...grpc.CallOption) (*ListSessionResponse, error)
+	ListSession(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListSessionResponse, error)
 }
 
 type authenticationServiceClient struct {
@@ -104,7 +104,7 @@ func (c *authenticationServiceClient) RefreshToken(ctx context.Context, in *Refr
 	return out, nil
 }
 
-func (c *authenticationServiceClient) ListSession(ctx context.Context, in *ListSessionRequest, opts ...grpc.CallOption) (*ListSessionResponse, error) {
+func (c *authenticationServiceClient) ListSession(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListSessionResponse, error) {
 	out := new(ListSessionResponse)
 	err := c.cc.Invoke(ctx, "/main.AuthenticationService/ListSession", in, out, opts...)
 	if err != nil {
@@ -124,7 +124,7 @@ type AuthenticationServiceServer interface {
 	SignOut(context.Context, *SignOutRequest) (*emptypb.Empty, error)
 	CheckSession(context.Context, *emptypb.Empty) (*CheckSessionResponse, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
-	ListSession(context.Context, *ListSessionRequest) (*ListSessionResponse, error)
+	ListSession(context.Context, *emptypb.Empty) (*ListSessionResponse, error)
 	mustEmbedUnimplementedAuthenticationServiceServer()
 }
 
@@ -153,7 +153,7 @@ func (UnimplementedAuthenticationServiceServer) CheckSession(context.Context, *e
 func (UnimplementedAuthenticationServiceServer) RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RefreshToken not implemented")
 }
-func (UnimplementedAuthenticationServiceServer) ListSession(context.Context, *ListSessionRequest) (*ListSessionResponse, error) {
+func (UnimplementedAuthenticationServiceServer) ListSession(context.Context, *emptypb.Empty) (*ListSessionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListSession not implemented")
 }
 func (UnimplementedAuthenticationServiceServer) mustEmbedUnimplementedAuthenticationServiceServer() {}
@@ -296,7 +296,7 @@ func _AuthenticationService_RefreshToken_Handler(srv interface{}, ctx context.Co
 }
 
 func _AuthenticationService_ListSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListSessionRequest)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -308,7 +308,7 @@ func _AuthenticationService_ListSession_Handler(srv interface{}, ctx context.Con
 		FullMethod: "/main.AuthenticationService/ListSession",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthenticationServiceServer).ListSession(ctx, req.(*ListSessionRequest))
+		return srv.(AuthenticationServiceServer).ListSession(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }

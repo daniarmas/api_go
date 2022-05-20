@@ -20,7 +20,7 @@ service AuthenticationService {
 
   rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse) {}
 
-  rpc ListSession (ListSessionRequest) returns (ListSessionResponse) {}
+  rpc ListSession (google.protobuf.Empty) returns (ListSessionResponse) {}
 }
 
 service BusinessService {
@@ -366,10 +366,6 @@ message UpdateUserResponse {
 
 message GetUserResponse {
   User user = 1;
-}
-
-message ListSessionRequest {
-  google.protobuf.FieldMask fieldMask = 1;
 }
 
 message ListSessionResponse {

@@ -9,7 +9,6 @@ import (
 	utils "github.com/daniarmas/api_go/utils"
 	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	gp "google.golang.org/protobuf/types/known/emptypb"
 )
@@ -441,10 +440,10 @@ func (m *AuthenticationServer) RefreshToken(ctx context.Context, req *pb.Refresh
 	return res, nil
 }
 
-func (m *AuthenticationServer) ListSession(ctx context.Context, req *pb.ListSessionRequest) (*pb.ListSessionResponse, error) {
+func (m *AuthenticationServer) ListSession(ctx context.Context, req *gp.Empty) (*pb.ListSessionResponse, error) {
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	result, err := m.authenticationService.ListSession(&md)
+	md := utils.GetMetadata(ctx)
+	res, err := m.authenticationService.ListSession(ctx, md)
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken expired":
@@ -458,22 +457,5 @@ func (m *AuthenticationServer) ListSession(ctx context.Context, req *pb.ListSess
 		}
 		return nil, st.Err()
 	}
-	sessions := make([]*pb.Session, 0, len(*result.Sessions))
-	for _, e := range *result.Sessions {
-		var actual bool = false
-		if e.Device.ID == result.ActualDeviceId {
-			actual = true
-		}
-		sessions = append(sessions, &pb.Session{
-			Id:            e.ID.String(),
-			Platform:      *utils.ParsePlatformType(&e.Platform),
-			SystemVersion: e.SystemVersion,
-			Model:         e.Model,
-			App:           *utils.ParseAppType(&e.App),
-			AppVersion:    e.AppVersion,
-			DeviceId:      e.DeviceId.String(),
-			Actual:        actual,
-		})
-	}
-	return &pb.ListSessionResponse{Sessions: sessions}, nil
+	return res, nil
 }

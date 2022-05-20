@@ -6,13 +6,11 @@ import (
 	"time"
 
 	"github.com/daniarmas/api_go/datasource"
-	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
-	"google.golang.org/grpc/metadata"
 	gp "google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
@@ -25,7 +23,7 @@ type AuthenticationService interface {
 	SignUp(ctx context.Context, req *pb.SignUpRequest, meta *utils.ClientMetadata) (*pb.SignUpResponse, error)
 	SignOut(ctx context.Context, req *pb.SignOutRequest, meta *utils.ClientMetadata) (*gp.Empty, error)
 	CheckSession(ctx context.Context, meta *utils.ClientMetadata) (*[]string, error)
-	ListSession(metadata *metadata.MD) (*dto.ListSessionResponse, error)
+	ListSession(ctx context.Context, meta *utils.ClientMetadata) (*pb.ListSessionResponse, error)
 	RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest, meta *utils.ClientMetadata) (*pb.RefreshTokenResponse, error)
 }
 
@@ -264,7 +262,7 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 		} else if bannedAppRes != nil {
 			return errors.New("app banned")
 		}
-		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceId: verificationCodeRes.ID}, &[]string{"id"})
+		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: *meta.DeviceIdentifier}, &[]string{"id"})
 		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
 			return bannedDeviceErr
 		} else if bannedDeviceRes != nil {
@@ -505,13 +503,13 @@ func (v *authenticationService) SignOut(ctx context.Context, req *pb.SignOutRequ
 	return &gp.Empty{}, nil
 }
 
-func (v *authenticationService) ListSession(metadata *metadata.MD) (*dto.ListSessionResponse, error) {
+func (v *authenticationService) ListSession(ctx context.Context, meta *utils.ClientMetadata) (*pb.ListSessionResponse, error) {
 	var listSessionRes *[]models.Session
 	var authorizationTokenRes *models.AuthorizationToken
 	var authorizationTokenErr error
 	var listSessionErr error
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &metadata.Get("authorization")[0]}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: meta.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
@@ -525,7 +523,7 @@ func (v *authenticationService) ListSession(metadata *metadata.MD) (*dto.ListSes
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, nil)
+		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
@@ -540,7 +538,24 @@ func (v *authenticationService) ListSession(metadata *metadata.MD) (*dto.ListSes
 	if err != nil {
 		return nil, err
 	}
-	return &dto.ListSessionResponse{Sessions: listSessionRes, ActualDeviceId: authorizationTokenRes.DeviceId}, nil
+	sessions := make([]*pb.Session, 0, len(*listSessionRes))
+	for _, e := range *listSessionRes {
+		var actual bool = false
+		if e.Device.ID == authorizationTokenRes.DeviceId {
+			actual = true
+		}
+		sessions = append(sessions, &pb.Session{
+			Id:            e.ID.String(),
+			Platform:      *utils.ParsePlatformType(&e.Platform),
+			SystemVersion: e.SystemVersion,
+			Model:         e.Model,
+			App:           *utils.ParseAppType(&e.App),
+			AppVersion:    e.AppVersion,
+			DeviceId:      e.DeviceId.String(),
+			Actual:        actual,
+		})
+	}
+	return &pb.ListSessionResponse{Sessions: sessions}, nil
 }
 
 func (v *authenticationService) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest, meta *utils.ClientMetadata) (*pb.RefreshTokenResponse, error) {
