@@ -2,6 +2,7 @@ package interceptors
 
 import (
 	"context"
+	"strings"
 
 	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"
@@ -25,6 +26,7 @@ func UnaryMetadataRequestInterceptor() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler) (_ interface{}, err error) {
 		var (
+			invalidAuthorizationToken       *epb.ErrorInfo
 			invalidApp                      *epb.ErrorInfo
 			invalidFirebaseCloudMessagingId *epb.ErrorInfo
 			invalidDeviceId                 *epb.ErrorInfo
@@ -41,6 +43,15 @@ func UnaryMetadataRequestInterceptor() grpc.UnaryServerInterceptor {
 			invalidArgs = true
 			invalidApp = &epb.ErrorInfo{
 				Reason: "app metadata missing",
+			}
+		}
+		if len(md.Get("Authorization")) != 0 {
+			splitValue := strings.Split(md.Get("Authorization")[0], " ")
+			if splitValue[0] != "Bearer" {
+				invalidArgs = true
+				invalidAuthorizationToken = &epb.ErrorInfo{
+					Reason: "authorization token is invalid",
+				}
 			}
 		}
 		if len(md.Get("Firebase-Cloud-Messaging-Id")) == 0 {
@@ -94,6 +105,11 @@ func UnaryMetadataRequestInterceptor() grpc.UnaryServerInterceptor {
 			if invalidDeviceId != nil {
 				st, _ = st.WithDetails(
 					invalidDeviceId,
+				)
+			}
+			if invalidAuthorizationToken != nil {
+				st, _ = st.WithDetails(
+					invalidAuthorizationToken,
 				)
 			}
 			if invalidApp != nil {

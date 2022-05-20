@@ -23,7 +23,7 @@ type AuthenticationService interface {
 	GetVerificationCode(ctx context.Context, req *pb.GetVerificationCodeRequest, meta *utils.ClientMetadata) (*gp.Empty, error)
 	SignIn(ctx context.Context, req *pb.SignInRequest, meta *utils.ClientMetadata) (*pb.SignInResponse, error)
 	SignUp(ctx context.Context, req *pb.SignUpRequest, meta *utils.ClientMetadata) (*pb.SignUpResponse, error)
-	SignOut(all *bool, authorizationTokenid *string, metadata *metadata.MD) error
+	SignOut(ctx context.Context, req *pb.SignOutRequest, meta *utils.ClientMetadata) (*gp.Empty, error)
 	CheckSession(metadata *metadata.MD) (*[]string, error)
 	ListSession(metadata *metadata.MD) (*dto.ListSessionResponse, error)
 	RefreshToken(refreshToken *string, metadata *metadata.MD) (*dto.RefreshToken, error)
@@ -461,29 +461,33 @@ func (v *authenticationService) CheckSession(metadata *metadata.MD) (*[]string, 
 	return &[]string{}, nil
 }
 
-func (v *authenticationService) SignOut(all *bool, authorizationTokenid *string, metadata *metadata.MD) error {
+func (v *authenticationService) SignOut(ctx context.Context, req *pb.SignOutRequest, meta *utils.ClientMetadata) (*gp.Empty, error) {
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		if *all {
-			authorizationWebToken := &datasource.JsonWebTokenMetadata{Token: &metadata.Get("authorization")[0]}
-			authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(authorizationWebToken)
-			if authorizationTokenParseErr != nil {
-				switch authorizationTokenParseErr.Error() {
-				case "Token is expired":
-					return errors.New("authorizationtoken expired")
-				case "signature is invalid":
-					return errors.New("signature is invalid")
-				case "token contains an invalid number of segments":
-					return errors.New("token contains an invalid number of segments")
-				default:
-					return authorizationTokenParseErr
-				}
+		var authorizationTokenId uuid.UUID
+		if req.AuthorizationTokenId != "" {
+			authorizationTokenId = uuid.MustParse(req.AuthorizationTokenId)
+		}
+		jwtTokenAuthorization := &datasource.JsonWebTokenMetadata{Token: meta.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtTokenAuthorization)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
 			}
-			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: authorizationWebToken.TokenId}, nil)
-			if authorizationTokenErr != nil {
-				return authorizationTokenErr
-			} else if authorizationTokenRes == nil {
-				return errors.New("unauthenticated")
-			}
+		}
+		authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId}, &[]string{"id", "user_id", "device_id"})
+		if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		} else if authorizationTokenRes == nil {
+			return errors.New("unauthenticated")
+		}
+		if req.All {
 			var refreshTokenIds []uuid.UUID
 			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserId: authorizationTokenRes.UserId}, nil)
 			if deleteRefreshTokenErr != nil {
@@ -497,68 +501,26 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenid *string,
 				return deleteAuthorizationTokenErr
 			}
 			return nil
-		} else if *authorizationTokenid != "" {
-			jwtTokenAuthorization := &datasource.JsonWebTokenMetadata{Token: &metadata.Get("authorization")[0]}
-			authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtTokenAuthorization)
-			if authorizationTokenParseErr != nil {
-				switch authorizationTokenParseErr.Error() {
-				case "Token is expired":
-					return errors.New("authorizationtoken expired")
-				case "signature is invalid":
-					return errors.New("signature is invalid")
-				case "token contains an invalid number of segments":
-					return errors.New("token contains an invalid number of segments")
-				default:
-					return authorizationTokenParseErr
-				}
-			}
-			authorizationTokenByReqRes, authorizationTokenByReqErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId}, nil)
+		} else if req.AuthorizationTokenId != "" {
+			authorizationTokenByReqRes, authorizationTokenByReqErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: &authorizationTokenId}, &[]string{"id", "user_id", "device_id"})
 			if authorizationTokenByReqErr != nil {
 				return authorizationTokenByReqErr
 			}
-			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId}, nil)
-			if authorizationTokenErr != nil {
-				return authorizationTokenErr
-			} else if authorizationTokenRes == nil {
-				return errors.New("unauthenticated")
-			} else if authorizationTokenRes.UserId != authorizationTokenByReqRes.UserId {
-				return errors.New("permission denied")
-			}
-			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserId: authorizationTokenByReqRes.UserId, DeviceId: authorizationTokenByReqRes.DeviceId}, nil)
+			_, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserId: authorizationTokenByReqRes.UserId, DeviceId: authorizationTokenByReqRes.DeviceId}, nil)
 			if deleteRefreshTokenErr != nil {
 				return deleteRefreshTokenErr
 			}
-			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: (*deleteRefreshTokenRes)[0].ID}, nil)
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{ID: authorizationTokenByReqRes.ID}, nil)
 			if deleteAuthorizationTokenErr != nil {
 				return deleteAuthorizationTokenErr
 			}
 			return nil
 		} else {
-			jwtTokenAuthorization := &datasource.JsonWebTokenMetadata{Token: &metadata.Get("authorization")[0]}
-			authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtTokenAuthorization)
-			if authorizationTokenParseErr != nil {
-				switch authorizationTokenParseErr.Error() {
-				case "Token is expired":
-					return errors.New("authorizationtoken expired")
-				case "signature is invalid":
-					return errors.New("signature is invalid")
-				case "token contains an invalid number of segments":
-					return errors.New("token contains an invalid number of segments")
-				default:
-					return authorizationTokenParseErr
-				}
-			}
-			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId}, nil)
-			if authorizationTokenErr != nil {
-				return authorizationTokenErr
-			} else if authorizationTokenRes == nil {
-				return errors.New("unauthenticated")
-			}
-			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserId: authorizationTokenRes.UserId, DeviceId: authorizationTokenRes.DeviceId}, nil)
+			_, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserId: authorizationTokenRes.UserId, DeviceId: authorizationTokenRes.DeviceId}, nil)
 			if deleteRefreshTokenErr != nil {
 				return deleteRefreshTokenErr
 			}
-			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: (*deleteRefreshTokenRes)[0].ID}, nil)
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{ID: authorizationTokenRes.ID}, nil)
 			if deleteAuthorizationTokenErr != nil {
 				return deleteAuthorizationTokenErr
 			}
@@ -566,9 +528,9 @@ func (v *authenticationService) SignOut(all *bool, authorizationTokenid *string,
 		}
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &gp.Empty{}, nil
 }
 
 func (v *authenticationService) ListSession(metadata *metadata.MD) (*dto.ListSessionResponse, error) {

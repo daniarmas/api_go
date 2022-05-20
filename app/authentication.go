@@ -352,9 +352,29 @@ func (m *AuthenticationServer) CheckSession(ctx context.Context, req *gp.Empty) 
 }
 
 func (m *AuthenticationServer) SignOut(ctx context.Context, req *pb.SignOutRequest) (*gp.Empty, error) {
+	var invalidAuthorizationTokenId *epb.BadRequest_FieldViolation
+	var invalidArgs bool
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	err := m.authenticationService.SignOut(&req.All, &req.AuthorizationTokenId, &md)
+	md := utils.GetMetadata(ctx)
+	if req.AuthorizationTokenId != "" {
+		if !utils.IsValidUUID(&req.AuthorizationTokenId) {
+			invalidArgs = true
+			invalidAuthorizationTokenId = &epb.BadRequest_FieldViolation{
+				Field:       "AuthorizationTokenId",
+				Description: "The AuthorizationTokenId field is not a valid uuid v4",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidAuthorizationTokenId != nil {
+			st, _ = st.WithDetails(
+				invalidAuthorizationTokenId,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.authenticationService.SignOut(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "unauthenticated":
@@ -374,7 +394,7 @@ func (m *AuthenticationServer) SignOut(ctx context.Context, req *pb.SignOutReque
 		}
 		return nil, st.Err()
 	}
-	return &gp.Empty{}, nil
+	return res, nil
 }
 
 func (m *AuthenticationServer) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.RefreshTokenResponse, error) {
