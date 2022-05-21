@@ -1,6 +1,44 @@
 {
   "details": {
-    "methodFqn": "main.UserService.UpdateUser"
+    "methodFqn": "main.UserService.UpdateUser",
+    "metadata": [
+      {
+        "key": "Device-Id",
+        "value": "1"
+      },
+      {
+        "key": "App-Version",
+        "value": "1.0.0"
+      },
+      {
+        "key": "Access-Token",
+        "value": "O8pzXjp4QMk4cAD60dHeoOnxdVsDc9"
+      },
+      {
+        "key": "Platform",
+        "value": "Android"
+      },
+      {
+        "key": "System-Version",
+        "value": "11"
+      },
+      {
+        "key": "Model",
+        "value": "Google Pixel 3XL"
+      },
+      {
+        "key": "App",
+        "value": "App"
+      },
+      {
+        "key": "Firebase-Cloud-Messaging-Id",
+        "value": "1"
+      },
+      {
+        "key": "Authorization",
+        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTMyMjUyMTIsInN1YiI6ImU4OTRiZTU1LWI1MGQtNGRiYi04ZjhhLWExMWRhNzJlMmVlMSJ9.VVPRSfY9BW7tNISFbz3le81yMWvtNCNDY3q_0fdYTBw"
+      }
+    ]
   },
   "requests": [
     {

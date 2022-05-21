@@ -347,17 +347,8 @@ message ListCartItemResponse {
 }
 
 message UpdateUserRequest {
-  google.protobuf.FieldMask fieldMask = 1;
-  google.protobuf.FieldMask updateMask = 2;
-  string email = 3;
-  string fullName = 4;
-  string thumbnail = 5;
-  string thumbnailBlurHash = 6;
-  string highQualityPhoto = 7;
-  string highQualityPhotoBlurHash = 8;
-  string lowQualityPhoto = 9;
-  string lowQualityPhotoBlurHash = 10;
-  string code = 11;
+  User user = 1;
+  string code = 2;
 }
 
 message UpdateUserResponse {
@@ -608,20 +599,19 @@ message User {
   string id = 1;
   string fullName = 2;
   string email = 3; 
-  string phoneNumber = 4;
-  string highQualityPhoto = 5;
-  string highQualityPhotoUrl = 6;
-  string highQualityPhotoBlurHash = 7;
-  string lowQualityPhoto = 8;
-  string lowQualityPhotoUrl = 9;
-  string lowQualityPhotoBlurHash = 10;
-  string thumbnail = 11;
-  string thumbnailUrl = 12;
-  string thumbnailBlurHash = 13;
-  repeated UserAddress userAddress = 14;
-  repeated Permission permissions = 15;
-  google.protobuf.Timestamp createTime = 16;
-  google.protobuf.Timestamp updateTime = 17;
+  string highQualityPhoto = 4;
+  string highQualityPhotoUrl = 5;
+  string highQualityPhotoBlurHash = 6;
+  string lowQualityPhoto = 7;
+  string lowQualityPhotoUrl = 8;
+  string lowQualityPhotoBlurHash = 9;
+  string thumbnail = 10;
+  string thumbnailUrl = 11;
+  string thumbnailBlurHash = 12;
+  repeated UserAddress userAddress = 13;
+  repeated Permission permissions = 14;
+  google.protobuf.Timestamp createTime = 15;
+  google.protobuf.Timestamp updateTime = 16;
 }
 
 message Municipality {

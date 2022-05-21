@@ -1,13 +1,7 @@
 {
-  "fieldMask": "fooBar,fooBar",
-  "updateMask": "fooBar,fooBar",
-  "email": "{{ faker.internet.example_email }}",
-  "fullName": "{{ faker.name.full_name }}",
-  "thumbnail": "fooBar",
-  "thumbnailBlurHash": "fooBar",
-  "highQualityPhoto": "fooBar",
-  "highQualityPhotoBlurHash": "fooBar",
-  "lowQualityPhoto": "fooBar",
-  "lowQualityPhotoBlurHash": "fooBar",
-  "code": "fooBar"
+  "user": {
+    "id": "b6774557-33a1-496c-abaf-803d90965dc9",
+    "email": "prueba2@correo.cup"
+  },
+  "code": "169989"
 }
