@@ -2,17 +2,18 @@ package app
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/utils"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
+	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	gp "google.golang.org/protobuf/types/known/emptypb"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (m *UserServer) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoRequest) (*pb.GetAddressInfoResponse, error) {
@@ -43,8 +44,8 @@ func (m *UserServer) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoR
 
 func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.GetUserResponse, error) {
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	getUserResponse, err := m.userService.GetUser(&md)
+	meta := utils.GetMetadata(ctx)
+	res, err := m.userService.GetUser(ctx, meta)
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -60,47 +61,61 @@ func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.GetUserRes
 		}
 		return nil, st.Err()
 	}
-	userAddress := make([]*pb.UserAddress, 0, len(getUserResponse.UserAddress))
-	for _, e := range getUserResponse.UserAddress {
-		userAddress = append(userAddress, &pb.UserAddress{
-			Id:             e.ID.String(),
-			Tag:            e.Tag,
-			ResidenceType:  *utils.ParseResidenceType(e.ResidenceType),
-			Address:        e.Address,
-			Number:         e.Number,
-			Coordinates:    &pb.Point{Latitude: e.Coordinates.Coords()[0], Longitude: e.Coordinates.Coords()[1]},
-			Instructions:   e.Instructions,
-			UserId:         e.UserId.String(),
-			ProvinceId:     e.ProvinceId.String(),
-			MunicipalityId: e.MunicipalityId.String(),
-			CreateTime:     timestamppb.New(e.CreateTime),
-			UpdateTime:     timestamppb.New(e.UpdateTime),
-		})
-	}
-	return &pb.GetUserResponse{User: &pb.User{
-		Id:                       getUserResponse.ID.String(),
-		FullName:                 getUserResponse.FullName,
-		HighQualityPhoto:         getUserResponse.HighQualityPhoto,
-		HighQualityPhotoBlurHash: getUserResponse.HighQualityPhotoBlurHash,
-		LowQualityPhoto:          getUserResponse.LowQualityPhoto,
-		LowQualityPhotoBlurHash:  getUserResponse.LowQualityPhotoBlurHash,
-		Thumbnail:                getUserResponse.Thumbnail,
-		ThumbnailBlurHash:        getUserResponse.ThumbnailBlurHash,
-		Email:                    getUserResponse.Email,
-		UserAddress:              userAddress,
-		CreateTime:               timestamppb.New(getUserResponse.CreateTime),
-		UpdateTime:               timestamppb.New(getUserResponse.UpdateTime),
-	}}, nil
+	return res, nil
 }
 
 func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
+	var invalidCode *epb.BadRequest_FieldViolation
+	var invalidId *epb.BadRequest_FieldViolation
+	var invalidArgs bool
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	updateUserResponse, err := m.userService.UpdateUser(&dto.UpdateUserRequest{Metadata: &md, Email: req.Email, FullName: req.FullName, Thumbnail: req.Thumbnail, ThumbnailBlurHash: req.ThumbnailBlurHash, HighQualityPhoto: req.HighQualityPhoto, HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash, LowQualityPhoto: req.LowQualityPhoto, LowQualityPhotoBlurHash: req.LowQualityPhotoBlurHash, Code: req.Code})
+	md := utils.GetMetadata(ctx)
+	if req.User == nil || req.User.Id == "" {
+		invalidArgs = true
+		invalidId = &epb.BadRequest_FieldViolation{
+			Field:       "User.Id",
+			Description: "The User.Id field is required",
+		}
+	}
+	if req.Code != "" {
+		if _, err := strconv.Atoi(req.Code); err != nil {
+			invalidArgs = true
+			invalidCode = &epb.BadRequest_FieldViolation{
+				Field:       "Code",
+				Description: "The code field is invalid",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidId != nil {
+			st, _ = st.WithDetails(
+				invalidId,
+			)
+		}
+		if invalidCode != nil {
+			st, _ = st.WithDetails(
+				invalidCode,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.userService.UpdateUser(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "authorizationtoken not found":
+		case "authorization token not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "missing code":
+			invalidCode := &epb.BadRequest_FieldViolation{
+				Field:       "Code",
+				Description: "The code field is required for update the email",
+			}
+			st = status.New(codes.InvalidArgument, "Invalid Arguments")
+			st, _ = st.WithDetails(
+				invalidCode,
+			)
+		case "not have permission":
+			st = status.New(codes.PermissionDenied, "PermissionDenied")
 		case "authorizationtoken expired":
 			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
 		case "signature is invalid":
@@ -114,35 +129,5 @@ func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) 
 		}
 		return nil, st.Err()
 	}
-	// userAddress := make([]*pb.UserAddress, 0, len(updateUserResponse.UserAddress))
-	// for _, e := range updateUserResponse.UserAddress {
-	// 	userAddress = append(userAddress, &pb.UserAddress{
-	// 		Id:             e.ID.String(),
-	// 		Tag:            e.Tag,
-	// 		ResidenceType:  *utils.ParseResidenceType(e.ResidenceType),
-	// 		BuildingNumber: e.BuildingNumber,
-	// 		HouseNumber:    e.HouseNumber,
-	// 		Coordinates:    &pb.Point{Latitude: e.Coordinates.Coords()[0], Longitude: e.Coordinates.Coords()[1]},
-	// 		Description:    e.Description,
-	// 		UserId:         e.UserId.String(),
-	// 		ProvinceId:     e.ProvinceId.String(),
-	// 		MunicipalityId: e.MunicipalityId.String(),
-	// 		CreateTime:     e.CreateTime.String(),
-	// 		UpdateTime:     e.UpdateTime.String(),
-	// 	})
-	// }
-	return &pb.UpdateUserResponse{User: &pb.User{
-		Id:                       updateUserResponse.User.ID.String(),
-		FullName:                 updateUserResponse.User.FullName,
-		HighQualityPhoto:         updateUserResponse.User.HighQualityPhoto,
-		HighQualityPhotoBlurHash: updateUserResponse.User.HighQualityPhotoBlurHash,
-		LowQualityPhoto:          updateUserResponse.User.LowQualityPhoto,
-		LowQualityPhotoBlurHash:  updateUserResponse.User.LowQualityPhotoBlurHash,
-		Thumbnail:                updateUserResponse.User.Thumbnail,
-		ThumbnailBlurHash:        updateUserResponse.User.ThumbnailBlurHash,
-		Email:                    updateUserResponse.User.Email,
-		// UserAddress:              userAddress,
-		CreateTime: timestamppb.New(updateUserResponse.User.CreateTime),
-		UpdateTime: timestamppb.New(updateUserResponse.User.UpdateTime),
-	}}, nil
+	return res, nil
 }

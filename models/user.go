@@ -16,7 +16,6 @@ func (User) TableName() string {
 type User struct {
 	ID                       *uuid.UUID       `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Email                    string           `gorm:"column:email;not null"`
-	PhoneNumber              string           `gorm:"column:phone_number"`
 	UserAddress              []UserAddress    `gorm:"foreignKey:UserId"`
 	UserPermissions          []UserPermission `gorm:"foreignKey:UserId"`
 	FullName                 string           `gorm:"column:fullname;not null"`
