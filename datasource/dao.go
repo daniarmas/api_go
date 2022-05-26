@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	logg "github.com/sirupsen/logrus"
 
 	"github.com/daniarmas/api_go/utils"
@@ -234,7 +235,24 @@ func NewDB(config *utils.Config) (*gorm.DB, error) {
 		Logger:                 newLogger,
 	})
 	if err != nil {
+		logrus.Error(err)
+	}
+	dbConnect, err := DB.DB()
+	if err != nil {
 		return nil, err
+	}
+	var dbError error
+	maxAttempts := 20
+	for attempts := 1; attempts <= maxAttempts; attempts++ {
+		dbError = dbConnect.Ping()
+		if dbError == nil {
+			break
+		}
+		logrus.Error(dbError)
+		time.Sleep(time.Duration(attempts) * time.Second)
+	}
+	if dbError != nil {
+		logrus.Error(dbError)
 	}
 	return DB, nil
 }
