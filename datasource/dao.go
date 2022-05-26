@@ -7,6 +7,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/sirupsen/logrus"
+	logg "github.com/sirupsen/logrus"
+
 	"github.com/daniarmas/api_go/utils"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -23,7 +26,7 @@ type DAO interface {
 	NewRefreshTokenDatasource() RefreshTokenDatasource
 	NewAuthorizationTokenDatasource() AuthorizationTokenDatasource
 	NewItemDatasource() ItemDatasource
-	NewItemCategoryDatasource() ItemCategoryDatasource
+	NewBusinessCollectionDatasource() BusinessCollectionDatasource
 	NewDeviceDatasource() DeviceDatasource
 	NewBusinessDatasource() BusinessDatasource
 	NewBannedUserDatasource() BannedUserDatasource
@@ -31,25 +34,26 @@ type DAO interface {
 	NewBannedDeviceDatasource() BannedDeviceDatasource
 	NewCartItemDatasource() CartItemDatasource
 	NewPermissionDatasource() PermissionDatasource
+	NewUserPermissionDatasource() UserPermissionDatasource
 	NewProvinceDatasource() ProvinceDatasource
 	NewMunicipalityDatasource() MunicipalityDatasource
 	NewUnionBusinessAndMunicipalityDatasource() UnionBusinessAndMunicipalityDatasource
 	NewOrderDatasource() OrderDatasource
 	NewOrderedItemDatasource() OrderedItemDatasource
 	NewUnionOrderAndOrderedItemDatasource() UnionOrderAndOrderedItemDatasource
-	NewBannedAppDatasource() BannedAppDatasource
+	NewDeprecatedVersionAppDatasource() DeprecatedVersionAppDatasource
 	NewBusinessScheduleDatasource() BusinessScheduleDatasource
 	NewOrderLifecycleDatasource() OrderLifecycleDatasource
 }
 
 type dao struct{}
 
-var DB *gorm.DB
+var Connection *gorm.DB
 var Config *utils.Config
 var MinioClient *minio.Client
 
 func NewDAO(db *gorm.DB, config *utils.Config, minio *minio.Client) DAO {
-	DB = db
+	Connection = db
 	Config = config
 	MinioClient = minio
 	return &dao{}
@@ -198,6 +202,16 @@ func NewConfig() (*utils.Config, error) {
 	return &Config, nil
 }
 
+func CloseDB() error {
+	sqlDB, err := Connection.DB()
+	if err != nil {
+		return err
+	}
+	sqlDB.Close()
+	logg.Info("Database connection closed")
+	return nil
+}
+
 func NewDB(config *utils.Config) (*gorm.DB, error) {
 	host := config.DBHost
 	port := config.DBPort
@@ -221,7 +235,24 @@ func NewDB(config *utils.Config) (*gorm.DB, error) {
 		Logger:                 newLogger,
 	})
 	if err != nil {
+		logrus.Error(err)
+	}
+	dbConnect, err := DB.DB()
+	if err != nil {
 		return nil, err
+	}
+	var dbError error
+	maxAttempts := 20
+	for attempts := 1; attempts <= maxAttempts; attempts++ {
+		dbError = dbConnect.Ping()
+		if dbError == nil {
+			break
+		}
+		logrus.Error(dbError)
+		time.Sleep(time.Duration(attempts) * time.Second)
+	}
+	if dbError != nil {
+		logrus.Error(dbError)
 	}
 	return DB, nil
 }
@@ -234,8 +265,8 @@ func (d *dao) NewOrderedItemDatasource() OrderedItemDatasource {
 	return &orderedItemDatasource{}
 }
 
-func (d *dao) NewBannedAppDatasource() BannedAppDatasource {
-	return &bannedAppDatasource{}
+func (d *dao) NewDeprecatedVersionAppDatasource() DeprecatedVersionAppDatasource {
+	return &deprecatedVersionAppDatasource{}
 }
 
 func (d *dao) NewOrderLifecycleDatasource() OrderLifecycleDatasource {
@@ -290,12 +321,16 @@ func (d *dao) NewMunicipalityDatasource() MunicipalityDatasource {
 	return &municipalityDatasource{}
 }
 
-func (d *dao) NewItemCategoryDatasource() ItemCategoryDatasource {
-	return &itemCategoryDatasource{}
+func (d *dao) NewBusinessCollectionDatasource() BusinessCollectionDatasource {
+	return &businessCollectionDatasource{}
 }
 
 func (d *dao) NewPermissionDatasource() PermissionDatasource {
 	return &permissionDatasource{}
+}
+
+func (d *dao) NewUserPermissionDatasource() UserPermissionDatasource {
+	return &userPermissionDatasource{}
 }
 
 func (d *dao) NewOrderDatasource() OrderDatasource {

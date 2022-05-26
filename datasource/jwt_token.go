@@ -34,7 +34,7 @@ func (v *jwtTokenDatasource) CreateJwtRefreshToken(tokenMetadata *JsonWebTokenMe
 	if err != nil {
 		return err
 	}
-	*tokenMetadata.Token = tokenString
+	tokenMetadata.Token = &tokenString
 	return nil
 }
 
@@ -49,7 +49,7 @@ func (r *jwtTokenDatasource) CreateJwtAuthorizationToken(tokenMetadata *JsonWebT
 	if err != nil {
 		return err
 	}
-	*tokenMetadata.Token = tokenString
+	tokenMetadata.Token = &tokenString
 	return nil
 }
 
@@ -73,7 +73,8 @@ func (r *jwtTokenDatasource) ParseJwtRefreshToken(tokenMetadata *JsonWebTokenMet
 		return err
 	} else if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		data := fmt.Sprintf("%s", claims["sub"])
-		*tokenMetadata.TokenId = uuid.MustParse(data)
+		tokenIdValue := uuid.MustParse(data)
+		tokenMetadata.TokenId = &tokenIdValue
 		return nil
 	} else {
 		return err
@@ -100,7 +101,8 @@ func (r *jwtTokenDatasource) ParseJwtAuthorizationToken(tokenMetadata *JsonWebTo
 		return err
 	} else if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		data := fmt.Sprintf("%s", claims["sub"])
-		*tokenMetadata.TokenId = uuid.MustParse(data)
+		tokenIdValue := uuid.MustParse(data)
+		tokenMetadata.TokenId = &tokenIdValue
 		return nil
 	} else {
 		return err

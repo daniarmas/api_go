@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.ItemService.UpdateItem"
+  },
+  "requests": [
+    {
+      "location": "UpdateItem-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

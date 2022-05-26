@@ -1,0 +1,7 @@
+{
+  "nextPage": 123,
+  "name": "{{ faker.name.last_name }}",
+  "provinceId": "fooBar",
+  "municipalityId": "fooBar",
+  "searchMunicipalityType": "SearchMunicipalityTypeUnspecified"
+}

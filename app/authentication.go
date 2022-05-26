@@ -2,23 +2,63 @@ package app
 
 import (
 	"context"
-	"time"
+	"net/mail"
+	"strconv"
 
-	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
 	utils "github.com/daniarmas/api_go/utils"
+	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	gp "google.golang.org/protobuf/types/known/emptypb"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest) (*gp.Empty, error) {
+	var (
+		invalidEmail *epb.BadRequest_FieldViolation
+		invalidType  *epb.BadRequest_FieldViolation
+	)
+	var invalidArgs bool
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	verificationCode := models.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceId: md.Get("deviceid")[0], CreateTime: time.Now(), UpdateTime: time.Now()}
-	err := m.authenticationService.CreateVerificationCode(&verificationCode, &md)
+	meta := utils.GetMetadata(ctx)
+	if req.Email == "" {
+		invalidArgs = true
+		invalidEmail = &epb.BadRequest_FieldViolation{
+			Field:       "Email",
+			Description: "The email field is required",
+		}
+	} else {
+		_, err := mail.ParseAddress(req.Email)
+		if err != nil {
+			invalidArgs = true
+			invalidEmail = &epb.BadRequest_FieldViolation{
+				Field:       "Email",
+				Description: "The email field is invalid",
+			}
+		}
+	}
+	if req.Type == pb.VerificationCodeType_VerificationCodeTypeUnspecified {
+		invalidArgs = true
+		invalidType = &epb.BadRequest_FieldViolation{
+			Field:       "Type",
+			Description: "The type field is required",
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidEmail != nil {
+			st, _ = st.WithDetails(
+				invalidEmail,
+			)
+		}
+		if invalidType != nil {
+			st, _ = st.WithDetails(
+				invalidType,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.authenticationService.CreateVerificationCode(ctx, req, meta)
 	if err != nil {
 		switch err.Error() {
 		case "banned user":
@@ -36,13 +76,76 @@ func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *
 		}
 		return nil, st.Err()
 	}
-	return &gp.Empty{}, nil
+	return res, nil
 }
 
 func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.GetVerificationCodeRequest) (*gp.Empty, error) {
+	var (
+		invalidEmail *epb.BadRequest_FieldViolation
+		invalidType  *epb.BadRequest_FieldViolation
+		invalidCode  *epb.BadRequest_FieldViolation
+	)
+	var invalidArgs bool
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	_, err := m.authenticationService.GetVerificationCode(&models.VerificationCode{Code: req.Code, Email: req.Email, Type: req.Type.String(), DeviceId: md.Get("deviceid")[0]}, &[]string{"id"})
+	md := utils.GetMetadata(ctx)
+	if req.Email == "" {
+		invalidArgs = true
+		invalidEmail = &epb.BadRequest_FieldViolation{
+			Field:       "Email",
+			Description: "The email field is required",
+		}
+	} else {
+		_, err := mail.ParseAddress(req.Email)
+		if err != nil {
+			invalidArgs = true
+			invalidEmail = &epb.BadRequest_FieldViolation{
+				Field:       "Email",
+				Description: "The email field is invalid",
+			}
+		}
+	}
+	if req.Code == "" {
+		invalidArgs = true
+		invalidCode = &epb.BadRequest_FieldViolation{
+			Field:       "Code",
+			Description: "The code field is required",
+		}
+	} else {
+		if _, err := strconv.Atoi(req.Code); err != nil {
+			invalidArgs = true
+			invalidCode = &epb.BadRequest_FieldViolation{
+				Field:       "Code",
+				Description: "The code field is invalid",
+			}
+		}
+	}
+	if req.Type == pb.VerificationCodeType_VerificationCodeTypeUnspecified {
+		invalidArgs = true
+		invalidType = &epb.BadRequest_FieldViolation{
+			Field:       "Type",
+			Description: "The type field is required",
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidEmail != nil {
+			st, _ = st.WithDetails(
+				invalidEmail,
+			)
+		}
+		if invalidCode != nil {
+			st, _ = st.WithDetails(
+				invalidCode,
+			)
+		}
+		if invalidType != nil {
+			st, _ = st.WithDetails(
+				invalidType,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.authenticationService.GetVerificationCode(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "record not found":
@@ -53,13 +156,63 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 			return nil, st.Err()
 		}
 	}
-	return &gp.Empty{}, nil
+	return res, nil
 }
 
 func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest) (*pb.SignInResponse, error) {
+	var (
+		invalidEmail *epb.BadRequest_FieldViolation
+		invalidCode  *epb.BadRequest_FieldViolation
+	)
+	var invalidArgs bool
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	result, err := m.authenticationService.SignIn(&models.VerificationCode{Code: req.Code, Email: req.Email, Type: "SignIn", DeviceId: md.Get("deviceid")[0]}, &md)
+	md := utils.GetMetadata(ctx)
+	if req.Email == "" {
+		invalidArgs = true
+		invalidEmail = &epb.BadRequest_FieldViolation{
+			Field:       "Email",
+			Description: "The email field is required",
+		}
+	} else {
+		_, err := mail.ParseAddress(req.Email)
+		if err != nil {
+			invalidArgs = true
+			invalidEmail = &epb.BadRequest_FieldViolation{
+				Field:       "Email",
+				Description: "The email field is invalid",
+			}
+		}
+	}
+	if req.Code == "" {
+		invalidArgs = true
+		invalidCode = &epb.BadRequest_FieldViolation{
+			Field:       "Code",
+			Description: "The code field is required",
+		}
+	} else {
+		if _, err := strconv.Atoi(req.Code); err != nil {
+			invalidArgs = true
+			invalidCode = &epb.BadRequest_FieldViolation{
+				Field:       "Code",
+				Description: "The code field is invalid",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidEmail != nil {
+			st, _ = st.WithDetails(
+				invalidEmail,
+			)
+		}
+		if invalidCode != nil {
+			st, _ = st.WithDetails(
+				invalidCode,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.authenticationService.SignIn(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "verification code not found":
@@ -77,26 +230,76 @@ func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest
 		}
 		return nil, st.Err()
 	}
-	permissions := make([]*pb.Permission, 0, len(result.User.Permission))
-	for _, item := range result.User.Permission {
-		permissions = append(permissions, &pb.Permission{
-			Id:         item.ID.String(),
-			Name:       item.Name,
-			UserFk:     item.UserFk.String(),
-			BusinessFk: item.BusinessFk.String(),
-			CreateTime: timestamppb.New(item.CreateTime),
-			UpdateTime: timestamppb.New(item.UpdateTime),
-		})
-	}
-
-	return &pb.SignInResponse{RefreshToken: result.RefreshToken, AuthorizationToken: result.AuthorizationToken, User: &pb.User{Id: result.User.ID.String(), FullName: result.User.FullName, Alias: result.User.Alias, HighQualityPhoto: result.User.HighQualityPhoto, HighQualityPhotoBlurHash: result.User.HighQualityPhotoBlurHash, LowQualityPhoto: result.User.LowQualityPhoto, LowQualityPhotoBlurHash: result.User.LowQualityPhotoBlurHash, Thumbnail: result.User.Thumbnail, ThumbnailBlurHash: result.User.ThumbnailBlurHash, UserAddress: nil, Email: result.User.Email, Permissions: permissions, HighQualityPhotoObject: result.User.LowQualityPhotoObject, LowQualityPhotoObject: result.User.LowQualityPhotoObject, ThumbnailObject: result.User.ThumbnailObject, CreateTime: timestamppb.New(result.User.CreateTime), UpdateTime: timestamppb.New(result.User.UpdateTime)}}, nil
+	return res, nil
 }
 
 func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest) (*pb.SignUpResponse, error) {
+	var (
+		invalidEmail    *epb.BadRequest_FieldViolation
+		invalidCode     *epb.BadRequest_FieldViolation
+		invalidFullname *epb.BadRequest_FieldViolation
+	)
+	var invalidArgs bool
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	signUpType := req.SignUpType.String()
-	result, err := m.authenticationService.SignUp(&req.FullName, &req.Alias, &models.VerificationCode{Code: req.Code, Email: req.Email, Type: "SignIn", DeviceId: md.Get("deviceid")[0]}, &signUpType, &md)
+	md := utils.GetMetadata(ctx)
+	if req.Email == "" {
+		invalidArgs = true
+		invalidEmail = &epb.BadRequest_FieldViolation{
+			Field:       "Email",
+			Description: "The email field is required",
+		}
+	} else {
+		_, err := mail.ParseAddress(req.Email)
+		if err != nil {
+			invalidArgs = true
+			invalidEmail = &epb.BadRequest_FieldViolation{
+				Field:       "Email",
+				Description: "The email field is invalid",
+			}
+		}
+	}
+	if req.FullName == "" {
+		invalidArgs = true
+		invalidFullname = &epb.BadRequest_FieldViolation{
+			Field:       "Fullname",
+			Description: "The fullname field is required",
+		}
+	}
+	if req.Code == "" {
+		invalidArgs = true
+		invalidCode = &epb.BadRequest_FieldViolation{
+			Field:       "Code",
+			Description: "The code field is required",
+		}
+	} else {
+		if _, err := strconv.Atoi(req.Code); err != nil {
+			invalidArgs = true
+			invalidCode = &epb.BadRequest_FieldViolation{
+				Field:       "Code",
+				Description: "The code field is invalid",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidEmail != nil {
+			st, _ = st.WithDetails(
+				invalidEmail,
+			)
+		}
+		if invalidCode != nil {
+			st, _ = st.WithDetails(
+				invalidCode,
+			)
+		}
+		if invalidFullname != nil {
+			st, _ = st.WithDetails(
+				invalidFullname,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.authenticationService.SignUp(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "verification code not found":
@@ -114,28 +317,13 @@ func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest
 		}
 		return nil, st.Err()
 	}
-	return &pb.SignUpResponse{RefreshToken: result.RefreshToken, AuthorizationToken: result.AuthorizationToken, User: &pb.User{Id: result.User.ID.String(), FullName: result.User.FullName, Alias: result.User.Alias, HighQualityPhoto: result.User.HighQualityPhoto, HighQualityPhotoBlurHash: result.User.HighQualityPhotoBlurHash, LowQualityPhoto: result.User.LowQualityPhoto, LowQualityPhotoBlurHash: result.User.LowQualityPhotoBlurHash, Thumbnail: result.User.Thumbnail, ThumbnailBlurHash: result.User.ThumbnailBlurHash, UserAddress: nil, Email: result.User.Email}}, nil
-}
-
-func (m *AuthenticationServer) UserExists(ctx context.Context, req *pb.UserExistsRequest) (*gp.Empty, error) {
-	var st *status.Status
-	err := m.authenticationService.UserExists(&req.Alias)
-	if err != nil {
-		switch err.Error() {
-		case "user already exists":
-			st = status.New(codes.AlreadyExists, "User already exists")
-		default:
-			st = status.New(codes.Internal, "Internal server error")
-		}
-		return nil, st.Err()
-	}
-	return &gp.Empty{}, nil
+	return res, nil
 }
 
 func (m *AuthenticationServer) CheckSession(ctx context.Context, req *gp.Empty) (*pb.CheckSessionResponse, error) {
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	result, err := m.authenticationService.CheckSession(&md)
+	md := utils.GetMetadata(ctx)
+	result, err := m.authenticationService.CheckSession(ctx, md)
 	if err != nil {
 		switch err.Error() {
 		case "unauthenticated":
@@ -163,9 +351,29 @@ func (m *AuthenticationServer) CheckSession(ctx context.Context, req *gp.Empty) 
 }
 
 func (m *AuthenticationServer) SignOut(ctx context.Context, req *pb.SignOutRequest) (*gp.Empty, error) {
+	var invalidAuthorizationTokenId *epb.BadRequest_FieldViolation
+	var invalidArgs bool
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	err := m.authenticationService.SignOut(&req.All, &req.AuthorizationTokenFk, &md)
+	md := utils.GetMetadata(ctx)
+	if req.AuthorizationTokenId != "" {
+		if !utils.IsValidUUID(&req.AuthorizationTokenId) {
+			invalidArgs = true
+			invalidAuthorizationTokenId = &epb.BadRequest_FieldViolation{
+				Field:       "AuthorizationTokenId",
+				Description: "The AuthorizationTokenId field is not a valid uuid v4",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidAuthorizationTokenId != nil {
+			st, _ = st.WithDetails(
+				invalidAuthorizationTokenId,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.authenticationService.SignOut(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "unauthenticated":
@@ -185,13 +393,31 @@ func (m *AuthenticationServer) SignOut(ctx context.Context, req *pb.SignOutReque
 		}
 		return nil, st.Err()
 	}
-	return &gp.Empty{}, nil
+	return res, nil
 }
 
 func (m *AuthenticationServer) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.RefreshTokenResponse, error) {
+	var invalidRefreshToken *epb.BadRequest_FieldViolation
+	var invalidArgs bool
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	result, err := m.authenticationService.RefreshToken(&req.RefreshToken, &md)
+	md := utils.GetMetadata(ctx)
+	if req.RefreshToken == "" {
+		invalidArgs = true
+		invalidRefreshToken = &epb.BadRequest_FieldViolation{
+			Field:       "RefreshToken",
+			Description: "The RefreshToken field is required",
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidRefreshToken != nil {
+			st, _ = st.WithDetails(
+				invalidRefreshToken,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.authenticationService.RefreshToken(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "unauthenticated":
@@ -211,13 +437,13 @@ func (m *AuthenticationServer) RefreshToken(ctx context.Context, req *pb.Refresh
 		}
 		return nil, st.Err()
 	}
-	return &pb.RefreshTokenResponse{RefreshToken: result.RefreshToken, AuthorizationToken: result.AuthorizationToken}, nil
+	return res, nil
 }
 
-func (m *AuthenticationServer) ListSession(ctx context.Context, req *pb.ListSessionRequest) (*pb.ListSessionResponse, error) {
+func (m *AuthenticationServer) ListSession(ctx context.Context, req *gp.Empty) (*pb.ListSessionResponse, error) {
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	result, err := m.authenticationService.ListSession(&md)
+	md := utils.GetMetadata(ctx)
+	res, err := m.authenticationService.ListSession(ctx, md)
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken expired":
@@ -231,22 +457,5 @@ func (m *AuthenticationServer) ListSession(ctx context.Context, req *pb.ListSess
 		}
 		return nil, st.Err()
 	}
-	sessions := make([]*pb.Session, 0, len(*result.Sessions))
-	for _, e := range *result.Sessions {
-		var actual bool = false
-		if e.DeviceFk == result.ActualDeviceId {
-			actual = true
-		}
-		sessions = append(sessions, &pb.Session{
-			Id:            e.ID.String(),
-			Platform:      *utils.ParsePlatformType(&e.Platform),
-			SystemVersion: e.SystemVersion,
-			Model:         e.Model,
-			App:           *utils.ParseAppType(&e.App),
-			AppVersion:    e.AppVersion,
-			DeviceId:      e.DeviceId,
-			Actual:        actual,
-		})
-	}
-	return &pb.ListSessionResponse{Sessions: sessions}, nil
+	return res, nil
 }

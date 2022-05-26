@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.UserService.GetAddressInfo"
+  },
+  "requests": [
+    {
+      "location": "GetAddressInfo-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

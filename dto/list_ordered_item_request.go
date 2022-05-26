@@ -6,6 +6,6 @@ import (
 )
 
 type ListOrderedItemRequest struct {
-	OrderFk  uuid.UUID
+	OrderId  *uuid.UUID
 	Metadata *metadata.MD
 }

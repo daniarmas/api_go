@@ -14,17 +14,17 @@ func (BannedDevice) TableName() string {
 }
 
 type BannedDevice struct {
-	ID                            uuid.UUID          `gorm:"type:uuid;default:uuid_generate_v4()"`
-	Description                   string             `gorm:"column:description;not null"`
-	DeviceId                      string             `gorm:"column:device_id;not null"`
-	DeviceFk                      uuid.UUID          `gorm:"column:device_fk;not null"`
-	Device                        Device             `gorm:"foreignKey:DeviceFk"`
-	ModeratorAuthorizationTokenFk uuid.UUID          `gorm:"column:moderator_authorization_token_fk;not null"`
-	AuthorizationToken            AuthorizationToken `gorm:"foreignKey:ModeratorAuthorizationTokenFk"`
-	BanExpirationTime             time.Time          `gorm:"column:ban_expiration_time;not null"`
-	CreateTime                    time.Time          `gorm:"column:create_time;not null"`
-	UpdateTime                    time.Time          `gorm:"column:update_time;not null"`
-	DeleteTime                    gorm.DeletedAt     `gorm:"index;column:delete_time"`
+	ID                *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
+	Description       string         `gorm:"column:description;not null"`
+	DeviceIdentifier  string         `gorm:"column:device_identifier;not null"`
+	BanExpirationTime time.Time      `gorm:"column:ban_expiration_time;not null"`
+	DeviceId          *uuid.UUID     `gorm:"column:device_id;not null"`
+	Device            Device         `gorm:"foreignKey:DeviceId"`
+	ModeratorId       *uuid.UUID     `gorm:"column:moderator_id;not null"`
+	Moderator         User           `gorm:"foreignKey:ModeratorId"`
+	CreateTime        time.Time      `gorm:"column:create_time;not null"`
+	UpdateTime        time.Time      `gorm:"column:update_time;not null"`
+	DeleteTime        gorm.DeletedAt `gorm:"index;column:delete_time"`
 }
 
 func (i *BannedDevice) BeforeCreate(tx *gorm.DB) (err error) {

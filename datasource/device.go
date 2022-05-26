@@ -8,16 +8,16 @@ import (
 )
 
 type DeviceDatasource interface {
-	GetDevice(tx *gorm.DB, device *models.Device, fields *[]string) (*models.Device, error)
-	CreateDevice(tx *gorm.DB, device *models.Device) (*models.Device, error)
-	UpdateDevice(tx *gorm.DB, where *models.Device, device *models.Device) (*models.Device, error)
+	GetDevice(tx *gorm.DB, where *models.Device, fields *[]string) (*models.Device, error)
+	CreateDevice(tx *gorm.DB, data *models.Device) (*models.Device, error)
+	UpdateDevice(tx *gorm.DB, where *models.Device, data *models.Device) (*models.Device, error)
 }
 
 type deviceDatasource struct{}
 
-func (i *deviceDatasource) GetDevice(tx *gorm.DB, device *models.Device, fields *[]string) (*models.Device, error) {
-	var deviceResult *models.Device
-	result := tx.Where(device).Select(*fields).Take(&deviceResult)
+func (i *deviceDatasource) GetDevice(tx *gorm.DB, where *models.Device, fields *[]string) (*models.Device, error) {
+	var res *models.Device
+	result := tx.Where(where).Select(*fields).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
@@ -25,19 +25,19 @@ func (i *deviceDatasource) GetDevice(tx *gorm.DB, device *models.Device, fields 
 			return nil, result.Error
 		}
 	}
-	return deviceResult, nil
+	return res, nil
 }
 
-func (v *deviceDatasource) CreateDevice(tx *gorm.DB, device *models.Device) (*models.Device, error) {
-	result := tx.Create(&device)
+func (v *deviceDatasource) CreateDevice(tx *gorm.DB, data *models.Device) (*models.Device, error) {
+	result := tx.Create(&data)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return device, nil
+	return data, nil
 }
 
-func (v *deviceDatasource) UpdateDevice(tx *gorm.DB, where *models.Device, device *models.Device) (*models.Device, error) {
-	result := tx.Where(where).Updates(&device)
+func (v *deviceDatasource) UpdateDevice(tx *gorm.DB, where *models.Device, data *models.Device) (*models.Device, error) {
+	result := tx.Where(where).Updates(&data)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
@@ -45,5 +45,5 @@ func (v *deviceDatasource) UpdateDevice(tx *gorm.DB, where *models.Device, devic
 			return nil, result.Error
 		}
 	}
-	return device, nil
+	return data, nil
 }

@@ -1,0 +1,10 @@
+{
+  "itemId": "fooBar",
+  "location": {
+    "latitude": 1.23,
+    "longitude": 1.23
+  },
+  "quantity": 123,
+  "municipalityId": "fooBar",
+  "fieldMask": "fooBar,fooBar"
+}

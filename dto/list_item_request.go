@@ -3,7 +3,7 @@ package dto
 import "time"
 
 type ListItemRequest struct {
-	BusinessFk             string
-	BusinessItemCategoryFk string
-	NextPage               time.Time
+	BusinessId           string
+	BusinessCollectionId string
+	NextPage             time.Time
 }

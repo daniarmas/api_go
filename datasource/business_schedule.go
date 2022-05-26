@@ -18,8 +18,8 @@ type BusinessScheduleDatasource interface {
 type businessScheduleDatasource struct{}
 
 func (v *businessScheduleDatasource) GetBusinessSchedule(tx *gorm.DB, where *models.BusinessSchedule) (*models.BusinessSchedule, error) {
-	var response *models.BusinessSchedule
-	result := tx.Where(where).Take(&response)
+	var res *models.BusinessSchedule
+	result := tx.Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
@@ -27,7 +27,7 @@ func (v *businessScheduleDatasource) GetBusinessSchedule(tx *gorm.DB, where *mod
 			return nil, result.Error
 		}
 	}
-	return response, nil
+	return res, nil
 }
 
 func (v *businessScheduleDatasource) BusinessIsOpen(tx *gorm.DB, where *models.BusinessSchedule, orderType string) (bool, error) {
@@ -42,7 +42,7 @@ func (v *businessScheduleDatasource) BusinessIsOpen(tx *gorm.DB, where *models.B
 			return false, result.Error
 		}
 	}
-	if orderType == "OrderTypePickUp" {
+	if orderType == "OrderTypeHomeDelivery" {
 		switch weekday {
 		case "Sunday":
 			splitOpening := strings.Split(schedule.OpeningTimeDeliverySunday, ":")

@@ -1,0 +1,31 @@
+{
+  "name": "{{ faker.name.last_name }}",
+  "description": "fooBar",
+  "address": "fooBar",
+  "phone": "{{ faker.phone.phone_number }}",
+  "email": "{{ faker.internet.example_email }}",
+  "highQualityPhoto": "fooBar",
+  "highQualityPhotoBlurHash": "fooBar",
+  "lowQualityPhoto": "fooBar",
+  "lowQualityPhotoBlurHash": "fooBar",
+  "municipalities": [
+    "fooBar",
+    "fooBar"
+  ],
+  "thumbnail": "fooBar",
+  "thumbnailBlurHash": "fooBar",
+  "deliveryPrice": "fooBar",
+  "coordinates": {
+    "latitude": 1.23,
+    "longitude": 1.23
+  },
+  "timeMarginOrderMonth": 123,
+  "timeMarginOrderDay": 123,
+  "timeMarginOrderHour": 123,
+  "timeMarginOrderMinute": 123,
+  "toPickUp": true,
+  "homeDelivery": true,
+  "businessBrandId": "fooBar",
+  "provinceId": "fooBar",
+  "municipalityId": "fooBar"
+}

@@ -1,0 +1,22 @@
+{
+  "id": "f3a742ab-e77f-4d38-939b-489db01f673a",
+  "importStreams": [
+    {
+      "id": "880738b1-f8b6-4981-970d-8907d6cf39e4",
+      "name": "proto-file",
+      "importerName": "ProtoFile",
+      "createMissingOperations": true,
+      "options": {
+        "files": [
+          "../proto/google/rpc/error_details.proto",
+          "../proto/main.proto"
+        ],
+        "importPaths": [
+          "../proto/google"
+        ]
+      }
+    }
+  ],
+  "authConfigs": [],
+  "certificates": []
+}

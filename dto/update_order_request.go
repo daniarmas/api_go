@@ -6,7 +6,7 @@ import (
 )
 
 type UpdateOrderRequest struct {
-	Id          uuid.UUID
-	Status string
-	Metadata    *metadata.MD
+	Id       *uuid.UUID
+	Status   string
+	Metadata *metadata.MD
 }

@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.CartItemService.AddCartItem"
+  },
+  "requests": [
+    {
+      "location": "AddCartItem-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

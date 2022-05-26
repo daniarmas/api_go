@@ -14,30 +14,16 @@ func (OrderedItem) TableName() string {
 }
 
 type OrderedItem struct {
-	ID         uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ID         *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Name       string         `gorm:"column:name;not null"`
-	Price      float64        `gorm:"column:price;not null"`
-	ItemFk     uuid.UUID      `gorm:"column:item_fk;not null"`
-	Item       CartItem       `gorm:"foreignKey:ItemFk"`
-	CartItemFk uuid.UUID      `gorm:"column:cart_item_fk;not null"`
-	CartItem   CartItem       `gorm:"foreignKey:CartItemFk"`
+	Price      string         `gorm:"column:price;not null"`
 	Quantity   int32          `gorm:"column:quantity;not null"`
-	UserFk     uuid.UUID      `gorm:"column:user_fk;not null"`
-	CreateTime time.Time      `gorm:"column:create_time;not null"`
-	UpdateTime time.Time      `gorm:"column:update_time;not null"`
-	DeleteTime gorm.DeletedAt `gorm:"index;column:delete_time"`
-}
-
-type OrderedItemWithItem struct {
-	ID         uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
-	Name       string         `gorm:"column:name;not null"`
-	Price      float64        `gorm:"column:price;not null"`
-	ItemFk     uuid.UUID      `gorm:"column:item_fk;not null"`
-	Item       CartItem       `gorm:"foreignKey:ItemFk"`
-	CartItemFk uuid.UUID      `gorm:"column:cart_item_fk;not null"`
-	CartItem   Item           `gorm:"foreignKey:CartItemFk"`
-	Quantity   int32          `gorm:"column:quantity;not null"`
-	UserFk     uuid.UUID      `gorm:"column:user_fk;not null"`
+	ItemId     *uuid.UUID     `gorm:"column:item_id;not null"`
+	Item       CartItem       `gorm:"foreignKey:ItemId"`
+	CartItemId *uuid.UUID     `gorm:"column:cart_item_id;not null"`
+	CartItem   CartItem       `gorm:"foreignKey:CartItemId"`
+	UserId     *uuid.UUID     `gorm:"column:user_id;not null"`
+	User       User           `gorm:"foreignKey:UserId"`
 	CreateTime time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime gorm.DeletedAt `gorm:"index;column:delete_time"`

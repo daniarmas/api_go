@@ -7,8 +7,8 @@ import (
 )
 
 type DeleteCartItemRequest struct {
-	CartItemFk string
-	Location   ewkb.Point
-	Metadata   *metadata.MD
-	MunicipalityFk uuid.UUID
+	CartItemId     string
+	Location       ewkb.Point
+	Metadata       *metadata.MD
+	MunicipalityId *uuid.UUID
 }

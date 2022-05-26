@@ -6,19 +6,19 @@ import (
 )
 
 type UpdateItemRequest struct {
-	ItemFk                   uuid.UUID
+	ItemId                   *uuid.UUID
 	Name                     string
 	Description              string
-	Price                    float32
-	HighQualityPhotoObject   string
+	Price                    string
+	HighQualityPhoto         string
 	HighQualityPhotoBlurHash string
-	LowQualityPhotoObject    string
+	LowQualityPhoto          string
 	LowQualityPhotoBlurHash  string
-	ThumbnailObject          string
+	Thumbnail                string
 	ThumbnailBlurHash        string
 	Availability             int64
 	Status                   string
-	BusinessItemCategoryFk   uuid.UUID
-	BusinessFk               uuid.UUID
+	BusinessColletionId      *uuid.UUID
+	BusinessId               *uuid.UUID
 	Metadata                 *metadata.MD
 }
