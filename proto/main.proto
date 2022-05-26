@@ -456,7 +456,6 @@ message FeedRequest {
   bool homeDelivery = 5;
   SearchMunicipalityType searchMunicipalityType = 6;
   int32 nextPage = 7;
-  google.protobuf.FieldMask fieldMask = 8;
 }
 
 message FeedResponse {
