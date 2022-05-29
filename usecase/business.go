@@ -14,12 +14,13 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 )
 
 type BusinessService interface {
 	Feed(ctx context.Context, req *pb.FeedRequest, meta *utils.ClientMetadata) (*pb.FeedResponse, error)
-	GetBusiness(request *dto.GetBusinessRequest) (*dto.GetBusinessResponse, error)
+	GetBusiness(ctx context.Context, req *pb.GetBusinessRequest, meta *utils.ClientMetadata) (*pb.GetBusinessResponse, error)
 	CreateBusiness(request *dto.CreateBusinessRequest) (*dto.CreateBusinessResponse, error)
 	UpdateBusiness(request *dto.UpdateBusinessRequest) (*models.Business, error)
 }
@@ -398,24 +399,48 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 	return &response, nil
 }
 
-func (v *businessService) GetBusiness(request *dto.GetBusinessRequest) (*dto.GetBusinessResponse, error) {
+func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRequest, meta *utils.ClientMetadata) (*pb.GetBusinessResponse, error) {
 	var businessRes *models.Business
 	var businessCollectionRes *[]models.BusinessCollection
 	var businessErr, itemCategoryErr error
+	var itemsCategoryResponse []*pb.ItemCategory
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		businessId := uuid.MustParse(request.Id)
+		businessId := uuid.MustParse(req.Id)
 		businessRes, businessErr = v.dao.NewBusinessQuery().GetBusiness(tx, &models.Business{ID: &businessId})
-		if businessErr != nil {
+		if businessErr != nil && businessErr.Error() == "record not found" {
+			return errors.New("business not found")
+		} else if businessErr != nil {
 			return businessErr
 		}
 		businessCollectionRes, itemCategoryErr = v.dao.NewBusinessCollectionQuery().ListBusinessCollection(tx, &models.BusinessCollection{BusinessId: &businessId})
 		if itemCategoryErr != nil {
 			return itemCategoryErr
 		}
+		itemsCategoryResponse = make([]*pb.ItemCategory, 0, len(*businessCollectionRes))
+		for _, e := range *businessCollectionRes {
+			itemsCategoryResponse = append(itemsCategoryResponse, &pb.ItemCategory{
+				Id:         e.ID.String(),
+				Name:       e.Name,
+				BusinessId: e.BusinessId.String(),
+				Index:      e.Index,
+				CreateTime: timestamppb.New(e.CreateTime),
+				UpdateTime: timestamppb.New(e.UpdateTime),
+			})
+		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &dto.GetBusinessResponse{Business: businessRes, BusinessCollections: businessCollectionRes}, nil
+	var highQualityPhotoUrl, lowQualityPhotoUrl, thumbnailUrl string
+	if v.config.ObjectStorageServerUseSsl == "true" {
+		highQualityPhotoUrl = "https://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + businessRes.HighQualityPhoto
+		lowQualityPhotoUrl = "https://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + businessRes.LowQualityPhoto
+		thumbnailUrl = "https://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + businessRes.Thumbnail
+	} else {
+		highQualityPhotoUrl = "http://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + businessRes.HighQualityPhoto
+		lowQualityPhotoUrl = "http://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + businessRes.LowQualityPhoto
+		thumbnailUrl = "http://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + businessRes.Thumbnail
+	}
+	return &pb.GetBusinessResponse{Business: &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, HighQualityPhotoBlurHash: businessRes.HighQualityPhotoBlurHash, LowQualityPhoto: businessRes.LowQualityPhoto, LowQualityPhotoBlurHash: businessRes.LowQualityPhotoBlurHash, Thumbnail: businessRes.Thumbnail, ThumbnailBlurHash: businessRes.ThumbnailBlurHash, ToPickUp: businessRes.ToPickUp, DeliveryPrice: businessRes.DeliveryPrice, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.Coords()[1], Longitude: businessRes.Coordinates.Coords()[0]}, HighQualityPhotoUrl: highQualityPhotoUrl, LowQualityPhotoUrl: lowQualityPhotoUrl, ThumbnailUrl: thumbnailUrl}, ItemCategory: itemsCategoryResponse}, nil
 }
