@@ -9,13 +9,16 @@ import (
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
+	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
+	"github.com/twpayne/go-geom"
+	"github.com/twpayne/go-geom/encoding/ewkb"
 	"gorm.io/gorm"
 )
 
 type BusinessService interface {
-	Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse, error)
+	Feed(ctx context.Context, req *pb.FeedRequest, meta *utils.ClientMetadata) (*pb.FeedResponse, error)
 	GetBusiness(request *dto.GetBusinessRequest) (*dto.GetBusinessResponse, error)
 	CreateBusiness(request *dto.CreateBusinessRequest) (*dto.CreateBusinessResponse, error)
 	UpdateBusiness(request *dto.UpdateBusinessRequest) (*models.Business, error)
@@ -136,7 +139,6 @@ func (i *businessService) UpdateBusiness(request *dto.UpdateBusinessRequest) (*m
 		}
 		businessRes, businessErr = i.dao.NewBusinessQuery().UpdateBusiness(tx, &models.Business{
 			Name:                     request.Name,
-			Description:              request.Description,
 			Address:                  request.Address,
 			HighQualityPhoto:         datasource.Config.BusinessAvatarBulkName + "/" + request.HighQualityPhoto,
 			HighQualityPhotoBlurHash: request.HighQualityPhotoBlurHash,
@@ -220,7 +222,6 @@ func (i *businessService) CreateBusiness(request *dto.CreateBusinessRequest) (*d
 		businessBrandId := uuid.MustParse(request.BusinessBrandId)
 		businessRes, businessErr = i.dao.NewBusinessQuery().CreateBusiness(tx, &models.Business{
 			Name:                     request.Name,
-			Description:              request.Description,
 			Address:                  request.Address,
 			HighQualityPhoto:         request.HighQualityPhoto,
 			HighQualityPhotoBlurHash: request.HighQualityPhotoBlurHash,
@@ -273,14 +274,15 @@ func (i *businessService) CreateBusiness(request *dto.CreateBusinessRequest) (*d
 	return &response, nil
 }
 
-func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse, error) {
+func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *utils.ClientMetadata) (*pb.FeedResponse, error) {
 	var businessRes *[]models.Business
 	var businessResAdd *[]models.Business
 	var businessErr, businessErrAdd error
-	var response dto.FeedResponse
-	if feedRequest.SearchMunicipalityType == pb.SearchMunicipalityType_More.String() {
+	var response pb.FeedResponse
+	var businessResponse []*pb.Business
+	if req.SearchMunicipalityType == pb.SearchMunicipalityType_More {
 		err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-			businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceId, feedRequest.MunicipalityId, feedRequest.NextPage, false, feedRequest.HomeDelivery, feedRequest.ToPickUp)
+			businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, 5, req.ProvinceId, req.MunicipalityId, req.NextPage, false, req.HomeDelivery, req.ToPickUp)
 			if businessErr != nil {
 				return businessErr
 			}
@@ -292,11 +294,11 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 		if len(*businessRes) > 5 {
 			*businessRes = (*businessRes)[:len(*businessRes)-1]
 			response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
-			response.SearchMunicipalityType = pb.SearchMunicipalityType_More.String()
+			response.SearchMunicipalityType = pb.SearchMunicipalityType_More
 		} else if len(*businessRes) <= 5 && len(*businessRes) != 0 {
 			length := 5 - len(*businessRes)
 			err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-				businessResAdd, businessErrAdd = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, int32(length), feedRequest.ProvinceId, feedRequest.MunicipalityId, 0, true, feedRequest.HomeDelivery, feedRequest.ToPickUp)
+				businessResAdd, businessErrAdd = v.dao.NewBusinessQuery().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, int32(length), req.ProvinceId, req.MunicipalityId, 0, true, req.HomeDelivery, req.ToPickUp)
 				if businessErrAdd != nil {
 					return businessErrAdd
 				}
@@ -312,10 +314,10 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 				*businessRes = append(*businessRes, *businessResAdd...)
 			}
 			response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
-			response.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore.String()
+			response.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
 		} else if len(*businessRes) == 0 {
 			err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-				businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceId, feedRequest.MunicipalityId, 0, true, feedRequest.HomeDelivery, feedRequest.ToPickUp)
+				businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, 5, req.ProvinceId, req.MunicipalityId, 0, true, req.HomeDelivery, req.ToPickUp)
 				if businessErr != nil {
 					return businessErr
 				}
@@ -327,12 +329,12 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 			if len(*businessRes) > 5 {
 				*businessRes = (*businessRes)[:len(*businessRes)-1]
 				response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
-				response.SearchMunicipalityType = pb.SearchMunicipalityType_More.String()
+				response.SearchMunicipalityType = pb.SearchMunicipalityType_More
 			}
 		}
 	} else {
 		err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-			businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, feedRequest.Location, 5, feedRequest.ProvinceId, feedRequest.MunicipalityId, feedRequest.NextPage, true, feedRequest.HomeDelivery, feedRequest.ToPickUp)
+			businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, 5, req.ProvinceId, req.MunicipalityId, req.NextPage, true, req.HomeDelivery, req.ToPickUp)
 			if businessErr != nil {
 				return businessErr
 			}
@@ -347,25 +349,23 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 		} else if businessRes != nil && len(*businessRes) <= 5 && len(*businessRes) != 0 {
 			response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
 		} else {
-			response.NextPage = feedRequest.NextPage
+			response.NextPage = req.NextPage
 		}
-		response.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore.String()
+		response.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
 	}
-	var businessReturn []dto.Business
 	if businessRes != nil {
-		businessReturn = make([]dto.Business, 0, len(*businessRes))
+		businessResponse = make([]*pb.Business, 0, len(*businessRes))
 		for _, e := range *businessRes {
-			businessReturn = append(businessReturn, dto.Business{
-				ID:                       e.ID,
+			businessResponse = append(businessResponse, &pb.Business{
+				Id:                       e.ID.String(),
 				Name:                     e.Name,
-				Description:              e.Description,
-				Address:                  e.Address,
 				HighQualityPhoto:         e.HighQualityPhoto,
 				HighQualityPhotoBlurHash: e.HighQualityPhotoBlurHash,
 				LowQualityPhoto:          e.LowQualityPhoto,
 				LowQualityPhotoBlurHash:  e.LowQualityPhotoBlurHash,
 				Thumbnail:                e.Thumbnail,
 				ThumbnailBlurHash:        e.ThumbnailBlurHash,
+				Address:                  e.Address,
 				DeliveryPrice:            e.DeliveryPrice,
 				TimeMarginOrderMonth:     e.TimeMarginOrderMonth,
 				TimeMarginOrderDay:       e.TimeMarginOrderDay,
@@ -373,14 +373,14 @@ func (v *businessService) Feed(feedRequest *dto.FeedRequest) (*dto.FeedResponse,
 				TimeMarginOrderMinute:    e.TimeMarginOrderMinute,
 				ToPickUp:                 e.ToPickUp,
 				HomeDelivery:             e.HomeDelivery,
-				BusinessBrandId:          e.BusinessBrandId,
-				ProvinceId:               e.ProvinceId,
+				BusinessBrandId:          e.BusinessBrandId.String(),
+				ProvinceId:               e.ProvinceId.String(),
+				MunicipalityId:           e.MunicipalityId.String(),
 				Cursor:                   int32(e.Cursor),
-				MunicipalityId:           e.MunicipalityId,
 			})
 		}
 	}
-	response.Businesses = &businessReturn
+	response.Businesses = businessResponse
 	return &response, nil
 }
 

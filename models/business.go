@@ -17,7 +17,6 @@ func (Business) TableName() string {
 type Business struct {
 	ID                       *uuid.UUID           `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Name                     string               `gorm:"column:name"`
-	Description              string               `gorm:"column:description"`
 	Address                  string               `gorm:"column:address"`
 	HighQualityPhoto         string               `gorm:"column:high_quality_photo;not null"`
 	HighQualityPhotoBlurHash string               `gorm:"column:high_quality_photo_blurhash;not null"`

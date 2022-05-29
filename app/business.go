@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
+	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -77,7 +78,7 @@ func (m *BusinessServer) CreateBusiness(ctx context.Context, req *pb.CreateBusin
 			MunicipalityId: item.MunicipalityId.String(),
 		})
 	}
-	return &pb.CreateBusinessResponse{Business: &pb.Business{Id: res.Business.ID.String(), Name: res.Business.Name, Description: res.Business.Description, Address: res.Business.Address, HighQualityPhoto: res.Business.HighQualityPhoto, HighQualityPhotoBlurHash: res.Business.HighQualityPhotoBlurHash, LowQualityPhoto: res.Business.LowQualityPhoto, LowQualityPhotoBlurHash: res.Business.LowQualityPhotoBlurHash, Thumbnail: res.Business.Thumbnail, ThumbnailBlurHash: res.Business.ThumbnailBlurHash, DeliveryPrice: res.Business.DeliveryPrice, TimeMarginOrderMonth: res.Business.TimeMarginOrderMonth, TimeMarginOrderDay: res.Business.TimeMarginOrderDay, TimeMarginOrderHour: res.Business.TimeMarginOrderHour, TimeMarginOrderMinute: res.Business.TimeMarginOrderMinute, ToPickUp: res.Business.ToPickUp, HomeDelivery: res.Business.HomeDelivery, ProvinceId: res.Business.ProvinceId.String(), MunicipalityId: res.Business.MunicipalityId.String(), BusinessBrandId: res.Business.BusinessBrandId.String(), CreateTime: timestamppb.New(res.Business.CreateTime), UpdateTime: timestamppb.New(res.Business.UpdateTime), Coordinates: &pb.Point{Latitude: res.Business.Coordinates.FlatCoords()[0], Longitude: res.Business.Coordinates.FlatCoords()[1]}}, Municipalities: municipalities}, nil
+	return &pb.CreateBusinessResponse{Business: &pb.Business{Id: res.Business.ID.String(), Name: res.Business.Name, Address: res.Business.Address, HighQualityPhoto: res.Business.HighQualityPhoto, HighQualityPhotoBlurHash: res.Business.HighQualityPhotoBlurHash, LowQualityPhoto: res.Business.LowQualityPhoto, LowQualityPhotoBlurHash: res.Business.LowQualityPhotoBlurHash, Thumbnail: res.Business.Thumbnail, ThumbnailBlurHash: res.Business.ThumbnailBlurHash, DeliveryPrice: res.Business.DeliveryPrice, TimeMarginOrderMonth: res.Business.TimeMarginOrderMonth, TimeMarginOrderDay: res.Business.TimeMarginOrderDay, TimeMarginOrderHour: res.Business.TimeMarginOrderHour, TimeMarginOrderMinute: res.Business.TimeMarginOrderMinute, ToPickUp: res.Business.ToPickUp, HomeDelivery: res.Business.HomeDelivery, ProvinceId: res.Business.ProvinceId.String(), MunicipalityId: res.Business.MunicipalityId.String(), BusinessBrandId: res.Business.BusinessBrandId.String(), CreateTime: timestamppb.New(res.Business.CreateTime), UpdateTime: timestamppb.New(res.Business.UpdateTime), Coordinates: &pb.Point{Latitude: res.Business.Coordinates.FlatCoords()[0], Longitude: res.Business.Coordinates.FlatCoords()[1]}}, Municipalities: municipalities}, nil
 }
 
 func (m *BusinessServer) UpdateBusiness(ctx context.Context, req *pb.UpdateBusinessRequest) (*pb.UpdateBusinessResponse, error) {
@@ -137,13 +138,102 @@ func (m *BusinessServer) UpdateBusiness(ctx context.Context, req *pb.UpdateBusin
 		}
 		return nil, st.Err()
 	}
-	return &pb.UpdateBusinessResponse{Business: &pb.Business{Id: res.ID.String(), Name: res.Name, Description: res.Description, Address: res.Address, HighQualityPhoto: res.HighQualityPhoto, HighQualityPhotoBlurHash: res.HighQualityPhotoBlurHash, LowQualityPhoto: res.LowQualityPhoto, LowQualityPhotoBlurHash: res.LowQualityPhotoBlurHash, Thumbnail: res.Thumbnail, ThumbnailBlurHash: res.ThumbnailBlurHash, DeliveryPrice: res.DeliveryPrice, TimeMarginOrderMonth: res.TimeMarginOrderMonth, TimeMarginOrderDay: res.TimeMarginOrderDay, TimeMarginOrderHour: res.TimeMarginOrderHour, TimeMarginOrderMinute: res.TimeMarginOrderMinute, ToPickUp: res.ToPickUp, HomeDelivery: res.HomeDelivery, ProvinceId: res.ProvinceId.String(), MunicipalityId: res.MunicipalityId.String(), BusinessBrandId: res.BusinessBrandId.String(), CreateTime: timestamppb.New(res.CreateTime), UpdateTime: timestamppb.New(res.UpdateTime)}}, nil
+	return &pb.UpdateBusinessResponse{Business: &pb.Business{Id: res.ID.String(), Name: res.Name, Address: res.Address, HighQualityPhoto: res.HighQualityPhoto, HighQualityPhotoBlurHash: res.HighQualityPhotoBlurHash, LowQualityPhoto: res.LowQualityPhoto, LowQualityPhotoBlurHash: res.LowQualityPhotoBlurHash, Thumbnail: res.Thumbnail, ThumbnailBlurHash: res.ThumbnailBlurHash, DeliveryPrice: res.DeliveryPrice, TimeMarginOrderMonth: res.TimeMarginOrderMonth, TimeMarginOrderDay: res.TimeMarginOrderDay, TimeMarginOrderHour: res.TimeMarginOrderHour, TimeMarginOrderMinute: res.TimeMarginOrderMinute, ToPickUp: res.ToPickUp, HomeDelivery: res.HomeDelivery, ProvinceId: res.ProvinceId.String(), MunicipalityId: res.MunicipalityId.String(), BusinessBrandId: res.BusinessBrandId.String(), CreateTime: timestamppb.New(res.CreateTime), UpdateTime: timestamppb.New(res.UpdateTime)}}, nil
 }
 
 func (m *BusinessServer) Feed(ctx context.Context, req *pb.FeedRequest) (*pb.FeedResponse, error) {
+	var (
+		invalidProvinceId             *epb.BadRequest_FieldViolation
+		invalidMunicipalityId         *epb.BadRequest_FieldViolation
+		invalidLocation               *epb.BadRequest_FieldViolation
+		invalidSearchMunicipalityType *epb.BadRequest_FieldViolation
+	)
+	var invalidArgs bool
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	feedBusiness, err := m.businessService.Feed(&dto.FeedRequest{Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, ProvinceId: req.ProvinceId, MunicipalityId: req.MunicipalityId, HomeDelivery: req.HomeDelivery, ToPickUp: req.ToPickUp, NextPage: req.NextPage, SearchMunicipalityType: req.SearchMunicipalityType.String(), Metadata: &md})
+	md := utils.GetMetadata(ctx)
+	if req.SearchMunicipalityType == pb.SearchMunicipalityType_SearchMunicipalityTypeUnspecified {
+		invalidArgs = true
+		invalidSearchMunicipalityType = &epb.BadRequest_FieldViolation{
+			Field:       "SearchMunicipalityType",
+			Description: "The SearchMunicipalityType field is required",
+		}
+	}
+	if req.Location == nil {
+		invalidArgs = true
+		invalidLocation = &epb.BadRequest_FieldViolation{
+			Field:       "Location",
+			Description: "The Location field is required",
+		}
+	} else if req.Location != nil {
+		if req.Location.Latitude == 0 {
+			invalidArgs = true
+			invalidLocation = &epb.BadRequest_FieldViolation{
+				Field:       "Location.Latitude",
+				Description: "The Location.Latitude field is required",
+			}
+		} else if req.Location.Longitude == 0 {
+			invalidArgs = true
+			invalidLocation = &epb.BadRequest_FieldViolation{
+				Field:       "Location.Longitude",
+				Description: "The Location.Longitude field is required",
+			}
+		}
+	}
+	if req.ProvinceId == "" {
+		invalidArgs = true
+		invalidProvinceId = &epb.BadRequest_FieldViolation{
+			Field:       "ProvinceId",
+			Description: "The ProvinceId field is required",
+		}
+	} else if req.ProvinceId != "" {
+		if !utils.IsValidUUID(&req.ProvinceId) {
+			invalidArgs = true
+			invalidProvinceId = &epb.BadRequest_FieldViolation{
+				Field:       "ProvinceId",
+				Description: "The ProvinceId field is not a valid uuid v4",
+			}
+		}
+	}
+	if req.MunicipalityId == "" {
+		invalidArgs = true
+		invalidMunicipalityId = &epb.BadRequest_FieldViolation{
+			Field:       "MunicipalityId",
+			Description: "The MunicipalityId field is required",
+		}
+	} else if req.MunicipalityId != "" {
+		if !utils.IsValidUUID(&req.MunicipalityId) {
+			invalidArgs = true
+			invalidProvinceId = &epb.BadRequest_FieldViolation{
+				Field:       "MunicipalityId",
+				Description: "The MunicipalityId field is not a valid uuid v4",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidMunicipalityId != nil {
+			st, _ = st.WithDetails(
+				invalidMunicipalityId,
+			)
+		}
+		if invalidLocation != nil {
+			st, _ = st.WithDetails(
+				invalidLocation,
+			)
+		}
+		if invalidSearchMunicipalityType != nil {
+			st, _ = st.WithDetails(
+				invalidSearchMunicipalityType,
+			)
+		}
+		if invalidProvinceId != nil {
+			st, _ = st.WithDetails(
+				invalidProvinceId,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.businessService.Feed(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -169,34 +259,7 @@ func (m *BusinessServer) Feed(ctx context.Context, req *pb.FeedRequest) (*pb.Fee
 		}
 		return nil, st.Err()
 	}
-	itemsResponse := make([]*pb.Business, 0, len(*feedBusiness.Businesses))
-	for _, e := range *feedBusiness.Businesses {
-		itemsResponse = append(itemsResponse, &pb.Business{
-			Id:                       e.ID.String(),
-			Name:                     e.Name,
-			Description:              e.Description,
-			HighQualityPhoto:         e.HighQualityPhoto,
-			HighQualityPhotoBlurHash: e.HighQualityPhotoBlurHash,
-			LowQualityPhoto:          e.LowQualityPhoto,
-			LowQualityPhotoBlurHash:  e.LowQualityPhotoBlurHash,
-			Thumbnail:                e.Thumbnail,
-			ThumbnailBlurHash:        e.ThumbnailBlurHash,
-			Address:                  e.Address,
-			IsOpen:                   e.IsOpen,
-			DeliveryPrice:            e.DeliveryPrice,
-			TimeMarginOrderMonth:     e.TimeMarginOrderMonth,
-			TimeMarginOrderDay:       e.TimeMarginOrderDay,
-			TimeMarginOrderHour:      e.TimeMarginOrderHour,
-			TimeMarginOrderMinute:    e.TimeMarginOrderMinute,
-			ToPickUp:                 e.ToPickUp,
-			HomeDelivery:             e.HomeDelivery,
-			BusinessBrandId:          e.BusinessBrandId.String(),
-			ProvinceId:               e.ProvinceId.String(),
-			MunicipalityId:           e.MunicipalityId.String(),
-			Cursor:                   e.Cursor,
-		})
-	}
-	return &pb.FeedResponse{Businesses: itemsResponse, SearchMunicipalityType: *utils.ParseSearchMunicipalityType(feedBusiness.SearchMunicipalityType), NextPage: feedBusiness.NextPage}, nil
+	return res, nil
 }
 
 func (m *BusinessServer) GetBusiness(ctx context.Context, req *pb.GetBusinessRequest) (*pb.GetBusinessResponse, error) {
@@ -231,5 +294,5 @@ func (m *BusinessServer) GetBusiness(ctx context.Context, req *pb.GetBusinessReq
 			UpdateTime: timestamppb.New(e.UpdateTime),
 		})
 	}
-	return &pb.GetBusinessResponse{Business: &pb.Business{Id: getBusiness.Business.ID.String(), Name: getBusiness.Business.Name, Description: getBusiness.Business.Description, Address: getBusiness.Business.Address, HighQualityPhoto: getBusiness.Business.HighQualityPhoto, HighQualityPhotoBlurHash: getBusiness.Business.HighQualityPhotoBlurHash, LowQualityPhoto: getBusiness.Business.LowQualityPhoto, LowQualityPhotoBlurHash: getBusiness.Business.LowQualityPhotoBlurHash, Thumbnail: getBusiness.Business.Thumbnail, ThumbnailBlurHash: getBusiness.Business.ThumbnailBlurHash, ToPickUp: getBusiness.Business.ToPickUp, DeliveryPrice: getBusiness.Business.DeliveryPrice, HomeDelivery: getBusiness.Business.HomeDelivery, ProvinceId: getBusiness.Business.ProvinceId.String(), MunicipalityId: getBusiness.Business.MunicipalityId.String(), BusinessBrandId: getBusiness.Business.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: getBusiness.Business.Coordinates.Coords()[1], Longitude: getBusiness.Business.Coordinates.Coords()[0]}}, ItemCategory: itemsCategoryResponse}, nil
+	return &pb.GetBusinessResponse{Business: &pb.Business{Id: getBusiness.Business.ID.String(), Name: getBusiness.Business.Name, Address: getBusiness.Business.Address, HighQualityPhoto: getBusiness.Business.HighQualityPhoto, HighQualityPhotoBlurHash: getBusiness.Business.HighQualityPhotoBlurHash, LowQualityPhoto: getBusiness.Business.LowQualityPhoto, LowQualityPhotoBlurHash: getBusiness.Business.LowQualityPhotoBlurHash, Thumbnail: getBusiness.Business.Thumbnail, ThumbnailBlurHash: getBusiness.Business.ThumbnailBlurHash, ToPickUp: getBusiness.Business.ToPickUp, DeliveryPrice: getBusiness.Business.DeliveryPrice, HomeDelivery: getBusiness.Business.HomeDelivery, ProvinceId: getBusiness.Business.ProvinceId.String(), MunicipalityId: getBusiness.Business.MunicipalityId.String(), BusinessBrandId: getBusiness.Business.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: getBusiness.Business.Coordinates.Coords()[1], Longitude: getBusiness.Business.Coordinates.Coords()[0]}}, ItemCategory: itemsCategoryResponse}, nil
 }
