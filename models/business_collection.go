@@ -18,7 +18,7 @@ type BusinessCollection struct {
 	Name        string         `gorm:"column:name;not null"`
 	BusinessId  *uuid.UUID     `gorm:"column:business_id;not null"`
 	Index       int32          `gorm:"column:index;not null"`
-	EnabledFlag int32          `gorm:"column:enabled_flag;not null"`
+	EnabledFlag bool           `gorm:"column:enabled_flag;not null"`
 	Item        []Item         `gorm:"foreignKey:BusinessCollectionId"`
 	CreateTime  time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime  time.Time      `gorm:"column:update_time;not null"`

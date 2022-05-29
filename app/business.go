@@ -263,8 +263,55 @@ func (m *BusinessServer) Feed(ctx context.Context, req *pb.FeedRequest) (*pb.Fee
 }
 
 func (m *BusinessServer) GetBusiness(ctx context.Context, req *pb.GetBusinessRequest) (*pb.GetBusinessResponse, error) {
+	var invalidId, invalidLocation *epb.BadRequest_FieldViolation
+	var invalidArgs bool
 	var st *status.Status
-	getBusiness, err := m.businessService.GetBusiness(&dto.GetBusinessRequest{Id: req.Id, Coordinates: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}})
+	md := utils.GetMetadata(ctx)
+	if req.Id != "" {
+		if !utils.IsValidUUID(&req.Id) {
+			invalidArgs = true
+			invalidId = &epb.BadRequest_FieldViolation{
+				Field:       "Id",
+				Description: "The Id field is not a valid uuid v4",
+			}
+		}
+	}
+	if req.Location == nil {
+		invalidArgs = true
+		invalidLocation = &epb.BadRequest_FieldViolation{
+			Field:       "Location",
+			Description: "The Location field is required",
+		}
+	} else if req.Location != nil {
+		if req.Location.Latitude == 0 {
+			invalidArgs = true
+			invalidLocation = &epb.BadRequest_FieldViolation{
+				Field:       "Location.Latitude",
+				Description: "The Location.Latitude field is required",
+			}
+		} else if req.Location.Longitude == 0 {
+			invalidArgs = true
+			invalidLocation = &epb.BadRequest_FieldViolation{
+				Field:       "Location.Longitude",
+				Description: "The Location.Longitude field is required",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidId != nil {
+			st, _ = st.WithDetails(
+				invalidId,
+			)
+		}
+		if invalidLocation != nil {
+			st, _ = st.WithDetails(
+				invalidLocation,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.businessService.GetBusiness(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "banned user":
@@ -283,16 +330,5 @@ func (m *BusinessServer) GetBusiness(ctx context.Context, req *pb.GetBusinessReq
 	if err != nil {
 		return nil, err
 	}
-	itemsCategoryResponse := make([]*pb.ItemCategory, 0, len(*getBusiness.BusinessCollections))
-	for _, e := range *getBusiness.BusinessCollections {
-		itemsCategoryResponse = append(itemsCategoryResponse, &pb.ItemCategory{
-			Id:         e.ID.String(),
-			Name:       e.Name,
-			BusinessId: e.BusinessId.String(),
-			Index:      e.Index,
-			CreateTime: timestamppb.New(e.CreateTime),
-			UpdateTime: timestamppb.New(e.UpdateTime),
-		})
-	}
-	return &pb.GetBusinessResponse{Business: &pb.Business{Id: getBusiness.Business.ID.String(), Name: getBusiness.Business.Name, Address: getBusiness.Business.Address, HighQualityPhoto: getBusiness.Business.HighQualityPhoto, HighQualityPhotoBlurHash: getBusiness.Business.HighQualityPhotoBlurHash, LowQualityPhoto: getBusiness.Business.LowQualityPhoto, LowQualityPhotoBlurHash: getBusiness.Business.LowQualityPhotoBlurHash, Thumbnail: getBusiness.Business.Thumbnail, ThumbnailBlurHash: getBusiness.Business.ThumbnailBlurHash, ToPickUp: getBusiness.Business.ToPickUp, DeliveryPrice: getBusiness.Business.DeliveryPrice, HomeDelivery: getBusiness.Business.HomeDelivery, ProvinceId: getBusiness.Business.ProvinceId.String(), MunicipalityId: getBusiness.Business.MunicipalityId.String(), BusinessBrandId: getBusiness.Business.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: getBusiness.Business.Coordinates.Coords()[1], Longitude: getBusiness.Business.Coordinates.Coords()[0]}}, ItemCategory: itemsCategoryResponse}, nil
+	return res, nil
 }
