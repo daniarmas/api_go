@@ -44,7 +44,7 @@ func (v *itemDatasource) CreateItem(tx *gorm.DB, data *models.Item) (*models.Ite
 
 func (i *itemDatasource) ListItem(tx *gorm.DB, where *models.Item, cursor time.Time) (*[]models.Item, error) {
 	var items []models.Item
-	result := tx.Limit(11).Where("business_id = ? AND business_collection_id = ? AND create_time < ?", where.BusinessId, where.BusinessCollectionId, cursor).Order("create_time desc").Find(&items)
+	result := tx.Limit(11).Where(where).Where("create_time < ?", cursor).Order("create_time desc").Find(&items)
 	if result.Error != nil {
 		return nil, result.Error
 	}

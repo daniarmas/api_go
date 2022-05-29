@@ -1,23 +1,25 @@
 package usecase
 
 import (
-	// "context"
 	"context"
 	"errors"
+	"time"
 
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
+	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 )
 
 type ItemService interface {
 	GetItem(request *dto.GetItemRequest) (*models.ItemBusiness, error)
-	ListItem(itemRequest *dto.ListItemRequest) (*dto.ListItemResponse, error)
+	ListItem(ctx context.Context, req *pb.ListItemRequest, meta *utils.ClientMetadata) (*pb.ListItemResponse, error)
 	SearchItem(name string, provinceId string, municipalityId string, cursor int64, searchMunicipalityType string) (*dto.SearchItemResponse, error)
 	CreateItem(request *dto.CreateItemRequest) (*models.Item, error)
 	UpdateItem(request *dto.UpdateItemRequest) (*models.Item, error)
@@ -25,11 +27,12 @@ type ItemService interface {
 }
 
 type itemService struct {
-	dao repository.DAO
+	dao    repository.DAO
+	config *utils.Config
 }
 
-func NewItemService(dao repository.DAO) ItemService {
-	return &itemService{dao: dao}
+func NewItemService(dao repository.DAO, config *utils.Config) ItemService {
+	return &itemService{dao: dao, config: config}
 }
 
 func (i *itemService) UpdateItem(request *dto.UpdateItemRequest) (*models.Item, error) {
@@ -291,42 +294,72 @@ func (i *itemService) CreateItem(request *dto.CreateItemRequest) (*models.Item, 
 	return itemRes, nil
 }
 
-func (i *itemService) ListItem(itemRequest *dto.ListItemRequest) (*dto.ListItemResponse, error) {
+func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, meta *utils.ClientMetadata) (*pb.ListItemResponse, error) {
+	var where models.Item
+	var nextPage time.Time
+	if req.NextPage == nil {
+		nextPage = time.Now()
+	} else {
+		nextPage = req.NextPage.AsTime()
+	}
 	var items *[]models.Item
-	var listItemResponse dto.ListItemResponse
+	var res pb.ListItemResponse
 	var itemsErr error
-	businessId := uuid.MustParse(itemRequest.BusinessId)
+	var businessCollectionId, businessId uuid.UUID
+	if req.BusinessCollectionId != "" {
+		businessCollectionId = uuid.MustParse(req.BusinessCollectionId)
+	}
+	if req.BusinessId != "" {
+		businessId = uuid.MustParse(req.BusinessId)
+	}
+	if req.BusinessId != "" || req.BusinessCollectionId != "" {
+		where = models.Item{BusinessId: &businessId, BusinessCollectionId: &businessCollectionId}
+	}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		if itemRequest.BusinessId != "" && itemRequest.BusinessCollectionId == "" {
-			itemCategoryRes, itemCategoryErr := i.dao.NewBusinessCollectionQuery().GetBusinessCollection(tx, &models.BusinessCollection{Index: 0, BusinessId: &businessId})
-			if itemCategoryErr != nil {
-				return itemCategoryErr
-			}
-			items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &models.Item{BusinessId: &businessId, BusinessCollectionId: itemCategoryRes.ID}, itemRequest.NextPage)
-			if itemsErr != nil {
-				return itemsErr
-			} else if len(*items) > 10 {
-				*items = (*items)[:len(*items)-1]
-				listItemResponse.NextPage = (*items)[len(*items)-1].CreateTime
-			} else if len(*items) == 0 {
-				listItemResponse.NextPage = itemRequest.NextPage
-			} else {
-				listItemResponse.NextPage = (*items)[len(*items)-1].CreateTime
-			}
-		} else if itemRequest.BusinessId != "" && itemRequest.BusinessCollectionId != "" {
-			businessCollectionId := uuid.MustParse(itemRequest.BusinessCollectionId)
-			items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &models.Item{BusinessId: &businessId, BusinessCollectionId: &businessCollectionId}, itemRequest.NextPage)
-			if itemsErr != nil {
-				return itemsErr
-			}
+		items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &where, nextPage)
+		if itemsErr != nil {
+			return itemsErr
+		} else if len(*items) > 10 {
+			*items = (*items)[:len(*items)-1]
+			res.NextPage = timestamppb.New((*items)[len(*items)-1].CreateTime)
+		} else if len(*items) == 0 {
+			res.NextPage = timestamppb.New(nextPage)
+		} else {
+			res.NextPage = timestamppb.New((*items)[len(*items)-1].CreateTime)
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	listItemResponse.Items = *items
-	return &listItemResponse, nil
+	if items != nil {
+		itemsResponse := make([]*pb.Item, 0, len(*items))
+		for _, item := range *items {
+			itemsResponse = append(itemsResponse, &pb.Item{
+				Id:                       item.ID.String(),
+				Name:                     item.Name,
+				Description:              item.Description,
+				Price:                    item.Price,
+				Availability:             int32(item.Availability),
+				BusinessId:               item.BusinessId.String(),
+				BusinessCollectionId:     item.BusinessCollectionId.String(),
+				HighQualityPhoto:         item.HighQualityPhoto,
+				HighQualityPhotoUrl:      i.config.ItemsBulkName + "/" + item.HighQualityPhoto,
+				HighQualityPhotoBlurHash: item.HighQualityPhotoBlurHash,
+				LowQualityPhoto:          item.LowQualityPhoto,
+				LowQualityPhotoUrl:       i.config.ItemsBulkName + "/" + item.LowQualityPhoto,
+				LowQualityPhotoBlurHash:  item.LowQualityPhotoBlurHash,
+				Thumbnail:                item.Thumbnail,
+				ThumbnailUrl:             i.config.ItemsBulkName + "/" + item.Thumbnail,
+				ThumbnailBlurHash:        item.ThumbnailBlurHash,
+				Cursor:                   int32(item.Cursor),
+				CreateTime:               timestamppb.New(item.CreateTime),
+				UpdateTime:               timestamppb.New(item.UpdateTime),
+			})
+		}
+		res.Items = itemsResponse
+	}
+	return &res, nil
 }
 
 func (i *itemService) GetItem(request *dto.GetItemRequest) (*models.ItemBusiness, error) {
