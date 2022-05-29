@@ -407,7 +407,9 @@ func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRe
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		businessId := uuid.MustParse(req.Id)
 		businessRes, businessErr = v.dao.NewBusinessQuery().GetBusiness(tx, &models.Business{ID: &businessId})
-		if businessErr != nil {
+		if businessErr != nil && businessErr.Error() == "record not found" {
+			return errors.New("business not found")
+		} else if businessErr != nil {
 			return businessErr
 		}
 		businessCollectionRes, itemCategoryErr = v.dao.NewBusinessCollectionQuery().ListBusinessCollection(tx, &models.BusinessCollection{BusinessId: &businessId})

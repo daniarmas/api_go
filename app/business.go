@@ -142,12 +142,7 @@ func (m *BusinessServer) UpdateBusiness(ctx context.Context, req *pb.UpdateBusin
 }
 
 func (m *BusinessServer) Feed(ctx context.Context, req *pb.FeedRequest) (*pb.FeedResponse, error) {
-	var (
-		invalidProvinceId             *epb.BadRequest_FieldViolation
-		invalidMunicipalityId         *epb.BadRequest_FieldViolation
-		invalidLocation               *epb.BadRequest_FieldViolation
-		invalidSearchMunicipalityType *epb.BadRequest_FieldViolation
-	)
+	var invalidProvinceId, invalidMunicipalityId, invalidLocation, invalidSearchMunicipalityType *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
@@ -267,7 +262,13 @@ func (m *BusinessServer) GetBusiness(ctx context.Context, req *pb.GetBusinessReq
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
-	if req.Id != "" {
+	if req.Id == "" {
+		invalidArgs = true
+		invalidId = &epb.BadRequest_FieldViolation{
+			Field:       "Id",
+			Description: "The Id field is required",
+		}
+	} else if req.Id != "" {
 		if !utils.IsValidUUID(&req.Id) {
 			invalidArgs = true
 			invalidId = &epb.BadRequest_FieldViolation{
