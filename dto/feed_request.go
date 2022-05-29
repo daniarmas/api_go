@@ -1,8 +1,8 @@
 package dto
 
 import (
+	"github.com/daniarmas/api_go/utils"
 	"github.com/twpayne/go-geom/encoding/ewkb"
-	"google.golang.org/grpc/metadata"
 )
 
 type FeedRequest struct {
@@ -13,5 +13,5 @@ type FeedRequest struct {
 	NextPage               int32
 	Location               ewkb.Point
 	SearchMunicipalityType string
-	Metadata               *metadata.MD
+	Metadata               *utils.ClientMetadata
 }
