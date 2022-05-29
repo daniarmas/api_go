@@ -7,6 +7,6 @@
   "municipalityId": "42aa4a78-4f77-4190-977e-a9b751879711",
   "toPickUp": true,
   "homeDelivery": true,
-  "searchMunicipalityType": "NoMore",
-  "nextPage": 1
+  "searchMunicipalityType": "More",
+  "nextPage": 0
 }

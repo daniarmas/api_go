@@ -25,11 +25,12 @@ type BusinessService interface {
 }
 
 type businessService struct {
-	dao repository.DAO
+	config *utils.Config
+	dao    repository.DAO
 }
 
-func NewBusinessService(dao repository.DAO) BusinessService {
-	return &businessService{dao: dao}
+func NewBusinessService(dao repository.DAO, config *utils.Config) BusinessService {
+	return &businessService{dao: dao, config: config}
 }
 
 func (i *businessService) UpdateBusiness(request *dto.UpdateBusinessRequest) (*models.Business, error) {
@@ -355,15 +356,28 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 	}
 	if businessRes != nil {
 		businessResponse = make([]*pb.Business, 0, len(*businessRes))
+		var highQualityPhotoUrl, lowQualityPhotoUrl, thumbnailUrl string
 		for _, e := range *businessRes {
+			if v.config.ObjectStorageServerUseSsl == "true" {
+				highQualityPhotoUrl = "https://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + e.HighQualityPhoto
+				lowQualityPhotoUrl = "https://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + e.LowQualityPhoto
+				thumbnailUrl = "https://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + e.Thumbnail
+			} else {
+				highQualityPhotoUrl = "http://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + e.HighQualityPhoto
+				lowQualityPhotoUrl = "http://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + e.LowQualityPhoto
+				thumbnailUrl = "http://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + e.Thumbnail
+			}
 			businessResponse = append(businessResponse, &pb.Business{
 				Id:                       e.ID.String(),
 				Name:                     e.Name,
 				HighQualityPhoto:         e.HighQualityPhoto,
+				HighQualityPhotoUrl:      highQualityPhotoUrl,
 				HighQualityPhotoBlurHash: e.HighQualityPhotoBlurHash,
 				LowQualityPhoto:          e.LowQualityPhoto,
+				LowQualityPhotoUrl:       lowQualityPhotoUrl,
 				LowQualityPhotoBlurHash:  e.LowQualityPhotoBlurHash,
 				Thumbnail:                e.Thumbnail,
+				ThumbnailUrl:             thumbnailUrl,
 				ThumbnailBlurHash:        e.ThumbnailBlurHash,
 				Address:                  e.Address,
 				DeliveryPrice:            e.DeliveryPrice,
