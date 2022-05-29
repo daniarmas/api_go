@@ -20,9 +20,9 @@ import (
 )
 
 type ItemService interface {
-	GetItem(ctx context.Context, req *pb.GetItemRequest, meta *utils.ClientMetadata) (*pb.GetItemResponse, error)
-	ListItem(ctx context.Context, req *pb.ListItemRequest, meta *utils.ClientMetadata) (*pb.ListItemResponse, error)
-	SearchItem(name string, provinceId string, municipalityId string, cursor int64, searchMunicipalityType string) (*dto.SearchItemResponse, error)
+	GetItem(ctx context.Context, req *pb.GetItemRequest, md *utils.ClientMetadata) (*pb.GetItemResponse, error)
+	ListItem(ctx context.Context, req *pb.ListItemRequest, md *utils.ClientMetadata) (*pb.ListItemResponse, error)
+	SearchItem(ctx context.Context, req *pb.SearchItemRequest, md *utils.ClientMetadata) (*pb.SearchItemResponse, error)
 	CreateItem(request *dto.CreateItemRequest) (*models.Item, error)
 	UpdateItem(request *dto.UpdateItemRequest) (*models.Item, error)
 	DeleteItem(request *dto.DeleteItemRequest) error
@@ -296,7 +296,7 @@ func (i *itemService) CreateItem(request *dto.CreateItemRequest) (*models.Item, 
 	return itemRes, nil
 }
 
-func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, meta *utils.ClientMetadata) (*pb.ListItemResponse, error) {
+func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md *utils.ClientMetadata) (*pb.ListItemResponse, error) {
 	var where models.Item
 	var nextPage time.Time
 	if req.NextPage == nil {
@@ -364,7 +364,7 @@ func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, met
 	return &res, nil
 }
 
-func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, meta *utils.ClientMetadata) (*pb.GetItemResponse, error) {
+func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *utils.ClientMetadata) (*pb.GetItemResponse, error) {
 	var res pb.GetItemResponse
 	var item *models.ItemBusiness
 	var itemErr error
@@ -402,23 +402,23 @@ func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, meta 
 	return &res, nil
 }
 
-func (i *itemService) SearchItem(name string, provinceId string, municipalityId string, cursor int64, searchMunicipalityType string) (*dto.SearchItemResponse, error) {
+func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest, md *utils.ClientMetadata) (*pb.SearchItemResponse, error) {
 	var response *[]models.Item
-	var searchItemResponse dto.SearchItemResponse
+	var searchItemResponse pb.SearchItemResponse
 	var responseErr error
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		if searchMunicipalityType == "More" {
-			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, name, provinceId, municipalityId, cursor, false, 10, &[]string{})
+		if req.SearchMunicipalityType.String() == "More" {
+			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), false, 10, &[]string{})
 			if responseErr != nil {
 				return responseErr
 			}
 			if len(*response) > 10 {
 				*response = (*response)[:len(*response)-1]
 				searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
-				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_More.String()
+				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_More
 			} else if len(*response) <= 10 && len(*response) != 0 {
 				length := 10 - len(*response)
-				responseAdd, responseErr := i.dao.NewItemQuery().SearchItem(tx, name, provinceId, municipalityId, cursor, true, int64(length), &[]string{})
+				responseAdd, responseErr := i.dao.NewItemQuery().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, int64(length), &[]string{})
 				if responseErr != nil {
 					return responseErr
 				}
@@ -427,9 +427,9 @@ func (i *itemService) SearchItem(name string, provinceId string, municipalityId 
 				}
 				*response = append(*response, *responseAdd...)
 				searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
-				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore.String()
+				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
 			} else if len(*response) == 0 {
-				response, responseErr = i.dao.NewItemQuery().SearchItem(tx, name, provinceId, municipalityId, cursor, true, 10, &[]string{})
+				response, responseErr = i.dao.NewItemQuery().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10, &[]string{})
 				if responseErr != nil {
 					return responseErr
 				}
@@ -439,10 +439,10 @@ func (i *itemService) SearchItem(name string, provinceId string, municipalityId 
 				} else if len(*response) <= 10 && len(*response) != 0 {
 					searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
 				}
-				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore.String()
+				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
 			}
 		} else {
-			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, name, provinceId, municipalityId, cursor, true, 10, &[]string{})
+			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10, &[]string{})
 			if responseErr != nil {
 				return responseErr
 			}
@@ -452,13 +452,28 @@ func (i *itemService) SearchItem(name string, provinceId string, municipalityId 
 			} else if len(*response) <= 10 && len(*response) != 0 {
 				searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
 			}
-			searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore.String()
+			searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	searchItemResponse.Items = response
+	if response != nil {
+		itemsResponse := make([]*pb.SearchItem, 0, len(*response))
+		for _, e := range *response {
+			itemsResponse = append(itemsResponse, &pb.SearchItem{
+				Id:                e.ID.String(),
+				Name:              e.Name,
+				Thumbnail:         e.Thumbnail,
+				ThumbnailUrl:      i.config.ItemsBulkName + "/" + e.Thumbnail,
+				ThumbnailBlurHash: e.ThumbnailBlurHash,
+				Price:             e.Price,
+				Cursor:            int32(e.Cursor),
+				Status:            *utils.ParseItemStatusType(&e.Status),
+			})
+		}
+		searchItemResponse.Items = itemsResponse
+	}
 	return &searchItemResponse, nil
 }
