@@ -430,7 +430,6 @@ message ListItemRequest {
   google.protobuf.Timestamp nextPage = 1;
   string businessId = 2;
   string businessCollectionId = 3;
-  google.protobuf.FieldMask fieldMask = 4;
 }
 
 message ListItemResponse {
@@ -667,15 +666,18 @@ message Item {
   string businessId = 7;
   string businessCollectionId = 8;
   string highQualityPhoto = 9;
-  string highQualityPhotoBlurHash = 10;
-  string lowQualityPhoto = 11;
-  string lowQualityPhotoBlurHash = 12;
-  string thumbnail = 13;
-  string thumbnailBlurHash = 14;
-  int32 cursor = 16;
-  bool isInRange = 17;
-  google.protobuf.Timestamp createTime = 18;
-  google.protobuf.Timestamp updateTime = 19;
+  string highQualityPhotoUrl = 10;
+  string highQualityPhotoBlurHash = 11;
+  string lowQualityPhoto = 12;
+  string lowQualityPhotoUrl = 13;
+  string lowQualityPhotoBlurHash = 14;
+  string thumbnail = 15;
+  string thumbnailUrl = 16;
+  string thumbnailBlurHash = 17;
+  int32 cursor = 18;
+  bool isInRange = 19;
+  google.protobuf.Timestamp createTime = 20;
+  google.protobuf.Timestamp updateTime = 21;
 }
 
 message CartItem {

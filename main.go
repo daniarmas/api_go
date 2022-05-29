@@ -64,7 +64,7 @@ func serviceRegister(sv *grpc.Server) {
 	datasourceDao := datasource.NewDAO(db, config, objectStorage)
 	// Repository
 	repositoryDao := repository.NewDAO(db, config, datasourceDao)
-	itemService := usecase.NewItemService(repositoryDao)
+	itemService := usecase.NewItemService(repositoryDao, config)
 	authenticationService := usecase.NewAuthenticationService(repositoryDao)
 	businessService := usecase.NewBusinessService(repositoryDao, config)
 	userService := usecase.NewUserService(repositoryDao)

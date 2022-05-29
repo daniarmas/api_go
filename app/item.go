@@ -2,14 +2,15 @@ package app
 
 import (
 	"context"
-	"time"
 
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
 	ut "github.com/daniarmas/api_go/utils"
+	utils "github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
+	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -18,38 +19,47 @@ import (
 )
 
 func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb.ListItemResponse, error) {
-	var nextPage time.Time
-	if req.NextPage.Nanos == 0 && req.NextPage.Seconds == 0 {
-		nextPage = time.Now()
-	} else {
-		nextPage = req.NextPage.AsTime()
+	var invalidBusinessId, invalidBusinessCollectionId *epb.BadRequest_FieldViolation
+	var invalidArgs bool
+	var st *status.Status
+	md := utils.GetMetadata(ctx)
+	if req.BusinessId != "" {
+		if !utils.IsValidUUID(&req.BusinessId) {
+			invalidArgs = true
+			invalidBusinessId = &epb.BadRequest_FieldViolation{
+				Field:       "BusinessId",
+				Description: "The BusinessId field is not a valid uuid v4",
+			}
+		}
 	}
-	listItemsResponse, err := m.itemService.ListItem(&dto.ListItemRequest{BusinessId: req.BusinessId, BusinessCollectionId: req.BusinessCollectionId, NextPage: nextPage})
+	if req.BusinessCollectionId != "" {
+		if !utils.IsValidUUID(&req.BusinessCollectionId) {
+			invalidArgs = true
+			invalidBusinessCollectionId = &epb.BadRequest_FieldViolation{
+				Field:       "BusinessCollectionId",
+				Description: "The BusinessCollectionId field is not a valid uuid v4",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidBusinessId != nil {
+			st, _ = st.WithDetails(
+				invalidBusinessId,
+			)
+		}
+		if invalidBusinessCollectionId != nil {
+			st, _ = st.WithDetails(
+				invalidBusinessCollectionId,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.itemService.ListItem(ctx, req, md)
 	if err != nil {
 		return nil, err
 	}
-	itemsResponse := make([]*pb.Item, 0, len(listItemsResponse.Items))
-	for _, item := range listItemsResponse.Items {
-		itemsResponse = append(itemsResponse, &pb.Item{
-			Id:                       item.ID.String(),
-			Name:                     item.Name,
-			Description:              item.Description,
-			Price:                    item.Price,
-			Availability:             int32(item.Availability),
-			BusinessId:               item.BusinessId.String(),
-			BusinessCollectionId:     item.BusinessCollectionId.String(),
-			HighQualityPhoto:         item.HighQualityPhoto,
-			HighQualityPhotoBlurHash: item.HighQualityPhotoBlurHash,
-			LowQualityPhoto:          item.LowQualityPhoto,
-			LowQualityPhotoBlurHash:  item.LowQualityPhotoBlurHash,
-			Thumbnail:                item.Thumbnail,
-			ThumbnailBlurHash:        item.ThumbnailBlurHash,
-			Cursor:                   int32(item.Cursor),
-			CreateTime:               timestamppb.New(item.CreateTime),
-			UpdateTime:               timestamppb.New(item.UpdateTime),
-		})
-	}
-	return &pb.ListItemResponse{Items: itemsResponse, NextPage: timestamppb.New(listItemsResponse.NextPage)}, nil
+	return res, nil
 }
 
 func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.GetItemResponse, error) {
