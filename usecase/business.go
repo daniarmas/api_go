@@ -359,15 +359,9 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 		businessResponse = make([]*pb.Business, 0, len(*businessRes))
 		var highQualityPhotoUrl, lowQualityPhotoUrl, thumbnailUrl string
 		for _, e := range *businessRes {
-			if v.config.ObjectStorageServerUseSsl == "true" {
-				highQualityPhotoUrl = "https://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + e.HighQualityPhoto
-				lowQualityPhotoUrl = "https://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + e.LowQualityPhoto
-				thumbnailUrl = "https://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + e.Thumbnail
-			} else {
-				highQualityPhotoUrl = "http://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + e.HighQualityPhoto
-				lowQualityPhotoUrl = "http://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + e.LowQualityPhoto
-				thumbnailUrl = "http://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + e.Thumbnail
-			}
+			highQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + e.HighQualityPhoto
+			lowQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + e.LowQualityPhoto
+			thumbnailUrl = v.config.BusinessAvatarBulkName + "/" + e.Thumbnail
 			businessResponse = append(businessResponse, &pb.Business{
 				Id:                       e.ID.String(),
 				Name:                     e.Name,
@@ -433,14 +427,8 @@ func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRe
 		return nil, err
 	}
 	var highQualityPhotoUrl, lowQualityPhotoUrl, thumbnailUrl string
-	if v.config.ObjectStorageServerUseSsl == "true" {
-		highQualityPhotoUrl = "https://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + businessRes.HighQualityPhoto
-		lowQualityPhotoUrl = "https://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + businessRes.LowQualityPhoto
-		thumbnailUrl = "https://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + businessRes.Thumbnail
-	} else {
-		highQualityPhotoUrl = "http://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + businessRes.HighQualityPhoto
-		lowQualityPhotoUrl = "http://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + businessRes.LowQualityPhoto
-		thumbnailUrl = "http://" + v.config.ObjectStorageServerEndpoint + "/" + v.config.BusinessAvatarBulkName + "/" + businessRes.Thumbnail
-	}
+	highQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.HighQualityPhoto
+	lowQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.LowQualityPhoto
+	thumbnailUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.Thumbnail
 	return &pb.GetBusinessResponse{Business: &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, HighQualityPhotoBlurHash: businessRes.HighQualityPhotoBlurHash, LowQualityPhoto: businessRes.LowQualityPhoto, LowQualityPhotoBlurHash: businessRes.LowQualityPhotoBlurHash, Thumbnail: businessRes.Thumbnail, ThumbnailBlurHash: businessRes.ThumbnailBlurHash, ToPickUp: businessRes.ToPickUp, DeliveryPrice: businessRes.DeliveryPrice, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.Coords()[1], Longitude: businessRes.Coordinates.Coords()[0]}, HighQualityPhotoUrl: highQualityPhotoUrl, LowQualityPhotoUrl: lowQualityPhotoUrl, ThumbnailUrl: thumbnailUrl}, ItemCategory: itemsCategoryResponse}, nil
 }
