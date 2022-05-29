@@ -281,7 +281,6 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 	var businessResAdd *[]models.Business
 	var businessErr, businessErrAdd error
 	var response pb.FeedResponse
-	var businessResponse []*pb.Business
 	if req.SearchMunicipalityType == pb.SearchMunicipalityType_More {
 		err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 			businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, 5, req.ProvinceId, req.MunicipalityId, req.NextPage, false, req.HomeDelivery, req.ToPickUp)
@@ -356,23 +355,19 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 		response.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
 	}
 	if businessRes != nil {
-		businessResponse = make([]*pb.Business, 0, len(*businessRes))
-		var highQualityPhotoUrl, lowQualityPhotoUrl, thumbnailUrl string
+		businessResponse := make([]*pb.Business, 0, len(*businessRes))
 		for _, e := range *businessRes {
-			highQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + e.HighQualityPhoto
-			lowQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + e.LowQualityPhoto
-			thumbnailUrl = v.config.BusinessAvatarBulkName + "/" + e.Thumbnail
 			businessResponse = append(businessResponse, &pb.Business{
 				Id:                       e.ID.String(),
 				Name:                     e.Name,
 				HighQualityPhoto:         e.HighQualityPhoto,
-				HighQualityPhotoUrl:      highQualityPhotoUrl,
+				HighQualityPhotoUrl:      v.config.BusinessAvatarBulkName + "/" + e.HighQualityPhoto,
 				HighQualityPhotoBlurHash: e.HighQualityPhotoBlurHash,
 				LowQualityPhoto:          e.LowQualityPhoto,
-				LowQualityPhotoUrl:       lowQualityPhotoUrl,
+				LowQualityPhotoUrl:       v.config.BusinessAvatarBulkName + "/" + e.LowQualityPhoto,
 				LowQualityPhotoBlurHash:  e.LowQualityPhotoBlurHash,
 				Thumbnail:                e.Thumbnail,
-				ThumbnailUrl:             thumbnailUrl,
+				ThumbnailUrl:             v.config.BusinessAvatarBulkName + "/" + e.Thumbnail,
 				ThumbnailBlurHash:        e.ThumbnailBlurHash,
 				Address:                  e.Address,
 				DeliveryPrice:            e.DeliveryPrice,
@@ -388,8 +383,9 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 				Cursor:                   int32(e.Cursor),
 			})
 		}
+		response.Businesses = businessResponse
+
 	}
-	response.Businesses = businessResponse
 	return &response, nil
 }
 
