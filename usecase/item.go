@@ -13,12 +13,14 @@ import (
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
+	"github.com/twpayne/go-geom"
+	"github.com/twpayne/go-geom/encoding/ewkb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 )
 
 type ItemService interface {
-	GetItem(request *dto.GetItemRequest) (*models.ItemBusiness, error)
+	GetItem(ctx context.Context, req *pb.GetItemRequest, meta *utils.ClientMetadata) (*pb.GetItemResponse, error)
 	ListItem(ctx context.Context, req *pb.ListItemRequest, meta *utils.ClientMetadata) (*pb.ListItemResponse, error)
 	SearchItem(name string, provinceId string, municipalityId string, cursor int64, searchMunicipalityType string) (*dto.SearchItemResponse, error)
 	CreateItem(request *dto.CreateItemRequest) (*models.Item, error)
@@ -362,20 +364,42 @@ func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, met
 	return &res, nil
 }
 
-func (i *itemService) GetItem(request *dto.GetItemRequest) (*models.ItemBusiness, error) {
+func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, meta *utils.ClientMetadata) (*pb.GetItemResponse, error) {
+	var res pb.GetItemResponse
 	var item *models.ItemBusiness
 	var itemErr error
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		item, itemErr = i.dao.NewItemQuery().GetItemWithLocation(tx, request.Id, request.Location)
+		item, itemErr = i.dao.NewItemQuery().GetItemWithLocation(tx, req.Id, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)})
 		if itemErr != nil {
 			return itemErr
+		}
+		res.Item = &pb.Item{
+			Id:                       item.ID.String(),
+			Name:                     item.Name,
+			Description:              item.Description,
+			Price:                    item.Price,
+			Availability:             int32(item.Availability),
+			BusinessId:               item.BusinessId.String(),
+			BusinessCollectionId:     item.BusinessCollectionId.String(),
+			HighQualityPhoto:         item.HighQualityPhoto,
+			HighQualityPhotoUrl:      i.config.ItemsBulkName + "/" + item.HighQualityPhoto,
+			HighQualityPhotoBlurHash: item.HighQualityPhotoBlurHash,
+			LowQualityPhoto:          item.LowQualityPhoto,
+			LowQualityPhotoUrl:       i.config.ItemsBulkName + "/" + item.LowQualityPhoto,
+			LowQualityPhotoBlurHash:  item.LowQualityPhotoBlurHash,
+			Thumbnail:                item.Thumbnail,
+			ThumbnailUrl:             i.config.ItemsBulkName + "/" + item.Thumbnail,
+			ThumbnailBlurHash:        item.ThumbnailBlurHash,
+			Cursor:                   item.Cursor,
+			CreateTime:               timestamppb.New(item.CreateTime),
+			UpdateTime:               timestamppb.New(item.UpdateTime),
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return item, nil
+	return &res, nil
 }
 
 func (i *itemService) SearchItem(name string, provinceId string, municipalityId string, cursor int64, searchMunicipalityType string) (*dto.SearchItemResponse, error) {

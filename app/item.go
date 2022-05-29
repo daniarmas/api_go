@@ -8,8 +8,6 @@ import (
 	ut "github.com/daniarmas/api_go/utils"
 	utils "github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
-	"github.com/twpayne/go-geom"
-	"github.com/twpayne/go-geom/encoding/ewkb"
 	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -63,8 +61,61 @@ func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb
 }
 
 func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.GetItemResponse, error) {
+	var invalidId, invalidLocation *epb.BadRequest_FieldViolation
+	var invalidArgs bool
 	var st *status.Status
-	item, err := m.itemService.GetItem(&dto.GetItemRequest{Id: req.Id, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}})
+	md := utils.GetMetadata(ctx)
+	if req.Id == "" {
+		invalidArgs = true
+		invalidId = &epb.BadRequest_FieldViolation{
+			Field:       "Id",
+			Description: "The Id field is required",
+		}
+	} else if req.Id != "" {
+		if !utils.IsValidUUID(&req.Id) {
+			invalidArgs = true
+			invalidId = &epb.BadRequest_FieldViolation{
+				Field:       "Id",
+				Description: "The Id field is not a valid uuid v4",
+			}
+		}
+	}
+	if req.Location == nil {
+		invalidArgs = true
+		invalidLocation = &epb.BadRequest_FieldViolation{
+			Field:       "Location",
+			Description: "The Location field is required",
+		}
+	} else if req.Location != nil {
+		if req.Location.Latitude == 0 {
+			invalidArgs = true
+			invalidLocation = &epb.BadRequest_FieldViolation{
+				Field:       "Location.Latitude",
+				Description: "The Location.Latitude field is required",
+			}
+		} else if req.Location.Longitude == 0 {
+			invalidArgs = true
+			invalidLocation = &epb.BadRequest_FieldViolation{
+				Field:       "Location.Longitude",
+				Description: "The Location.Longitude field is required",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidId != nil {
+			st, _ = st.WithDetails(
+				invalidId,
+			)
+		}
+		if invalidLocation != nil {
+			st, _ = st.WithDetails(
+				invalidLocation,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.itemService.GetItem(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "record not found":
@@ -74,39 +125,7 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 		}
 		return nil, st.Err()
 	}
-	// itemPhotos := make([]*pb.ItemPhoto, 0, len(item.ItemPhoto))
-	// for _, e := range item.ItemPhoto {
-	// 	itemPhotos = append(itemPhotos, &pb.ItemPhoto{
-	// 		Id:                       e.ID.String(),
-	// 		ItemId:                   e.ItemId.String(),
-	// 		HighQualityPhoto:         e.HighQualityPhoto,
-	// 		HighQualityPhotoBlurHash: e.HighQualityPhotoBlurHash,
-	// 		LowQualityPhoto:          e.LowQualityPhoto,
-	// 		LowQualityPhotoBlurHash:  e.LowQualityPhotoBlurHash,
-	// 		Thumbnail:                e.Thumbnail,
-	// 		ThumbnailBlurHash:        e.ThumbnailBlurHash,
-	// 		CreateTime:               timestamppb.New(e.CreateTime),
-	// 		UpdateTime:               timestamppb.New(e.UpdateTime),
-	// 	})
-	// }
-	return &pb.GetItemResponse{Item: &pb.Item{
-		Id:                       item.ID.String(),
-		Name:                     item.Name,
-		Description:              item.Description,
-		Price:                    item.Price,
-		Availability:             int32(item.Availability),
-		BusinessId:               item.BusinessId.String(),
-		BusinessCollectionId:     item.BusinessCollectionId.String(),
-		HighQualityPhoto:         item.HighQualityPhoto,
-		HighQualityPhotoBlurHash: item.HighQualityPhotoBlurHash,
-		LowQualityPhoto:          item.LowQualityPhoto,
-		LowQualityPhotoBlurHash:  item.LowQualityPhotoBlurHash,
-		Thumbnail:                item.Thumbnail,
-		ThumbnailBlurHash:        item.ThumbnailBlurHash,
-		Cursor:                   item.Cursor,
-		CreateTime:               timestamppb.New(item.CreateTime),
-		UpdateTime:               timestamppb.New(item.UpdateTime),
-	}}, nil
+	return res, nil
 }
 
 func (m *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) (*pb.UpdateItemResponse, error) {
