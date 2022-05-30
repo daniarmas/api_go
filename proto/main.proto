@@ -360,7 +360,8 @@ message GetUserResponse {
 }
 
 message ListSessionResponse {
-  repeated Session sessions = 1;
+  Session actualSession = 1;
+  repeated Session otherSessions = 2;
 }
 
 message SignOutRequest {
