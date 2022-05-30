@@ -408,7 +408,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 	var responseErr error
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		if req.SearchMunicipalityType.String() == "More" {
-			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), false, 10, &[]string{})
+			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), false, 10, &[]string{"id", "name", "price", "thumbnail", "cursor"})
 			if responseErr != nil {
 				return responseErr
 			}
@@ -418,7 +418,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_More
 			} else if len(*response) <= 10 && len(*response) != 0 {
 				length := 10 - len(*response)
-				responseAdd, responseErr := i.dao.NewItemQuery().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, int64(length), &[]string{})
+				responseAdd, responseErr := i.dao.NewItemQuery().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, int64(length), &[]string{"id", "name", "price", "thumbnail", "cursor"})
 				if responseErr != nil {
 					return responseErr
 				}
@@ -429,7 +429,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 				searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
 				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
 			} else if len(*response) == 0 {
-				response, responseErr = i.dao.NewItemQuery().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10, &[]string{})
+				response, responseErr = i.dao.NewItemQuery().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10, &[]string{"id", "name", "price", "thumbnail", "cursor"})
 				if responseErr != nil {
 					return responseErr
 				}
@@ -442,7 +442,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
 			}
 		} else {
-			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10, &[]string{})
+			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10, &[]string{"id", "name", "price", "thumbnail", "cursor"})
 			if responseErr != nil {
 				return responseErr
 			}
