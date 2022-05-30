@@ -188,8 +188,79 @@ func (m *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) 
 }
 
 func (m *ItemServer) SearchItem(ctx context.Context, req *pb.SearchItemRequest) (*pb.SearchItemResponse, error) {
+	var invalidProvinceId, invalidMunicipalityId, invalidName, invalidSearchMunicipalityType *epb.BadRequest_FieldViolation
+	var invalidArgs bool
 	var st *status.Status
-	response, err := m.itemService.SearchItem(req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), req.SearchMunicipalityType.String())
+	md := utils.GetMetadata(ctx)
+	if req.SearchMunicipalityType == pb.SearchMunicipalityType_SearchMunicipalityTypeUnspecified {
+		invalidArgs = true
+		invalidSearchMunicipalityType = &epb.BadRequest_FieldViolation{
+			Field:       "SearchMunicipalityType",
+			Description: "The SearchMunicipalityType field is required",
+		}
+	}
+	if req.Name == "" {
+		invalidArgs = true
+		invalidName = &epb.BadRequest_FieldViolation{
+			Field:       "Name",
+			Description: "The Name field is required",
+		}
+	}
+	if req.ProvinceId == "" {
+		invalidArgs = true
+		invalidProvinceId = &epb.BadRequest_FieldViolation{
+			Field:       "ProvinceId",
+			Description: "The ProvinceId field is required",
+		}
+	} else if req.ProvinceId != "" {
+		if !utils.IsValidUUID(&req.ProvinceId) {
+			invalidArgs = true
+			invalidProvinceId = &epb.BadRequest_FieldViolation{
+				Field:       "ProvinceId",
+				Description: "The ProvinceId field is not a valid uuid v4",
+			}
+		}
+	}
+	if req.MunicipalityId == "" {
+		invalidArgs = true
+		invalidMunicipalityId = &epb.BadRequest_FieldViolation{
+			Field:       "MunicipalityId",
+			Description: "The MunicipalityId field is required",
+		}
+	} else if req.MunicipalityId != "" {
+		if !utils.IsValidUUID(&req.MunicipalityId) {
+			invalidArgs = true
+			invalidMunicipalityId = &epb.BadRequest_FieldViolation{
+				Field:       "MunicipalityId",
+				Description: "The MunicipalityId field is not a valid uuid v4",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidProvinceId != nil {
+			st, _ = st.WithDetails(
+				invalidProvinceId,
+			)
+		}
+		if invalidName != nil {
+			st, _ = st.WithDetails(
+				invalidName,
+			)
+		}
+		if invalidSearchMunicipalityType != nil {
+			st, _ = st.WithDetails(
+				invalidSearchMunicipalityType,
+			)
+		}
+		if invalidMunicipalityId != nil {
+			st, _ = st.WithDetails(
+				invalidMunicipalityId,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.itemService.SearchItem(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		default:
@@ -197,19 +268,7 @@ func (m *ItemServer) SearchItem(ctx context.Context, req *pb.SearchItemRequest) 
 		}
 		return nil, st.Err()
 	}
-	itemsResponse := make([]*pb.SearchItem, 0, len(*response.Items))
-	for _, e := range *response.Items {
-		itemsResponse = append(itemsResponse, &pb.SearchItem{
-			Id:                e.ID.String(),
-			Name:              e.Name,
-			Thumbnail:         e.Thumbnail,
-			ThumbnailBlurHash: e.ThumbnailBlurHash,
-			Price:             e.Price,
-			Cursor:            int32(e.Cursor),
-			Status:            *ut.ParseItemStatusType(&e.Status),
-		})
-	}
-	return &pb.SearchItemResponse{Items: itemsResponse, NextPage: response.NextPage, SearchMunicipalityType: *ut.ParseSearchMunicipalityType(response.SearchMunicipalityType)}, nil
+	return res, nil
 }
 
 func (m *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) (*gp.Empty, error) {

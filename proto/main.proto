@@ -708,8 +708,9 @@ message SearchItem {
   string price = 3;
   ItemStatusType status = 4;
   string thumbnail = 5;
-  string thumbnailBlurHash = 6;
-  int32 cursor = 7;
+  string thumbnailUrl = 6;
+  string thumbnailBlurHash = 7;
+  int32 cursor = 8;
 }
 
 message ItemPhoto {
