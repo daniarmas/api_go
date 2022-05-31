@@ -1,0 +1,50 @@
+{
+  "details": {
+    "methodFqn": "main.CartItemService.CartItemIsEmpty",
+    "metadata": [
+      {
+        "key": "Device-Id",
+        "value": "1"
+      },
+      {
+        "key": "App-Version",
+        "value": "1.0.0"
+      },
+      {
+        "key": "Access-Token",
+        "value": "O8pzXjp4QMk4cAD60dHeoOnxdVsDc9"
+      },
+      {
+        "key": "Platform",
+        "value": "Android"
+      },
+      {
+        "key": "System-Version",
+        "value": "11"
+      },
+      {
+        "key": "Model",
+        "value": "Google Pixel 3XL"
+      },
+      {
+        "key": "App",
+        "value": "App"
+      },
+      {
+        "key": "Firebase-Cloud-Messaging-Id",
+        "value": "1"
+      },
+      {
+        "key": "Authorization",
+        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTQwNDA5MTIsInN1YiI6IjI4Njg2YTFjLTc0ZDMtNGMxNC05MGZhLWQ2MDk5MDg3OGQyNiJ9.aZCVgS4E2UfUu7mfT4WGVTmCfVwznNqyTH427zVKRXw"
+      }
+    ]
+  },
+  "requests": [
+    {
+      "location": "CartItemIsEmpty-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

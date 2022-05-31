@@ -15,14 +15,15 @@ import (
 	"github.com/google/uuid"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
+	gp "google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 )
 
 type CartItemService interface {
-	ListCartItemAndItem(ctx context.Context, req *pb.ListCartItemRequest, md *utils.ClientMetadata) (*pb.ListCartItemResponse, error)
+	ListCartItem(ctx context.Context, req *pb.ListCartItemRequest, md *utils.ClientMetadata) (*pb.ListCartItemResponse, error)
 	AddCartItem(ctx context.Context, req *pb.AddCartItemRequest, md *utils.ClientMetadata) (*pb.AddCartItemResponse, error)
-	CartItemQuantity(request *dto.CartItemQuantity) (*bool, error)
+	CartItemIsEmpty(ctx context.Context, req *gp.Empty, md *utils.ClientMetadata) (*pb.CartItemIsEmptyResponse, error)
 	ReduceCartItem(request *dto.ReduceCartItem) (*models.CartItem, error)
 	DeleteCartItem(request *dto.DeleteCartItemRequest) error
 	EmptyCartItem(request *dto.EmptyCartItemRequest) error
@@ -98,11 +99,11 @@ func (i *cartItemService) EmptyCartItem(request *dto.EmptyCartItemRequest) error
 	return nil
 }
 
-func (i *cartItemService) CartItemQuantity(request *dto.CartItemQuantity) (*bool, error) {
+func (i *cartItemService) CartItemIsEmpty(ctx context.Context, req *gp.Empty, md *utils.ClientMetadata) (*pb.CartItemIsEmptyResponse, error) {
 	var cartItemQuantityRes *bool
 	var cartItemQuantityErr error
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
@@ -116,13 +117,13 @@ func (i *cartItemService) CartItemQuantity(request *dto.CartItemQuantity) (*bool
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, nil)
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		cartItemQuantityRes, cartItemQuantityErr = i.dao.NewCartItemRepository().CartItemQuantity(tx, &models.CartItem{UserId: authorizationTokenRes.UserId})
+		cartItemQuantityRes, cartItemQuantityErr = i.dao.NewCartItemRepository().CartItemIsEmpty(tx, &models.CartItem{UserId: authorizationTokenRes.UserId})
 		if cartItemQuantityErr != nil {
 			return cartItemQuantityErr
 		}
@@ -131,10 +132,10 @@ func (i *cartItemService) CartItemQuantity(request *dto.CartItemQuantity) (*bool
 	if err != nil {
 		return nil, err
 	}
-	return cartItemQuantityRes, nil
+	return &pb.CartItemIsEmptyResponse{IsEmpty: *cartItemQuantityRes}, nil
 }
 
-func (i *cartItemService) ListCartItemAndItem(ctx context.Context, req *pb.ListCartItemRequest, md *utils.ClientMetadata) (*pb.ListCartItemResponse, error) {
+func (i *cartItemService) ListCartItem(ctx context.Context, req *pb.ListCartItemRequest, md *utils.ClientMetadata) (*pb.ListCartItemResponse, error) {
 	var items *[]models.CartItem
 	var res pb.ListCartItemResponse
 	var itemsErr error

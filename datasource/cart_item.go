@@ -18,7 +18,7 @@ type CartItemDatasource interface {
 	UpdateCartItem(tx *gorm.DB, where *models.CartItem, data *models.CartItem) (*models.CartItem, error)
 	GetCartItem(tx *gorm.DB, where *models.CartItem, fields *[]string) (*models.CartItem, error)
 	DeleteCartItem(tx *gorm.DB, where *models.CartItem, ids *[]uuid.UUID) (*[]models.CartItem, error)
-	CartItemQuantity(tx *gorm.DB, where *models.CartItem) (*bool, error)
+	CartItemIsEmpty(tx *gorm.DB, where *models.CartItem) (*bool, error)
 }
 
 type cartItemDatasource struct{}
@@ -32,9 +32,9 @@ func (i *cartItemDatasource) ListCartItemInIds(tx *gorm.DB, ids []uuid.UUID, fie
 	return &cartItems, nil
 }
 
-func (i *cartItemDatasource) CartItemQuantity(tx *gorm.DB, where *models.CartItem) (*bool, error) {
+func (i *cartItemDatasource) CartItemIsEmpty(tx *gorm.DB, where *models.CartItem) (*bool, error) {
 	var cartItems []models.CartItem
-	var res = false
+	var res = true
 	result := tx.Limit(1).Select("id").Where("cart_item.user_id = ?", where.UserId).Find(&cartItems)
 	if result.Error != nil {
 		return nil, result.Error
@@ -42,7 +42,7 @@ func (i *cartItemDatasource) CartItemQuantity(tx *gorm.DB, where *models.CartIte
 	if len(cartItems) == 0 {
 		return &res, nil
 	}
-	res = true
+	res = false
 	return &res, nil
 }
 

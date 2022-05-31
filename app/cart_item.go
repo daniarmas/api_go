@@ -45,7 +45,7 @@ func (m *CartItemServer) EmptyCartItem(ctx context.Context, req *gp.Empty) (*gp.
 func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemRequest) (*pb.ListCartItemResponse, error) {
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
-	res, err := m.cartItemService.ListCartItemAndItem(ctx, req, md)
+	res, err := m.cartItemService.ListCartItem(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -265,10 +265,10 @@ func (m *CartItemServer) DeleteCartItem(ctx context.Context, req *pb.DeleteCartI
 	return &gp.Empty{}, nil
 }
 
-func (m *CartItemServer) CartItemQuantity(ctx context.Context, req *gp.Empty) (*pb.CartItemQuantityResponse, error) {
+func (m *CartItemServer) CartItemIsEmpty(ctx context.Context, req *gp.Empty) (*pb.CartItemIsEmptyResponse, error) {
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	res, err := m.cartItemService.CartItemQuantity(&dto.CartItemQuantity{Metadata: &md})
+	md := utils.GetMetadata(ctx)
+	res, err := m.cartItemService.CartItemIsEmpty(ctx, req, md)
 	if err != nil {
 		errorr := strings.Split(err.Error(), ":")
 		switch errorr[0] {
@@ -302,5 +302,5 @@ func (m *CartItemServer) CartItemQuantity(ctx context.Context, req *gp.Empty) (*
 		}
 		return nil, st.Err()
 	}
-	return &pb.CartItemQuantityResponse{IsFull: *res}, nil
+	return res, nil
 }
