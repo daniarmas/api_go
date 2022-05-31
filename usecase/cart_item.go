@@ -1,19 +1,24 @@
 package usecase
 
 import (
+	"context"
 	"errors"
 	"strconv"
+	"time"
 
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/models"
+	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
+	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 )
 
 type CartItemService interface {
-	ListCartItemAndItem(itemRequest *dto.ListCartItemRequest) (*dto.ListCartItemResponse, error)
+	ListCartItemAndItem(ctx context.Context, req *pb.ListCartItemRequest, md *utils.ClientMetadata) (*pb.ListCartItemResponse, error)
 	AddCartItem(request *dto.AddCartItem) (*models.CartItem, error)
 	CartItemQuantity(request *dto.CartItemQuantity) (*bool, error)
 	ReduceCartItem(request *dto.ReduceCartItem) (*models.CartItem, error)
@@ -22,11 +27,12 @@ type CartItemService interface {
 }
 
 type cartItemService struct {
-	dao repository.DAO
+	dao    repository.DAO
+	config *utils.Config
 }
 
-func NewCartItemService(dao repository.DAO) CartItemService {
-	return &cartItemService{dao: dao}
+func NewCartItemService(dao repository.DAO, config *utils.Config) CartItemService {
+	return &cartItemService{dao: dao, config: config}
 }
 
 func (i *cartItemService) EmptyCartItem(request *dto.EmptyCartItemRequest) error {
@@ -126,12 +132,18 @@ func (i *cartItemService) CartItemQuantity(request *dto.CartItemQuantity) (*bool
 	return cartItemQuantityRes, nil
 }
 
-func (i *cartItemService) ListCartItemAndItem(itemRequest *dto.ListCartItemRequest) (*dto.ListCartItemResponse, error) {
+func (i *cartItemService) ListCartItemAndItem(ctx context.Context, req *pb.ListCartItemRequest, md *utils.ClientMetadata) (*pb.ListCartItemResponse, error) {
 	var items *[]models.CartItem
-	var listItemResponse dto.ListCartItemResponse
+	var res pb.ListCartItemResponse
 	var itemsErr error
+	var nextPage time.Time
+	if req.NextPage == nil {
+		nextPage = time.Now()
+	} else {
+		nextPage = req.NextPage.AsTime()
+	}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &itemRequest.Metadata.Get("authorization")[0]}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
@@ -145,50 +157,46 @@ func (i *cartItemService) ListCartItemAndItem(itemRequest *dto.ListCartItemReque
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, nil)
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		user, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserId}, &[]string{})
-		if userErr != nil {
-			return userErr
-		}
-		items, itemsErr = i.dao.NewCartItemRepository().ListCartItemAndItem(tx, &models.CartItem{UserId: user.ID}, &itemRequest.NextPage)
+		items, itemsErr = i.dao.NewCartItemRepository().ListCartItemAndItem(tx, &models.CartItem{UserId: authorizationTokenRes.UserId}, &nextPage)
 		if itemsErr != nil {
 			return itemsErr
 		} else if len(*items) > 10 {
 			*items = (*items)[:len(*items)-1]
-			listItemResponse.NextPage = (*items)[len(*items)-1].CreateTime
+			res.NextPage = timestamppb.New((*items)[len(*items)-1].CreateTime)
 		} else if len(*items) == 0 {
-			listItemResponse.NextPage = itemRequest.NextPage
+			res.NextPage = timestamppb.New(nextPage)
 		} else {
-			listItemResponse.NextPage = (*items)[len(*items)-1].CreateTime
+			res.NextPage = timestamppb.New((*items)[len(*items)-1].CreateTime)
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	itemsResponse := make([]dto.CartItem, 0, len(*items))
+	itemsResponse := make([]*pb.CartItem, 0, len(*items))
 	for _, item := range *items {
-		itemsResponse = append(itemsResponse, dto.CartItem{
-			ID:                   item.ID,
+		itemsResponse = append(itemsResponse, &pb.CartItem{
+			Id:                   item.ID.String(),
 			Name:                 item.Name,
 			Price:                item.Price,
-			Thumbnail:            item.Thumbnail,
-			ThumbnailBlurHash:    item.ThumbnailBlurHash,
+			ItemId:               item.ItemId.String(),
+			AuthorizationTokenId: item.AuthorizationTokenId.String(),
 			Quantity:             item.Quantity,
-			ItemId:               item.ItemId,
-			UserId:               item.UserId,
-			AuthorizationTokenId: item.AuthorizationTokenId,
-			CreateTime:           item.CreateTime,
-			UpdateTime:           item.UpdateTime,
+			Thumbnail:            item.Thumbnail,
+			ThumbnailUrl:         i.config.ItemsBulkName + "/" + item.Thumbnail,
+			ThumbnailBlurHash:    item.ThumbnailBlurHash,
+			CreateTime:           timestamppb.New(item.CreateTime),
+			UpdateTime:           timestamppb.New(item.UpdateTime),
 		})
 	}
-	listItemResponse.CartItems = *items
-	return &listItemResponse, nil
+	res.CartItems = itemsResponse
+	return &res, nil
 }
 
 func (i *cartItemService) AddCartItem(request *dto.AddCartItem) (*models.CartItem, error) {

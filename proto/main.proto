@@ -337,8 +337,7 @@ message CreateItemResponse {
 
 message ListCartItemRequest {
   google.protobuf.Timestamp nextPage = 1;
-  google.protobuf.FieldMask fieldMask = 2;
-  string municipalityId = 3;
+  string municipalityId = 2;
 }
 
 message ListCartItemResponse {
@@ -688,9 +687,10 @@ message CartItem {
   string price = 5;
   int32 quantity = 6;
   string thumbnail = 7;
-  string thumbnailBlurHash = 8;
-  google.protobuf.Timestamp createTime = 9;
-  google.protobuf.Timestamp updateTime = 10;
+  string thumbnailUrl = 8;
+  string thumbnailBlurHash = 9;
+  google.protobuf.Timestamp createTime = 10;
+  google.protobuf.Timestamp updateTime = 11;
 }
 
 

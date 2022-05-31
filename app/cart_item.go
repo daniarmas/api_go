@@ -3,10 +3,10 @@ package app
 import (
 	"context"
 	"strings"
-	"time"
 
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
+	utils "github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
@@ -43,14 +43,35 @@ func (m *CartItemServer) EmptyCartItem(ctx context.Context, req *gp.Empty) (*gp.
 }
 
 func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemRequest) (*pb.ListCartItemResponse, error) {
+	var invalidMunicipalityId *epb.BadRequest_FieldViolation
+	var invalidArgs bool
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	var nextPage = req.NextPage.AsTime()
-	if req.NextPage.Nanos == 0 && req.NextPage.Seconds == 0 {
-		nextPage = time.Now()
+	md := utils.GetMetadata(ctx)
+	if req.MunicipalityId == "" {
+		invalidArgs = true
+		invalidMunicipalityId = &epb.BadRequest_FieldViolation{
+			Field:       "MunicipalityId",
+			Description: "The MunicipalityId field is required",
+		}
+	} else if req.MunicipalityId != "" {
+		if !utils.IsValidUUID(&req.MunicipalityId) {
+			invalidArgs = true
+			invalidMunicipalityId = &epb.BadRequest_FieldViolation{
+				Field:       "MunicipalityId",
+				Description: "The MunicipalityId field is not a valid uuid v4",
+			}
+		}
 	}
-	municipalityId := uuid.MustParse(req.MunicipalityId)
-	listCartItemsResponse, err := m.cartItemService.ListCartItemAndItem(&dto.ListCartItemRequest{NextPage: nextPage, Metadata: &md, MunicipalityId: &municipalityId})
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidMunicipalityId != nil {
+			st, _ = st.WithDetails(
+				invalidMunicipalityId,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.cartItemService.ListCartItemAndItem(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -68,22 +89,7 @@ func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemR
 		}
 		return nil, st.Err()
 	}
-	itemsResponse := make([]*pb.CartItem, 0, len(listCartItemsResponse.CartItems))
-	for _, item := range listCartItemsResponse.CartItems {
-		itemsResponse = append(itemsResponse, &pb.CartItem{
-			Id:                   item.ID.String(),
-			Name:                 item.Name,
-			Price:                item.Price,
-			ItemId:               item.ItemId.String(),
-			AuthorizationTokenId: item.AuthorizationTokenId.String(),
-			Quantity:             item.Quantity,
-			Thumbnail:            item.Thumbnail,
-			ThumbnailBlurHash:    item.ThumbnailBlurHash,
-			CreateTime:           timestamppb.New(item.CreateTime),
-			UpdateTime:           timestamppb.New(item.UpdateTime),
-		})
-	}
-	return &pb.ListCartItemResponse{CartItems: itemsResponse, NextPage: timestamppb.New(listCartItemsResponse.NextPage)}, nil
+	return res, nil
 }
 
 func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemRequest) (*pb.AddCartItemResponse, error) {
