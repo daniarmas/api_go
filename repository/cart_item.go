@@ -9,7 +9,6 @@ import (
 )
 
 type CartItemQuery interface {
-	ListCartItemAndItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItem, error)
 	ListCartItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItem, error)
 	ListCartItemAll(tx *gorm.DB, where *models.CartItem) (*[]models.CartItem, error)
 	ListCartItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]models.CartItem, error)
@@ -21,14 +20,6 @@ type CartItemQuery interface {
 }
 
 type cartItemQuery struct{}
-
-func (i *cartItemQuery) ListCartItemAndItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItem, error) {
-	res, err := Datasource.NewCartItemDatasource().ListCartItemAndItem(tx, where, cursor)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
-}
 
 func (i *cartItemQuery) ListCartItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItem, error) {
 	res, err := Datasource.NewCartItemDatasource().ListCartItem(tx, where, cursor)

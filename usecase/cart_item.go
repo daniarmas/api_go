@@ -13,13 +13,15 @@ import (
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
+	"github.com/twpayne/go-geom"
+	"github.com/twpayne/go-geom/encoding/ewkb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 )
 
 type CartItemService interface {
 	ListCartItemAndItem(ctx context.Context, req *pb.ListCartItemRequest, md *utils.ClientMetadata) (*pb.ListCartItemResponse, error)
-	AddCartItem(request *dto.AddCartItem) (*models.CartItem, error)
+	AddCartItem(ctx context.Context, req *pb.AddCartItemRequest, md *utils.ClientMetadata) (*pb.AddCartItemResponse, error)
 	CartItemQuantity(request *dto.CartItemQuantity) (*bool, error)
 	ReduceCartItem(request *dto.ReduceCartItem) (*models.CartItem, error)
 	DeleteCartItem(request *dto.DeleteCartItemRequest) error
@@ -163,7 +165,7 @@ func (i *cartItemService) ListCartItemAndItem(ctx context.Context, req *pb.ListC
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		items, itemsErr = i.dao.NewCartItemRepository().ListCartItemAndItem(tx, &models.CartItem{UserId: authorizationTokenRes.UserId}, &nextPage)
+		items, itemsErr = i.dao.NewCartItemRepository().ListCartItem(tx, &models.CartItem{UserId: authorizationTokenRes.UserId}, &nextPage)
 		if itemsErr != nil {
 			return itemsErr
 		} else if len(*items) > 10 {
@@ -199,11 +201,13 @@ func (i *cartItemService) ListCartItemAndItem(ctx context.Context, req *pb.ListC
 	return &res, nil
 }
 
-func (i *cartItemService) AddCartItem(request *dto.AddCartItem) (*models.CartItem, error) {
+func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRequest, md *utils.ClientMetadata) (*pb.AddCartItemResponse, error) {
 	var result *models.CartItem
 	var resultErr error
+	itemId := uuid.MustParse(req.ItemId)
+	location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
@@ -217,45 +221,38 @@ func (i *cartItemService) AddCartItem(request *dto.AddCartItem) (*models.CartIte
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, nil)
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		item, itemErr := i.dao.NewItemQuery().GetItemWithLocation(tx, request.ItemId, request.Location)
+		item, itemErr := i.dao.NewItemQuery().GetItemWithLocation(tx, req.ItemId, location)
 		var itemAvailability int64
 		if itemErr != nil {
 			return itemErr
 		}
-		if (item.Availability - int64(request.Quantity)) < 0 {
+		if (item.Availability - int64(req.Quantity)) < 0 {
 			return errors.New("no_availability:availability:" + strconv.Itoa(int(item.Availability)))
-		} else if item.Availability-int64(request.Quantity) == 0 {
+		} else if item.Availability-int64(req.Quantity) == 0 {
 			itemAvailability = -1
 		} else {
-			itemAvailability = item.Availability - int64(request.Quantity)
-		}
-		_, err := i.dao.NewUnionBusinessAndMunicipalityRepository().GetUnionBusinessAndMunicipality(tx, &models.UnionBusinessAndMunicipality{BusinessId: item.BusinessId, MunicipalityId: request.MunicipalityId}, &[]string{"id"})
-		if err != nil && err.Error() == "record not found" {
-			return errors.New("out of range")
-		} else if err != nil {
-			return err
+			itemAvailability = item.Availability - int64(req.Quantity)
 		}
 		_, updateItemErr := i.dao.NewItemQuery().UpdateItem(tx, &models.Item{ID: item.ID}, &models.Item{Availability: itemAvailability})
 		if updateItemErr != nil {
 			return updateItemErr
 		}
-		itemId := uuid.MustParse(request.ItemId)
-		cartItemRes, cartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{ItemId: &itemId, UserId: authorizationTokenRes.UserId}, nil)
-		if cartItemErr != nil && cartItemErr.Error() != "record not found" {
-			return errors.New("cartitem not found")
+		cartItemRes, err := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{ItemId: &itemId, UserId: authorizationTokenRes.UserId}, &[]string{"id", "quantity"})
+		if err != nil && err.Error() != "record not found" {
+			return err
 		} else if cartItemRes != nil {
-			result, resultErr = i.dao.NewCartItemRepository().UpdateCartItem(tx, &models.CartItem{ItemId: &itemId, UserId: authorizationTokenRes.UserId}, &models.CartItem{Quantity: cartItemRes.Quantity + request.Quantity})
-			if resultErr != nil {
-				return resultErr
+			result, err = i.dao.NewCartItemRepository().UpdateCartItem(tx, &models.CartItem{ItemId: &itemId, UserId: authorizationTokenRes.UserId}, &models.CartItem{Quantity: cartItemRes.Quantity + req.Quantity})
+			if err != nil {
+				return err
 			}
-		} else if cartItemRes == nil && cartItemErr.Error() == "record not found" {
-			result, resultErr = i.dao.NewCartItemRepository().CreateCartItem(tx, &models.CartItem{Name: item.Name, Price: item.Price, Quantity: request.Quantity, ItemId: item.ID, UserId: authorizationTokenRes.UserId, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: item.BusinessId})
+		} else if cartItemRes == nil && err.Error() == "record not found" {
+			result, resultErr = i.dao.NewCartItemRepository().CreateCartItem(tx, &models.CartItem{Name: item.Name, Price: item.Price, Quantity: req.Quantity, ItemId: item.ID, UserId: authorizationTokenRes.UserId, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: item.BusinessId, Thumbnail: item.Thumbnail, ThumbnailBlurHash: item.ThumbnailBlurHash})
 			if resultErr != nil {
 				return resultErr
 			}
@@ -265,7 +262,21 @@ func (i *cartItemService) AddCartItem(request *dto.AddCartItem) (*models.CartIte
 	if err != nil {
 		return nil, err
 	}
-	return result, nil
+	return &pb.AddCartItemResponse{
+		CartItem: &pb.CartItem{
+			Id:                   result.ID.String(),
+			Name:                 result.Name,
+			Price:                result.Price,
+			ItemId:               result.ItemId.String(),
+			AuthorizationTokenId: result.AuthorizationTokenId.String(),
+			Quantity:             result.Quantity,
+			CreateTime:           timestamppb.New(result.CreateTime),
+			UpdateTime:           timestamppb.New(result.UpdateTime),
+			Thumbnail:            result.Thumbnail,
+			ThumbnailUrl:         i.config.ItemsBulkName + "/" + result.Thumbnail,
+			ThumbnailBlurHash:    result.ThumbnailBlurHash,
+		},
+	}, nil
 }
 
 func (i *cartItemService) ReduceCartItem(request *dto.ReduceCartItem) (*models.CartItem, error) {
