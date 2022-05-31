@@ -43,34 +43,8 @@ func (m *CartItemServer) EmptyCartItem(ctx context.Context, req *gp.Empty) (*gp.
 }
 
 func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemRequest) (*pb.ListCartItemResponse, error) {
-	var invalidMunicipalityId *epb.BadRequest_FieldViolation
-	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
-	if req.MunicipalityId == "" {
-		invalidArgs = true
-		invalidMunicipalityId = &epb.BadRequest_FieldViolation{
-			Field:       "MunicipalityId",
-			Description: "The MunicipalityId field is required",
-		}
-	} else if req.MunicipalityId != "" {
-		if !utils.IsValidUUID(&req.MunicipalityId) {
-			invalidArgs = true
-			invalidMunicipalityId = &epb.BadRequest_FieldViolation{
-				Field:       "MunicipalityId",
-				Description: "The MunicipalityId field is not a valid uuid v4",
-			}
-		}
-	}
-	if invalidArgs {
-		st = status.New(codes.InvalidArgument, "Invalid Arguments")
-		if invalidMunicipalityId != nil {
-			st, _ = st.WithDetails(
-				invalidMunicipalityId,
-			)
-		}
-		return nil, st.Err()
-	}
 	res, err := m.cartItemService.ListCartItemAndItem(ctx, req, md)
 	if err != nil {
 		switch err.Error() {

@@ -337,7 +337,6 @@ message CreateItemResponse {
 
 message ListCartItemRequest {
   google.protobuf.Timestamp nextPage = 1;
-  string municipalityId = 2;
 }
 
 message ListCartItemResponse {
