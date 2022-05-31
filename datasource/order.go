@@ -70,7 +70,7 @@ func (i *orderDatasource) ListOrder(tx *gorm.DB, where *models.Order) (*[]models
 
 func (i *orderDatasource) ListOrderWithBusiness(tx *gorm.DB, where *models.OrderBusiness) (*[]models.OrderBusiness, error) {
 	var res []models.OrderBusiness
-	result := tx.Model(&models.Order{}).Limit(11).Select(`"order"."id", "order"."status", "order"."order_type", "order"."residence_type", "order"."price", "order"."number", "order"."address", "order"."instructions", "order"."business_id", "order"."user_id", "order"."order_date", "order"."create_time", "order"."update_time", "order"."delete_time", ST_AsEWKB("order"."coordinates") AS "coordinates", "business"."name" AS "business_name", "order"."items_quantity"`).Joins(`left join "business" on "business"."id" = "order"."business_id"`).Where(`"order"."user_id" = ? AND "order"."create_time" < ?`, where.UserId, where.CreateTime).Order(`"order"."create_time" desc`).Scan(&res)
+	result := tx.Model(&models.Order{}).Limit(11).Select(`"order"."id", "order"."status", "order"."order_type", "order"."residence_type", "order"."price", "order"."number", "order"."address", "order"."instructions", "order"."business_id", "order"."user_id", "order"."order_date", "order"."create_time", "order"."update_time", "order"."delete_time", ST_AsEWKB("order"."coordinates") AS "coordinates", "order"."business_name", "order"."items_quantity"`).Where(`"order"."user_id" = ? AND "order"."create_time" < ?`, where.UserId, where.CreateTime).Order(`"order"."create_time" desc`).Scan(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}

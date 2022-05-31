@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"time"
 
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
@@ -18,14 +17,8 @@ import (
 
 func (m *OrderServer) ListOrder(ctx context.Context, req *pb.ListOrderRequest) (*pb.ListOrderResponse, error) {
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	var nextPage time.Time
-	if req.NextPage.Nanos == 0 && req.NextPage.Seconds == 0 {
-		nextPage = time.Now()
-	} else {
-		nextPage = req.NextPage.AsTime()
-	}
-	listOrderResponse, err := m.orderService.ListOrder(&dto.ListOrderRequest{NextPage: nextPage, Metadata: &md})
+	md := utils.GetMetadata(ctx)
+	res, err := m.orderService.ListOrder(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -57,27 +50,7 @@ func (m *OrderServer) ListOrder(ctx context.Context, req *pb.ListOrderRequest) (
 		}
 		return nil, st.Err()
 	}
-	ordersResponse := make([]*pb.Order, 0, len(*listOrderResponse.Orders))
-	for _, item := range *listOrderResponse.Orders {
-		ordersResponse = append(ordersResponse, &pb.Order{
-			Id:           item.ID.String(),
-			BusinessName: item.BusinessName,
-			Quantity:     item.Quantity,
-			Price:        item.Price,
-			Number:       item.Number, Address: item.Address,
-			Instructions:  item.Instructions,
-			UserId:        item.UserId.String(),
-			OrderDate:     timestamppb.New(item.OrderDate),
-			Status:        *utils.ParseOrderStatusType(&item.Status),
-			OrderType:     *utils.ParseOrderType(&item.OrderType),
-			ResidenceType: *utils.ParseOrderResidenceType(&item.ResidenceType),
-			Coordinates:   &pb.Point{Latitude: item.Coordinates.Coords()[1], Longitude: item.Coordinates.Coords()[0]},
-			BusinessId:    item.BusinessId.String(),
-			CreateTime:    timestamppb.New(item.CreateTime),
-			UpdateTime:    timestamppb.New(item.UpdateTime),
-		})
-	}
-	return &pb.ListOrderResponse{Orders: ordersResponse, NextPage: timestamppb.New(listOrderResponse.NextPage)}, nil
+	return res, nil
 }
 
 func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*pb.CreateOrderResponse, error) {

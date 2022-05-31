@@ -266,7 +266,6 @@ message CreateOrderResponse {
 
 message ListOrderRequest {
   google.protobuf.Timestamp nextPage = 1;
-  google.protobuf.FieldMask fieldMask = 2;
 }
 
 message ListOrderResponse {

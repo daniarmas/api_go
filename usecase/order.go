@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"errors"
 	"strconv"
 	"strings"
@@ -9,14 +10,17 @@ import (
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/models"
+	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
+	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 )
 
 type OrderService interface {
-	ListOrder(request *dto.ListOrderRequest) (*dto.ListOrderResponse, error)
+	ListOrder(ctx context.Context, req *pb.ListOrderRequest, md *utils.ClientMetadata) (*pb.ListOrderResponse, error)
 	CreateOrder(request *dto.CreateOrderRequest) (*dto.CreateOrderResponse, error)
 	UpdateOrder(request *dto.UpdateOrderRequest) (*dto.UpdateOrderResponse, error)
 	ListOrderedItemWithItem(request *dto.ListOrderedItemRequest) (*dto.ListOrderedItemResponse, error)
@@ -691,10 +695,18 @@ func (i *orderService) CreateOrder(request *dto.CreateOrderRequest) (*dto.Create
 	return &response, nil
 }
 
-func (i *orderService) ListOrder(request *dto.ListOrderRequest) (*dto.ListOrderResponse, error) {
-	var listOrderResponse dto.ListOrderResponse
+func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, md *utils.ClientMetadata) (*pb.ListOrderResponse, error) {
+	var ordersRes *[]models.OrderBusiness
+	var ordersErr error
+	var nextPage time.Time
+	if req.NextPage == nil {
+		nextPage = time.Now()
+	} else {
+		nextPage = req.NextPage.AsTime()
+	}
+	var res pb.ListOrderResponse
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
@@ -708,29 +720,49 @@ func (i *orderService) ListOrder(request *dto.ListOrderRequest) (*dto.ListOrderR
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, nil)
-		if authorizationTokenErr != nil {
-			return authorizationTokenErr
-		} else if authorizationTokenRes == nil {
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
 		}
-		ordersRes, ordersErr := i.dao.NewOrderRepository().ListOrderWithBusiness(tx, &models.OrderBusiness{CreateTime: request.NextPage, UserId: authorizationTokenRes.UserId})
+		ordersRes, ordersErr = i.dao.NewOrderRepository().ListOrderWithBusiness(tx, &models.OrderBusiness{CreateTime: nextPage, UserId: authorizationTokenRes.UserId})
 		if ordersErr != nil {
 			return ordersErr
 		}
 		if len(*ordersRes) > 10 {
 			*ordersRes = (*ordersRes)[:len(*ordersRes)-1]
-			listOrderResponse.NextPage = (*ordersRes)[len(*ordersRes)-1].CreateTime
+			res.NextPage = timestamppb.New((*ordersRes)[len(*ordersRes)-1].CreateTime)
 		} else if len(*ordersRes) > 0 {
-			listOrderResponse.NextPage = (*ordersRes)[len(*ordersRes)-1].CreateTime
+			res.NextPage = timestamppb.New((*ordersRes)[len(*ordersRes)-1].CreateTime)
 		} else {
-			listOrderResponse.NextPage = request.NextPage
+			res.NextPage = timestamppb.New(nextPage)
 		}
-		listOrderResponse.Orders = ordersRes
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &listOrderResponse, nil
+	ordersResponse := make([]*pb.Order, 0, len(*ordersRes))
+	for _, item := range *ordersRes {
+		ordersResponse = append(ordersResponse, &pb.Order{
+			Id:           item.ID.String(),
+			BusinessName: item.BusinessName,
+			Quantity:     item.Quantity,
+			Price:        item.Price,
+			Number:       item.Number, Address: item.Address,
+			Instructions:  item.Instructions,
+			UserId:        item.UserId.String(),
+			OrderDate:     timestamppb.New(item.OrderDate),
+			Status:        *utils.ParseOrderStatusType(&item.Status),
+			OrderType:     *utils.ParseOrderType(&item.OrderType),
+			ResidenceType: *utils.ParseOrderResidenceType(&item.ResidenceType),
+			Coordinates:   &pb.Point{Latitude: item.Coordinates.Coords()[1], Longitude: item.Coordinates.Coords()[0]},
+			BusinessId:    item.BusinessId.String(),
+			CreateTime:    timestamppb.New(item.CreateTime),
+			UpdateTime:    timestamppb.New(item.UpdateTime),
+		})
+	}
+	res.Orders = ordersResponse
+	return &res, nil
 }
