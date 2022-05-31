@@ -56,7 +56,7 @@ service OrderService {
 service CartItemService {
   rpc ListCartItem (ListCartItemRequest) returns (ListCartItemResponse) {}
   rpc AddCartItem (AddCartItemRequest) returns (AddCartItemResponse) {}
-  rpc CartItemQuantity (google.protobuf.Empty) returns (CartItemQuantityResponse) {}
+  rpc IsEmptyCartItem (google.protobuf.Empty) returns (IsEmptyCartItemResponse) {}
   rpc ReduceCartItem (ReduceCartItemRequest) returns (ReduceCartItemResponse) {}
   rpc DeleteCartItem (DeleteCartItemRequest) returns (google.protobuf.Empty) {}
   rpc EmptyCartItem (google.protobuf.Empty) returns (google.protobuf.Empty) {}
@@ -313,8 +313,8 @@ message UpdateItemResponse {
   Item item = 1;
 }
 
-message CartItemQuantityResponse {
-  bool isFull = 1;
+message IsEmptyCartItemResponse {
+  bool isEmpty = 1;
 }
 
 message CreateItemRequest {
@@ -337,8 +337,6 @@ message CreateItemResponse {
 
 message ListCartItemRequest {
   google.protobuf.Timestamp nextPage = 1;
-  google.protobuf.FieldMask fieldMask = 2;
-  string municipalityId = 3;
 }
 
 message ListCartItemResponse {
@@ -385,16 +383,12 @@ message DeleteItemRequest {
 message DeleteCartItemRequest {
   string id = 1;
   Point location = 2;
-  string municipalityId = 3;
-  google.protobuf.FieldMask fieldMask = 4;
 }
 
 message AddCartItemRequest {
   string itemId = 1;
   Point location = 2;
-  string municipalityId = 3;
-  int32 quantity = 4;
-  google.protobuf.FieldMask fieldMask = 5;
+  int32 quantity = 3;
 }
 
 message AddCartItemResponse {
@@ -405,8 +399,6 @@ message ReduceCartItemRequest {
   string itemId = 1;
   Point location = 2;
   int32 quantity = 3;
-  string municipalityId = 4;
-  google.protobuf.FieldMask fieldMask = 5;
 }
 
 message ReduceCartItemResponse {
@@ -688,9 +680,10 @@ message CartItem {
   string price = 5;
   int32 quantity = 6;
   string thumbnail = 7;
-  string thumbnailBlurHash = 8;
-  google.protobuf.Timestamp createTime = 9;
-  google.protobuf.Timestamp updateTime = 10;
+  string thumbnailUrl = 8;
+  string thumbnailBlurHash = 9;
+  google.protobuf.Timestamp createTime = 10;
+  google.protobuf.Timestamp updateTime = 11;
 }
 
 

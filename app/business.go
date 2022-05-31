@@ -198,7 +198,7 @@ func (m *BusinessServer) Feed(ctx context.Context, req *pb.FeedRequest) (*pb.Fee
 	} else if req.MunicipalityId != "" {
 		if !utils.IsValidUUID(&req.MunicipalityId) {
 			invalidArgs = true
-			invalidProvinceId = &epb.BadRequest_FieldViolation{
+			invalidMunicipalityId = &epb.BadRequest_FieldViolation{
 				Field:       "MunicipalityId",
 				Description: "The MunicipalityId field is not a valid uuid v4",
 			}

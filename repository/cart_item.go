@@ -9,7 +9,6 @@ import (
 )
 
 type CartItemQuery interface {
-	ListCartItemAndItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItem, error)
 	ListCartItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItem, error)
 	ListCartItemAll(tx *gorm.DB, where *models.CartItem) (*[]models.CartItem, error)
 	ListCartItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]models.CartItem, error)
@@ -17,18 +16,10 @@ type CartItemQuery interface {
 	UpdateCartItem(tx *gorm.DB, where *models.CartItem, data *models.CartItem) (*models.CartItem, error)
 	GetCartItem(tx *gorm.DB, where *models.CartItem, fields *[]string) (*models.CartItem, error)
 	DeleteCartItem(tx *gorm.DB, where *models.CartItem, ids *[]uuid.UUID) (*[]models.CartItem, error)
-	CartItemQuantity(tx *gorm.DB, where *models.CartItem) (*bool, error)
+	CartItemIsEmpty(tx *gorm.DB, where *models.CartItem) (*bool, error)
 }
 
 type cartItemQuery struct{}
-
-func (i *cartItemQuery) ListCartItemAndItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItem, error) {
-	res, err := Datasource.NewCartItemDatasource().ListCartItemAndItem(tx, where, cursor)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
-}
 
 func (i *cartItemQuery) ListCartItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItem, error) {
 	res, err := Datasource.NewCartItemDatasource().ListCartItem(tx, where, cursor)
@@ -38,8 +29,8 @@ func (i *cartItemQuery) ListCartItem(tx *gorm.DB, where *models.CartItem, cursor
 	return res, nil
 }
 
-func (i *cartItemQuery) CartItemQuantity(tx *gorm.DB, where *models.CartItem) (*bool, error) {
-	res, err := Datasource.NewCartItemDatasource().CartItemQuantity(tx, where)
+func (i *cartItemQuery) CartItemIsEmpty(tx *gorm.DB, where *models.CartItem) (*bool, error) {
+	res, err := Datasource.NewCartItemDatasource().CartItemIsEmpty(tx, where)
 	if err != nil {
 		return nil, err
 	}
