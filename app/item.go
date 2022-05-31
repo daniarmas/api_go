@@ -5,7 +5,6 @@ import (
 
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
-	ut "github.com/daniarmas/api_go/utils"
 	utils "github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
 	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -181,7 +180,7 @@ func (m *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) 
 		Thumbnail:                item.Thumbnail,
 		ThumbnailBlurHash:        item.ThumbnailBlurHash,
 		Cursor:                   item.Cursor,
-		Status:                   *ut.ParseItemStatusType(&item.Status),
+		Status:                   *utils.ParseItemStatusType(&item.Status),
 		CreateTime:               timestamppb.New(item.CreateTime),
 		UpdateTime:               timestamppb.New(item.UpdateTime),
 	}}, nil
@@ -340,5 +339,5 @@ func (m *ItemServer) CreateItem(ctx context.Context, req *pb.CreateItemRequest) 
 		}
 		return nil, st.Err()
 	}
-	return &pb.CreateItemResponse{Item: &pb.Item{Id: res.ID.String(), Name: res.Name, Description: res.Description, Price: res.Price, Status: *ut.ParseItemStatusType(&res.Status), Availability: int32(res.Availability), BusinessId: res.BusinessId.String(), BusinessCollectionId: res.BusinessCollectionId.String(), HighQualityPhoto: res.HighQualityPhoto, HighQualityPhotoBlurHash: res.HighQualityPhotoBlurHash, LowQualityPhoto: res.LowQualityPhoto, LowQualityPhotoBlurHash: res.LowQualityPhotoBlurHash, Thumbnail: res.Thumbnail, ThumbnailBlurHash: res.ThumbnailBlurHash, CreateTime: timestamppb.New(res.CreateTime), UpdateTime: timestamppb.New(res.UpdateTime)}}, nil
+	return &pb.CreateItemResponse{Item: &pb.Item{Id: res.ID.String(), Name: res.Name, Description: res.Description, Price: res.Price, Status: *utils.ParseItemStatusType(&res.Status), Availability: int32(res.Availability), BusinessId: res.BusinessId.String(), BusinessCollectionId: res.BusinessCollectionId.String(), HighQualityPhoto: res.HighQualityPhoto, HighQualityPhotoBlurHash: res.HighQualityPhotoBlurHash, LowQualityPhoto: res.LowQualityPhoto, LowQualityPhotoBlurHash: res.LowQualityPhotoBlurHash, Thumbnail: res.Thumbnail, ThumbnailBlurHash: res.ThumbnailBlurHash, CreateTime: timestamppb.New(res.CreateTime), UpdateTime: timestamppb.New(res.UpdateTime)}}, nil
 }

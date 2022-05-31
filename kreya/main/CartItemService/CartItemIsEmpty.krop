@@ -1,6 +1,6 @@
 {
   "details": {
-    "methodFqn": "main.CartItemService.DeleteCartItem",
+    "methodFqn": "main.CartItemService.CartItemIsEmpty",
     "metadata": [
       {
         "key": "Device-Id",
@@ -42,7 +42,7 @@
   },
   "requests": [
     {
-      "location": "DeleteCartItem-request.json"
+      "location": "CartItemIsEmpty-request.json"
     }
   ],
   "operationType": "unary",

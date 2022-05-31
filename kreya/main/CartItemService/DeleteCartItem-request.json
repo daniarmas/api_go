@@ -1,9 +1,7 @@
 {
-  "id": "{{ faker.random.uuid }}",
+  "id": "4edd4355-3dea-4307-8ec2-6c88dd05f3a8",
   "location": {
     "latitude": 1.23,
     "longitude": 1.23
-  },
-  "municipalityId": "fooBar",
-  "fieldMask": "fooBar,fooBar"
+  }
 }

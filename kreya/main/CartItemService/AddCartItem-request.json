@@ -1,10 +1,8 @@
 {
-  "itemId": "fooBar",
+  "itemId": "06752723-a3d8-477d-a2e6-512334b0b3b1",
   "location": {
     "latitude": 1.23,
     "longitude": 1.23
   },
-  "municipalityId": "fooBar",
-  "quantity": 123,
-  "fieldMask": "fooBar,fooBar"
+  "quantity": 1
 }
