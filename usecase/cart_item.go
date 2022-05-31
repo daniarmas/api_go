@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/daniarmas/api_go/datasource"
-	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
@@ -26,7 +25,7 @@ type CartItemService interface {
 	IsEmptyCartItem(ctx context.Context, req *gp.Empty, md *utils.ClientMetadata) (*pb.IsEmptyCartItemResponse, error)
 	ReduceCartItem(ctx context.Context, req *pb.ReduceCartItemRequest, md *utils.ClientMetadata) (*pb.ReduceCartItemResponse, error)
 	DeleteCartItem(ctx context.Context, req *pb.DeleteCartItemRequest, md *utils.ClientMetadata) (*gp.Empty, error)
-	EmptyCartItem(request *dto.EmptyCartItemRequest) error
+	EmptyCartItem(ctx context.Context, md *utils.ClientMetadata) (*gp.Empty, error)
 }
 
 type cartItemService struct {
@@ -38,9 +37,9 @@ func NewCartItemService(dao repository.DAO, config *utils.Config) CartItemServic
 	return &cartItemService{dao: dao, config: config}
 }
 
-func (i *cartItemService) EmptyCartItem(request *dto.EmptyCartItemRequest) error {
+func (i *cartItemService) EmptyCartItem(ctx context.Context, md *utils.ClientMetadata) (*gp.Empty, error) {
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
@@ -54,7 +53,7 @@ func (i *cartItemService) EmptyCartItem(request *dto.EmptyCartItemRequest) error
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, nil)
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
@@ -75,7 +74,7 @@ func (i *cartItemService) EmptyCartItem(request *dto.EmptyCartItemRequest) error
 		for _, item := range *listCartItemsRes {
 			var index = -1
 			for i, n := range *itemsRes {
-				if n.ID == item.ItemId {
+				if *n.ID == *item.ItemId {
 					index = i
 				}
 			}
@@ -94,9 +93,9 @@ func (i *cartItemService) EmptyCartItem(request *dto.EmptyCartItemRequest) error
 		return nil
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &gp.Empty{}, nil
 }
 
 func (i *cartItemService) IsEmptyCartItem(ctx context.Context, req *gp.Empty, md *utils.ClientMetadata) (*pb.IsEmptyCartItemResponse, error) {

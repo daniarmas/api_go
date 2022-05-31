@@ -4,20 +4,18 @@ import (
 	"context"
 	"strings"
 
-	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
 	utils "github.com/daniarmas/api_go/utils"
 	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	gp "google.golang.org/protobuf/types/known/emptypb"
 )
 
 func (m *CartItemServer) EmptyCartItem(ctx context.Context, req *gp.Empty) (*gp.Empty, error) {
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	err := m.cartItemService.EmptyCartItem(&dto.EmptyCartItemRequest{Metadata: &md})
+	md := utils.GetMetadata(ctx)
+	res, err := m.cartItemService.EmptyCartItem(ctx, md)
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -35,7 +33,7 @@ func (m *CartItemServer) EmptyCartItem(ctx context.Context, req *gp.Empty) (*gp.
 		}
 		return nil, st.Err()
 	}
-	return &gp.Empty{}, nil
+	return res, nil
 }
 
 func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemRequest) (*pb.ListCartItemResponse, error) {
