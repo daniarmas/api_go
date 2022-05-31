@@ -360,7 +360,8 @@ message GetUserResponse {
 }
 
 message ListSessionResponse {
-  repeated Session sessions = 1;
+  Session actualSession = 1;
+  repeated Session otherSessions = 2;
 }
 
 message SignOutRequest {
@@ -754,7 +755,6 @@ message Session {
   AppType app = 5;
   string appVersion = 6;
   string deviceId = 7;
-  bool actual = 8;
 }
 
 // message Device {

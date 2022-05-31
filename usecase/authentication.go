@@ -522,7 +522,7 @@ func (v *authenticationService) ListSession(ctx context.Context, meta *utils.Cli
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
+		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id", "device_id"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
@@ -537,24 +537,32 @@ func (v *authenticationService) ListSession(ctx context.Context, meta *utils.Cli
 	if err != nil {
 		return nil, err
 	}
-	sessions := make([]*pb.Session, 0, len(*listSessionRes))
+	var actualSession pb.Session
+	otherSessions := make([]*pb.Session, 0, len(*listSessionRes))
 	for _, e := range *listSessionRes {
-		var actual bool = false
-		if e.Device.ID == authorizationTokenRes.DeviceId {
-			actual = true
+		if e.DeviceId != *authorizationTokenRes.DeviceId {
+			otherSessions = append(otherSessions, &pb.Session{
+				Id:            e.ID.String(),
+				Platform:      *utils.ParsePlatformType(&e.Platform),
+				SystemVersion: e.SystemVersion,
+				Model:         e.Model,
+				App:           *utils.ParseAppType(&e.App),
+				AppVersion:    e.AppVersion,
+				DeviceId:      e.DeviceId.String(),
+			})
+		} else {
+			actualSession = pb.Session{
+				Id:            e.ID.String(),
+				Platform:      *utils.ParsePlatformType(&e.Platform),
+				SystemVersion: e.SystemVersion,
+				Model:         e.Model,
+				App:           *utils.ParseAppType(&e.App),
+				AppVersion:    e.AppVersion,
+				DeviceId:      e.DeviceId.String(),
+			}
 		}
-		sessions = append(sessions, &pb.Session{
-			Id:            e.ID.String(),
-			Platform:      *utils.ParsePlatformType(&e.Platform),
-			SystemVersion: e.SystemVersion,
-			Model:         e.Model,
-			App:           *utils.ParseAppType(&e.App),
-			AppVersion:    e.AppVersion,
-			DeviceId:      e.DeviceId.String(),
-			Actual:        actual,
-		})
 	}
-	return &pb.ListSessionResponse{Sessions: sessions}, nil
+	return &pb.ListSessionResponse{OtherSessions: otherSessions, ActualSession: &actualSession}, nil
 }
 
 func (v *authenticationService) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest, meta *utils.ClientMetadata) (*pb.RefreshTokenResponse, error) {
