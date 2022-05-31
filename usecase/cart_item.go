@@ -25,7 +25,7 @@ type CartItemService interface {
 	AddCartItem(ctx context.Context, req *pb.AddCartItemRequest, md *utils.ClientMetadata) (*pb.AddCartItemResponse, error)
 	CartItemIsEmpty(ctx context.Context, req *gp.Empty, md *utils.ClientMetadata) (*pb.CartItemIsEmptyResponse, error)
 	ReduceCartItem(ctx context.Context, req *pb.ReduceCartItemRequest, md *utils.ClientMetadata) (*pb.ReduceCartItemResponse, error)
-	DeleteCartItem(request *dto.DeleteCartItemRequest) error
+	DeleteCartItem(ctx context.Context, req *pb.DeleteCartItemRequest, md *utils.ClientMetadata) (*gp.Empty, error)
 	EmptyCartItem(request *dto.EmptyCartItemRequest) error
 }
 
@@ -359,9 +359,11 @@ func (i *cartItemService) ReduceCartItem(ctx context.Context, req *pb.ReduceCart
 	}
 }
 
-func (i *cartItemService) DeleteCartItem(request *dto.DeleteCartItemRequest) error {
+func (i *cartItemService) DeleteCartItem(ctx context.Context, req *pb.DeleteCartItemRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
+	id := uuid.MustParse(req.Id)
+	location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &request.Metadata.Get("authorization")[0]}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
@@ -375,29 +377,22 @@ func (i *cartItemService) DeleteCartItem(request *dto.DeleteCartItemRequest) err
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, nil)
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		cartItemId := uuid.MustParse(request.CartItemId)
-		cartItemRes, cartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{ID: &cartItemId, UserId: authorizationTokenRes.UserId}, nil)
+		cartItemRes, cartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{ID: &id, UserId: authorizationTokenRes.UserId}, &[]string{"id", "quantity", "item_id"})
 		if cartItemErr != nil && cartItemErr.Error() != "record not found" {
 			return errors.New("cartitem not found")
 		}
-		item, itemErr := i.dao.NewItemQuery().GetItemWithLocation(tx, cartItemRes.ItemId.String(), request.Location)
+		item, itemErr := i.dao.NewItemQuery().GetItemWithLocation(tx, cartItemRes.ItemId.String(), location)
 		if itemErr != nil {
 			return itemErr
 		}
 		if item.Availability == -1 {
 			item.Availability += 1
-		}
-		_, municipalityErr := i.dao.NewUnionBusinessAndMunicipalityRepository().GetUnionBusinessAndMunicipality(tx, &models.UnionBusinessAndMunicipality{BusinessId: item.BusinessId, MunicipalityId: request.MunicipalityId}, &[]string{"id"})
-		if municipalityErr != nil && municipalityErr.Error() == "record not found" {
-			return errors.New("out of range")
-		} else if municipalityErr != nil {
-			return municipalityErr
 		}
 		_, updateItemErr := i.dao.NewItemQuery().UpdateItem(tx, &models.Item{ID: item.ID}, &models.Item{Availability: item.Availability + int64(cartItemRes.Quantity)})
 		if updateItemErr != nil {
@@ -410,7 +405,7 @@ func (i *cartItemService) DeleteCartItem(request *dto.DeleteCartItemRequest) err
 		return nil
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &gp.Empty{}, nil
 }

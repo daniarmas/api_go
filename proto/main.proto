@@ -383,8 +383,6 @@ message DeleteItemRequest {
 message DeleteCartItemRequest {
   string id = 1;
   Point location = 2;
-  string municipalityId = 3;
-  google.protobuf.FieldMask fieldMask = 4;
 }
 
 message AddCartItemRequest {
