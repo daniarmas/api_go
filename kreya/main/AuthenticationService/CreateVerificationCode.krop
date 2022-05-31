@@ -4,7 +4,7 @@
     "metadata": [
       {
         "key": "Device-Id",
-        "value": "1"
+        "value": "10"
       },
       {
         "key": "App-Version",
@@ -16,15 +16,15 @@
       },
       {
         "key": "Platform",
-        "value": "Android"
+        "value": "iOS"
       },
       {
         "key": "System-Version",
-        "value": "11"
+        "value": "14"
       },
       {
         "key": "Model",
-        "value": "Google Pixel 3XL"
+        "value": "iPhone 11"
       },
       {
         "key": "App",
