@@ -15,7 +15,6 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	gp "google.golang.org/protobuf/types/known/emptypb"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (m *CartItemServer) EmptyCartItem(ctx context.Context, req *gp.Empty) (*gp.Empty, error) {
@@ -169,10 +168,73 @@ func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemReq
 }
 
 func (m *CartItemServer) ReduceCartItem(ctx context.Context, req *pb.ReduceCartItemRequest) (*pb.ReduceCartItemResponse, error) {
+	var invalidItemId, invalidLocation, invalidQuantity *epb.BadRequest_FieldViolation
+	var invalidArgs bool
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	municipalityId := uuid.MustParse(req.MunicipalityId)
-	cartItemsResponse, err := m.cartItemService.ReduceCartItem(&dto.ReduceCartItem{ItemId: req.ItemId, Location: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, Metadata: &md, MunicipalityId: &municipalityId})
+	md := utils.GetMetadata(ctx)
+	if req.Quantity <= 0 {
+		invalidArgs = true
+		invalidQuantity = &epb.BadRequest_FieldViolation{
+			Field:       "Quantity",
+			Description: "The Quantity value must be greater than 0",
+		}
+	}
+	if req.Location == nil {
+		invalidArgs = true
+		invalidLocation = &epb.BadRequest_FieldViolation{
+			Field:       "Location",
+			Description: "The Location field is required",
+		}
+	} else if req.Location != nil {
+		if req.Location.Latitude == 0 {
+			invalidArgs = true
+			invalidLocation = &epb.BadRequest_FieldViolation{
+				Field:       "Location.Latitude",
+				Description: "The Location.Latitude field is required",
+			}
+		} else if req.Location.Longitude == 0 {
+			invalidArgs = true
+			invalidLocation = &epb.BadRequest_FieldViolation{
+				Field:       "Location.Longitude",
+				Description: "The Location.Longitude field is required",
+			}
+		}
+	}
+	if req.ItemId == "" {
+		invalidArgs = true
+		invalidItemId = &epb.BadRequest_FieldViolation{
+			Field:       "ItemId",
+			Description: "The ItemId field is required",
+		}
+	} else if req.ItemId != "" {
+		if !utils.IsValidUUID(&req.ItemId) {
+			invalidArgs = true
+			invalidItemId = &epb.BadRequest_FieldViolation{
+				Field:       "ItemId",
+				Description: "The ItemId field is not a valid uuid v4",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidLocation != nil {
+			st, _ = st.WithDetails(
+				invalidLocation,
+			)
+		}
+		if invalidQuantity != nil {
+			st, _ = st.WithDetails(
+				invalidQuantity,
+			)
+		}
+		if invalidItemId != nil {
+			st, _ = st.WithDetails(
+				invalidItemId,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.cartItemService.ReduceCartItem(ctx, req, md)
 	if err != nil {
 		errorr := strings.Split(err.Error(), ":")
 		switch errorr[0] {
@@ -206,22 +268,7 @@ func (m *CartItemServer) ReduceCartItem(ctx context.Context, req *pb.ReduceCartI
 		}
 		return nil, st.Err()
 	}
-	if cartItemsResponse != nil {
-		return &pb.ReduceCartItemResponse{CartItem: &pb.CartItem{
-			Id:                   cartItemsResponse.ID.String(),
-			Name:                 cartItemsResponse.Name,
-			Price:                cartItemsResponse.Price,
-			ItemId:               cartItemsResponse.ItemId.String(),
-			AuthorizationTokenId: cartItemsResponse.AuthorizationTokenId.String(),
-			Quantity:             cartItemsResponse.Quantity,
-			CreateTime:           timestamppb.New(cartItemsResponse.CreateTime),
-			UpdateTime:           timestamppb.New(cartItemsResponse.UpdateTime),
-			// Thumbnail:            cartItemsResponse.Thumbnail,
-			// ThumbnailBlurHash:    cartItemsResponse.ThumbnailBlurHash,
-		}}, nil
-	} else {
-		return &pb.ReduceCartItemResponse{CartItem: &pb.CartItem{}}, nil
-	}
+	return res, nil
 }
 
 func (m *CartItemServer) DeleteCartItem(ctx context.Context, req *pb.DeleteCartItemRequest) (*gp.Empty, error) {

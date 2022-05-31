@@ -401,8 +401,6 @@ message ReduceCartItemRequest {
   string itemId = 1;
   Point location = 2;
   int32 quantity = 3;
-  string municipalityId = 4;
-  google.protobuf.FieldMask fieldMask = 5;
 }
 
 message ReduceCartItemResponse {
