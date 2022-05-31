@@ -56,7 +56,7 @@ service OrderService {
 service CartItemService {
   rpc ListCartItem (ListCartItemRequest) returns (ListCartItemResponse) {}
   rpc AddCartItem (AddCartItemRequest) returns (AddCartItemResponse) {}
-  rpc CartItemIsEmpty (google.protobuf.Empty) returns (CartItemIsEmptyResponse) {}
+  rpc IsEmptyCartItem (google.protobuf.Empty) returns (IsEmptyCartItemResponse) {}
   rpc ReduceCartItem (ReduceCartItemRequest) returns (ReduceCartItemResponse) {}
   rpc DeleteCartItem (DeleteCartItemRequest) returns (google.protobuf.Empty) {}
   rpc EmptyCartItem (google.protobuf.Empty) returns (google.protobuf.Empty) {}
@@ -313,7 +313,7 @@ message UpdateItemResponse {
   Item item = 1;
 }
 
-message CartItemIsEmptyResponse {
+message IsEmptyCartItemResponse {
   bool isEmpty = 1;
 }
 

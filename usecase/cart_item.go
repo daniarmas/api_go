@@ -23,7 +23,7 @@ import (
 type CartItemService interface {
 	ListCartItem(ctx context.Context, req *pb.ListCartItemRequest, md *utils.ClientMetadata) (*pb.ListCartItemResponse, error)
 	AddCartItem(ctx context.Context, req *pb.AddCartItemRequest, md *utils.ClientMetadata) (*pb.AddCartItemResponse, error)
-	CartItemIsEmpty(ctx context.Context, req *gp.Empty, md *utils.ClientMetadata) (*pb.CartItemIsEmptyResponse, error)
+	IsEmptyCartItem(ctx context.Context, req *gp.Empty, md *utils.ClientMetadata) (*pb.IsEmptyCartItemResponse, error)
 	ReduceCartItem(ctx context.Context, req *pb.ReduceCartItemRequest, md *utils.ClientMetadata) (*pb.ReduceCartItemResponse, error)
 	DeleteCartItem(ctx context.Context, req *pb.DeleteCartItemRequest, md *utils.ClientMetadata) (*gp.Empty, error)
 	EmptyCartItem(request *dto.EmptyCartItemRequest) error
@@ -99,7 +99,7 @@ func (i *cartItemService) EmptyCartItem(request *dto.EmptyCartItemRequest) error
 	return nil
 }
 
-func (i *cartItemService) CartItemIsEmpty(ctx context.Context, req *gp.Empty, md *utils.ClientMetadata) (*pb.CartItemIsEmptyResponse, error) {
+func (i *cartItemService) IsEmptyCartItem(ctx context.Context, req *gp.Empty, md *utils.ClientMetadata) (*pb.IsEmptyCartItemResponse, error) {
 	var cartItemQuantityRes *bool
 	var cartItemQuantityErr error
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
@@ -132,7 +132,7 @@ func (i *cartItemService) CartItemIsEmpty(ctx context.Context, req *gp.Empty, md
 	if err != nil {
 		return nil, err
 	}
-	return &pb.CartItemIsEmptyResponse{IsEmpty: *cartItemQuantityRes}, nil
+	return &pb.IsEmptyCartItemResponse{IsEmpty: *cartItemQuantityRes}, nil
 }
 
 func (i *cartItemService) ListCartItem(ctx context.Context, req *pb.ListCartItemRequest, md *utils.ClientMetadata) (*pb.ListCartItemResponse, error) {

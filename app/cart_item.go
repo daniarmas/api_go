@@ -360,10 +360,10 @@ func (m *CartItemServer) DeleteCartItem(ctx context.Context, req *pb.DeleteCartI
 	return res, nil
 }
 
-func (m *CartItemServer) CartItemIsEmpty(ctx context.Context, req *gp.Empty) (*pb.CartItemIsEmptyResponse, error) {
+func (m *CartItemServer) IsEmptyCartItem(ctx context.Context, req *gp.Empty) (*pb.IsEmptyCartItemResponse, error) {
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
-	res, err := m.cartItemService.CartItemIsEmpty(ctx, req, md)
+	res, err := m.cartItemService.IsEmptyCartItem(ctx, req, md)
 	if err != nil {
 		errorr := strings.Split(err.Error(), ":")
 		switch errorr[0] {
