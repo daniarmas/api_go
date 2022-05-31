@@ -1,4 +1,4 @@
 {
-  "email": "prueba2@correo.cup",
-  "type": "ChangeUserEmail"
+  "email": "user1@email.com",
+  "type": "SignIn"
 }

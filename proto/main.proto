@@ -755,7 +755,6 @@ message Session {
   AppType app = 5;
   string appVersion = 6;
   string deviceId = 7;
-  bool actual = 8;
 }
 
 // message Device {
