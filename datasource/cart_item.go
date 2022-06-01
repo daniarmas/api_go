@@ -25,7 +25,7 @@ type cartItemDatasource struct{}
 
 func (i *cartItemDatasource) ListCartItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]models.CartItem, error) {
 	var cartItems []models.CartItem
-	result := tx.Where("id IN ?", ids).Select(fields).Find(&cartItems)
+	result := tx.Where("id IN ?", ids).Select(*fields).Find(&cartItems)
 	if result.Error != nil {
 		return nil, result.Error
 	}
