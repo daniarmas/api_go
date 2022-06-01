@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"net/mail"
 	"strconv"
 
 	"github.com/daniarmas/api_go/dto"
@@ -65,16 +66,27 @@ func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.GetUserRes
 }
 
 func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
-	var invalidCode *epb.BadRequest_FieldViolation
-	var invalidId *epb.BadRequest_FieldViolation
+	var invalidCode, invalidEmail, invalidId *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
-	if req.User == nil || req.User.Id == "" {
-		invalidArgs = true
-		invalidId = &epb.BadRequest_FieldViolation{
-			Field:       "User.Id",
-			Description: "The User.Id field is required",
+	if req.User.Email != "" {
+		_, err := mail.ParseAddress(req.User.Email)
+		if err != nil {
+			invalidArgs = true
+			invalidEmail = &epb.BadRequest_FieldViolation{
+				Field:       "User.Email",
+				Description: "The User.Email field is invalid",
+			}
+		}
+	}
+	if req.User.Id != "" {
+		if !utils.IsValidUUID(&req.User.Id) {
+			invalidArgs = true
+			invalidId = &epb.BadRequest_FieldViolation{
+				Field:       "User.Id",
+				Description: "The User.Id field is not a valid uuid v4",
+			}
 		}
 	}
 	if req.Code != "" {
@@ -91,6 +103,11 @@ func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) 
 		if invalidId != nil {
 			st, _ = st.WithDetails(
 				invalidId,
+			)
+		}
+		if invalidEmail != nil {
+			st, _ = st.WithDetails(
+				invalidEmail,
 			)
 		}
 		if invalidCode != nil {

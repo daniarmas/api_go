@@ -2,14 +2,12 @@ package app
 
 import (
 	"context"
-	"time"
 
 	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
-	"github.com/twpayne/go-geom"
-	"github.com/twpayne/go-geom/encoding/ewkb"
+	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -18,14 +16,8 @@ import (
 
 func (m *OrderServer) ListOrder(ctx context.Context, req *pb.ListOrderRequest) (*pb.ListOrderResponse, error) {
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	var nextPage time.Time
-	if req.NextPage.Nanos == 0 && req.NextPage.Seconds == 0 {
-		nextPage = time.Now()
-	} else {
-		nextPage = req.NextPage.AsTime()
-	}
-	listOrderResponse, err := m.orderService.ListOrder(&dto.ListOrderRequest{NextPage: nextPage, Metadata: &md})
+	md := utils.GetMetadata(ctx)
+	res, err := m.orderService.ListOrder(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -57,37 +49,116 @@ func (m *OrderServer) ListOrder(ctx context.Context, req *pb.ListOrderRequest) (
 		}
 		return nil, st.Err()
 	}
-	ordersResponse := make([]*pb.Order, 0, len(*listOrderResponse.Orders))
-	for _, item := range *listOrderResponse.Orders {
-		ordersResponse = append(ordersResponse, &pb.Order{
-			Id:           item.ID.String(),
-			BusinessName: item.BusinessName,
-			Quantity:     item.Quantity,
-			Price:        item.Price,
-			Number:       item.Number, Address: item.Address,
-			Instructions:  item.Instructions,
-			UserId:        item.UserId.String(),
-			OrderDate:     timestamppb.New(item.OrderDate),
-			Status:        *utils.ParseOrderStatusType(&item.Status),
-			OrderType:     *utils.ParseOrderType(&item.OrderType),
-			ResidenceType: *utils.ParseOrderResidenceType(&item.ResidenceType),
-			Coordinates:   &pb.Point{Latitude: item.Coordinates.Coords()[1], Longitude: item.Coordinates.Coords()[0]},
-			BusinessId:    item.BusinessId.String(),
-			CreateTime:    timestamppb.New(item.CreateTime),
-			UpdateTime:    timestamppb.New(item.UpdateTime),
-		})
-	}
-	return &pb.ListOrderResponse{Orders: ordersResponse, NextPage: timestamppb.New(listOrderResponse.NextPage)}, nil
+	return res, nil
 }
 
 func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*pb.CreateOrderResponse, error) {
+	var invalidCartItems, invalidLocation, invalidOrderType, invalidResidenceType, invalidNumber, invalidAddress *epb.BadRequest_FieldViolation
+	var invalidArgs bool
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	cartItems := make([]uuid.UUID, 0, len(req.CartItems))
-	for _, item := range req.CartItems {
-		cartItems = append(cartItems, uuid.MustParse(item))
+	md := utils.GetMetadata(ctx)
+	if len(req.CartItems) == 0 {
+		invalidArgs = true
+		invalidCartItems = &epb.BadRequest_FieldViolation{
+			Field:       "CartItems",
+			Description: "The CartItems field is required",
+		}
+	} else {
+		for _, elem := range req.CartItems {
+			if !utils.IsValidUUID(&elem) {
+				invalidArgs = true
+				invalidCartItems = &epb.BadRequest_FieldViolation{
+					Field:       "CartItems",
+					Description: "The CartItems contains not a valid uuid v4",
+				}
+				break
+			}
+		}
 	}
-	createOrderRes, createOrderErr := m.orderService.CreateOrder(&dto.CreateOrderRequest{CartItems: &cartItems, OrderType: req.OrderType.String(), ResidenceType: req.ResidenceType.String(), Number: req.Number, Address: req.Address, Instructions: req.Instructions, OrderDate: req.OrderDate.AsTime(), Coordinates: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Coordinates.Latitude, req.Coordinates.Longitude}).SetSRID(4326)}, Metadata: &md})
+	if req.Location == nil {
+		invalidArgs = true
+		invalidLocation = &epb.BadRequest_FieldViolation{
+			Field:       "Location",
+			Description: "The Location field is required",
+		}
+	} else if req.Location != nil {
+		if req.Location.Latitude == 0 {
+			invalidArgs = true
+			invalidLocation = &epb.BadRequest_FieldViolation{
+				Field:       "Location.Latitude",
+				Description: "The Location.Latitude field is required",
+			}
+		} else if req.Location.Longitude == 0 {
+			invalidArgs = true
+			invalidLocation = &epb.BadRequest_FieldViolation{
+				Field:       "Location.Longitude",
+				Description: "The Location.Longitude field is required",
+			}
+		}
+	}
+	if req.Address == "" {
+		invalidArgs = true
+		invalidAddress = &epb.BadRequest_FieldViolation{
+			Field:       "Address",
+			Description: "The Address field is required",
+		}
+	}
+	if req.Number == "" {
+		invalidArgs = true
+		invalidNumber = &epb.BadRequest_FieldViolation{
+			Field:       "Number",
+			Description: "The Number field is required",
+		}
+	}
+	if req.OrderType == *pb.OrderType_OrderTypeUnspecified.Enum() {
+		invalidArgs = true
+		invalidOrderType = &epb.BadRequest_FieldViolation{
+			Field:       "OrderType",
+			Description: "The OrderType field is required",
+		}
+	}
+	if req.ResidenceType == *pb.ResidenceType_ResidenceTypeUnspecified.Enum() {
+		invalidArgs = true
+		invalidResidenceType = &epb.BadRequest_FieldViolation{
+			Field:       "ResidenceType",
+			Description: "The ResidenceType field is required",
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidLocation != nil {
+			st, _ = st.WithDetails(
+				invalidLocation,
+			)
+		}
+		if invalidAddress != nil {
+			st, _ = st.WithDetails(
+				invalidAddress,
+			)
+		}
+		if invalidNumber != nil {
+			st, _ = st.WithDetails(
+				invalidNumber,
+			)
+		}
+		if invalidCartItems != nil {
+			st, _ = st.WithDetails(
+				invalidCartItems,
+			)
+		}
+		if invalidResidenceType != nil {
+			st, _ = st.WithDetails(
+				invalidResidenceType,
+			)
+		}
+		if invalidOrderType != nil {
+			st, _ = st.WithDetails(
+				invalidOrderType,
+			)
+		}
+		return nil, st.Err()
+	}
+	createOrderRes, createOrderErr := m.orderService.CreateOrder(ctx, req, md)
 	if createOrderErr != nil {
 		switch createOrderErr.Error() {
 		case "authorizationtoken not found":
