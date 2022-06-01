@@ -41,9 +41,9 @@ func (v *authenticationService) CreateVerificationCode(ctx context.Context, req 
 		if err != nil {
 			if err.Error() == "record not found" && (req.Type.String() == "SignIn") {
 				return errors.New("user not found")
-			} else if user != nil && (req.Type.String() == "SignUp" || req.Type.String() == "ChangeUserEmail") {
-				return errors.New("user already exists")
 			}
+		} else if user != nil && (req.Type.String() == "SignUp" || req.Type.String() == "ChangeUserEmail") {
+			return errors.New("user already exists")
 		}
 		bannedUserResult, err := v.dao.NewBannedUserQuery().GetBannedUser(tx, &models.BannedUser{Email: req.Email}, &[]string{"id"})
 		if err != nil && err.Error() != "record not found" {

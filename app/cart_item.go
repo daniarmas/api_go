@@ -135,6 +135,8 @@ func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemReq
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "unauthenticated":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "item not found":
+			st = status.New(codes.NotFound, "Item not found")
 		case "out of range":
 			st = status.New(codes.InvalidArgument, "Out of range")
 		case "no_availability":
