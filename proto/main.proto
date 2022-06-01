@@ -256,7 +256,7 @@ message CreateOrderRequest {
 	string number = 4;         
 	string address = 5;
   string instructions = 6;           
-	Point coordinates = 7;    
+	Point location = 7;    
 	google.protobuf.Timestamp orderDate = 8;       
 }
 
@@ -266,7 +266,6 @@ message CreateOrderResponse {
 
 message ListOrderRequest {
   google.protobuf.Timestamp nextPage = 1;
-  google.protobuf.FieldMask fieldMask = 2;
 }
 
 message ListOrderResponse {
