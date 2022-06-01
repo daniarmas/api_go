@@ -7,8 +7,7 @@ import (
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
-	"github.com/twpayne/go-geom"
-	"github.com/twpayne/go-geom/encoding/ewkb"
+	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -54,13 +53,112 @@ func (m *OrderServer) ListOrder(ctx context.Context, req *pb.ListOrderRequest) (
 }
 
 func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*pb.CreateOrderResponse, error) {
+	var invalidCartItems, invalidLocation, invalidOrderType, invalidResidenceType, invalidNumber, invalidAddress *epb.BadRequest_FieldViolation
+	var invalidArgs bool
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	cartItems := make([]uuid.UUID, 0, len(req.CartItems))
-	for _, item := range req.CartItems {
-		cartItems = append(cartItems, uuid.MustParse(item))
+	md := utils.GetMetadata(ctx)
+	if len(req.CartItems) == 0 {
+		invalidArgs = true
+		invalidCartItems = &epb.BadRequest_FieldViolation{
+			Field:       "CartItems",
+			Description: "The CartItems field is required",
+		}
+	} else {
+		for _, elem := range req.CartItems {
+			if !utils.IsValidUUID(&elem) {
+				invalidArgs = true
+				invalidCartItems = &epb.BadRequest_FieldViolation{
+					Field:       "CartItems",
+					Description: "The CartItems contains not a valid uuid v4",
+				}
+				break
+			}
+		}
 	}
-	createOrderRes, createOrderErr := m.orderService.CreateOrder(&dto.CreateOrderRequest{CartItems: &cartItems, OrderType: req.OrderType.String(), ResidenceType: req.ResidenceType.String(), Number: req.Number, Address: req.Address, Instructions: req.Instructions, OrderDate: req.OrderDate.AsTime(), Coordinates: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Coordinates.Latitude, req.Coordinates.Longitude}).SetSRID(4326)}, Metadata: &md})
+	if req.Location == nil {
+		invalidArgs = true
+		invalidLocation = &epb.BadRequest_FieldViolation{
+			Field:       "Location",
+			Description: "The Location field is required",
+		}
+	} else if req.Location != nil {
+		if req.Location.Latitude == 0 {
+			invalidArgs = true
+			invalidLocation = &epb.BadRequest_FieldViolation{
+				Field:       "Location.Latitude",
+				Description: "The Location.Latitude field is required",
+			}
+		} else if req.Location.Longitude == 0 {
+			invalidArgs = true
+			invalidLocation = &epb.BadRequest_FieldViolation{
+				Field:       "Location.Longitude",
+				Description: "The Location.Longitude field is required",
+			}
+		}
+	}
+	if req.Address == "" {
+		invalidArgs = true
+		invalidAddress = &epb.BadRequest_FieldViolation{
+			Field:       "Address",
+			Description: "The Address field is required",
+		}
+	}
+	if req.Number == "" {
+		invalidArgs = true
+		invalidNumber = &epb.BadRequest_FieldViolation{
+			Field:       "Number",
+			Description: "The Number field is required",
+		}
+	}
+	if req.OrderType == *pb.OrderType_OrderTypeUnspecified.Enum() {
+		invalidArgs = true
+		invalidOrderType = &epb.BadRequest_FieldViolation{
+			Field:       "OrderType",
+			Description: "The OrderType field is required",
+		}
+	}
+	if req.ResidenceType == *pb.ResidenceType_ResidenceTypeUnspecified.Enum() {
+		invalidArgs = true
+		invalidResidenceType = &epb.BadRequest_FieldViolation{
+			Field:       "ResidenceType",
+			Description: "The ResidenceType field is required",
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidLocation != nil {
+			st, _ = st.WithDetails(
+				invalidLocation,
+			)
+		}
+		if invalidAddress != nil {
+			st, _ = st.WithDetails(
+				invalidAddress,
+			)
+		}
+		if invalidNumber != nil {
+			st, _ = st.WithDetails(
+				invalidNumber,
+			)
+		}
+		if invalidCartItems != nil {
+			st, _ = st.WithDetails(
+				invalidCartItems,
+			)
+		}
+		if invalidResidenceType != nil {
+			st, _ = st.WithDetails(
+				invalidResidenceType,
+			)
+		}
+		if invalidOrderType != nil {
+			st, _ = st.WithDetails(
+				invalidOrderType,
+			)
+		}
+		return nil, st.Err()
+	}
+	createOrderRes, createOrderErr := m.orderService.CreateOrder(ctx, req, md)
 	if createOrderErr != nil {
 		switch createOrderErr.Error() {
 		case "authorizationtoken not found":

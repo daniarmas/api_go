@@ -10,6 +10,7 @@ import (
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/utils"
+	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
@@ -140,6 +141,7 @@ func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*p
 func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest, md *utils.ClientMetadata) (*pb.UpdateUserResponse, error) {
 	var updatedUserRes *models.User
 	var updatedUserErr error
+	var userId uuid.UUID
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
@@ -155,14 +157,14 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, err := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
-		if err != nil && err.Error() == "record not found" {
-			return errors.New("authorization token not found")
-		} else if err != nil && err.Error() != "record not found" {
-			return err
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
+			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
 		}
 		// chech if is the user or if have permission
-		if authorizationTokenRes.UserId.String() != req.User.Id {
+		if req.User.Id != "" && authorizationTokenRes.UserId.String() != req.User.Id {
 			_, err := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{Name: "admin"}, &[]string{"id"})
 			if err != nil && err.Error() == "record not found" {
 				return errors.New("not have permission")
@@ -173,6 +175,11 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 		userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserId}, &[]string{"id"})
 		if userErr != nil {
 			return userErr
+		}
+		if req.User.Id == "" {
+			userId = *userRes.ID
+		} else {
+			userId = uuid.MustParse(req.User.Id)
 		}
 		if req.User.Email != "" {
 			if req.Code == "" {
@@ -188,7 +195,7 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 			if err != nil {
 				return err
 			}
-			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: userRes.ID}, &models.User{Email: req.User.Email})
+			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: &userId}, &models.User{Email: req.User.Email})
 			if updatedUserErr != nil {
 				return updatedUserErr
 			}
@@ -230,12 +237,12 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 			if rmThErr != nil {
 				return rmThErr
 			}
-			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: userRes.ID}, &models.User{HighQualityPhoto: req.User.HighQualityPhoto, HighQualityPhotoBlurHash: req.User.HighQualityPhotoBlurHash, LowQualityPhoto: req.User.LowQualityPhoto, LowQualityPhotoBlurHash: req.User.LowQualityPhotoBlurHash, Thumbnail: req.User.Thumbnail, ThumbnailBlurHash: req.User.ThumbnailBlurHash})
+			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: &userId}, &models.User{HighQualityPhoto: req.User.HighQualityPhoto, HighQualityPhotoBlurHash: req.User.HighQualityPhotoBlurHash, LowQualityPhoto: req.User.LowQualityPhoto, LowQualityPhotoBlurHash: req.User.LowQualityPhotoBlurHash, Thumbnail: req.User.Thumbnail, ThumbnailBlurHash: req.User.ThumbnailBlurHash})
 			if updatedUserErr != nil {
 				return updatedUserErr
 			}
 		} else if req.User.FullName != "" {
-			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: userRes.ID}, &models.User{FullName: req.User.FullName})
+			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: &userId}, &models.User{FullName: req.User.FullName})
 			if updatedUserErr != nil {
 				return updatedUserErr
 			}
