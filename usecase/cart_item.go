@@ -229,7 +229,9 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 		}
 		item, itemErr := i.dao.NewItemQuery().GetItemWithLocation(tx, req.ItemId, location)
 		var itemAvailability int64
-		if itemErr != nil {
+		if itemErr != nil && itemErr.Error() == "record not found" {
+			return errors.New("item not found")
+		} else if itemErr != nil {
 			return itemErr
 		}
 		if (item.Availability - int64(req.Quantity)) < 0 {

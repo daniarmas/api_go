@@ -158,7 +158,7 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 		}
 		return nil, st.Err()
 	}
-	createOrderRes, createOrderErr := m.orderService.CreateOrder(ctx, req, md)
+	res, createOrderErr := m.orderService.CreateOrder(ctx, req, md)
 	if createOrderErr != nil {
 		switch createOrderErr.Error() {
 		case "authorizationtoken not found":
@@ -188,7 +188,7 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 		}
 		return nil, st.Err()
 	}
-	return &pb.CreateOrderResponse{Order: &pb.Order{Id: createOrderRes.Order.ID.String(), Number: createOrderRes.Order.Number, Price: createOrderRes.Order.Price, UserId: createOrderRes.Order.UserId.String(), BusinessId: createOrderRes.Order.BusinessId.String(), Quantity: createOrderRes.Order.ItemsQuantity, Status: *utils.ParseOrderStatusType(&createOrderRes.Order.Status), OrderType: *utils.ParseOrderType(&createOrderRes.Order.OrderType), ResidenceType: *utils.ParseOrderResidenceType(&createOrderRes.Order.ResidenceType), Instructions: createOrderRes.Order.Instructions, CreateTime: timestamppb.New(createOrderRes.Order.CreateTime), UpdateTime: timestamppb.New(createOrderRes.Order.UpdateTime), OrderDate: timestamppb.New(createOrderRes.Order.OrderDate), Coordinates: &pb.Point{Latitude: createOrderRes.Order.Coordinates.FlatCoords()[0], Longitude: createOrderRes.Order.Coordinates.FlatCoords()[1]}}}, nil
+	return res, nil
 }
 
 func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderRequest) (*pb.UpdateOrderResponse, error) {
