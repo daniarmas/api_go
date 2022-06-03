@@ -2,6 +2,8 @@ package usecase
 
 import (
 	"context"
+	"fmt"
+
 	"errors"
 	"time"
 
@@ -10,6 +12,7 @@ import (
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/utils"
+	smtp "github.com/daniarmas/api_go/utils/smtp"
 	"github.com/google/uuid"
 	gp "google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -28,11 +31,12 @@ type AuthenticationService interface {
 }
 
 type authenticationService struct {
-	dao repository.DAO
+	dao    repository.DAO
+	config *utils.Config
 }
 
-func NewAuthenticationService(dao repository.DAO) AuthenticationService {
-	return &authenticationService{dao: dao}
+func NewAuthenticationService(dao repository.DAO, config *utils.Config) AuthenticationService {
+	return &authenticationService{dao: dao, config: config}
 }
 
 func (v *authenticationService) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest, meta *utils.ClientMetadata) (*gp.Empty, error) {
@@ -66,10 +70,12 @@ func (v *authenticationService) CreateVerificationCode(ctx context.Context, req 
 			return errors.New("app banned")
 		}
 		v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{Email: req.Email, Type: req.Type.String(), DeviceIdentifier: *meta.DeviceIdentifier}, nil)
-		_, createVerificationCodeErr := v.dao.NewVerificationCodeQuery().CreateVerificationCode(tx, &models.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: *meta.DeviceIdentifier, CreateTime: time.Now(), UpdateTime: time.Now()})
+		createVerificationCodeRes, createVerificationCodeErr := v.dao.NewVerificationCodeQuery().CreateVerificationCode(tx, &models.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: *meta.DeviceIdentifier, CreateTime: time.Now(), UpdateTime: time.Now()})
 		if createVerificationCodeErr != nil {
 			return createVerificationCodeErr
 		}
+		verificationCodeMsg := fmt.Sprintf("Su código de verificación es %s", createVerificationCodeRes.Code)
+		go smtp.SendMail(req.Email, v.config.EmailAddress, v.config.EmailAddressPassword, "Código de Verificación", verificationCodeMsg, v.config)
 		return nil
 	})
 	if err != nil {
@@ -92,7 +98,7 @@ func (v *authenticationService) GetVerificationCode(ctx context.Context, req *pb
 	return &gp.Empty{}, nil
 }
 
-func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInRequest, meta *utils.ClientMetadata) (*pb.SignInResponse, error) {
+func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInRequest, md *utils.ClientMetadata) (*pb.SignInResponse, error) {
 	var verificationCodeRes *models.VerificationCode
 	var userRes *models.User
 	var bannedUserRes *models.BannedUser
@@ -106,19 +112,19 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		jwtAuthorizationToken *datasource.JsonWebTokenMetadata
 	)
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		bannedAppRes, bannedAppErr := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: *meta.AppVersion}, &[]string{})
+		bannedAppRes, bannedAppErr := v.dao.NewDeprecatedVersionAppRepository().GetDeprecatedVersionApp(tx, &models.DeprecatedVersionApp{Version: *md.AppVersion}, &[]string{})
 		if bannedAppErr != nil && bannedAppErr.Error() != "record not found" {
 			return bannedAppErr
 		} else if bannedAppRes != nil {
 			return errors.New("app banned")
 		}
-		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: *meta.DeviceIdentifier}, &[]string{})
+		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceQuery().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{})
 		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
 			return bannedDeviceErr
 		} else if bannedDeviceRes != nil {
 			return errors.New("device banned")
 		}
-		verificationCodeRes, verificationCodeErr = v.dao.NewVerificationCodeQuery().GetVerificationCode(tx, &models.VerificationCode{Email: req.Email, Code: req.Code, DeviceIdentifier: *meta.DeviceIdentifier, Type: "SignIn"}, &[]string{"id"})
+		verificationCodeRes, verificationCodeErr = v.dao.NewVerificationCodeQuery().GetVerificationCode(tx, &models.VerificationCode{Email: req.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "SignIn"}, &[]string{"id"})
 		if verificationCodeErr != nil && verificationCodeErr.Error() == "record not found" {
 			return errors.New("verification code not found")
 		} else if verificationCodeRes == nil {
@@ -139,20 +145,20 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		} else if bannedUserRes != nil {
 			return errors.New("user banned")
 		}
-		_, err := v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{Email: req.Email, Type: "SignIn", DeviceIdentifier: *meta.DeviceIdentifier}, nil)
+		_, err := v.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{Email: req.Email, Type: "SignIn", DeviceIdentifier: *md.DeviceIdentifier}, nil)
 		if err != nil {
 			return err
 		}
-		deviceRes, deviceErr = v.dao.NewDeviceQuery().GetDevice(tx, &models.Device{DeviceIdentifier: *meta.DeviceIdentifier}, &[]string{"id"})
+		deviceRes, deviceErr = v.dao.NewDeviceQuery().GetDevice(tx, &models.Device{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
 		if deviceErr != nil && deviceErr.Error() != "record not found" {
 			return deviceErr
 		} else if deviceRes == nil {
-			deviceRes, deviceErr = v.dao.NewDeviceQuery().CreateDevice(tx, &models.Device{DeviceIdentifier: *meta.DeviceIdentifier, Platform: *meta.Platform, SystemVersion: *meta.SystemVersion, FirebaseCloudMessagingId: *meta.FirebaseCloudMessagingId, Model: *meta.Model})
+			deviceRes, deviceErr = v.dao.NewDeviceQuery().CreateDevice(tx, &models.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
 			if deviceErr != nil {
 				return deviceErr
 			}
 		} else {
-			_, deviceErr := v.dao.NewDeviceQuery().UpdateDevice(tx, &models.Device{DeviceIdentifier: *meta.DeviceIdentifier}, &models.Device{DeviceIdentifier: *meta.DeviceIdentifier, Platform: *meta.Platform, SystemVersion: *meta.SystemVersion, FirebaseCloudMessagingId: *meta.FirebaseCloudMessagingId, Model: *meta.Model})
+			_, deviceErr := v.dao.NewDeviceQuery().UpdateDevice(tx, &models.Device{DeviceIdentifier: *md.DeviceIdentifier}, &models.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
 			if deviceErr != nil {
 				return deviceErr
 			}
@@ -171,7 +177,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		if refreshTokenErr != nil {
 			return refreshTokenErr
 		}
-		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().CreateAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: refreshTokenRes.ID, UserId: userRes.ID, DeviceId: deviceRes.ID, App: meta.App, AppVersion: meta.AppVersion})
+		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().CreateAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: refreshTokenRes.ID, UserId: userRes.ID, DeviceId: deviceRes.ID, App: md.App, AppVersion: md.AppVersion})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
@@ -192,7 +198,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 	}
 	userAddress := make([]*pb.UserAddress, 0, len(userRes.UserAddress))
 	permissions := make([]*pb.Permission, 0, len(userRes.UserPermissions))
-	if *meta.App == "Business" {
+	if *md.App == "Business" {
 		for _, item := range userRes.UserPermissions {
 			permissions = append(permissions, &pb.Permission{
 				Id:         item.ID.String(),
@@ -220,6 +226,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 			UpdateTime:     timestamppb.New(item.UpdateTime),
 		})
 	}
+	go smtp.SendSignInMail(req.Email, time.Now(), v.config, md)
 	return &pb.SignInResponse{AuthorizationToken: *jwtAuthorizationToken.Token, RefreshToken: *jwtRefreshToken.Token, User: &pb.User{
 		Id:                       userRes.ID.String(),
 		FullName:                 userRes.FullName,
