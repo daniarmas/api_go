@@ -3,15 +3,11 @@ package app
 import (
 	"context"
 
-	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/utils"
-	"github.com/google/uuid"
 	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (m *OrderServer) ListOrder(ctx context.Context, req *pb.ListOrderRequest) (*pb.ListOrderResponse, error) {
@@ -194,10 +190,47 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 }
 
 func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderRequest) (*pb.UpdateOrderResponse, error) {
+	var invalidId, invalidStatus *epb.BadRequest_FieldViolation
+	var invalidArgs bool
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	id := uuid.MustParse(req.Id)
-	updateOrderRes, updateOrderErr := m.orderService.UpdateOrder(&dto.UpdateOrderRequest{Id: &id, Status: req.Status.String(), Metadata: &md})
+	md := utils.GetMetadata(ctx)
+	if req.Id == "" {
+		invalidArgs = true
+		invalidId = &epb.BadRequest_FieldViolation{
+			Field:       "Id",
+			Description: "The Id field is required",
+		}
+	} else if req.Id != "" {
+		if !utils.IsValidUUID(&req.Id) {
+			invalidArgs = true
+			invalidId = &epb.BadRequest_FieldViolation{
+				Field:       "Id",
+				Description: "The Id field is not a valid uuid v4",
+			}
+		}
+	}
+	if req.Status == *pb.OrderStatusType_OrderStatusTypeUnspecified.Enum() {
+		invalidArgs = true
+		invalidStatus = &epb.BadRequest_FieldViolation{
+			Field:       "Status",
+			Description: "The Status field is required",
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidId != nil {
+			st, _ = st.WithDetails(
+				invalidId,
+			)
+		}
+		if invalidStatus != nil {
+			st, _ = st.WithDetails(
+				invalidStatus,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, updateOrderErr := m.orderService.UpdateOrder(ctx, req, md)
 	if updateOrderErr != nil {
 		switch updateOrderErr.Error() {
 		case "authorizationtoken not found":
@@ -217,7 +250,7 @@ func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReques
 		}
 		return nil, st.Err()
 	}
-	return &pb.UpdateOrderResponse{Order: &pb.Order{Id: updateOrderRes.Order.ID.String(), Address: updateOrderRes.Order.Address, Instructions: updateOrderRes.Order.Instructions, Price: updateOrderRes.Order.Price, UserId: updateOrderRes.Order.UserId.String(), BusinessId: updateOrderRes.Order.BusinessId.String(), Status: *utils.ParseOrderStatusType(&updateOrderRes.Order.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.Order.OrderType), ResidenceType: *utils.ParseOrderResidenceType(&updateOrderRes.Order.ResidenceType), Number: updateOrderRes.Order.Number, CreateTime: timestamppb.New(updateOrderRes.Order.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.Order.UpdateTime), OrderTime: timestamppb.New(updateOrderRes.Order.OrderTime), Coordinates: &pb.Point{Latitude: updateOrderRes.Order.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Order.Coordinates.FlatCoords()[1]}}}, nil
+	return res, nil
 }
 
 func (m *OrderServer) ListOrderedItem(ctx context.Context, req *pb.ListOrderedItemRequest) (*pb.ListOrderedItemResponse, error) {

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/daniarmas/api_go/datasource"
-	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
@@ -24,7 +23,7 @@ import (
 type OrderService interface {
 	ListOrder(ctx context.Context, req *pb.ListOrderRequest, md *utils.ClientMetadata) (*pb.ListOrderResponse, error)
 	CreateOrder(ctx context.Context, req *pb.CreateOrderRequest, md *utils.ClientMetadata) (*pb.CreateOrderResponse, error)
-	UpdateOrder(req *dto.UpdateOrderRequest) (*dto.UpdateOrderResponse, error)
+	UpdateOrder(ctx context.Context, req *pb.UpdateOrderRequest, md *utils.ClientMetadata) (*pb.UpdateOrderResponse, error)
 	ListOrderedItemWithItem(ctx context.Context, req *pb.ListOrderedItemRequest, md *utils.ClientMetadata) (*pb.ListOrderedItemResponse, error)
 }
 
@@ -85,10 +84,11 @@ func (i *orderService) ListOrderedItemWithItem(ctx context.Context, req *pb.List
 	return &res, nil
 }
 
-func (i *orderService) UpdateOrder(req *dto.UpdateOrderRequest) (*dto.UpdateOrderResponse, error) {
-	var response dto.UpdateOrderResponse
+func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderRequest, md *utils.ClientMetadata) (*pb.UpdateOrderResponse, error) {
+	var response pb.UpdateOrderResponse
+	id := uuid.MustParse(req.Id)
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &req.Metadata.Get("authorization")[0]}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
@@ -108,16 +108,16 @@ func (i *orderService) UpdateOrder(req *dto.UpdateOrderRequest) (*dto.UpdateOrde
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		orderRes, orderErr := i.dao.NewOrderRepository().GetOrder(tx, &models.Order{ID: req.Id})
+		orderRes, orderErr := i.dao.NewOrderRepository().GetOrder(tx, &models.Order{ID: &id})
 		if orderErr != nil {
 			return orderErr
 		}
 		switch req.Status {
-		case "OrderStatusTypeCanceled":
+		case pb.OrderStatusType_OrderStatusTypeCanceled:
 			if orderRes.Status != "OrderStatusTypeStarted" {
 				return errors.New("status error")
 			}
-			unionOrderAndOrderedItemRes, unionOrderAndOrderedItemErr := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &models.UnionOrderAndOrderedItem{OrderId: req.Id}, &[]string{})
+			unionOrderAndOrderedItemRes, unionOrderAndOrderedItemErr := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &models.UnionOrderAndOrderedItem{OrderId: &id}, &[]string{})
 			if unionOrderAndOrderedItemErr != nil {
 				return unionOrderAndOrderedItemErr
 			}
@@ -152,20 +152,20 @@ func (i *orderService) UpdateOrder(req *dto.UpdateOrderRequest) (*dto.UpdateOrde
 					return updateItemsErr
 				}
 			}
-			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: req.Id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: req.Status})
+			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: &id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: req.Status.String()})
 			if updateOrderErr != nil {
 				return updateOrderErr
 			}
-			_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Status, OrderId: req.Id, CreateTime: updateOrderRes.UpdateTime})
+			_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Status.String(), OrderId: &id, CreateTime: updateOrderRes.UpdateTime})
 			if createOrderLcErr != nil {
 				return createOrderLcErr
 			}
-			response.Order = &models.Order{ID: updateOrderRes.ID, Status: updateOrderRes.Status, OrderType: updateOrderRes.OrderType, ResidenceType: updateOrderRes.ResidenceType, Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId, UserId: updateOrderRes.UserId, Coordinates: updateOrderRes.Coordinates, AuthorizationTokenId: updateOrderRes.AuthorizationTokenId, OrderTime: updateOrderRes.OrderTime, CreateTime: updateOrderRes.CreateTime, UpdateTime: updateOrderRes.UpdateTime}
-		case "OrderStatusTypeRejected":
+			response.Order = &pb.Order{Id: updateOrderRes.ID.String(), Status: *utils.ParseOrderStatusType(&updateOrderRes.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.OrderType), ResidenceType: *utils.ParseOrderResidenceType(&updateOrderRes.ResidenceType), Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId.String(), UserId: updateOrderRes.UserId.String(), Coordinates: &pb.Point{Latitude: updateOrderRes.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Coordinates.FlatCoords()[1]}, OrderTime: timestamppb.New(updateOrderRes.OrderTime), CreateTime: timestamppb.New(updateOrderRes.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.UpdateTime), Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions}
+		case pb.OrderStatusType_OrderStatusTypeRejected:
 			if orderRes.Status != "OrderStatusTypePending" {
 				return errors.New("status error")
 			}
-			unionOrderAndOrderedItemRes, unionOrderAndOrderedItemErr := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &models.UnionOrderAndOrderedItem{OrderId: req.Id}, &[]string{})
+			unionOrderAndOrderedItemRes, unionOrderAndOrderedItemErr := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &models.UnionOrderAndOrderedItem{OrderId: &id}, &[]string{})
 			if unionOrderAndOrderedItemErr != nil {
 				return unionOrderAndOrderedItemErr
 			}
@@ -200,67 +200,67 @@ func (i *orderService) UpdateOrder(req *dto.UpdateOrderRequest) (*dto.UpdateOrde
 					return updateItemsErr
 				}
 			}
-			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: req.Id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: req.Status})
+			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: &id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: req.Status.String()})
 			if updateOrderErr != nil {
 				return updateOrderErr
 			}
-			_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Status, OrderId: req.Id, CreateTime: updateOrderRes.UpdateTime})
+			_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Status.String(), OrderId: &id, CreateTime: updateOrderRes.UpdateTime})
 			if createOrderLcErr != nil {
 				return createOrderLcErr
 			}
-			response.Order = &models.Order{ID: updateOrderRes.ID, Status: updateOrderRes.Status, OrderType: updateOrderRes.OrderType, ResidenceType: updateOrderRes.ResidenceType, Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId, UserId: updateOrderRes.UserId, Coordinates: updateOrderRes.Coordinates, AuthorizationTokenId: updateOrderRes.AuthorizationTokenId, OrderTime: updateOrderRes.OrderTime, CreateTime: updateOrderRes.CreateTime, UpdateTime: updateOrderRes.UpdateTime, ItemsQuantity: updateOrderRes.ItemsQuantity, Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions}
-		case "OrderStatusTypePending":
+			response.Order = &pb.Order{Id: updateOrderRes.ID.String(), Status: *utils.ParseOrderStatusType(&updateOrderRes.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.OrderType), ResidenceType: *utils.ParseOrderResidenceType(&updateOrderRes.ResidenceType), Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId.String(), UserId: updateOrderRes.UserId.String(), Coordinates: &pb.Point{Latitude: updateOrderRes.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Coordinates.FlatCoords()[1]}, OrderTime: timestamppb.New(updateOrderRes.OrderTime), CreateTime: timestamppb.New(updateOrderRes.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.UpdateTime), Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions}
+		case pb.OrderStatusType_OrderStatusTypePending:
 			if orderRes.Status != "OrderStatusTypeStarted" {
 				return errors.New("status error")
 			}
-			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: req.Id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: req.Status})
+			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: &id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: req.Status.String()})
 			if updateOrderErr != nil {
 				return updateOrderErr
 			}
-			_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Status, OrderId: req.Id, CreateTime: updateOrderRes.UpdateTime})
+			_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Status.String(), OrderId: &id, CreateTime: updateOrderRes.UpdateTime})
 			if createOrderLcErr != nil {
 				return createOrderLcErr
 			}
-			response.Order = &models.Order{ID: updateOrderRes.ID, Status: updateOrderRes.Status, OrderType: updateOrderRes.OrderType, ResidenceType: updateOrderRes.ResidenceType, Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId, UserId: updateOrderRes.UserId, Coordinates: updateOrderRes.Coordinates, AuthorizationTokenId: updateOrderRes.AuthorizationTokenId, OrderTime: updateOrderRes.OrderTime, CreateTime: updateOrderRes.CreateTime, UpdateTime: updateOrderRes.UpdateTime, Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions}
-		case "OrderStatusTypeApproved":
+			response.Order = &pb.Order{Id: updateOrderRes.ID.String(), Status: *utils.ParseOrderStatusType(&updateOrderRes.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.OrderType), ResidenceType: *utils.ParseOrderResidenceType(&updateOrderRes.ResidenceType), Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId.String(), UserId: updateOrderRes.UserId.String(), Coordinates: &pb.Point{Latitude: updateOrderRes.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Coordinates.FlatCoords()[1]}, OrderTime: timestamppb.New(updateOrderRes.OrderTime), CreateTime: timestamppb.New(updateOrderRes.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.UpdateTime), Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions}
+		case pb.OrderStatusType_OrderStatusTypeApproved:
 			if orderRes.Status != "OrderStatusTypePending" {
 				return errors.New("status error")
 			}
-			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: req.Id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: req.Status})
+			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: &id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: req.Status.String()})
 			if updateOrderErr != nil {
 				return updateOrderErr
 			}
-			_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Status, OrderId: req.Id, CreateTime: updateOrderRes.UpdateTime})
+			_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Status.String(), OrderId: &id, CreateTime: updateOrderRes.UpdateTime})
 			if createOrderLcErr != nil {
 				return createOrderLcErr
 			}
-			response.Order = &models.Order{ID: updateOrderRes.ID, Status: updateOrderRes.Status, OrderType: updateOrderRes.OrderType, ResidenceType: updateOrderRes.ResidenceType, Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId, UserId: updateOrderRes.UserId, Coordinates: updateOrderRes.Coordinates, AuthorizationTokenId: updateOrderRes.AuthorizationTokenId, OrderTime: updateOrderRes.OrderTime, CreateTime: updateOrderRes.CreateTime, UpdateTime: updateOrderRes.UpdateTime, Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions}
-		case "OrderStatusTypeDone":
+			response.Order = &pb.Order{Id: updateOrderRes.ID.String(), Status: *utils.ParseOrderStatusType(&updateOrderRes.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.OrderType), ResidenceType: *utils.ParseOrderResidenceType(&updateOrderRes.ResidenceType), Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId.String(), UserId: updateOrderRes.UserId.String(), Coordinates: &pb.Point{Latitude: updateOrderRes.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Coordinates.FlatCoords()[1]}, OrderTime: timestamppb.New(updateOrderRes.OrderTime), CreateTime: timestamppb.New(updateOrderRes.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.UpdateTime), Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions}
+		case pb.OrderStatusType_OrderStatusTypeDone:
 			if orderRes.Status != "OrderStatusTypeApproved" {
 				return errors.New("status error")
 			}
-			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: req.Id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: req.Status})
+			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: &id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: req.Status.String()})
 			if updateOrderErr != nil {
 				return updateOrderErr
 			}
-			_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Status, OrderId: req.Id, CreateTime: updateOrderRes.UpdateTime})
+			_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Status.String(), OrderId: &id, CreateTime: updateOrderRes.UpdateTime})
 			if createOrderLcErr != nil {
 				return createOrderLcErr
 			}
-			response.Order = &models.Order{ID: updateOrderRes.ID, Status: updateOrderRes.Status, OrderType: updateOrderRes.OrderType, ResidenceType: updateOrderRes.ResidenceType, Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId, UserId: updateOrderRes.UserId, Coordinates: updateOrderRes.Coordinates, AuthorizationTokenId: updateOrderRes.AuthorizationTokenId, OrderTime: updateOrderRes.OrderTime, CreateTime: updateOrderRes.CreateTime, UpdateTime: updateOrderRes.UpdateTime, Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions}
-		case "OrderStatusTypeReceived":
+			response.Order = &pb.Order{Id: updateOrderRes.ID.String(), Status: *utils.ParseOrderStatusType(&updateOrderRes.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.OrderType), ResidenceType: *utils.ParseOrderResidenceType(&updateOrderRes.ResidenceType), Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId.String(), UserId: updateOrderRes.UserId.String(), Coordinates: &pb.Point{Latitude: updateOrderRes.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Coordinates.FlatCoords()[1]}, OrderTime: timestamppb.New(updateOrderRes.OrderTime), CreateTime: timestamppb.New(updateOrderRes.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.UpdateTime), Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions}
+		case pb.OrderStatusType_OrderStatusTypeReceived:
 			if orderRes.Status != "OrderStatusTypeApproved" && orderRes.Status != "OrderStatusTypeDone" {
 				return errors.New("status error")
 			}
-			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: req.Id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: req.Status})
+			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: &id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: req.Status.String()})
 			if updateOrderErr != nil {
 				return updateOrderErr
 			}
-			_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Status, OrderId: req.Id, CreateTime: updateOrderRes.UpdateTime})
+			_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Status.String(), OrderId: &id, CreateTime: updateOrderRes.UpdateTime})
 			if createOrderLcErr != nil {
 				return createOrderLcErr
 			}
-			response.Order = &models.Order{ID: updateOrderRes.ID, Status: updateOrderRes.Status, OrderType: updateOrderRes.OrderType, ResidenceType: updateOrderRes.ResidenceType, Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId, UserId: updateOrderRes.UserId, Coordinates: updateOrderRes.Coordinates, AuthorizationTokenId: updateOrderRes.AuthorizationTokenId, OrderTime: updateOrderRes.OrderTime, CreateTime: updateOrderRes.CreateTime, UpdateTime: updateOrderRes.UpdateTime, Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions}
+			response.Order = &pb.Order{Id: updateOrderRes.ID.String(), Status: *utils.ParseOrderStatusType(&updateOrderRes.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.OrderType), ResidenceType: *utils.ParseOrderResidenceType(&updateOrderRes.ResidenceType), Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId.String(), UserId: updateOrderRes.UserId.String(), Coordinates: &pb.Point{Latitude: updateOrderRes.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Coordinates.FlatCoords()[1]}, OrderTime: timestamppb.New(updateOrderRes.OrderTime), CreateTime: timestamppb.New(updateOrderRes.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.UpdateTime), Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions}
 		}
 		return nil
 	})
