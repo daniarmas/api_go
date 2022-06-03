@@ -9,9 +9,9 @@ require (
 )
 
 require (
-	github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125 // indirect
+	github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
-	gopkg.in/mail.v2 v2.3.1 // indirect
+	gopkg.in/mail.v2 v2.3.1
 )
 
 require (

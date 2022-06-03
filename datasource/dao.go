@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	logg "github.com/sirupsen/logrus"
 
 	"github.com/daniarmas/api_go/utils"
@@ -235,7 +234,7 @@ func NewDB(config *utils.Config) (*gorm.DB, error) {
 		Logger:                 newLogger,
 	})
 	if err != nil {
-		logrus.Error(err)
+		logg.Error(err)
 	}
 	dbConnect, err := DB.DB()
 	if err != nil {
@@ -248,11 +247,11 @@ func NewDB(config *utils.Config) (*gorm.DB, error) {
 		if dbError == nil {
 			break
 		}
-		logrus.Error(dbError)
+		logg.Error(dbError)
 		time.Sleep(time.Duration(attempts) * time.Second)
 	}
 	if dbError != nil {
-		logrus.Error(dbError)
+		logg.Error(dbError)
 	}
 	return DB, nil
 }
