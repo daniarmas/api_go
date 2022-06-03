@@ -16,6 +16,6 @@ type CreateOrderRequest struct {
 	Address       string
 	Instructions  string
 	Coordinates   ewkb.Point
-	OrderDate     time.Time
+	OrderTime     time.Time
 	Metadata      *metadata.MD
 }

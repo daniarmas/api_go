@@ -1,6 +1,6 @@
 {
   "cartItems": [
-    "19971c3d-9f35-41fb-bfef-deadd34deea2"
+    "afcdd246-ce8c-41a6-8b2f-f351d158fea6"
   ],
   "orderType": "OrderTypePickUp",
   "residenceType": "ResidenceTypeHouse",
@@ -11,5 +11,5 @@
     "latitude": 1.23,
     "longitude": 1.23
   },
-  "orderDate": "2022-06-03T23:50:07.222121Z"
+  "orderTime": "2022-06-03T23:50:07.222121Z"
 }

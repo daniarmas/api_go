@@ -257,7 +257,7 @@ message CreateOrderRequest {
 	string address = 5;
   string instructions = 6;           
 	Point location = 7;    
-	google.protobuf.Timestamp orderDate = 8;       
+	google.protobuf.Timestamp orderTime = 8;       
 }
 
 message CreateOrderResponse {
@@ -575,13 +575,11 @@ message Order {
   string price = 11;
   string businessId = 12;
   string userId = 13;
-  string deviceId = 14;
-  string appVersion = 15;
-  string businessName = 16;
-  int32 quantity = 17;
-  google.protobuf.Timestamp orderDate = 18;
-  google.protobuf.Timestamp createTime = 19;
-  google.protobuf.Timestamp updateTime = 20;
+  string businessName = 14;
+  int32 itemsQuantity = 15;
+  google.protobuf.Timestamp orderTime = 16;
+  google.protobuf.Timestamp createTime = 17;
+  google.protobuf.Timestamp updateTime = 28;
 }
 
 message User {
