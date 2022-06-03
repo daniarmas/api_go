@@ -16,6 +16,7 @@ import (
 )
 
 func main() {
+	fmt.Println(time.Now().Local())
 	fmt.Println(time.Now().UTC())
 	// Configurations
 	config, err := datasource.NewConfig()
