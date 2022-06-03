@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/teris-io/shortid"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	"gorm.io/gorm"
 )
@@ -16,6 +17,7 @@ func (Order) TableName() string {
 
 type Order struct {
 	ID                   *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ShortId              string         `gorm:"column:short_id;not null"`
 	Status               string         `gorm:"column:status"`
 	ItemsQuantity        int32          `gorm:"column:items_quantity;not null"`
 	OrderType            string         `gorm:"column:order_type;not null"`
@@ -38,6 +40,7 @@ type Order struct {
 }
 type OrderBusiness struct {
 	ID                   *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ShortId              string         `gorm:"column:short_id;not null"`
 	BusinessName         string         `gorm:"column:business_name"`
 	Status               string         `gorm:"column:status"`
 	Quantity             int32          `gorm:"column:quantity;not null"`
@@ -60,6 +63,11 @@ type OrderBusiness struct {
 }
 
 func (i *Order) BeforeCreate(tx *gorm.DB) (err error) {
+	var shortId string
+	if shortId, err = shortid.Generate(); err != nil {
+		return err
+	}
+	i.ShortId = shortId
 	i.CreateTime = time.Now().UTC()
 	i.UpdateTime = time.Now().UTC()
 	return

@@ -7,6 +7,7 @@ import (
 
 	"github.com/daniarmas/api_go/models"
 	"github.com/google/uuid"
+	"github.com/teris-io/shortid"
 	"gorm.io/gorm"
 )
 
@@ -51,8 +52,12 @@ func (i *orderDatasource) UpdateOrder(tx *gorm.DB, where *models.Order, data *mo
 func (i *orderDatasource) CreateOrder(tx *gorm.DB, data *models.Order) (*models.Order, error) {
 	point := fmt.Sprintf("POINT(%v %v)", data.Coordinates.Point.Coords()[1], data.Coordinates.Point.Coords()[0])
 	var time = time.Now().UTC()
+	shortId, err := shortid.Generate()
+	if err != nil {
+		return nil, err
+	}
 	var res models.Order
-	result := tx.Raw(`INSERT INTO "order" ("id", "business_name", "items_quantity", "authorization_token_id", "business_id", "coordinates", "order_date", "order_type", "number", "address", "instructions", "price", "residence_type", "user_id", "create_time", "update_time") VALUES (?, ?, ?, ?, ?, ST_GeomFromText(?, 4326), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING "id", "items_quantity", "status", "order_type", "residence_type", "price", "number", "address", "business_id", ST_AsEWKB(coordinates) AS coordinates, "user_id", "authorization_token_id", "order_date", "create_time", "update_time"`, uuid.New().String(), data.BusinessName, data.ItemsQuantity, data.AuthorizationTokenId, data.BusinessId, point, data.OrderDate, data.OrderType, data.Number, data.Address, data.Instructions, data.Price, data.ResidenceType, data.UserId, time, time).Scan(&res)
+	result := tx.Raw(`INSERT INTO "order" ("id", "business_name", "items_quantity", "authorization_token_id", "business_id", "coordinates", "order_date", "order_type", "number", "address", "instructions", "price", "residence_type", "user_id", "create_time", "update_time", "short_id") VALUES (?, ?, ?, ?, ?, ST_GeomFromText(?, 4326), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING "id", "short_id", "items_quantity", "status", "order_type", "residence_type", "price", "number", "address", "business_id", ST_AsEWKB(coordinates) AS coordinates, "user_id", "authorization_token_id", "order_date", "create_time", "update_time"`, uuid.New().String(), data.BusinessName, data.ItemsQuantity, data.AuthorizationTokenId, data.BusinessId, point, data.OrderDate, data.OrderType, data.Number, data.Address, data.Instructions, data.Price, data.ResidenceType, data.UserId, time, time, shortId).Scan(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}

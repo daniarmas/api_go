@@ -564,23 +564,24 @@ message OrderedItem {
 
 message Order {
   string id = 1;
-  OrderStatusType status = 2;
-  OrderType orderType = 3;
-  ResidenceType residenceType = 4;
-  string number = 5;
-  string address = 6;
-  string instructions = 7;
-  Point coordinates = 8;
-  string price = 9;
-  string businessId = 10;
-  string userId = 11;
-  string deviceId = 12;
-  string appVersion = 13;
-  string businessName = 14;
-  int32 quantity = 15;
-  google.protobuf.Timestamp orderDate = 16;
-  google.protobuf.Timestamp createTime = 17;
-  google.protobuf.Timestamp updateTime = 18;
+  string shortId = 2;
+  OrderStatusType status = 3;
+  OrderType orderType = 4;
+  ResidenceType residenceType = 5;
+  string number = 6;
+  string address = 7;
+  string instructions = 8;
+  Point coordinates = 9;
+  string price = 10;
+  string businessId = 11;
+  string userId = 12;
+  string deviceId = 13;
+  string appVersion = 14;
+  string businessName = 15;
+  int32 quantity = 16;
+  google.protobuf.Timestamp orderDate = 17;
+  google.protobuf.Timestamp createTime = 18;
+  google.protobuf.Timestamp updateTime = 19;
 }
 
 message User {

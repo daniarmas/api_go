@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/daniarmas/api_go/app"
 	"github.com/daniarmas/api_go/datasource"
@@ -16,8 +15,6 @@ import (
 )
 
 func main() {
-	fmt.Println(time.Now().Local())
-	fmt.Println(time.Now().UTC())
 	// Configurations
 	config, err := datasource.NewConfig()
 	if err != nil {
@@ -36,7 +33,7 @@ func main() {
 	}
 	s := builder.Build()
 	s.RegisterService(serviceRegister)
-	grpcServerAddress := fmt.Sprintf("0.0.0.0:%s", config.ApiPort)
+	grpcServerAddress := fmt.Sprintf("0.0.0.0:%d", config.ApiPort)
 	startErr := s.Start(grpcServerAddress)
 	if startErr != nil {
 		log.Fatalf("%v", startErr)

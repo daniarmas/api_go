@@ -8,9 +8,9 @@ type Config struct {
 	Tls                                string `mapstructure:"TLS"`
 	DBPassword                         string `mapstructure:"DB_PASSWORD"`
 	DBDatabase                         string `mapstructure:"DB_DATABASE"`
-	DBPort                             string `mapstructure:"DB_PORT"`
+	DBPort                             int    `mapstructure:"DB_PORT"`
 	DBHost                             string `mapstructure:"DB_HOST"`
-	ApiPort                            string `mapstructure:"API_PORT"`
+	ApiPort                            int    `mapstructure:"API_PORT"`
 	PrometheusPushgateway              string `mapstructure:"PROMETHEUS_PUSHGATEWAY"`
 	JwtSecret                          string `mapstructure:"JWT_SECRET"`
 	ObjectStorageServerUseSsl          string `mapstructure:"OBJECT_STORAGE_SERVER_USE_SSL"`
