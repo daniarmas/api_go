@@ -38,7 +38,7 @@ func (i *orderDatasource) UpdateOrder(tx *gorm.DB, where *models.Order, data *mo
 	// result := tx.Clauses(clause.Returning{}).Where(where).Updates(&data)
 	var res models.Order
 	var time = time.Now().UTC()
-	result := tx.Raw(`UPDATE "order" SET "status"=?,"update_time"=? WHERE "order"."id" = ? AND "order"."user_id" = ? AND "order"."delete_time" IS NULL RETURNING "id", "status", "order_type", "residence_type", "price", "building_number", "house_number", "business_id", ST_AsEWKB(coordinates) AS coordinates, "user_id", "authorization_token_id", "order_date", "create_time", "update_time"`, data.Status, time, where.ID, where.UserId).Scan(&res)
+	result := tx.Raw(`UPDATE "order" SET "status"=?,"update_time"=?,"cancel_reasons"=? WHERE "order"."id" = ? AND "order"."user_id" = ? AND "order"."delete_time" IS NULL RETURNING "id", "status", "order_type", "residence_type", "price", "building_number", "cancel_reasons", "house_number", "business_id", ST_AsEWKB(coordinates) AS coordinates, "user_id", "authorization_token_id", "order_date", "create_time", "update_time"`, data.Status, time, where.CancelReasons, where.ID, where.UserId).Scan(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
@@ -66,7 +66,7 @@ func (i *orderDatasource) CreateOrder(tx *gorm.DB, data *models.Order) (*models.
 
 func (i *orderDatasource) ListOrder(tx *gorm.DB, where *models.Order) (*[]models.Order, error) {
 	var res []models.Order
-	result := tx.Limit(11).Select("id, status, items_quantity, order_type, residence_type, price, number, address, instructions, business_id, authorization_token_id, user_id, order_date, create_time, update_time, delete_time, ST_AsEWKB(coordinates) AS coordinates").Where("user_id = ? AND create_time < ?", where.UserId, where.CreateTime).Order("create_time desc").Find(&res)
+	result := tx.Limit(11).Select("id, status, cancel_reasons, items_quantity, order_type, residence_type, price, number, address, instructions, business_id, authorization_token_id, user_id, order_date, create_time, update_time, delete_time, ST_AsEWKB(coordinates) AS coordinates").Where("user_id = ? AND create_time < ?", where.UserId, where.CreateTime).Order("create_time desc").Find(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -75,7 +75,7 @@ func (i *orderDatasource) ListOrder(tx *gorm.DB, where *models.Order) (*[]models
 
 func (i *orderDatasource) ListOrderWithBusiness(tx *gorm.DB, where *models.OrderBusiness) (*[]models.OrderBusiness, error) {
 	var res []models.OrderBusiness
-	result := tx.Model(&models.Order{}).Limit(11).Select(`"order"."id", "order"."status", "order"."order_type", "order"."residence_type", "order"."price", "order"."number", "order"."address", "order"."instructions", "order"."business_id", "order"."user_id", "order"."order_date", "order"."create_time", "order"."update_time", "order"."delete_time", ST_AsEWKB("order"."coordinates") AS "coordinates", "order"."business_name", "order"."items_quantity"`).Where(`"order"."user_id" = ? AND "order"."create_time" < ?`, where.UserId, where.CreateTime).Order(`"order"."create_time" desc`).Scan(&res)
+	result := tx.Model(&models.Order{}).Limit(11).Select(`"order"."id", "order"."cancel_reasons" "order"."status", "order"."order_type", "order"."residence_type", "order"."price", "order"."number", "order"."address", "order"."instructions", "order"."business_id", "order"."user_id", "order"."order_date", "order"."create_time", "order"."update_time", "order"."delete_time", ST_AsEWKB("order"."coordinates") AS "coordinates", "order"."business_name", "order"."items_quantity"`).Where(`"order"."user_id" = ? AND "order"."create_time" < ?`, where.UserId, where.CreateTime).Order(`"order"."create_time" desc`).Scan(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}

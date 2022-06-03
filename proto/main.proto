@@ -571,17 +571,18 @@ message Order {
   string number = 6;
   string address = 7;
   string instructions = 8;
-  Point coordinates = 9;
-  string price = 10;
-  string businessId = 11;
-  string userId = 12;
-  string deviceId = 13;
-  string appVersion = 14;
-  string businessName = 15;
-  int32 quantity = 16;
-  google.protobuf.Timestamp orderDate = 17;
-  google.protobuf.Timestamp createTime = 18;
-  google.protobuf.Timestamp updateTime = 19;
+  string cancelReasons = 9;
+  Point coordinates = 10;
+  string price = 11;
+  string businessId = 12;
+  string userId = 13;
+  string deviceId = 14;
+  string appVersion = 15;
+  string businessName = 16;
+  int32 quantity = 17;
+  google.protobuf.Timestamp orderDate = 18;
+  google.protobuf.Timestamp createTime = 19;
+  google.protobuf.Timestamp updateTime = 20;
 }
 
 message User {

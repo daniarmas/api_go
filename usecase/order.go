@@ -802,11 +802,13 @@ func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, 
 	ordersResponse := make([]*pb.Order, 0, len(*ordersRes))
 	for _, item := range *ordersRes {
 		ordersResponse = append(ordersResponse, &pb.Order{
-			Id:           item.ID.String(),
-			BusinessName: item.BusinessName,
-			Quantity:     item.Quantity,
-			Price:        item.Price,
-			Number:       item.Number, Address: item.Address,
+			Id:            item.ID.String(),
+			ShortId:       item.ShortId,
+			CancelReasons: item.CancelReasons,
+			BusinessName:  item.BusinessName,
+			Quantity:      item.Quantity,
+			Price:         item.Price,
+			Number:        item.Number, Address: item.Address,
 			Instructions:  item.Instructions,
 			UserId:        item.UserId.String(),
 			OrderDate:     timestamppb.New(item.OrderDate),

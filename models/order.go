@@ -26,6 +26,7 @@ type Order struct {
 	Number               string         `gorm:"column:number;not null"`
 	Address              string         `gorm:"column:address;not null"`
 	Instructions         string         `gorm:"column:instructions"`
+	CancelReasons        string         `gorm:"column:cancel_reasons"`
 	Coordinates          ewkb.Point     `gorm:"column:coordinates;not null"`
 	OrderDate            time.Time      `gorm:"column:order_date;not null"`
 	AuthorizationTokenId *uuid.UUID     `gorm:"column:authorization_token_id;not null"`
@@ -50,6 +51,7 @@ type OrderBusiness struct {
 	Number               string         `gorm:"column:number;not null"`
 	Address              string         `gorm:"column:address;not null"`
 	Instructions         string         `gorm:"column:instructions"`
+	CancelReasons        string         `gorm:"column:cancel_reasons"`
 	Coordinates          ewkb.Point     `gorm:"column:coordinates;not null"`
 	OrderDate            time.Time      `gorm:"column:order_date;not null"`
 	AuthorizationTokenId *uuid.UUID     `gorm:"column:authorization_token_id;not null"`
