@@ -3,7 +3,7 @@ syntax = "proto3";
 package main;
 
 import "google/protobuf/empty.proto";
-import "google/protobuf/field_mask.proto";
+// import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "/pkg";
@@ -275,7 +275,6 @@ message ListOrderResponse {
 
 message ListOrderedItemRequest {
   string orderId = 1;
-  google.protobuf.FieldMask fieldMask = 2;
 }
 
 message ListOrderedItemResponse {

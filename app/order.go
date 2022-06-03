@@ -221,10 +221,35 @@ func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReques
 }
 
 func (m *OrderServer) ListOrderedItem(ctx context.Context, req *pb.ListOrderedItemRequest) (*pb.ListOrderedItemResponse, error) {
+	var invalidOrderId *epb.BadRequest_FieldViolation
+	var invalidArgs bool
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	orderId := uuid.MustParse(req.OrderId)
-	listOrderedItemRes, listOrderedItemErr := m.orderService.ListOrderedItemWithItem(&dto.ListOrderedItemRequest{OrderId: &orderId, Metadata: &md})
+	md := utils.GetMetadata(ctx)
+	if req.OrderId == "" {
+		invalidArgs = true
+		invalidOrderId = &epb.BadRequest_FieldViolation{
+			Field:       "OrderId",
+			Description: "The OrderId field is required",
+		}
+	} else if req.OrderId != "" {
+		if !utils.IsValidUUID(&req.OrderId) {
+			invalidArgs = true
+			invalidOrderId = &epb.BadRequest_FieldViolation{
+				Field:       "OrderId",
+				Description: "The OrderId field is not a valid uuid v4",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidOrderId != nil {
+			st, _ = st.WithDetails(
+				invalidOrderId,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, listOrderedItemErr := m.orderService.ListOrderedItemWithItem(ctx, req, md)
 	if listOrderedItemErr != nil {
 		switch listOrderedItemErr.Error() {
 		case "authorizationtoken not found":
@@ -244,9 +269,5 @@ func (m *OrderServer) ListOrderedItem(ctx context.Context, req *pb.ListOrderedIt
 		}
 		return nil, st.Err()
 	}
-	orderedItems := make([]*pb.OrderedItem, 0, len(*listOrderedItemRes.OrderedItems))
-	for _, item := range *listOrderedItemRes.OrderedItems {
-		orderedItems = append(orderedItems, &pb.OrderedItem{Id: item.ID.String(), Name: item.Name, Price: item.Price, ItemId: item.ItemId.String(), Quantity: item.Quantity, UserId: item.UserId.String(), CreateTime: timestamppb.New(item.CreateTime), UpdateTime: timestamppb.New(item.UpdateTime), CartItemId: item.CartItemId.String()})
-	}
-	return &pb.ListOrderedItemResponse{OrderedItems: orderedItems}, nil
+	return res, nil
 }

@@ -25,7 +25,7 @@ type OrderService interface {
 	ListOrder(ctx context.Context, req *pb.ListOrderRequest, md *utils.ClientMetadata) (*pb.ListOrderResponse, error)
 	CreateOrder(ctx context.Context, req *pb.CreateOrderRequest, md *utils.ClientMetadata) (*pb.CreateOrderResponse, error)
 	UpdateOrder(req *dto.UpdateOrderRequest) (*dto.UpdateOrderResponse, error)
-	ListOrderedItemWithItem(req *dto.ListOrderedItemRequest) (*dto.ListOrderedItemResponse, error)
+	ListOrderedItemWithItem(ctx context.Context, req *pb.ListOrderedItemRequest, md *utils.ClientMetadata) (*pb.ListOrderedItemResponse, error)
 }
 
 type orderService struct {
@@ -36,10 +36,11 @@ func NewOrderService(dao repository.DAO) OrderService {
 	return &orderService{dao: dao}
 }
 
-func (i *orderService) ListOrderedItemWithItem(req *dto.ListOrderedItemRequest) (*dto.ListOrderedItemResponse, error) {
-	var response dto.ListOrderedItemResponse
+func (i *orderService) ListOrderedItemWithItem(ctx context.Context, req *pb.ListOrderedItemRequest, md *utils.ClientMetadata) (*pb.ListOrderedItemResponse, error) {
+	var res pb.ListOrderedItemResponse
+	orderId := uuid.MustParse(req.OrderId)
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &req.Metadata.Get("authorization")[0]}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
@@ -53,13 +54,13 @@ func (i *orderService) ListOrderedItemWithItem(req *dto.ListOrderedItemRequest) 
 				return authorizationTokenParseErr
 			}
 		}
-		_, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
+		_, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id"})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		unionOrderAndOrderedItemRes, unionOrderAndOrderedItemErr := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &models.UnionOrderAndOrderedItem{OrderId: req.OrderId}, &[]string{})
+		unionOrderAndOrderedItemRes, unionOrderAndOrderedItemErr := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &models.UnionOrderAndOrderedItem{OrderId: &orderId}, &[]string{"id", "order_id", "ordered_item_id"})
 		if unionOrderAndOrderedItemErr != nil {
 			return unionOrderAndOrderedItemErr
 		}
@@ -67,17 +68,21 @@ func (i *orderService) ListOrderedItemWithItem(req *dto.ListOrderedItemRequest) 
 		for _, item := range *unionOrderAndOrderedItemRes {
 			orderedItemFks = append(orderedItemFks, *item.OrderedItemId)
 		}
-		orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, &orderedItemFks, &[]string{})
+		orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, &orderedItemFks, &[]string{"id", "name", "price", "quantity", "item_id", "cart_item_id", "user_id", "create_time", "update_time"})
 		if orderedItemsErr != nil {
 			return orderedItemsErr
 		}
-		response.OrderedItems = orderedItemsRes
+		orderedItems := make([]*pb.OrderedItem, 0, len(*orderedItemsRes))
+		for _, item := range *orderedItemsRes {
+			orderedItems = append(orderedItems, &pb.OrderedItem{Id: item.ID.String(), Name: item.Name, Price: item.Price, ItemId: item.ItemId.String(), Quantity: item.Quantity, UserId: item.UserId.String(), CreateTime: timestamppb.New(item.CreateTime), UpdateTime: timestamppb.New(item.UpdateTime), CartItemId: item.CartItemId.String()})
+		}
+		res.OrderedItems = orderedItems
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &response, nil
+	return &res, nil
 }
 
 func (i *orderService) UpdateOrder(req *dto.UpdateOrderRequest) (*dto.UpdateOrderResponse, error) {
@@ -295,7 +300,7 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		listCartItemRes, listCartItemErr := i.dao.NewCartItemRepository().ListCartItemInIds(tx, cartItems, &[]string{"id", "item_id", "user_id", "price", "quantity", "business_id"})
+		listCartItemRes, listCartItemErr := i.dao.NewCartItemRepository().ListCartItemInIds(tx, cartItems, &[]string{"id", "item_id", "user_id", "price", "quantity", "business_id", "name"})
 		if listCartItemErr != nil {
 			return listCartItemErr
 		} else if listCartItemRes == nil {
@@ -311,7 +316,7 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 			}
 			price = price.Add(itemPrice)
 			quantity += item.Quantity
-			orderedItems = append(orderedItems, models.OrderedItem{Quantity: item.Quantity, Price: item.Price, CartItemId: item.ID, UserId: item.UserId, ItemId: item.ItemId})
+			orderedItems = append(orderedItems, models.OrderedItem{Quantity: item.Quantity, Price: item.Price, CartItemId: item.ID, UserId: item.UserId, ItemId: item.ItemId, Name: item.Name})
 		}
 		businessScheduleRes, businessScheduleErr := i.dao.NewBusinessScheduleRepository().GetBusinessSchedule(tx, &models.BusinessSchedule{BusinessId: (*listCartItemRes)[0].BusinessId})
 		if businessScheduleErr != nil {
