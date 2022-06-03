@@ -1,0 +1,23 @@
+version: "3.7"
+
+services:
+  posteio:
+    image: docker.uclv.cu/analogic/poste.io:2.3.7
+    volumes:
+      - posteio:/data
+    ports:
+      - 80:80
+      - 443:443
+      - 25:25
+      - 110:110
+      - 143:143
+      - 465:465
+      - 587:587
+      - 993:993
+      - 995:995
+      - 4190:4190
+    environment:
+      DISABLE_CLAMAV: "true"
+      DISABLE_RSPAMD: "true"
+volumes:
+  posteio:
