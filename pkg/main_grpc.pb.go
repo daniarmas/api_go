@@ -982,8 +982,8 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type OrderServiceClient interface {
 	ListOrder(ctx context.Context, in *ListOrderRequest, opts ...grpc.CallOption) (*ListOrderResponse, error)
-	CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*CreateOrderResponse, error)
-	UpdateOrder(ctx context.Context, in *UpdateOrderRequest, opts ...grpc.CallOption) (*UpdateOrderResponse, error)
+	CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*Order, error)
+	UpdateOrder(ctx context.Context, in *UpdateOrderRequest, opts ...grpc.CallOption) (*Order, error)
 	ListOrderedItem(ctx context.Context, in *ListOrderedItemRequest, opts ...grpc.CallOption) (*ListOrderedItemResponse, error)
 }
 
@@ -1004,8 +1004,8 @@ func (c *orderServiceClient) ListOrder(ctx context.Context, in *ListOrderRequest
 	return out, nil
 }
 
-func (c *orderServiceClient) CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*CreateOrderResponse, error) {
-	out := new(CreateOrderResponse)
+func (c *orderServiceClient) CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*Order, error) {
+	out := new(Order)
 	err := c.cc.Invoke(ctx, "/main.OrderService/CreateOrder", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -1013,8 +1013,8 @@ func (c *orderServiceClient) CreateOrder(ctx context.Context, in *CreateOrderReq
 	return out, nil
 }
 
-func (c *orderServiceClient) UpdateOrder(ctx context.Context, in *UpdateOrderRequest, opts ...grpc.CallOption) (*UpdateOrderResponse, error) {
-	out := new(UpdateOrderResponse)
+func (c *orderServiceClient) UpdateOrder(ctx context.Context, in *UpdateOrderRequest, opts ...grpc.CallOption) (*Order, error) {
+	out := new(Order)
 	err := c.cc.Invoke(ctx, "/main.OrderService/UpdateOrder", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -1036,8 +1036,8 @@ func (c *orderServiceClient) ListOrderedItem(ctx context.Context, in *ListOrdere
 // for forward compatibility
 type OrderServiceServer interface {
 	ListOrder(context.Context, *ListOrderRequest) (*ListOrderResponse, error)
-	CreateOrder(context.Context, *CreateOrderRequest) (*CreateOrderResponse, error)
-	UpdateOrder(context.Context, *UpdateOrderRequest) (*UpdateOrderResponse, error)
+	CreateOrder(context.Context, *CreateOrderRequest) (*Order, error)
+	UpdateOrder(context.Context, *UpdateOrderRequest) (*Order, error)
 	ListOrderedItem(context.Context, *ListOrderedItemRequest) (*ListOrderedItemResponse, error)
 	mustEmbedUnimplementedOrderServiceServer()
 }
@@ -1049,10 +1049,10 @@ type UnimplementedOrderServiceServer struct {
 func (UnimplementedOrderServiceServer) ListOrder(context.Context, *ListOrderRequest) (*ListOrderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrder not implemented")
 }
-func (UnimplementedOrderServiceServer) CreateOrder(context.Context, *CreateOrderRequest) (*CreateOrderResponse, error) {
+func (UnimplementedOrderServiceServer) CreateOrder(context.Context, *CreateOrderRequest) (*Order, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateOrder not implemented")
 }
-func (UnimplementedOrderServiceServer) UpdateOrder(context.Context, *UpdateOrderRequest) (*UpdateOrderResponse, error) {
+func (UnimplementedOrderServiceServer) UpdateOrder(context.Context, *UpdateOrderRequest) (*Order, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateOrder not implemented")
 }
 func (UnimplementedOrderServiceServer) ListOrderedItem(context.Context, *ListOrderedItemRequest) (*ListOrderedItemResponse, error) {

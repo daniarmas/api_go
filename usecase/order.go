@@ -23,8 +23,8 @@ import (
 
 type OrderService interface {
 	ListOrder(ctx context.Context, req *pb.ListOrderRequest, md *utils.ClientMetadata) (*pb.ListOrderResponse, error)
-	CreateOrder(ctx context.Context, req *pb.CreateOrderRequest, md *utils.ClientMetadata) (*pb.CreateOrderResponse, error)
-	UpdateOrder(ctx context.Context, req *pb.UpdateOrderRequest, md *utils.ClientMetadata) (*pb.UpdateOrderResponse, error)
+	CreateOrder(ctx context.Context, req *pb.CreateOrderRequest, md *utils.ClientMetadata) (*pb.Order, error)
+	UpdateOrder(ctx context.Context, req *pb.UpdateOrderRequest, md *utils.ClientMetadata) (*pb.Order, error)
 	ListOrderedItemWithItem(ctx context.Context, req *pb.ListOrderedItemRequest, md *utils.ClientMetadata) (*pb.ListOrderedItemResponse, error)
 }
 
@@ -85,9 +85,10 @@ func (i *orderService) ListOrderedItemWithItem(ctx context.Context, req *pb.List
 	return &res, nil
 }
 
-func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderRequest, md *utils.ClientMetadata) (*pb.UpdateOrderResponse, error) {
-	var response pb.UpdateOrderResponse
-	id := uuid.MustParse(req.Id)
+func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderRequest, md *utils.ClientMetadata) (*pb.Order, error) {
+	var res *pb.Order
+	id := uuid.MustParse(req.Order.Id)
+	var cancelReasons string
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
@@ -113,13 +114,15 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 		if orderErr != nil {
 			return orderErr
 		}
-		switch req.Status {
+		switch req.Order.Status {
 		case pb.OrderStatusType_OrderStatusTypePending:
 			if orderRes.Status != "OrderStatusTypeStarted" {
 				return errors.New("status error")
 			}
-		case pb.OrderStatusType_OrderStatusTypeCanceled:
-			if orderRes.Status != "OrderStatusTypeStarted" {
+		case pb.OrderStatusType_OrderStatusTypeRejected, pb.OrderStatusType_OrderStatusTypeCanceled:
+			if req.Order.Status == pb.OrderStatusType_OrderStatusTypeCanceled && orderRes.Status != "OrderStatusTypeStarted" {
+				return errors.New("status error")
+			} else if req.Order.Status == pb.OrderStatusType_OrderStatusTypeRejected && orderRes.Status != "OrderStatusTypePending" {
 				return errors.New("status error")
 			}
 			unionOrderAndOrderedItemRes, unionOrderAndOrderedItemErr := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &models.UnionOrderAndOrderedItem{OrderId: &id}, &[]string{"ordered_item_id"})
@@ -157,45 +160,7 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 					return updateItemsErr
 				}
 			}
-		case pb.OrderStatusType_OrderStatusTypeRejected:
-			if orderRes.Status != "OrderStatusTypePending" {
-				return errors.New("status error")
-			}
-			unionOrderAndOrderedItemRes, unionOrderAndOrderedItemErr := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &models.UnionOrderAndOrderedItem{OrderId: &id}, &[]string{})
-			if unionOrderAndOrderedItemErr != nil {
-				return unionOrderAndOrderedItemErr
-			}
-			orderedItemFks := make([]uuid.UUID, 0, len(*unionOrderAndOrderedItemRes))
-			for _, item := range *unionOrderAndOrderedItemRes {
-				orderedItemFks = append(orderedItemFks, *item.OrderedItemId)
-			}
-			orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, &orderedItemFks, &[]string{})
-			if orderedItemsErr != nil {
-				return orderedItemsErr
-			}
-			itemFks := make([]uuid.UUID, 0, len(*orderedItemsRes))
-			for _, item := range *orderedItemsRes {
-				itemFks = append(itemFks, *item.ItemId)
-			}
-			itemsRes, itemsErr := i.dao.NewItemQuery().ListItemInIds(tx, itemFks)
-			if itemsErr != nil {
-				return itemsErr
-			}
-			for _, item := range *orderedItemsRes {
-				var index = -1
-				for i, n := range *itemsRes {
-					if *n.ID == *item.ItemId {
-						index = i
-					}
-				}
-				(*itemsRes)[index].Availability += int64(item.Quantity)
-			}
-			for _, item := range *itemsRes {
-				_, updateItemsErr := i.dao.NewItemQuery().UpdateItem(tx, &models.Item{ID: item.ID}, &item)
-				if updateItemsErr != nil {
-					return updateItemsErr
-				}
-			}
+			cancelReasons = req.Order.CancelReasons
 		case pb.OrderStatusType_OrderStatusTypeApproved:
 			if orderRes.Status != "OrderStatusTypePending" {
 				return errors.New("status error")
@@ -209,25 +174,25 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 				return errors.New("status error")
 			}
 		}
-		updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: &id}, &models.Order{Status: req.Status.String()})
+		updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: &id}, &models.Order{Status: req.Order.Status.String(), CancelReasons: cancelReasons})
 		if updateOrderErr != nil {
 			return updateOrderErr
 		}
-		_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Status.String(), OrderId: &id, CreateTime: updateOrderRes.UpdateTime})
+		_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Order.Status.String(), OrderId: &id, CreateTime: updateOrderRes.UpdateTime})
 		if createOrderLcErr != nil {
 			return createOrderLcErr
 		}
-		response.Order = &pb.Order{Id: updateOrderRes.ID.String(), Status: *utils.ParseOrderStatusType(&updateOrderRes.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.OrderType), Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId.String(), UserId: updateOrderRes.UserId.String(), Coordinates: &pb.Point{Latitude: updateOrderRes.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Coordinates.FlatCoords()[1]}, OrderTime: timestamppb.New(updateOrderRes.OrderTime), CreateTime: timestamppb.New(updateOrderRes.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.UpdateTime), Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions, ShortId: updateOrderRes.ShortId, CancelReasons: updateOrderRes.CancelReasons, BusinessName: updateOrderRes.BusinessName, ItemsQuantity: updateOrderRes.ItemsQuantity}
+		res = &pb.Order{Id: updateOrderRes.ID.String(), Status: *utils.ParseOrderStatusType(&updateOrderRes.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.OrderType), Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId.String(), UserId: updateOrderRes.UserId.String(), Coordinates: &pb.Point{Latitude: updateOrderRes.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Coordinates.FlatCoords()[1]}, OrderTime: timestamppb.New(updateOrderRes.OrderTime), CreateTime: timestamppb.New(updateOrderRes.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.UpdateTime), Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions, ShortId: updateOrderRes.ShortId, CancelReasons: updateOrderRes.CancelReasons, BusinessName: updateOrderRes.BusinessName, ItemsQuantity: updateOrderRes.ItemsQuantity}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &response, nil
+	return res, nil
 }
 
-func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest, md *utils.ClientMetadata) (*pb.CreateOrderResponse, error) {
-	var response pb.CreateOrderResponse
+func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest, md *utils.ClientMetadata) (*pb.Order, error) {
+	var res *pb.Order
 	var cartItems []uuid.UUID
 	location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
@@ -715,13 +680,13 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		if err != nil {
 			return err
 		}
-		response.Order = &pb.Order{BusinessName: businessRes.Name, ItemsQuantity: quantity, Status: *utils.ParseOrderStatusType(&createOrderRes.Status), OrderType: *utils.ParseOrderType(&createOrderRes.OrderType), Number: createOrderRes.Number, BusinessId: createOrderRes.BusinessId.String(), UserId: createOrderRes.UserId.String(), OrderTime: timestamppb.New(createOrderRes.OrderTime), Coordinates: &pb.Point{Latitude: createOrderRes.Coordinates.FlatCoords()[0], Longitude: createOrderRes.Coordinates.FlatCoords()[1]}, Price: price.String(), CreateTime: timestamppb.New(createOrderRes.CreateTime), UpdateTime: timestamppb.New(createOrderRes.UpdateTime), Address: createOrderRes.Address, Instructions: createOrderRes.Instructions, Id: createOrderRes.ID.String(), ShortId: createOrderRes.ShortId}
+		res = &pb.Order{BusinessName: businessRes.Name, ItemsQuantity: quantity, Status: *utils.ParseOrderStatusType(&createOrderRes.Status), OrderType: *utils.ParseOrderType(&createOrderRes.OrderType), Number: createOrderRes.Number, BusinessId: createOrderRes.BusinessId.String(), UserId: createOrderRes.UserId.String(), OrderTime: timestamppb.New(createOrderRes.OrderTime), Coordinates: &pb.Point{Latitude: createOrderRes.Coordinates.FlatCoords()[0], Longitude: createOrderRes.Coordinates.FlatCoords()[1]}, Price: price.String(), CreateTime: timestamppb.New(createOrderRes.CreateTime), UpdateTime: timestamppb.New(createOrderRes.UpdateTime), Address: createOrderRes.Address, Instructions: createOrderRes.Instructions, Id: createOrderRes.ID.String(), ShortId: createOrderRes.ShortId}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &response, nil
+	return res, nil
 }
 
 func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, md *utils.ClientMetadata) (*pb.ListOrderResponse, error) {

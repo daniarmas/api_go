@@ -48,7 +48,7 @@ func (m *OrderServer) ListOrder(ctx context.Context, req *pb.ListOrderRequest) (
 	return res, nil
 }
 
-func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*pb.CreateOrderResponse, error) {
+func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*pb.Order, error) {
 	var invalidCartItems, invalidLocation, invalidOrderType, invalidNumber, invalidAddress *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status
@@ -159,19 +159,19 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 	return res, nil
 }
 
-func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderRequest) (*pb.UpdateOrderResponse, error) {
+func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderRequest) (*pb.Order, error) {
 	var invalidId, invalidStatus *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
-	if req.Id == "" {
+	if req.Order.Id == "" {
 		invalidArgs = true
 		invalidId = &epb.BadRequest_FieldViolation{
 			Field:       "Id",
 			Description: "The Id field is required",
 		}
-	} else if req.Id != "" {
-		if !utils.IsValidUUID(&req.Id) {
+	} else if req.Order.Id != "" {
+		if !utils.IsValidUUID(&req.Order.Id) {
 			invalidArgs = true
 			invalidId = &epb.BadRequest_FieldViolation{
 				Field:       "Id",
@@ -179,7 +179,7 @@ func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReques
 			}
 		}
 	}
-	if req.Status == *pb.OrderStatusType_OrderStatusTypeUnspecified.Enum() {
+	if req.Order.Status == *pb.OrderStatusType_OrderStatusTypeUnspecified.Enum() {
 		invalidArgs = true
 		invalidStatus = &epb.BadRequest_FieldViolation{
 			Field:       "Status",
