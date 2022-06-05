@@ -1563,7 +1563,7 @@ var BanService_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ObjectStorageServiceClient interface {
-	GetPresignedPutObject(ctx context.Context, in *GetPresignedPutRequest, opts ...grpc.CallOption) (*GetPresignedPutResponse, error)
+	GetPresignedPutObject(ctx context.Context, in *GetPresignedPutObjectRequest, opts ...grpc.CallOption) (*GetPresignedPutObjectResponse, error)
 }
 
 type objectStorageServiceClient struct {
@@ -1574,8 +1574,8 @@ func NewObjectStorageServiceClient(cc grpc.ClientConnInterface) ObjectStorageSer
 	return &objectStorageServiceClient{cc}
 }
 
-func (c *objectStorageServiceClient) GetPresignedPutObject(ctx context.Context, in *GetPresignedPutRequest, opts ...grpc.CallOption) (*GetPresignedPutResponse, error) {
-	out := new(GetPresignedPutResponse)
+func (c *objectStorageServiceClient) GetPresignedPutObject(ctx context.Context, in *GetPresignedPutObjectRequest, opts ...grpc.CallOption) (*GetPresignedPutObjectResponse, error) {
+	out := new(GetPresignedPutObjectResponse)
 	err := c.cc.Invoke(ctx, "/main.ObjectStorageService/GetPresignedPutObject", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -1587,7 +1587,7 @@ func (c *objectStorageServiceClient) GetPresignedPutObject(ctx context.Context, 
 // All implementations must embed UnimplementedObjectStorageServiceServer
 // for forward compatibility
 type ObjectStorageServiceServer interface {
-	GetPresignedPutObject(context.Context, *GetPresignedPutRequest) (*GetPresignedPutResponse, error)
+	GetPresignedPutObject(context.Context, *GetPresignedPutObjectRequest) (*GetPresignedPutObjectResponse, error)
 	mustEmbedUnimplementedObjectStorageServiceServer()
 }
 
@@ -1595,7 +1595,7 @@ type ObjectStorageServiceServer interface {
 type UnimplementedObjectStorageServiceServer struct {
 }
 
-func (UnimplementedObjectStorageServiceServer) GetPresignedPutObject(context.Context, *GetPresignedPutRequest) (*GetPresignedPutResponse, error) {
+func (UnimplementedObjectStorageServiceServer) GetPresignedPutObject(context.Context, *GetPresignedPutObjectRequest) (*GetPresignedPutObjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPresignedPutObject not implemented")
 }
 func (UnimplementedObjectStorageServiceServer) mustEmbedUnimplementedObjectStorageServiceServer() {}
@@ -1612,7 +1612,7 @@ func RegisterObjectStorageServiceServer(s grpc.ServiceRegistrar, srv ObjectStora
 }
 
 func _ObjectStorageService_GetPresignedPutObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetPresignedPutRequest)
+	in := new(GetPresignedPutObjectRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1624,7 +1624,7 @@ func _ObjectStorageService_GetPresignedPutObject_Handler(srv interface{}, ctx co
 		FullMethod: "/main.ObjectStorageService/GetPresignedPutObject",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ObjectStorageServiceServer).GetPresignedPutObject(ctx, req.(*GetPresignedPutRequest))
+		return srv.(ObjectStorageServiceServer).GetPresignedPutObject(ctx, req.(*GetPresignedPutObjectRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
