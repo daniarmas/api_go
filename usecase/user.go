@@ -5,13 +5,14 @@ import (
 	"errors"
 
 	"github.com/daniarmas/api_go/datasource"
-	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
+	"github.com/twpayne/go-geom"
+	"github.com/twpayne/go-geom/encoding/ewkb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 )
@@ -19,7 +20,7 @@ import (
 type UserService interface {
 	GetUser(ctx context.Context, md *utils.ClientMetadata) (*pb.GetUserResponse, error)
 	UpdateUser(ctx context.Context, req *pb.UpdateUserRequest, md *utils.ClientMetadata) (*pb.UpdateUserResponse, error)
-	GetAddressInfo(request *dto.GetAddressInfoRequest) (*dto.GetAddressInfoResponse, error)
+	GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoRequest, md *utils.ClientMetadata) (*pb.GetAddressInfoResponse, error)
 }
 
 type userService struct {
@@ -30,10 +31,11 @@ func NewUserService(dao repository.DAO) UserService {
 	return &userService{dao: dao}
 }
 
-func (i *userService) GetAddressInfo(request *dto.GetAddressInfoRequest) (*dto.GetAddressInfoResponse, error) {
-	var response dto.GetAddressInfoResponse
+func (i *userService) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoRequest, md *utils.ClientMetadata) (*pb.GetAddressInfoResponse, error) {
+	var res pb.GetAddressInfoResponse
+	location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		muncipalityRes, err := i.dao.NewMunicipalityRepository().GetMunicipalityByCoordinate(tx, request.Coordinates)
+		muncipalityRes, err := i.dao.NewMunicipalityRepository().GetMunicipalityByCoordinate(tx, location)
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("municipality not found")
 		} else if err != nil {
@@ -45,16 +47,13 @@ func (i *userService) GetAddressInfo(request *dto.GetAddressInfoRequest) (*dto.G
 		} else if err != nil {
 			return err
 		}
-		response.MunicipalityId = muncipalityRes.ID
-		response.MunicipalityName = muncipalityRes.Name
-		response.ProvinceId = provinceRes.ID
-		response.ProvinceName = provinceRes.Name
+		res = pb.GetAddressInfoResponse{ProvinceId: provinceRes.ID.String(), ProvinceName: provinceRes.Name, ProvinceNameAbbreviation: provinceRes.Codename, MunicipalityName: muncipalityRes.Name, MunicipalityId: muncipalityRes.ID.String()}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &response, nil
+	return &res, nil
 }
 
 func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*pb.GetUserResponse, error) {
