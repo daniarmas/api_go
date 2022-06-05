@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/daniarmas/api_go/utils"
+	log "github.com/sirupsen/logrus"
 	gomail "gopkg.in/mail.v2"
 )
 
@@ -48,6 +49,6 @@ func SendSignInMail(to string, signInTime time.Time, config *utils.Config, md *u
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	// Now send E-Mail
 	if err := d.DialAndSend(m); err != nil {
-		panic(err)
+		log.Error(err)
 	}
 }

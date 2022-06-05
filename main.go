@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"log"
+	// "log"
 
 	"github.com/daniarmas/api_go/app"
 	"github.com/daniarmas/api_go/datasource"
 	pb "github.com/daniarmas/api_go/pkg"
+	log "github.com/sirupsen/logrus"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/tlscert"
 	"github.com/daniarmas/api_go/usecase"
@@ -22,7 +23,7 @@ func main() {
 	}
 	// Starting gRPC server
 	//if we crash the go code, we get the file name and line number
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	// log.SetFlags(log.LstdFlags | log.Lshortfile)
 	builder := utils.GrpcServerBuilder{}
 	addInterceptors(&builder)
 	if config.Environment == "development" {

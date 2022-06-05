@@ -21,7 +21,6 @@ type Order struct {
 	Status               string         `gorm:"column:status"`
 	ItemsQuantity        int32          `gorm:"column:items_quantity;not null"`
 	OrderType            string         `gorm:"column:order_type;not null"`
-	ResidenceType        string         `gorm:"column:residence_type;not null"`
 	Price                string         `gorm:"column:price;not null"`
 	Number               string         `gorm:"column:number;not null"`
 	Address              string         `gorm:"column:address;not null"`
@@ -46,7 +45,6 @@ type OrderBusiness struct {
 	Status               string         `gorm:"column:status"`
 	ItemsQuantity        int32          `gorm:"column:items_quantity;not null"`
 	OrderType            string         `gorm:"column:order_type;not null"`
-	ResidenceType        string         `gorm:"column:residence_type;not null"`
 	Price                string         `gorm:"column:price;not null"`
 	Number               string         `gorm:"column:number;not null"`
 	Address              string         `gorm:"column:address;not null"`

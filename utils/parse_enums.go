@@ -67,17 +67,6 @@ func ParseSearchMunicipalityType(tp string) *pb.SearchMunicipalityType {
 	}
 }
 
-func ParseOrderResidenceType(tp *string) *pb.ResidenceType {
-	switch *tp {
-	case "ResidenceTypeHouse":
-		return pb.ResidenceType_ResidenceTypeHouse.Enum()
-	case "ResidenceTypeApartament":
-		return pb.ResidenceType_ResidenceTypeApartment.Enum()
-	default:
-		return pb.ResidenceType_ResidenceTypeUnspecified.Enum()
-	}
-}
-
 func ParseOrderType(tp *string) *pb.OrderType {
 	switch *tp {
 	case "OrderTypePickUp":
@@ -86,15 +75,5 @@ func ParseOrderType(tp *string) *pb.OrderType {
 		return pb.OrderType_OrderTypeHomeDelivery.Enum()
 	default:
 		return pb.OrderType_OrderTypeUnspecified.Enum()
-	}
-}
-
-func ParseResidenceType(tp string) *pb.UserAddress_UserAddressType {
-	if tp == "House" {
-		return pb.UserAddress_HOUSE.Enum()
-	} else if tp == "Apartament" {
-		return pb.UserAddress_APARTAMENT.Enum()
-	} else {
-		return pb.UserAddress_UNSPECIFIED.Enum()
 	}
 }

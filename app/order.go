@@ -49,28 +49,10 @@ func (m *OrderServer) ListOrder(ctx context.Context, req *pb.ListOrderRequest) (
 }
 
 func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*pb.CreateOrderResponse, error) {
-	var invalidCartItems, invalidLocation, invalidOrderType, invalidResidenceType, invalidNumber, invalidAddress *epb.BadRequest_FieldViolation
+	var invalidCartItems, invalidLocation, invalidOrderType, invalidNumber, invalidAddress *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
-	if len(req.CartItems) == 0 {
-		invalidArgs = true
-		invalidCartItems = &epb.BadRequest_FieldViolation{
-			Field:       "CartItems",
-			Description: "The CartItems field is required",
-		}
-	} else {
-		for _, elem := range req.CartItems {
-			if !utils.IsValidUUID(&elem) {
-				invalidArgs = true
-				invalidCartItems = &epb.BadRequest_FieldViolation{
-					Field:       "CartItems",
-					Description: "The CartItems contains not a valid uuid v4",
-				}
-				break
-			}
-		}
-	}
 	if req.Location == nil {
 		invalidArgs = true
 		invalidLocation = &epb.BadRequest_FieldViolation{
@@ -113,13 +95,6 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 			Description: "The OrderType field is required",
 		}
 	}
-	if req.ResidenceType == *pb.ResidenceType_ResidenceTypeUnspecified.Enum() {
-		invalidArgs = true
-		invalidResidenceType = &epb.BadRequest_FieldViolation{
-			Field:       "ResidenceType",
-			Description: "The ResidenceType field is required",
-		}
-	}
 	if invalidArgs {
 		st = status.New(codes.InvalidArgument, "Invalid Arguments")
 		if invalidLocation != nil {
@@ -140,11 +115,6 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 		if invalidCartItems != nil {
 			st, _ = st.WithDetails(
 				invalidCartItems,
-			)
-		}
-		if invalidResidenceType != nil {
-			st, _ = st.WithDetails(
-				invalidResidenceType,
 			)
 		}
 		if invalidOrderType != nil {

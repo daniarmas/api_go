@@ -217,7 +217,6 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 			Number:         item.Number,
 			Address:        item.Address,
 			Instructions:   item.Instructions,
-			ResidenceType:  *utils.ParseResidenceType(item.ResidenceType),
 			ProvinceId:     item.ProvinceId.String(),
 			MunicipalityId: item.MunicipalityId.String(),
 			Coordinates:    &pb.Point{Latitude: item.Coordinates.Coords()[0], Longitude: item.Coordinates.Coords()[1]},
@@ -457,11 +456,11 @@ func (v *authenticationService) SignOut(ctx context.Context, req *pb.SignOutRequ
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId}, &[]string{"id", "user_id", "device_id"})
-		if authorizationTokenErr != nil {
-			return authorizationTokenErr
-		} else if authorizationTokenRes == nil {
+		authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId}, &[]string{"id", "user_id"})
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
 		}
 		if req.All {
 			var refreshTokenIds []uuid.UUID
