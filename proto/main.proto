@@ -243,6 +243,7 @@ message GetBannedUserResponse {
 message UpdateOrderRequest {
   string id = 1;
   OrderStatusType status = 2;
+  string cancelReasons = 3;
 }
 
 message UpdateOrderResponse {

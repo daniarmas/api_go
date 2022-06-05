@@ -1,4 +1,5 @@
 {
-  "id": "{{ faker.random.uuid }}",
-  "status": "OrderStatusTypeUnspecified"
+  "id": "eafdd89d-4c18-4f41-973d-b16f94cb9cbb",
+  "status": "OrderStatusTypeApproved",
+  "cancelReasons": "Porque me arrepenti a ultimo momento"
 }

@@ -1,6 +1,44 @@
 {
   "details": {
-    "methodFqn": "main.OrderService.UpdateOrder"
+    "methodFqn": "main.OrderService.UpdateOrder",
+    "metadata": [
+      {
+        "key": "Device-Id",
+        "value": "10"
+      },
+      {
+        "key": "App-Version",
+        "value": "1.0.0"
+      },
+      {
+        "key": "Access-Token",
+        "value": "O8pzXjp4QMk4cAD60dHeoOnxdVsDc9"
+      },
+      {
+        "key": "Platform",
+        "value": "iOS"
+      },
+      {
+        "key": "System-Version",
+        "value": "14"
+      },
+      {
+        "key": "Model",
+        "value": "iPhone 11"
+      },
+      {
+        "key": "App",
+        "value": "App"
+      },
+      {
+        "key": "Firebase-Cloud-Messaging-Id",
+        "value": "1"
+      },
+      {
+        "key": "Authorization",
+        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTQ1MjM2NjUsInN1YiI6IjFjMGExZDliLTU3MWYtNGIxZi1iOGNlLWM1ODg2ZjM0NTg0MyJ9.a7Tly-BatrDV1AgjqZjr4ZRFd4sUh4ISGe9QjUw9jlM"
+      }
+    ]
   },
   "requests": [
     {
