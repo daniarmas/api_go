@@ -1,4 +1,4 @@
 {
-  "email": "user3@email.com",
-  "type": "ChangeUserEmail"
+  "email": "user1@email.com",
+  "type": "SignIn"
 }

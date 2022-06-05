@@ -20,7 +20,6 @@ type UserAddress struct {
 	UserId         *uuid.UUID     `gorm:"column:user_id;not null"`
 	User           User           `gorm:"foreignKey:UserId"`
 	Coordinates    ewkb.Point     `gorm:"column:coordinates;not null"`
-	ResidenceType  string         `gorm:"column:residence_type;not null"`
 	Address        string         `gorm:"column:address;not null"`
 	Number         string         `gorm:"column:number;not null"`
 	Instructions   string         `gorm:"column:instructions"`

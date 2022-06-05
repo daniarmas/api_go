@@ -8,9 +8,9 @@ type Config struct {
 	Tls                                string `mapstructure:"TLS"`
 	DBPassword                         string `mapstructure:"DB_PASSWORD"`
 	DBDatabase                         string `mapstructure:"DB_DATABASE"`
-	DBPort                             string `mapstructure:"DB_PORT"`
+	DBPort                             int    `mapstructure:"DB_PORT"`
 	DBHost                             string `mapstructure:"DB_HOST"`
-	ApiPort                            string `mapstructure:"API_PORT"`
+	ApiPort                            int    `mapstructure:"API_PORT"`
 	PrometheusPushgateway              string `mapstructure:"PROMETHEUS_PUSHGATEWAY"`
 	JwtSecret                          string `mapstructure:"JWT_SECRET"`
 	ObjectStorageServerUseSsl          string `mapstructure:"OBJECT_STORAGE_SERVER_USE_SSL"`
@@ -23,6 +23,11 @@ type Config struct {
 	UsersBulkName                      string `mapstructure:"USERS_BULK_NAME"`
 	UsersDeletedBulkName               string `mapstructure:"USERS_DELETED_BULK_NAME"`
 	ItemsDeletedBulkName               string `mapstructure:"ITEMS_DELETED_BULK_NAME"`
+	EmailHostname                      string `mapstructure:"EMAIL_HOSTNAME"`
+	EmailSmtpPort                      int    `mapstructure:"EMAIL_SMTP_PORT"`
+	EmailAddress                       string `mapstructure:"EMAIL_ADDRESS"`
+	EmailAddressPassword               string `mapstructure:"EMAIL_ADDRESS_PASSWORD"`
+	AppName                            string `mapstructure:"APP_NAME"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

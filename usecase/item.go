@@ -297,9 +297,9 @@ func (i *itemService) CreateItem(request *dto.CreateItemRequest) (*models.Item, 
 }
 
 func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md *utils.ClientMetadata) (*pb.ListItemResponse, error) {
-	var where models.Item
+	where := models.Item{}
 	var nextPage time.Time
-	if req.NextPage == nil {
+	if req.NextPage == nil || (req.NextPage.Nanos == 0 && req.NextPage.Seconds == 0) {
 		nextPage = time.Now()
 	} else {
 		nextPage = req.NextPage.AsTime()
@@ -310,12 +310,11 @@ func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md 
 	var businessCollectionId, businessId uuid.UUID
 	if req.BusinessCollectionId != "" {
 		businessCollectionId = uuid.MustParse(req.BusinessCollectionId)
+		where.BusinessCollectionId = &businessCollectionId
 	}
 	if req.BusinessId != "" {
 		businessId = uuid.MustParse(req.BusinessId)
-	}
-	if req.BusinessId != "" || req.BusinessCollectionId != "" {
-		where = models.Item{BusinessId: &businessId, BusinessCollectionId: &businessCollectionId}
+		where.BusinessId = &businessId
 	}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &where, nextPage)
