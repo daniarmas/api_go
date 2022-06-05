@@ -365,7 +365,7 @@ type BusinessServiceClient interface {
 	GetBusiness(ctx context.Context, in *GetBusinessRequest, opts ...grpc.CallOption) (*GetBusinessResponse, error)
 	CreateBusiness(ctx context.Context, in *CreateBusinessRequest, opts ...grpc.CallOption) (*CreateBusinessResponse, error)
 	// rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
-	UpdateBusiness(ctx context.Context, in *UpdateBusinessRequest, opts ...grpc.CallOption) (*UpdateBusinessResponse, error)
+	UpdateBusiness(ctx context.Context, in *UpdateBusinessRequest, opts ...grpc.CallOption) (*Business, error)
 }
 
 type businessServiceClient struct {
@@ -403,8 +403,8 @@ func (c *businessServiceClient) CreateBusiness(ctx context.Context, in *CreateBu
 	return out, nil
 }
 
-func (c *businessServiceClient) UpdateBusiness(ctx context.Context, in *UpdateBusinessRequest, opts ...grpc.CallOption) (*UpdateBusinessResponse, error) {
-	out := new(UpdateBusinessResponse)
+func (c *businessServiceClient) UpdateBusiness(ctx context.Context, in *UpdateBusinessRequest, opts ...grpc.CallOption) (*Business, error) {
+	out := new(Business)
 	err := c.cc.Invoke(ctx, "/main.BusinessService/UpdateBusiness", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -420,7 +420,7 @@ type BusinessServiceServer interface {
 	GetBusiness(context.Context, *GetBusinessRequest) (*GetBusinessResponse, error)
 	CreateBusiness(context.Context, *CreateBusinessRequest) (*CreateBusinessResponse, error)
 	// rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
-	UpdateBusiness(context.Context, *UpdateBusinessRequest) (*UpdateBusinessResponse, error)
+	UpdateBusiness(context.Context, *UpdateBusinessRequest) (*Business, error)
 	mustEmbedUnimplementedBusinessServiceServer()
 }
 
@@ -437,7 +437,7 @@ func (UnimplementedBusinessServiceServer) GetBusiness(context.Context, *GetBusin
 func (UnimplementedBusinessServiceServer) CreateBusiness(context.Context, *CreateBusinessRequest) (*CreateBusinessResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateBusiness not implemented")
 }
-func (UnimplementedBusinessServiceServer) UpdateBusiness(context.Context, *UpdateBusinessRequest) (*UpdateBusinessResponse, error) {
+func (UnimplementedBusinessServiceServer) UpdateBusiness(context.Context, *UpdateBusinessRequest) (*Business, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBusiness not implemented")
 }
 func (UnimplementedBusinessServiceServer) mustEmbedUnimplementedBusinessServiceServer() {}
@@ -559,8 +559,8 @@ var BusinessService_ServiceDesc = grpc.ServiceDesc{
 type ItemServiceClient interface {
 	ListItem(ctx context.Context, in *ListItemRequest, opts ...grpc.CallOption) (*ListItemResponse, error)
 	GetItem(ctx context.Context, in *GetItemRequest, opts ...grpc.CallOption) (*GetItemResponse, error)
-	CreateItem(ctx context.Context, in *CreateItemRequest, opts ...grpc.CallOption) (*CreateItemResponse, error)
-	UpdateItem(ctx context.Context, in *UpdateItemRequest, opts ...grpc.CallOption) (*UpdateItemResponse, error)
+	CreateItem(ctx context.Context, in *CreateItemRequest, opts ...grpc.CallOption) (*Item, error)
+	UpdateItem(ctx context.Context, in *UpdateItemRequest, opts ...grpc.CallOption) (*Item, error)
 	DeleteItem(ctx context.Context, in *DeleteItemRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	SearchItem(ctx context.Context, in *SearchItemRequest, opts ...grpc.CallOption) (*SearchItemResponse, error)
 }
@@ -591,8 +591,8 @@ func (c *itemServiceClient) GetItem(ctx context.Context, in *GetItemRequest, opt
 	return out, nil
 }
 
-func (c *itemServiceClient) CreateItem(ctx context.Context, in *CreateItemRequest, opts ...grpc.CallOption) (*CreateItemResponse, error) {
-	out := new(CreateItemResponse)
+func (c *itemServiceClient) CreateItem(ctx context.Context, in *CreateItemRequest, opts ...grpc.CallOption) (*Item, error) {
+	out := new(Item)
 	err := c.cc.Invoke(ctx, "/main.ItemService/CreateItem", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -600,8 +600,8 @@ func (c *itemServiceClient) CreateItem(ctx context.Context, in *CreateItemReques
 	return out, nil
 }
 
-func (c *itemServiceClient) UpdateItem(ctx context.Context, in *UpdateItemRequest, opts ...grpc.CallOption) (*UpdateItemResponse, error) {
-	out := new(UpdateItemResponse)
+func (c *itemServiceClient) UpdateItem(ctx context.Context, in *UpdateItemRequest, opts ...grpc.CallOption) (*Item, error) {
+	out := new(Item)
 	err := c.cc.Invoke(ctx, "/main.ItemService/UpdateItem", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -633,8 +633,8 @@ func (c *itemServiceClient) SearchItem(ctx context.Context, in *SearchItemReques
 type ItemServiceServer interface {
 	ListItem(context.Context, *ListItemRequest) (*ListItemResponse, error)
 	GetItem(context.Context, *GetItemRequest) (*GetItemResponse, error)
-	CreateItem(context.Context, *CreateItemRequest) (*CreateItemResponse, error)
-	UpdateItem(context.Context, *UpdateItemRequest) (*UpdateItemResponse, error)
+	CreateItem(context.Context, *CreateItemRequest) (*Item, error)
+	UpdateItem(context.Context, *UpdateItemRequest) (*Item, error)
 	DeleteItem(context.Context, *DeleteItemRequest) (*emptypb.Empty, error)
 	SearchItem(context.Context, *SearchItemRequest) (*SearchItemResponse, error)
 	mustEmbedUnimplementedItemServiceServer()
@@ -650,10 +650,10 @@ func (UnimplementedItemServiceServer) ListItem(context.Context, *ListItemRequest
 func (UnimplementedItemServiceServer) GetItem(context.Context, *GetItemRequest) (*GetItemResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetItem not implemented")
 }
-func (UnimplementedItemServiceServer) CreateItem(context.Context, *CreateItemRequest) (*CreateItemResponse, error) {
+func (UnimplementedItemServiceServer) CreateItem(context.Context, *CreateItemRequest) (*Item, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateItem not implemented")
 }
-func (UnimplementedItemServiceServer) UpdateItem(context.Context, *UpdateItemRequest) (*UpdateItemResponse, error) {
+func (UnimplementedItemServiceServer) UpdateItem(context.Context, *UpdateItemRequest) (*Item, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateItem not implemented")
 }
 func (UnimplementedItemServiceServer) DeleteItem(context.Context, *DeleteItemRequest) (*emptypb.Empty, error) {
@@ -1563,7 +1563,7 @@ var BanService_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ObjectStorageServiceClient interface {
-	GetPresignedPutObject(ctx context.Context, in *GetPresignedPutRequest, opts ...grpc.CallOption) (*GetPresignedPutResponse, error)
+	GetPresignedPutObject(ctx context.Context, in *GetPresignedPutObjectRequest, opts ...grpc.CallOption) (*GetPresignedPutObjectResponse, error)
 }
 
 type objectStorageServiceClient struct {
@@ -1574,8 +1574,8 @@ func NewObjectStorageServiceClient(cc grpc.ClientConnInterface) ObjectStorageSer
 	return &objectStorageServiceClient{cc}
 }
 
-func (c *objectStorageServiceClient) GetPresignedPutObject(ctx context.Context, in *GetPresignedPutRequest, opts ...grpc.CallOption) (*GetPresignedPutResponse, error) {
-	out := new(GetPresignedPutResponse)
+func (c *objectStorageServiceClient) GetPresignedPutObject(ctx context.Context, in *GetPresignedPutObjectRequest, opts ...grpc.CallOption) (*GetPresignedPutObjectResponse, error) {
+	out := new(GetPresignedPutObjectResponse)
 	err := c.cc.Invoke(ctx, "/main.ObjectStorageService/GetPresignedPutObject", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -1587,7 +1587,7 @@ func (c *objectStorageServiceClient) GetPresignedPutObject(ctx context.Context, 
 // All implementations must embed UnimplementedObjectStorageServiceServer
 // for forward compatibility
 type ObjectStorageServiceServer interface {
-	GetPresignedPutObject(context.Context, *GetPresignedPutRequest) (*GetPresignedPutResponse, error)
+	GetPresignedPutObject(context.Context, *GetPresignedPutObjectRequest) (*GetPresignedPutObjectResponse, error)
 	mustEmbedUnimplementedObjectStorageServiceServer()
 }
 
@@ -1595,7 +1595,7 @@ type ObjectStorageServiceServer interface {
 type UnimplementedObjectStorageServiceServer struct {
 }
 
-func (UnimplementedObjectStorageServiceServer) GetPresignedPutObject(context.Context, *GetPresignedPutRequest) (*GetPresignedPutResponse, error) {
+func (UnimplementedObjectStorageServiceServer) GetPresignedPutObject(context.Context, *GetPresignedPutObjectRequest) (*GetPresignedPutObjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPresignedPutObject not implemented")
 }
 func (UnimplementedObjectStorageServiceServer) mustEmbedUnimplementedObjectStorageServiceServer() {}
@@ -1612,7 +1612,7 @@ func RegisterObjectStorageServiceServer(s grpc.ServiceRegistrar, srv ObjectStora
 }
 
 func _ObjectStorageService_GetPresignedPutObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetPresignedPutRequest)
+	in := new(GetPresignedPutObjectRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1624,7 +1624,7 @@ func _ObjectStorageService_GetPresignedPutObject_Handler(srv interface{}, ctx co
 		FullMethod: "/main.ObjectStorageService/GetPresignedPutObject",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ObjectStorageServiceServer).GetPresignedPutObject(ctx, req.(*GetPresignedPutRequest))
+		return srv.(ObjectStorageServiceServer).GetPresignedPutObject(ctx, req.(*GetPresignedPutObjectRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
