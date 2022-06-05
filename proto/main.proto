@@ -28,14 +28,14 @@ service BusinessService {
   rpc GetBusiness (GetBusinessRequest) returns (GetBusinessResponse) {}
   rpc CreateBusiness (CreateBusinessRequest) returns (CreateBusinessResponse) {}
   // rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
-  rpc UpdateBusiness (UpdateBusinessRequest) returns (UpdateBusinessResponse) {}
+  rpc UpdateBusiness (UpdateBusinessRequest) returns (Business) {}
 }
 
 service ItemService {
   rpc ListItem (ListItemRequest) returns (ListItemResponse) {}
   rpc GetItem (GetItemRequest) returns (GetItemResponse) {}
-  rpc CreateItem (CreateItemRequest) returns (CreateItemResponse) {}
-  rpc UpdateItem (UpdateItemRequest) returns (UpdateItemResponse) {}
+  rpc CreateItem (CreateItemRequest) returns (Item) {}
+  rpc UpdateItem (UpdateItemRequest) returns (Item) {}
   rpc DeleteItem (DeleteItemRequest) returns (google.protobuf.Empty) {}  
   rpc SearchItem (SearchItemRequest) returns (SearchItemResponse) {}
 }

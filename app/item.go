@@ -3,16 +3,12 @@ package app
 import (
 	"context"
 
-	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
 	utils "github.com/daniarmas/api_go/utils"
-	"github.com/google/uuid"
 	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	gp "google.golang.org/protobuf/types/known/emptypb"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb.ListItemResponse, error) {
@@ -127,15 +123,10 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 	return res, nil
 }
 
-func (m *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) (*pb.UpdateItemResponse, error) {
+func (m *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) (*pb.Item, error) {
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	var businessCollectionId uuid.UUID
-	if req.BusinessCollectionId != "" {
-		businessCollectionId = uuid.MustParse(req.BusinessCollectionId)
-	}
-	itemId := uuid.MustParse(req.Id)
-	item, err := m.itemService.UpdateItem(&dto.UpdateItemRequest{ItemId: &itemId, Name: req.Name, Description: req.Description, Price: req.Price, HighQualityPhoto: req.HighQualityPhoto, HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash, LowQualityPhoto: req.LowQualityPhoto, LowQualityPhotoBlurHash: req.LowQualityPhotoBlurHash, Thumbnail: req.Thumbnail, ThumbnailBlurHash: req.ThumbnailBlurHash, Availability: req.Availability, Status: req.Status.String(), BusinessColletionId: &businessCollectionId, Metadata: &md})
+	md := utils.GetMetadata(ctx)
+	res, err := m.itemService.UpdateItem(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -165,25 +156,7 @@ func (m *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) 
 		}
 		return nil, st.Err()
 	}
-	return &pb.UpdateItemResponse{Item: &pb.Item{
-		Id:                       item.ID.String(),
-		Name:                     item.Name,
-		Description:              item.Description,
-		Price:                    item.Price,
-		Availability:             int32(item.Availability),
-		BusinessId:               item.BusinessId.String(),
-		BusinessCollectionId:     item.BusinessCollectionId.String(),
-		HighQualityPhoto:         item.HighQualityPhoto,
-		HighQualityPhotoBlurHash: item.HighQualityPhotoBlurHash,
-		LowQualityPhoto:          item.LowQualityPhoto,
-		LowQualityPhotoBlurHash:  item.LowQualityPhotoBlurHash,
-		Thumbnail:                item.Thumbnail,
-		ThumbnailBlurHash:        item.ThumbnailBlurHash,
-		Cursor:                   item.Cursor,
-		Status:                   *utils.ParseItemStatusType(&item.Status),
-		CreateTime:               timestamppb.New(item.CreateTime),
-		UpdateTime:               timestamppb.New(item.UpdateTime),
-	}}, nil
+	return res, nil
 }
 
 func (m *ItemServer) SearchItem(ctx context.Context, req *pb.SearchItemRequest) (*pb.SearchItemResponse, error) {
@@ -272,9 +245,8 @@ func (m *ItemServer) SearchItem(ctx context.Context, req *pb.SearchItemRequest) 
 
 func (m *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) (*gp.Empty, error) {
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	itemId := uuid.MustParse(req.Id)
-	err := m.itemService.DeleteItem(&dto.DeleteItemRequest{ItemId: &itemId, Metadata: &md})
+	md := utils.GetMetadata(ctx)
+	err := m.itemService.DeleteItem(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -309,11 +281,10 @@ func (m *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) 
 	return &gp.Empty{}, nil
 }
 
-func (m *ItemServer) CreateItem(ctx context.Context, req *pb.CreateItemRequest) (*pb.CreateItemResponse, error) {
-	md, _ := metadata.FromIncomingContext(ctx)
+func (m *ItemServer) CreateItem(ctx context.Context, req *pb.CreateItemRequest) (*pb.Item, error) {
+	md := utils.GetMetadata(ctx)
 	var st *status.Status
-	businessId := uuid.MustParse(req.BusinessId)
-	res, err := m.itemService.CreateItem(&dto.CreateItemRequest{Name: req.Name, Description: req.Description, Price: req.Price, BusinessCollectionId: req.BusinessCollectionId, HighQualityPhoto: req.HighQualityPhoto, HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash, LowQualityPhoto: req.LowQualityPhoto, LowQualityPhotoBlurHash: req.LowQualityPhotoBlurHash, Thumbnail: req.Thumbnail, ThumbnailBlurHash: req.ThumbnailBlurHash, BusinessId: &businessId, Metadata: &md})
+	res, err := m.itemService.CreateItem(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -339,5 +310,5 @@ func (m *ItemServer) CreateItem(ctx context.Context, req *pb.CreateItemRequest) 
 		}
 		return nil, st.Err()
 	}
-	return &pb.CreateItemResponse{Item: &pb.Item{Id: res.ID.String(), Name: res.Name, Description: res.Description, Price: res.Price, Status: *utils.ParseItemStatusType(&res.Status), Availability: int32(res.Availability), BusinessId: res.BusinessId.String(), BusinessCollectionId: res.BusinessCollectionId.String(), HighQualityPhoto: res.HighQualityPhoto, HighQualityPhotoBlurHash: res.HighQualityPhotoBlurHash, LowQualityPhoto: res.LowQualityPhoto, LowQualityPhotoBlurHash: res.LowQualityPhotoBlurHash, Thumbnail: res.Thumbnail, ThumbnailBlurHash: res.ThumbnailBlurHash, CreateTime: timestamppb.New(res.CreateTime), UpdateTime: timestamppb.New(res.UpdateTime)}}, nil
+	return res, nil
 }
