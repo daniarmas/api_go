@@ -3,7 +3,7 @@ syntax = "proto3";
 package main;
 
 import "google/protobuf/empty.proto";
-import "google/protobuf/field_mask.proto";
+// import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "/pkg";
@@ -48,8 +48,8 @@ service UserService {
 
 service OrderService {
   rpc ListOrder (ListOrderRequest) returns (ListOrderResponse) {}
-  rpc CreateOrder (CreateOrderRequest) returns (CreateOrderResponse) {}
-  rpc UpdateOrder (UpdateOrderRequest) returns (UpdateOrderResponse) {}
+  rpc CreateOrder (CreateOrderRequest) returns (Order) {}
+  rpc UpdateOrder (UpdateOrderRequest) returns (Order) {}
   rpc ListOrderedItem (ListOrderedItemRequest) returns (ListOrderedItemResponse) {}
 }
 
@@ -241,27 +241,16 @@ message GetBannedUserResponse {
 }
 
 message UpdateOrderRequest {
-  string id = 1;
-  OrderStatusType status = 2;
+  Order order = 1;
 }
 
-message UpdateOrderResponse {
-  Order order = 1; 
-}
-
-message CreateOrderRequest {
-  repeated string cartItems = 1;                
-	OrderType orderType = 2;           
-	ResidenceType residenceType = 3;        
-	string number = 4;         
-	string address = 5;
-  string instructions = 6;           
-	Point location = 7;    
-	google.protobuf.Timestamp orderDate = 8;       
-}
-
-message CreateOrderResponse {
-  Order order = 1;  
+message CreateOrderRequest {           
+	OrderType orderType = 1;           
+	string number = 2;         
+	string address = 3;
+  string instructions = 4;           
+	Point location = 5;    
+	google.protobuf.Timestamp orderTime = 6;       
 }
 
 message ListOrderRequest {
@@ -275,7 +264,6 @@ message ListOrderResponse {
 
 message ListOrderedItemRequest {
   string orderId = 1;
-  google.protobuf.FieldMask fieldMask = 2;
 }
 
 message ListOrderedItemResponse {
@@ -564,23 +552,22 @@ message OrderedItem {
 
 message Order {
   string id = 1;
-  OrderStatusType status = 2;
-  OrderType orderType = 3;
-  ResidenceType residenceType = 4;
+  string shortId = 2;
+  OrderStatusType status = 3;
+  OrderType orderType = 4;
   string number = 5;
   string address = 6;
   string instructions = 7;
-  Point coordinates = 8;
-  string price = 9;
-  string businessId = 10;
-  string userId = 11;
-  string deviceId = 12;
-  string appVersion = 13;
-  string businessName = 14;
-  int32 quantity = 15;
-  google.protobuf.Timestamp orderDate = 16;
-  google.protobuf.Timestamp createTime = 17;
-  google.protobuf.Timestamp updateTime = 18;
+  string cancelReasons = 8;
+  Point coordinates = 9;
+  string price = 10;
+  string businessId = 11;
+  string userId = 12;
+  string businessName = 13;
+  int32 itemsQuantity = 14;
+  google.protobuf.Timestamp orderTime = 15;
+  google.protobuf.Timestamp createTime = 16;
+  google.protobuf.Timestamp updateTime = 17;
 }
 
 message User {
@@ -768,16 +755,15 @@ message UserAddress {
   }
   string id = 1;
   string tag = 2;
-  UserAddressType residenceType = 3;
-  string number = 4;
-  string address = 5;
-  Point coordinates = 6;
-  string instructions = 7;
-  string userId = 8;
-  string provinceId = 9;
-  string municipalityId = 10;
-  google.protobuf.Timestamp createTime = 11;
-  google.protobuf.Timestamp updateTime = 12;
+  string number = 3;
+  string address = 4;
+  Point coordinates = 5;
+  string instructions = 6;
+  string userId = 7;
+  string provinceId = 8;
+  string municipalityId = 9;
+  google.protobuf.Timestamp createTime = 10;
+  google.protobuf.Timestamp updateTime = 11;
 }
 
 message Permission {
@@ -855,12 +841,6 @@ enum OrderType {
   OrderTypeUnspecified = 0;
   OrderTypePickUp = 1; 
   OrderTypeHomeDelivery = 2;
-}
-
-enum ResidenceType {
-  ResidenceTypeUnspecified = 0;
-  ResidenceTypeHouse = 1;
-  ResidenceTypeApartment = 2;
 }
 
 enum SignUpType {

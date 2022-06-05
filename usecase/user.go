@@ -109,7 +109,6 @@ func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*p
 			Number:         item.Number,
 			Address:        item.Address,
 			Instructions:   item.Instructions,
-			ResidenceType:  *utils.ParseResidenceType(item.ResidenceType),
 			ProvinceId:     item.ProvinceId.String(),
 			MunicipalityId: item.MunicipalityId.String(),
 			Coordinates:    &pb.Point{Latitude: item.Coordinates.Coords()[0], Longitude: item.Coordinates.Coords()[1]},

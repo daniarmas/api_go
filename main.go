@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"time"
+	// "log"
 
 	"github.com/daniarmas/api_go/app"
 	"github.com/daniarmas/api_go/datasource"
 	pb "github.com/daniarmas/api_go/pkg"
+	log "github.com/sirupsen/logrus"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/tlscert"
 	"github.com/daniarmas/api_go/usecase"
@@ -16,7 +16,6 @@ import (
 )
 
 func main() {
-	fmt.Println(time.Now().UTC())
 	// Configurations
 	config, err := datasource.NewConfig()
 	if err != nil {
@@ -24,7 +23,7 @@ func main() {
 	}
 	// Starting gRPC server
 	//if we crash the go code, we get the file name and line number
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	// log.SetFlags(log.LstdFlags | log.Lshortfile)
 	builder := utils.GrpcServerBuilder{}
 	addInterceptors(&builder)
 	if config.Environment == "development" {
@@ -35,7 +34,7 @@ func main() {
 	}
 	s := builder.Build()
 	s.RegisterService(serviceRegister)
-	grpcServerAddress := fmt.Sprintf("0.0.0.0:%s", config.ApiPort)
+	grpcServerAddress := fmt.Sprintf("0.0.0.0:%d", config.ApiPort)
 	startErr := s.Start(grpcServerAddress)
 	if startErr != nil {
 		log.Fatalf("%v", startErr)
@@ -67,7 +66,7 @@ func serviceRegister(sv *grpc.Server) {
 	// Repository
 	repositoryDao := repository.NewDAO(db, config, datasourceDao)
 	itemService := usecase.NewItemService(repositoryDao, config)
-	authenticationService := usecase.NewAuthenticationService(repositoryDao)
+	authenticationService := usecase.NewAuthenticationService(repositoryDao, config)
 	businessService := usecase.NewBusinessService(repositoryDao, config)
 	userService := usecase.NewUserService(repositoryDao)
 	cartItemService := usecase.NewCartItemService(repositoryDao, config)

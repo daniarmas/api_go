@@ -31,8 +31,8 @@ type CartItem struct {
 }
 
 func (i *CartItem) BeforeCreate(tx *gorm.DB) (err error) {
-	i.CreateTime = time.Now().UTC()
-	i.UpdateTime = time.Now().UTC()
+	i.CreateTime = time.Now()
+	i.UpdateTime = time.Now()
 	return
 }
 

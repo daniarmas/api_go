@@ -10,7 +10,7 @@ import (
 
 type CartItemQuery interface {
 	ListCartItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItem, error)
-	ListCartItemAll(tx *gorm.DB, where *models.CartItem) (*[]models.CartItem, error)
+	ListCartItemAll(tx *gorm.DB, where *models.CartItem, fields *[]string) (*[]models.CartItem, error)
 	ListCartItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]models.CartItem, error)
 	CreateCartItem(tx *gorm.DB, where *models.CartItem) (*models.CartItem, error)
 	UpdateCartItem(tx *gorm.DB, where *models.CartItem, data *models.CartItem) (*models.CartItem, error)
@@ -37,8 +37,8 @@ func (i *cartItemQuery) CartItemIsEmpty(tx *gorm.DB, where *models.CartItem) (*b
 	return res, nil
 }
 
-func (i *cartItemQuery) ListCartItemAll(tx *gorm.DB, where *models.CartItem) (*[]models.CartItem, error) {
-	res, err := Datasource.NewCartItemDatasource().ListCartItemAll(tx, where)
+func (i *cartItemQuery) ListCartItemAll(tx *gorm.DB, where *models.CartItem, fields *[]string) (*[]models.CartItem, error) {
+	res, err := Datasource.NewCartItemDatasource().ListCartItemAll(tx, where, fields)
 	if err != nil {
 		return nil, err
 	}

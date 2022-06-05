@@ -1,4 +1,7 @@
 {
-  "id": "{{ faker.random.uuid }}",
-  "status": "OrderStatusTypeUnspecified"
+  "order": {
+    "id": "77ed2bdc-43ec-4e08-9bc2-263c170c5cea",
+    "status": "OrderStatusTypeRejected",
+    "cancelReasons": "muy lejos su direccion"
+  }
 }

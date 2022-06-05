@@ -12,7 +12,7 @@ import (
 
 type CartItemDatasource interface {
 	ListCartItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItem, error)
-	ListCartItemAll(tx *gorm.DB, where *models.CartItem) (*[]models.CartItem, error)
+	ListCartItemAll(tx *gorm.DB, where *models.CartItem, fields *[]string) (*[]models.CartItem, error)
 	ListCartItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]models.CartItem, error)
 	CreateCartItem(tx *gorm.DB, where *models.CartItem) (*models.CartItem, error)
 	UpdateCartItem(tx *gorm.DB, where *models.CartItem, data *models.CartItem) (*models.CartItem, error)
@@ -55,9 +55,9 @@ func (i *cartItemDatasource) ListCartItem(tx *gorm.DB, where *models.CartItem, c
 	return &res, nil
 }
 
-func (i *cartItemDatasource) ListCartItemAll(tx *gorm.DB, where *models.CartItem) (*[]models.CartItem, error) {
+func (i *cartItemDatasource) ListCartItemAll(tx *gorm.DB, where *models.CartItem, fields *[]string) (*[]models.CartItem, error) {
 	var res []models.CartItem
-	result := tx.Where("cart_item.user_id = ?", where.UserId).Order("cart_item.create_time desc").Find(&res)
+	result := tx.Where("cart_item.user_id = ?", where.UserId).Select(*fields).Order("cart_item.create_time desc").Find(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}

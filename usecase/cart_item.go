@@ -59,7 +59,7 @@ func (i *cartItemService) EmptyCartItem(ctx context.Context, md *utils.ClientMet
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		listCartItemsRes, listCartItemsErr := i.dao.NewCartItemRepository().ListCartItemAll(tx, &models.CartItem{UserId: authorizationTokenRes.UserId})
+		listCartItemsRes, listCartItemsErr := i.dao.NewCartItemRepository().ListCartItemAll(tx, &models.CartItem{UserId: authorizationTokenRes.UserId}, &[]string{"item_id"})
 		if listCartItemsErr != nil {
 			return listCartItemsErr
 		}

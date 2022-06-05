@@ -3,12 +3,12 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/daniarmas/api_go/datasource"
-	"github.com/daniarmas/api_go/dto"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
@@ -23,9 +23,9 @@ import (
 
 type OrderService interface {
 	ListOrder(ctx context.Context, req *pb.ListOrderRequest, md *utils.ClientMetadata) (*pb.ListOrderResponse, error)
-	CreateOrder(ctx context.Context, req *pb.CreateOrderRequest, md *utils.ClientMetadata) (*pb.CreateOrderResponse, error)
-	UpdateOrder(req *dto.UpdateOrderRequest) (*dto.UpdateOrderResponse, error)
-	ListOrderedItemWithItem(req *dto.ListOrderedItemRequest) (*dto.ListOrderedItemResponse, error)
+	CreateOrder(ctx context.Context, req *pb.CreateOrderRequest, md *utils.ClientMetadata) (*pb.Order, error)
+	UpdateOrder(ctx context.Context, req *pb.UpdateOrderRequest, md *utils.ClientMetadata) (*pb.Order, error)
+	ListOrderedItemWithItem(ctx context.Context, req *pb.ListOrderedItemRequest, md *utils.ClientMetadata) (*pb.ListOrderedItemResponse, error)
 }
 
 type orderService struct {
@@ -36,10 +36,61 @@ func NewOrderService(dao repository.DAO) OrderService {
 	return &orderService{dao: dao}
 }
 
-func (i *orderService) ListOrderedItemWithItem(req *dto.ListOrderedItemRequest) (*dto.ListOrderedItemResponse, error) {
-	var response dto.ListOrderedItemResponse
+func (i *orderService) ListOrderedItemWithItem(ctx context.Context, req *pb.ListOrderedItemRequest, md *utils.ClientMetadata) (*pb.ListOrderedItemResponse, error) {
+	var res pb.ListOrderedItemResponse
+	orderId := uuid.MustParse(req.OrderId)
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &req.Metadata.Get("authorization")[0]}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		_, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id"})
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
+			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		}
+		unionOrderAndOrderedItemRes, unionOrderAndOrderedItemErr := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &models.UnionOrderAndOrderedItem{OrderId: &orderId}, &[]string{"id", "order_id", "ordered_item_id"})
+		if unionOrderAndOrderedItemErr != nil {
+			return unionOrderAndOrderedItemErr
+		}
+		orderedItemFks := make([]uuid.UUID, 0, len(*unionOrderAndOrderedItemRes))
+		for _, item := range *unionOrderAndOrderedItemRes {
+			orderedItemFks = append(orderedItemFks, *item.OrderedItemId)
+		}
+		orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, &orderedItemFks, &[]string{"id", "name", "price", "quantity", "item_id", "cart_item_id", "user_id", "create_time", "update_time"})
+		if orderedItemsErr != nil {
+			return orderedItemsErr
+		}
+		orderedItems := make([]*pb.OrderedItem, 0, len(*orderedItemsRes))
+		for _, item := range *orderedItemsRes {
+			orderedItems = append(orderedItems, &pb.OrderedItem{Id: item.ID.String(), Name: item.Name, Price: item.Price, ItemId: item.ItemId.String(), Quantity: item.Quantity, UserId: item.UserId.String(), CreateTime: timestamppb.New(item.CreateTime), UpdateTime: timestamppb.New(item.UpdateTime), CartItemId: item.CartItemId.String()})
+		}
+		res.OrderedItems = orderedItems
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderRequest, md *utils.ClientMetadata) (*pb.Order, error) {
+	var res *pb.Order
+	id := uuid.MustParse(req.Order.Id)
+	var cancelReasons string
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
@@ -59,60 +110,22 @@ func (i *orderService) ListOrderedItemWithItem(req *dto.ListOrderedItemRequest) 
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		unionOrderAndOrderedItemRes, unionOrderAndOrderedItemErr := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &models.UnionOrderAndOrderedItem{OrderId: req.OrderId}, &[]string{})
-		if unionOrderAndOrderedItemErr != nil {
-			return unionOrderAndOrderedItemErr
-		}
-		orderedItemFks := make([]uuid.UUID, 0, len(*unionOrderAndOrderedItemRes))
-		for _, item := range *unionOrderAndOrderedItemRes {
-			orderedItemFks = append(orderedItemFks, *item.OrderedItemId)
-		}
-		orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, &orderedItemFks, &[]string{})
-		if orderedItemsErr != nil {
-			return orderedItemsErr
-		}
-		response.OrderedItems = orderedItemsRes
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &response, nil
-}
-
-func (i *orderService) UpdateOrder(req *dto.UpdateOrderRequest) (*dto.UpdateOrderResponse, error) {
-	var response dto.UpdateOrderResponse
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &req.Metadata.Get("authorization")[0]}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
-			case "Token is expired":
-				return errors.New("authorizationtoken expired")
-			case "signature is invalid":
-				return errors.New("signature is invalid")
-			case "token contains an invalid number of segments":
-				return errors.New("token contains an invalid number of segments")
-			default:
-				return authorizationTokenParseErr
-			}
-		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
-		}
-		orderRes, orderErr := i.dao.NewOrderRepository().GetOrder(tx, &models.Order{ID: req.Id})
+		orderRes, orderErr := i.dao.NewOrderRepository().GetOrder(tx, &models.Order{ID: &id})
 		if orderErr != nil {
 			return orderErr
 		}
-		switch req.Status {
-		case "OrderStatusTypeCanceled":
+		switch req.Order.Status {
+		case pb.OrderStatusType_OrderStatusTypePending:
 			if orderRes.Status != "OrderStatusTypeStarted" {
 				return errors.New("status error")
 			}
-			unionOrderAndOrderedItemRes, unionOrderAndOrderedItemErr := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &models.UnionOrderAndOrderedItem{OrderId: req.Id}, &[]string{})
+		case pb.OrderStatusType_OrderStatusTypeRejected, pb.OrderStatusType_OrderStatusTypeCanceled:
+			if req.Order.Status == pb.OrderStatusType_OrderStatusTypeCanceled && orderRes.Status != "OrderStatusTypeStarted" {
+				return errors.New("status error")
+			} else if req.Order.Status == pb.OrderStatusType_OrderStatusTypeRejected && orderRes.Status != "OrderStatusTypePending" {
+				return errors.New("status error")
+			}
+			unionOrderAndOrderedItemRes, unionOrderAndOrderedItemErr := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &models.UnionOrderAndOrderedItem{OrderId: &id}, &[]string{"ordered_item_id"})
 			if unionOrderAndOrderedItemErr != nil {
 				return unionOrderAndOrderedItemErr
 			}
@@ -147,134 +160,49 @@ func (i *orderService) UpdateOrder(req *dto.UpdateOrderRequest) (*dto.UpdateOrde
 					return updateItemsErr
 				}
 			}
-			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: req.Id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: req.Status})
-			if updateOrderErr != nil {
-				return updateOrderErr
-			}
-			_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Status, OrderId: req.Id, CreateTime: updateOrderRes.UpdateTime})
-			if createOrderLcErr != nil {
-				return createOrderLcErr
-			}
-			response.Order = &models.Order{ID: updateOrderRes.ID, Status: updateOrderRes.Status, OrderType: updateOrderRes.OrderType, ResidenceType: updateOrderRes.ResidenceType, Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId, UserId: updateOrderRes.UserId, Coordinates: updateOrderRes.Coordinates, AuthorizationTokenId: updateOrderRes.AuthorizationTokenId, OrderDate: updateOrderRes.OrderDate, CreateTime: updateOrderRes.CreateTime, UpdateTime: updateOrderRes.UpdateTime}
-		case "OrderStatusTypeRejected":
+			cancelReasons = req.Order.CancelReasons
+		case pb.OrderStatusType_OrderStatusTypeApproved:
 			if orderRes.Status != "OrderStatusTypePending" {
 				return errors.New("status error")
 			}
-			unionOrderAndOrderedItemRes, unionOrderAndOrderedItemErr := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &models.UnionOrderAndOrderedItem{OrderId: req.Id}, &[]string{})
-			if unionOrderAndOrderedItemErr != nil {
-				return unionOrderAndOrderedItemErr
-			}
-			orderedItemFks := make([]uuid.UUID, 0, len(*unionOrderAndOrderedItemRes))
-			for _, item := range *unionOrderAndOrderedItemRes {
-				orderedItemFks = append(orderedItemFks, *item.OrderedItemId)
-			}
-			orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, &orderedItemFks, &[]string{})
-			if orderedItemsErr != nil {
-				return orderedItemsErr
-			}
-			itemFks := make([]uuid.UUID, 0, len(*orderedItemsRes))
-			for _, item := range *orderedItemsRes {
-				itemFks = append(itemFks, *item.ItemId)
-			}
-			itemsRes, itemsErr := i.dao.NewItemQuery().ListItemInIds(tx, itemFks)
-			if itemsErr != nil {
-				return itemsErr
-			}
-			for _, item := range *orderedItemsRes {
-				var index = -1
-				for i, n := range *itemsRes {
-					if *n.ID == *item.ItemId {
-						index = i
-					}
-				}
-				(*itemsRes)[index].Availability += int64(item.Quantity)
-			}
-			for _, item := range *itemsRes {
-				_, updateItemsErr := i.dao.NewItemQuery().UpdateItem(tx, &models.Item{ID: item.ID}, &item)
-				if updateItemsErr != nil {
-					return updateItemsErr
-				}
-			}
-			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: req.Id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: req.Status})
-			if updateOrderErr != nil {
-				return updateOrderErr
-			}
-			_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Status, OrderId: req.Id, CreateTime: updateOrderRes.UpdateTime})
-			if createOrderLcErr != nil {
-				return createOrderLcErr
-			}
-			response.Order = &models.Order{ID: updateOrderRes.ID, Status: updateOrderRes.Status, OrderType: updateOrderRes.OrderType, ResidenceType: updateOrderRes.ResidenceType, Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId, UserId: updateOrderRes.UserId, Coordinates: updateOrderRes.Coordinates, AuthorizationTokenId: updateOrderRes.AuthorizationTokenId, OrderDate: updateOrderRes.OrderDate, CreateTime: updateOrderRes.CreateTime, UpdateTime: updateOrderRes.UpdateTime, ItemsQuantity: updateOrderRes.ItemsQuantity, Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions}
-		case "OrderStatusTypePending":
-			if orderRes.Status != "OrderStatusTypeStarted" {
-				return errors.New("status error")
-			}
-			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: req.Id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: req.Status})
-			if updateOrderErr != nil {
-				return updateOrderErr
-			}
-			_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Status, OrderId: req.Id, CreateTime: updateOrderRes.UpdateTime})
-			if createOrderLcErr != nil {
-				return createOrderLcErr
-			}
-			response.Order = &models.Order{ID: updateOrderRes.ID, Status: updateOrderRes.Status, OrderType: updateOrderRes.OrderType, ResidenceType: updateOrderRes.ResidenceType, Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId, UserId: updateOrderRes.UserId, Coordinates: updateOrderRes.Coordinates, AuthorizationTokenId: updateOrderRes.AuthorizationTokenId, OrderDate: updateOrderRes.OrderDate, CreateTime: updateOrderRes.CreateTime, UpdateTime: updateOrderRes.UpdateTime, Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions}
-		case "OrderStatusTypeApproved":
-			if orderRes.Status != "OrderStatusTypePending" {
-				return errors.New("status error")
-			}
-			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: req.Id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: req.Status})
-			if updateOrderErr != nil {
-				return updateOrderErr
-			}
-			_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Status, OrderId: req.Id, CreateTime: updateOrderRes.UpdateTime})
-			if createOrderLcErr != nil {
-				return createOrderLcErr
-			}
-			response.Order = &models.Order{ID: updateOrderRes.ID, Status: updateOrderRes.Status, OrderType: updateOrderRes.OrderType, ResidenceType: updateOrderRes.ResidenceType, Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId, UserId: updateOrderRes.UserId, Coordinates: updateOrderRes.Coordinates, AuthorizationTokenId: updateOrderRes.AuthorizationTokenId, OrderDate: updateOrderRes.OrderDate, CreateTime: updateOrderRes.CreateTime, UpdateTime: updateOrderRes.UpdateTime, Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions}
-		case "OrderStatusTypeDone":
+		case pb.OrderStatusType_OrderStatusTypeDone:
 			if orderRes.Status != "OrderStatusTypeApproved" {
 				return errors.New("status error")
 			}
-			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: req.Id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: req.Status})
-			if updateOrderErr != nil {
-				return updateOrderErr
-			}
-			_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Status, OrderId: req.Id, CreateTime: updateOrderRes.UpdateTime})
-			if createOrderLcErr != nil {
-				return createOrderLcErr
-			}
-			response.Order = &models.Order{ID: updateOrderRes.ID, Status: updateOrderRes.Status, OrderType: updateOrderRes.OrderType, ResidenceType: updateOrderRes.ResidenceType, Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId, UserId: updateOrderRes.UserId, Coordinates: updateOrderRes.Coordinates, AuthorizationTokenId: updateOrderRes.AuthorizationTokenId, OrderDate: updateOrderRes.OrderDate, CreateTime: updateOrderRes.CreateTime, UpdateTime: updateOrderRes.UpdateTime, Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions}
-		case "OrderStatusTypeReceived":
+		case pb.OrderStatusType_OrderStatusTypeReceived:
 			if orderRes.Status != "OrderStatusTypeApproved" && orderRes.Status != "OrderStatusTypeDone" {
 				return errors.New("status error")
 			}
-			updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: req.Id, UserId: authorizationTokenRes.UserId}, &models.Order{Status: req.Status})
-			if updateOrderErr != nil {
-				return updateOrderErr
-			}
-			_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Status, OrderId: req.Id, CreateTime: updateOrderRes.UpdateTime})
-			if createOrderLcErr != nil {
-				return createOrderLcErr
-			}
-			response.Order = &models.Order{ID: updateOrderRes.ID, Status: updateOrderRes.Status, OrderType: updateOrderRes.OrderType, ResidenceType: updateOrderRes.ResidenceType, Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId, UserId: updateOrderRes.UserId, Coordinates: updateOrderRes.Coordinates, AuthorizationTokenId: updateOrderRes.AuthorizationTokenId, OrderDate: updateOrderRes.OrderDate, CreateTime: updateOrderRes.CreateTime, UpdateTime: updateOrderRes.UpdateTime, Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions}
 		}
+		updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &models.Order{ID: &id}, &models.Order{Status: req.Order.Status.String(), CancelReasons: cancelReasons})
+		if updateOrderErr != nil {
+			return updateOrderErr
+		}
+		_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &models.OrderLifecycle{Status: req.Order.Status.String(), OrderId: &id, CreateTime: updateOrderRes.UpdateTime})
+		if createOrderLcErr != nil {
+			return createOrderLcErr
+		}
+		res = &pb.Order{Id: updateOrderRes.ID.String(), Status: *utils.ParseOrderStatusType(&updateOrderRes.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.OrderType), Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId.String(), UserId: updateOrderRes.UserId.String(), Coordinates: &pb.Point{Latitude: updateOrderRes.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Coordinates.FlatCoords()[1]}, OrderTime: timestamppb.New(updateOrderRes.OrderTime), CreateTime: timestamppb.New(updateOrderRes.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.UpdateTime), Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions, ShortId: updateOrderRes.ShortId, CancelReasons: updateOrderRes.CancelReasons, BusinessName: updateOrderRes.BusinessName, ItemsQuantity: updateOrderRes.ItemsQuantity}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &response, nil
+	return res, nil
 }
 
-func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest, md *utils.ClientMetadata) (*pb.CreateOrderResponse, error) {
-	var response pb.CreateOrderResponse
-	cartItems := make([]uuid.UUID, 0, len(req.CartItems))
-	for _, item := range req.CartItems {
-		cartItems = append(cartItems, uuid.MustParse(item))
-	}
+func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest, md *utils.ClientMetadata) (*pb.Order, error) {
+	var res *pb.Order
+	var cartItems []uuid.UUID
 	location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		createTime := time.Now().UTC()
-		weekday := req.OrderDate.AsTime().Weekday().String()
+		orderTimeWeekday := req.OrderTime.AsTime()
+		orderTimeWeekdayHour, _, _ := orderTimeWeekday.Clock()
+		if orderTimeWeekdayHour >= 0 && orderTimeWeekdayHour <= 4 {
+			orderTimeWeekday = orderTimeWeekday.AddDate(0, 0, 1)
+		}
+		weekday := orderTimeWeekday.Local().Weekday().String()
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -295,11 +223,16 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		listCartItemRes, listCartItemErr := i.dao.NewCartItemRepository().ListCartItemInIds(tx, cartItems, &[]string{"id", "item_id", "user_id", "price", "quantity", "business_id"})
+		listCartItemRes, listCartItemErr := i.dao.NewCartItemRepository().ListCartItemAll(tx, &models.CartItem{UserId: authorizationTokenRes.UserId}, &[]string{"id", "business_id", "price", "item_id", "user_id", "quantity", "name"})
 		if listCartItemErr != nil {
 			return listCartItemErr
+		} else if listCartItemRes == nil {
+			return errors.New("cart items not found")
 		}
-		var price decimal.Decimal = decimal.NewFromInt(0)
+		for _, item := range *listCartItemRes {
+			cartItems = append(cartItems, *item.ID)
+		}
+		var price decimal.Decimal
 		var quantity int32 = 0
 		orderedItems := make([]models.OrderedItem, 0, len(*listCartItemRes))
 		for _, item := range *listCartItemRes {
@@ -307,9 +240,9 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 			if itemPriceErr != nil {
 				return itemPriceErr
 			}
-			price.Add(itemPrice)
+			price = price.Add(itemPrice)
 			quantity += item.Quantity
-			orderedItems = append(orderedItems, models.OrderedItem{Quantity: item.Quantity, Price: item.Price, CartItemId: item.ID, UserId: item.UserId, ItemId: item.ItemId})
+			orderedItems = append(orderedItems, models.OrderedItem{Quantity: item.Quantity, Price: item.Price, CartItemId: item.ID, UserId: item.UserId, ItemId: item.ItemId, Name: item.Name})
 		}
 		businessScheduleRes, businessScheduleErr := i.dao.NewBusinessScheduleRepository().GetBusinessSchedule(tx, &models.BusinessSchedule{BusinessId: (*listCartItemRes)[0].BusinessId})
 		if businessScheduleErr != nil {
@@ -319,11 +252,18 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		if businessErr != nil {
 			return businessErr
 		}
+		orderTime := req.OrderTime.AsTime()
+		orderTimeHour, _, _ := orderTime.Clock()
+		if orderTimeHour >= 0 && orderTimeHour <= 4 {
+			orderTime = orderTime.AddDate(0, 0, 1)
+		}
 		previousTime := createTime
 		previousTime = previousTime.AddDate(0, int(businessRes.TimeMarginOrderMonth), int(businessRes.TimeMarginOrderDay))
 		previousTime = previousTime.Add(time.Duration(businessRes.TimeMarginOrderHour) * time.Hour)
 		previousTime = previousTime.Add(time.Duration(businessRes.TimeMarginOrderMinute) * time.Minute)
-		if req.OrderDate.AsTime().Before(previousTime) {
+		fmt.Printf("ordertime: %s\n", orderTime)
+		fmt.Printf("previoustime: %s", previousTime)
+		if orderTime.Before(previousTime) {
 			return errors.New("invalid schedule")
 		}
 		if req.OrderType.String() == "OrderTypeHomeDelivery" {
@@ -347,9 +287,12 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 				if closingMinutesErr != nil {
 					return closingMinutesErr
 				}
-				openingTimeSunday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), openingHour, openingMinutes, 0, 0, time.Local).UTC()
-				closingTimeSunday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), closingHour, closingMinutes, 0, 0, time.Local).UTC()
-				if req.OrderDate.AsTime().Before(openingTimeSunday) || req.OrderDate.AsTime().After(closingTimeSunday) {
+				openingTimeSunday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.Local)
+				closingTimeSunday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.Local)
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					closingTimeSunday = closingTimeSunday.AddDate(0, 0, 1)
+				}
+				if orderTimeWeekday.Before(openingTimeSunday) || orderTimeWeekday.After(closingTimeSunday) {
 					return errors.New("business closed")
 				}
 			case "Monday":
@@ -371,9 +314,12 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 				if closingMinutesErr != nil {
 					return closingMinutesErr
 				}
-				openingTimeMonday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-				closingTimeMonday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-				if req.OrderDate.AsTime().Before(openingTimeMonday) || req.OrderDate.AsTime().After(closingTimeMonday) {
+				openingTimeMonday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeMonday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					closingTimeMonday = closingTimeMonday.AddDate(0, 0, 1)
+				}
+				if orderTimeWeekday.Before(openingTimeMonday) || orderTimeWeekday.After(closingTimeMonday) {
 					return errors.New("business closed")
 				}
 			case "Tuesday":
@@ -395,9 +341,12 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 				if closingMinutesErr != nil {
 					return closingMinutesErr
 				}
-				openingTimeTuesday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), openingHour, openingMinutes, 0, 0, time.Local).UTC()
-				closingTimeTuesday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), closingHour, closingMinutes, 0, 0, time.Local).UTC()
-				if req.OrderDate.AsTime().Before(openingTimeTuesday) || req.OrderDate.AsTime().After(closingTimeTuesday) {
+				openingTimeTuesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.Local).UTC()
+				closingTimeTuesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.Local).UTC()
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					closingTimeTuesday = closingTimeTuesday.AddDate(0, 0, 1)
+				}
+				if orderTimeWeekday.Before(openingTimeTuesday) || orderTimeWeekday.After(closingTimeTuesday) {
 					return errors.New("business closed")
 				}
 			case "Wednesday":
@@ -419,9 +368,12 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 				if closingMinutesErr != nil {
 					return closingMinutesErr
 				}
-				openingTimeWednesday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), openingHour, openingMinutes, 0, 0, time.Local).UTC()
-				closingTimeWednesday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), closingHour, closingMinutes, 0, 0, time.Local).UTC()
-				if req.OrderDate.AsTime().Before(openingTimeWednesday) || req.OrderDate.AsTime().After(closingTimeWednesday) {
+				openingTimeWednesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.Local).UTC()
+				closingTimeWednesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.Local).UTC()
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					closingTimeWednesday = closingTimeWednesday.AddDate(0, 0, 1)
+				}
+				if orderTimeWeekday.Before(openingTimeWednesday) || orderTimeWeekday.After(closingTimeWednesday) {
 					return errors.New("business closed")
 				}
 			case "Thursday":
@@ -443,9 +395,12 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 				if closingMinutesErr != nil {
 					return closingMinutesErr
 				}
-				openingTimeThursday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-				closingTimeThursday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-				if req.OrderDate.AsTime().Before(openingTimeThursday) || req.OrderDate.AsTime().After(closingTimeThursday) {
+				openingTimeThursday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeThursday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					closingTimeThursday = closingTimeThursday.AddDate(0, 0, 1)
+				}
+				if orderTimeWeekday.Before(openingTimeThursday) || orderTimeWeekday.After(closingTimeThursday) {
 					return errors.New("business closed")
 				}
 			case "Friday":
@@ -467,9 +422,12 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 				if closingMinutesErr != nil {
 					return closingMinutesErr
 				}
-				openingTimeFriday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-				closingTimeFriday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-				if req.OrderDate.AsTime().Before(openingTimeFriday) || req.OrderDate.AsTime().After(closingTimeFriday) {
+				openingTimeFriday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeFriday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					closingTimeFriday = closingTimeFriday.AddDate(0, 0, 1)
+				}
+				if orderTimeWeekday.Before(openingTimeFriday) || orderTimeWeekday.After(closingTimeFriday) {
 					return errors.New("business closed")
 				}
 			case "Saturday":
@@ -491,9 +449,12 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 				if closingMinutesErr != nil {
 					return closingMinutesErr
 				}
-				openingTimeSaturday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-				closingTimeSaturday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-				if req.OrderDate.AsTime().Before(openingTimeSaturday) || req.OrderDate.AsTime().After(closingTimeSaturday) {
+				openingTimeSaturday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeSaturday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					closingTimeSaturday = closingTimeSaturday.AddDate(0, 0, 1)
+				}
+				if orderTimeWeekday.Before(openingTimeSaturday) || orderTimeWeekday.After(closingTimeSaturday) {
 					return errors.New("business closed")
 				}
 			}
@@ -518,9 +479,12 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 				if closingMinutesErr != nil {
 					return closingMinutesErr
 				}
-				openingTimeSunday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-				closingTimeSunday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-				if req.OrderDate.AsTime().Before(openingTimeSunday) || req.OrderDate.AsTime().After(closingTimeSunday) {
+				openingTimeSunday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeSunday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					closingTimeSunday = closingTimeSunday.AddDate(0, 0, 1)
+				}
+				if orderTimeWeekday.Before(openingTimeSunday) || orderTimeWeekday.After(closingTimeSunday) {
 					return errors.New("business closed")
 				}
 			case "Monday":
@@ -542,9 +506,12 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 				if closingMinutesErr != nil {
 					return closingMinutesErr
 				}
-				openingTimeMonday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-				closingTimeMonday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-				if req.OrderDate.AsTime().Before(openingTimeMonday) || req.OrderDate.AsTime().After(closingTimeMonday) {
+				openingTimeMonday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeMonday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					closingTimeMonday = closingTimeMonday.AddDate(0, 0, 1)
+				}
+				if orderTimeWeekday.Before(openingTimeMonday) || orderTimeWeekday.After(closingTimeMonday) {
 					return errors.New("business closed")
 				}
 			case "Tuesday":
@@ -566,9 +533,12 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 				if closingMinutesErr != nil {
 					return closingMinutesErr
 				}
-				openingTimeTuesday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-				closingTimeTuesday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-				if req.OrderDate.AsTime().Before(openingTimeTuesday) || req.OrderDate.AsTime().After(closingTimeTuesday) {
+				openingTimeTuesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeTuesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					closingTimeTuesday = closingTimeTuesday.AddDate(0, 0, 1)
+				}
+				if orderTimeWeekday.Before(openingTimeTuesday) || orderTimeWeekday.After(closingTimeTuesday) {
 					return errors.New("business closed")
 				}
 			case "Wednesday":
@@ -590,9 +560,17 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 				if closingMinutesErr != nil {
 					return closingMinutesErr
 				}
-				openingTimeWednesday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), openingHour, openingMinutes, 0, 0, time.Local).UTC()
-				closingTimeWednesday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), closingHour, closingMinutes, 0, 0, time.Local).UTC()
-				if req.OrderDate.AsTime().Before(openingTimeWednesday) || req.OrderDate.AsTime().After(closingTimeWednesday) {
+				var openingTimeDay, closingTimeDay int
+				openingTimeDay = time.Now().Day()
+				if closingHour >= 0 && closingHour <= 4 {
+					closingTimeDay = orderTimeWeekday.Add(time.Duration(24) * time.Hour).Day()
+				}
+				openingTimeWednesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), openingTimeDay, openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeWednesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), closingTimeDay, closingHour, closingMinutes, 0, 0, time.UTC)
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					closingTimeWednesday = closingTimeWednesday.AddDate(0, 0, 1)
+				}
+				if orderTimeWeekday.Before(openingTimeWednesday) || orderTimeWeekday.After(closingTimeWednesday) {
 					return errors.New("business closed")
 				}
 			case "Thursday":
@@ -614,9 +592,12 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 				if closingMinutesErr != nil {
 					return closingMinutesErr
 				}
-				openingTimeThursday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-				closingTimeThursday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-				if req.OrderDate.AsTime().Before(openingTimeThursday) || req.OrderDate.AsTime().After(closingTimeThursday) {
+				openingTimeThursday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeThursday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					closingTimeThursday = closingTimeThursday.AddDate(0, 0, 1)
+				}
+				if orderTimeWeekday.Before(openingTimeThursday) || orderTimeWeekday.After(closingTimeThursday) {
 					return errors.New("business closed")
 				}
 			case "Friday":
@@ -638,9 +619,12 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 				if closingMinutesErr != nil {
 					return closingMinutesErr
 				}
-				openingTimeFriday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-				closingTimeFriday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-				if req.OrderDate.AsTime().Before(openingTimeFriday) || req.OrderDate.AsTime().After(closingTimeFriday) {
+				openingTimeFriday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeFriday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					closingTimeFriday = closingTimeFriday.AddDate(0, 0, 1)
+				}
+				if orderTimeWeekday.Before(openingTimeFriday) || orderTimeWeekday.After(closingTimeFriday) {
 					return errors.New("business closed")
 				}
 			case "Saturday":
@@ -662,9 +646,12 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 				if closingMinutesErr != nil {
 					return closingMinutesErr
 				}
-				openingTimeSaturday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-				closingTimeSaturday := time.Date(req.OrderDate.AsTime().Year(), req.OrderDate.AsTime().Month(), req.OrderDate.AsTime().Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-				if req.OrderDate.AsTime().Before(openingTimeSaturday) || req.OrderDate.AsTime().After(closingTimeSaturday) {
+				openingTimeSaturday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				closingTimeSaturday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					closingTimeSaturday = closingTimeSaturday.AddDate(0, 0, 1)
+				}
+				if orderTimeWeekday.Before(openingTimeSaturday) || orderTimeWeekday.After(closingTimeSaturday) {
 					return errors.New("business closed")
 				}
 			}
@@ -673,7 +660,7 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		if createOrderedItemsErr != nil {
 			return createOrderedItemsErr
 		}
-		createOrderRes, createOrderErr := i.dao.NewOrderRepository().CreateOrder(tx, &models.Order{ItemsQuantity: quantity, OrderType: req.OrderType.String(), ResidenceType: req.ResidenceType.String(), UserId: authorizationTokenRes.UserId, OrderDate: req.OrderDate.AsTime(), Coordinates: location, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: (*listCartItemRes)[0].BusinessId, Price: price.String(), CreateTime: createTime, UpdateTime: createTime, Number: req.Number, Address: req.Address, Instructions: req.Instructions, BusinessName: businessRes.Name})
+		createOrderRes, createOrderErr := i.dao.NewOrderRepository().CreateOrder(tx, &models.Order{ItemsQuantity: quantity, OrderType: req.OrderType.String(), UserId: authorizationTokenRes.UserId, OrderTime: req.OrderTime.AsTime().UTC(), Coordinates: location, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: (*listCartItemRes)[0].BusinessId, Price: price.String(), CreateTime: createTime, UpdateTime: createTime, Number: req.Number, Address: req.Address, Instructions: req.Instructions, BusinessName: businessRes.Name})
 		if createOrderErr != nil {
 			return createOrderErr
 		}
@@ -693,13 +680,13 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		if err != nil {
 			return err
 		}
-		response.Order = &pb.Order{Quantity: quantity, Status: *utils.ParseOrderStatusType(&createOrderRes.Status), OrderType: *utils.ParseOrderType(&createOrderRes.OrderType), ResidenceType: *utils.ParseOrderResidenceType(&createOrderRes.ResidenceType), Number: createOrderRes.Number, BusinessId: createOrderRes.BusinessId.String(), UserId: createOrderRes.UserId.String(), OrderDate: timestamppb.New(createOrderRes.OrderDate), Coordinates: &pb.Point{Latitude: createOrderRes.Coordinates.FlatCoords()[0], Longitude: createOrderRes.Coordinates.FlatCoords()[1]}, Price: price.String(), CreateTime: timestamppb.New(createOrderRes.CreateTime), UpdateTime: timestamppb.New(createOrderRes.UpdateTime), Address: createOrderRes.Address, Instructions: createOrderRes.Instructions, Id: createOrderRes.ID.String()}
+		res = &pb.Order{BusinessName: businessRes.Name, ItemsQuantity: quantity, Status: *utils.ParseOrderStatusType(&createOrderRes.Status), OrderType: *utils.ParseOrderType(&createOrderRes.OrderType), Number: createOrderRes.Number, BusinessId: createOrderRes.BusinessId.String(), UserId: createOrderRes.UserId.String(), OrderTime: timestamppb.New(createOrderRes.OrderTime), Coordinates: &pb.Point{Latitude: createOrderRes.Coordinates.FlatCoords()[0], Longitude: createOrderRes.Coordinates.FlatCoords()[1]}, Price: price.String(), CreateTime: timestamppb.New(createOrderRes.CreateTime), UpdateTime: timestamppb.New(createOrderRes.UpdateTime), Address: createOrderRes.Address, Instructions: createOrderRes.Instructions, Id: createOrderRes.ID.String(), ShortId: createOrderRes.ShortId}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &response, nil
+	return res, nil
 }
 
 func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, md *utils.ClientMetadata) (*pb.ListOrderResponse, error) {
@@ -753,21 +740,22 @@ func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, 
 	ordersResponse := make([]*pb.Order, 0, len(*ordersRes))
 	for _, item := range *ordersRes {
 		ordersResponse = append(ordersResponse, &pb.Order{
-			Id:           item.ID.String(),
-			BusinessName: item.BusinessName,
-			Quantity:     item.Quantity,
-			Price:        item.Price,
-			Number:       item.Number, Address: item.Address,
-			Instructions:  item.Instructions,
-			UserId:        item.UserId.String(),
-			OrderDate:     timestamppb.New(item.OrderDate),
-			Status:        *utils.ParseOrderStatusType(&item.Status),
-			OrderType:     *utils.ParseOrderType(&item.OrderType),
-			ResidenceType: *utils.ParseOrderResidenceType(&item.ResidenceType),
-			Coordinates:   &pb.Point{Latitude: item.Coordinates.Coords()[1], Longitude: item.Coordinates.Coords()[0]},
-			BusinessId:    item.BusinessId.String(),
-			CreateTime:    timestamppb.New(item.CreateTime),
-			UpdateTime:    timestamppb.New(item.UpdateTime),
+			Id:            item.ID.String(),
+			ShortId:       item.ShortId,
+			CancelReasons: item.CancelReasons,
+			BusinessName:  item.BusinessName,
+			ItemsQuantity: item.ItemsQuantity,
+			Price:         item.Price,
+			Number:        item.Number, Address: item.Address,
+			Instructions: item.Instructions,
+			UserId:       item.UserId.String(),
+			OrderTime:    timestamppb.New(item.OrderTime),
+			Status:       *utils.ParseOrderStatusType(&item.Status),
+			OrderType:    *utils.ParseOrderType(&item.OrderType),
+			Coordinates:  &pb.Point{Latitude: item.Coordinates.Coords()[1], Longitude: item.Coordinates.Coords()[0]},
+			BusinessId:   item.BusinessId.String(),
+			CreateTime:   timestamppb.New(item.CreateTime),
+			UpdateTime:   timestamppb.New(item.UpdateTime),
 		})
 	}
 	res.Orders = ordersResponse
