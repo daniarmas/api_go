@@ -6,7 +6,7 @@ import (
 )
 
 type OrderRepository interface {
-	ListOrder(tx *gorm.DB, where *models.Order) (*[]models.Order, error)
+	ListOrder(tx *gorm.DB, where *models.Order, fields *[]string) (*[]models.Order, error)
 	ListOrderWithBusiness(tx *gorm.DB, where *models.OrderBusiness) (*[]models.OrderBusiness, error)
 	CreateOrder(tx *gorm.DB, data *models.Order) (*models.Order, error)
 	UpdateOrder(tx *gorm.DB, where *models.Order, data *models.Order) (*models.Order, error)
@@ -15,8 +15,8 @@ type OrderRepository interface {
 
 type orderRepository struct{}
 
-func (i *orderRepository) ListOrder(tx *gorm.DB, where *models.Order) (*[]models.Order, error) {
-	result, err := Datasource.NewOrderDatasource().ListOrder(tx, where)
+func (i *orderRepository) ListOrder(tx *gorm.DB, where *models.Order, fields *[]string) (*[]models.Order, error) {
+	result, err := Datasource.NewOrderDatasource().ListOrder(tx, where, fields)
 	if err != nil {
 		return nil, err
 	}

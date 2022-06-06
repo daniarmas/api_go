@@ -141,7 +141,7 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 			for _, item := range *orderedItemsRes {
 				itemFks = append(itemFks, *item.ItemId)
 			}
-			itemsRes, itemsErr := i.dao.NewItemQuery().ListItemInIds(tx, itemFks)
+			itemsRes, itemsErr := i.dao.NewItemQuery().ListItemInIds(tx, itemFks, nil)
 			if itemsErr != nil {
 				return itemsErr
 			}
@@ -244,7 +244,7 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 			quantity += item.Quantity
 			orderedItems = append(orderedItems, models.OrderedItem{Quantity: item.Quantity, Price: item.Price, CartItemId: item.ID, UserId: item.UserId, ItemId: item.ItemId, Name: item.Name})
 		}
-		businessScheduleRes, businessScheduleErr := i.dao.NewBusinessScheduleRepository().GetBusinessSchedule(tx, &models.BusinessSchedule{BusinessId: (*listCartItemRes)[0].BusinessId})
+		businessScheduleRes, businessScheduleErr := i.dao.NewBusinessScheduleRepository().GetBusinessSchedule(tx, &models.BusinessSchedule{BusinessId: (*listCartItemRes)[0].BusinessId}, nil)
 		if businessScheduleErr != nil {
 			return businessScheduleErr
 		}

@@ -58,7 +58,7 @@ func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusi
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: authorizationTokenRes.UserId})
+		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: authorizationTokenRes.UserId}, nil)
 		if businessOwnerErr != nil {
 			return businessOwnerErr
 		}
@@ -194,7 +194,7 @@ func (i *businessService) CreateBusiness(ctx context.Context, req *pb.CreateBusi
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: authorizationTokenRes.UserId})
+		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: authorizationTokenRes.UserId}, nil)
 		if businessOwnerErr != nil {
 			return businessOwnerErr
 		}
@@ -402,7 +402,7 @@ func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRe
 		} else if businessErr != nil {
 			return businessErr
 		}
-		businessCollectionRes, itemCategoryErr = v.dao.NewBusinessCollectionQuery().ListBusinessCollection(tx, &models.BusinessCollection{BusinessId: &businessId})
+		businessCollectionRes, itemCategoryErr = v.dao.NewBusinessCollectionQuery().ListBusinessCollection(tx, &models.BusinessCollection{BusinessId: &businessId}, nil)
 		if itemCategoryErr != nil {
 			return itemCategoryErr
 		}
