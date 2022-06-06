@@ -27,7 +27,11 @@ func (v *verificationCodeDatasource) CreateVerificationCode(tx *gorm.DB, data *m
 
 func (v *verificationCodeDatasource) GetVerificationCode(tx *gorm.DB, verificationCode *models.VerificationCode, fields *[]string) (*models.VerificationCode, error) {
 	var res *models.VerificationCode
-	result := tx.Where(verificationCode).Select(*fields).Take(&res)
+	selectFields := &[]string{"*"}
+	if fields == nil {
+		selectFields = fields
+	}
+	result := tx.Where(verificationCode).Select(*selectFields).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
