@@ -17,7 +17,11 @@ type deviceDatasource struct{}
 
 func (i *deviceDatasource) GetDevice(tx *gorm.DB, where *models.Device, fields *[]string) (*models.Device, error) {
 	var res *models.Device
-	result := tx.Where(where).Select(*fields).Take(&res)
+	selectFields := &[]string{"*"}
+	if fields == nil {
+		selectFields = fields
+	}
+	result := tx.Where(where).Select(*selectFields).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
