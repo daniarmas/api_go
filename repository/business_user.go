@@ -7,7 +7,7 @@ import (
 )
 
 type BusinessUserRepository interface {
-	GetBusinessUser(tx *gorm.DB, where *models.BusinessUser) (*models.BusinessUser, error)
+	GetBusinessUser(tx *gorm.DB, where *models.BusinessUser, fields *[]string) (*models.BusinessUser, error)
 	CreateBusinessUser(tx *gorm.DB, data *models.BusinessUser) (*models.BusinessUser, error)
 	DeleteBusinessUser(tx *gorm.DB, where *models.BusinessUser, ids *[]uuid.UUID) (*[]models.BusinessUser, error)
 }
@@ -22,8 +22,8 @@ func (v *businessUserRepository) CreateBusinessUser(tx *gorm.DB, data *models.Bu
 	return res, nil
 }
 
-func (v *businessUserRepository) GetBusinessUser(tx *gorm.DB, where *models.BusinessUser) (*models.BusinessUser, error) {
-	res, err := Datasource.NewBusinessUserDatasource().GetBusinessUser(tx, where)
+func (v *businessUserRepository) GetBusinessUser(tx *gorm.DB, where *models.BusinessUser, fields *[]string) (*models.BusinessUser, error) {
+	res, err := Datasource.NewBusinessUserDatasource().GetBusinessUser(tx, where, fields)
 	if err != nil {
 		return nil, err
 	}

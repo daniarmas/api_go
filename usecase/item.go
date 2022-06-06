@@ -337,7 +337,7 @@ func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md 
 		where.BusinessId = &businessId
 	}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &where, nextPage)
+		items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &where, nextPage, nil)
 		if itemsErr != nil {
 			return itemsErr
 		} else if len(*items) > 10 {

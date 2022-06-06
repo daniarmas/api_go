@@ -55,7 +55,11 @@ func (r *authorizationTokenDatasource) DeleteAuthorizationTokenByRefreshTokenIds
 
 func (v *authorizationTokenDatasource) GetAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken, fields *[]string) (*models.AuthorizationToken, error) {
 	var res *models.AuthorizationToken
-	result := tx.Where(where).Select(*fields).Take(&res)
+	selectFields := &[]string{"*"}
+	if fields == nil {
+		selectFields = fields
+	}
+	result := tx.Where(where).Select(*selectFields).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

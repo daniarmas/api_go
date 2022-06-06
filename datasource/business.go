@@ -102,7 +102,6 @@ func (b *businessDatasource) Feed(tx *gorm.DB, coordinates ewkb.Point, limit int
 
 func (b *businessDatasource) GetBusinessWithLocation(tx *gorm.DB, where *models.Business) (*models.Business, error) {
 	var businessResult *models.Business
-	// point := fmt.Sprintf("'POINT(%v %v)'", where.Coordinates.Point.Coords()[1], where.Coordinates.Point.Coords()[0])
 	distance := fmt.Sprintf(`ST_Distance("coordinates", ST_GeomFromText('POINT(%v %v)', 4326)) AS "distance"`, where.Coordinates.Point.Coords()[1], where.Coordinates.Point.Coords()[0])
 	query := fmt.Sprintf("SELECT business.id, business.name, business.address, business.high_quality_photo, business.high_quality_photo_blurhash, business.time_margin_order_month, business.time_margin_order_day, business.time_margin_order_hour, business.time_margin_order_minute, business.low_quality_photo, business.low_quality_photo_blurhash, business.delivery_price, business.home_delivery, business.to_pick_up, business.cursor, ST_AsEWKB(business.coordinates) AS coordinates, %v FROM business WHERE business.id = '%v' ORDER BY business.cursor asc LIMIT 1;", distance, where.ID)
 	err := tx.Raw(query).Scan(&businessResult).Error

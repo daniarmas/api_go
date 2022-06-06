@@ -12,7 +12,7 @@ import (
 )
 
 type OrderDatasource interface {
-	ListOrder(tx *gorm.DB, where *models.Order) (*[]models.Order, error)
+	ListOrder(tx *gorm.DB, where *models.Order, fields *[]string) (*[]models.Order, error)
 	ListOrderWithBusiness(tx *gorm.DB, where *models.OrderBusiness) (*[]models.OrderBusiness, error)
 	CreateOrder(tx *gorm.DB, data *models.Order) (*models.Order, error)
 	UpdateOrder(tx *gorm.DB, where *models.Order, data *models.Order) (*models.Order, error)
@@ -63,9 +63,13 @@ func (i *orderDatasource) CreateOrder(tx *gorm.DB, data *models.Order) (*models.
 	return &res, nil
 }
 
-func (i *orderDatasource) ListOrder(tx *gorm.DB, where *models.Order) (*[]models.Order, error) {
+func (i *orderDatasource) ListOrder(tx *gorm.DB, where *models.Order, fields *[]string) (*[]models.Order, error) {
 	var res []models.Order
-	result := tx.Limit(11).Select("id, status, business_name, short_id, cancel_reasons, items_quantity, order_type, price, number, address, instructions, business_id, authorization_token_id, user_id, order_time, create_time, update_time, delete_time, ST_AsEWKB(coordinates) AS coordinates").Where("user_id = ? AND create_time < ?", where.UserId, where.CreateTime).Order("create_time desc").Find(&res)
+	selectFields := &[]string{"id", "status", "business_name", "short_id", "cancel_reasons", "items_quantity", "order_type", "price", "number", "address", "instructions", "business_id", "authorization_token_id", "user_id", "order_time", "create_time", "update_time", "delete_time", "ST_AsEWKB(coordinates) AS coordinates"}
+	if fields == nil {
+		selectFields = fields
+	}
+	result := tx.Limit(11).Select(*selectFields).Where("user_id = ? AND create_time < ?", where.UserId, where.CreateTime).Order("create_time desc").Find(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}

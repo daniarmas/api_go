@@ -9,7 +9,7 @@ import (
 )
 
 type CartItemQuery interface {
-	ListCartItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItem, error)
+	ListCartItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time, fields *[]string) (*[]models.CartItem, error)
 	ListCartItemAll(tx *gorm.DB, where *models.CartItem, fields *[]string) (*[]models.CartItem, error)
 	ListCartItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]models.CartItem, error)
 	CreateCartItem(tx *gorm.DB, where *models.CartItem) (*models.CartItem, error)
@@ -21,8 +21,8 @@ type CartItemQuery interface {
 
 type cartItemQuery struct{}
 
-func (i *cartItemQuery) ListCartItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time) (*[]models.CartItem, error) {
-	res, err := Datasource.NewCartItemDatasource().ListCartItem(tx, where, cursor)
+func (i *cartItemQuery) ListCartItem(tx *gorm.DB, where *models.CartItem, cursor *time.Time, fields *[]string) (*[]models.CartItem, error) {
+	res, err := Datasource.NewCartItemDatasource().ListCartItem(tx, where, cursor, fields)
 	if err != nil {
 		return nil, err
 	}

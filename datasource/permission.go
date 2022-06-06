@@ -15,7 +15,11 @@ type permissionDatasource struct{}
 
 func (i *permissionDatasource) GetPermission(tx *gorm.DB, where *models.Permission, fields *[]string) (*models.Permission, error) {
 	var res *models.Permission
-	result := tx.Where(where).Select(*fields).Take(&res)
+	selectFields := &[]string{"*"}
+	if fields == nil {
+		selectFields = fields
+	}
+	result := tx.Where(where).Select(*selectFields).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

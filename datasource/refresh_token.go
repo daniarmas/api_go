@@ -43,7 +43,11 @@ func (r *refreshTokenDatasource) DeleteRefreshToken(tx *gorm.DB, where *models.R
 
 func (v *refreshTokenDatasource) GetRefreshToken(tx *gorm.DB, where *models.RefreshToken, fields *[]string) (*models.RefreshToken, error) {
 	var res *models.RefreshToken
-	result := tx.Where(where).Select(*fields).Take(&res)
+	selectFields := &[]string{"*"}
+	if fields == nil {
+		selectFields = fields
+	}
+	result := tx.Where(where).Select(*selectFields).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("refreshtoken not found")
