@@ -41,7 +41,11 @@ func (u *userDatasource) GetUserWithAddress(tx *gorm.DB, where *models.User, fie
 
 func (u *userDatasource) GetUser(tx *gorm.DB, where *models.User, fields *[]string) (*models.User, error) {
 	var res *models.User
-	result := tx.Where(where).Select(*fields).Take(&res)
+	selectFields := &[]string{"*"}
+	if fields == nil {
+		selectFields = fields
+	}
+	result := tx.Where(where).Select(*selectFields).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

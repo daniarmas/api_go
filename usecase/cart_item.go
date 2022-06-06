@@ -67,7 +67,7 @@ func (i *cartItemService) EmptyCartItem(ctx context.Context, md *utils.ClientMet
 		for _, item := range *listCartItemsRes {
 			itemFks = append(itemFks, *item.ItemId)
 		}
-		itemsRes, itemsErr := i.dao.NewItemQuery().ListItemInIds(tx, itemFks)
+		itemsRes, itemsErr := i.dao.NewItemQuery().ListItemInIds(tx, itemFks, nil)
 		if itemsErr != nil {
 			return itemsErr
 		}
@@ -165,7 +165,7 @@ func (i *cartItemService) ListCartItem(ctx context.Context, req *pb.ListCartItem
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		items, itemsErr = i.dao.NewCartItemRepository().ListCartItem(tx, &models.CartItem{UserId: authorizationTokenRes.UserId}, &nextPage)
+		items, itemsErr = i.dao.NewCartItemRepository().ListCartItem(tx, &models.CartItem{UserId: authorizationTokenRes.UserId}, &nextPage, nil)
 		if itemsErr != nil {
 			return itemsErr
 		} else if len(*items) > 10 {

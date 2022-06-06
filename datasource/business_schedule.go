@@ -11,15 +11,19 @@ import (
 )
 
 type BusinessScheduleDatasource interface {
-	GetBusinessSchedule(tx *gorm.DB, where *models.BusinessSchedule) (*models.BusinessSchedule, error)
+	GetBusinessSchedule(tx *gorm.DB, where *models.BusinessSchedule, fields *[]string) (*models.BusinessSchedule, error)
 	BusinessIsOpen(tx *gorm.DB, where *models.BusinessSchedule, orderType string) (bool, error)
 }
 
 type businessScheduleDatasource struct{}
 
-func (v *businessScheduleDatasource) GetBusinessSchedule(tx *gorm.DB, where *models.BusinessSchedule) (*models.BusinessSchedule, error) {
+func (v *businessScheduleDatasource) GetBusinessSchedule(tx *gorm.DB, where *models.BusinessSchedule, fields *[]string) (*models.BusinessSchedule, error) {
 	var res *models.BusinessSchedule
-	result := tx.Where(where).Take(&res)
+	selectFields := &[]string{"*"}
+	if fields == nil {
+		selectFields = fields
+	}
+	result := tx.Where(where).Select(*selectFields).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
