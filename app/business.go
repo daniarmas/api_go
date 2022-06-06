@@ -3,48 +3,17 @@ package app
 import (
 	"context"
 
-	"github.com/daniarmas/api_go/dto"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/utils"
-	"github.com/google/uuid"
-	"github.com/twpayne/go-geom"
-	"github.com/twpayne/go-geom/encoding/ewkb"
 	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (m *BusinessServer) CreateBusiness(ctx context.Context, req *pb.CreateBusinessRequest) (*pb.CreateBusinessResponse, error) {
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	res, err := m.businessService.CreateBusiness(&dto.CreateBusinessRequest{
-		Name:                     req.Name,
-		Description:              req.Description,
-		Address:                  req.Address,
-		Phone:                    req.Phone,
-		Email:                    req.Email,
-		HighQualityPhoto:         req.HighQualityPhoto,
-		HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash,
-		LowQualityPhoto:          req.LowQualityPhoto,
-		LowQualityPhotoBlurHash:  req.LowQualityPhotoBlurHash,
-		Thumbnail:                req.Thumbnail,
-		ThumbnailBlurHash:        req.HighQualityPhotoBlurHash,
-		DeliveryPrice:            req.DeliveryPrice,
-		TimeMarginOrderMonth:     req.TimeMarginOrderMonth,
-		TimeMarginOrderDay:       req.TimeMarginOrderDay,
-		TimeMarginOrderHour:      req.TimeMarginOrderHour,
-		TimeMarginOrderMinute:    req.TimeMarginOrderMinute,
-		Coordinates:              ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Coordinates.Latitude, req.Coordinates.Longitude}).SetSRID(4326)},
-		ToPickUp:                 req.ToPickUp,
-		HomeDelivery:             req.HomeDelivery,
-		BusinessBrandId:          req.BusinessBrandId,
-		ProvinceId:               req.ProvinceId,
-		MunicipalityId:           req.MunicipalityId,
-		Metadata:                 &md,
-		Municipalities:           req.Municipalities,
-	})
+	md := utils.GetMetadata(ctx)
+	res, err := m.businessService.CreateBusiness(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -70,45 +39,21 @@ func (m *BusinessServer) CreateBusiness(ctx context.Context, req *pb.CreateBusin
 		}
 		return nil, st.Err()
 	}
-	municipalities := make([]*pb.UnionBusinessAndMunicipality, 0, len(*res.UnionBusinessAndMunicipalityWithMunicipality))
-	for _, item := range *res.UnionBusinessAndMunicipalityWithMunicipality {
-		municipalities = append(municipalities, &pb.UnionBusinessAndMunicipality{
-			Id:             item.ID.String(),
-			Name:           item.MunicipalityName,
-			MunicipalityId: item.MunicipalityId.String(),
-		})
-	}
-	return &pb.CreateBusinessResponse{Business: &pb.Business{Id: res.Business.ID.String(), Name: res.Business.Name, Address: res.Business.Address, HighQualityPhoto: res.Business.HighQualityPhoto, HighQualityPhotoBlurHash: res.Business.HighQualityPhotoBlurHash, LowQualityPhoto: res.Business.LowQualityPhoto, LowQualityPhotoBlurHash: res.Business.LowQualityPhotoBlurHash, Thumbnail: res.Business.Thumbnail, ThumbnailBlurHash: res.Business.ThumbnailBlurHash, DeliveryPrice: res.Business.DeliveryPrice, TimeMarginOrderMonth: res.Business.TimeMarginOrderMonth, TimeMarginOrderDay: res.Business.TimeMarginOrderDay, TimeMarginOrderHour: res.Business.TimeMarginOrderHour, TimeMarginOrderMinute: res.Business.TimeMarginOrderMinute, ToPickUp: res.Business.ToPickUp, HomeDelivery: res.Business.HomeDelivery, ProvinceId: res.Business.ProvinceId.String(), MunicipalityId: res.Business.MunicipalityId.String(), BusinessBrandId: res.Business.BusinessBrandId.String(), CreateTime: timestamppb.New(res.Business.CreateTime), UpdateTime: timestamppb.New(res.Business.UpdateTime), Coordinates: &pb.Point{Latitude: res.Business.Coordinates.FlatCoords()[0], Longitude: res.Business.Coordinates.FlatCoords()[1]}}, Municipalities: municipalities}, nil
+	// municipalities := make([]*pb.UnionBusinessAndMunicipality, 0, len(*res.UnionBusinessAndMunicipalityWithMunicipality))
+	// for _, item := range *res.UnionBusinessAndMunicipalityWithMunicipality {
+	// 	municipalities = append(municipalities, &pb.UnionBusinessAndMunicipality{
+	// 		Id:             item.ID.String(),
+	// 		Name:           item.MunicipalityName,
+	// 		MunicipalityId: item.MunicipalityId.String(),
+	// 	})
+	// }
+	return res, nil
 }
 
-func (m *BusinessServer) UpdateBusiness(ctx context.Context, req *pb.UpdateBusinessRequest) (*pb.UpdateBusinessResponse, error) {
+func (m *BusinessServer) UpdateBusiness(ctx context.Context, req *pb.UpdateBusinessRequest) (*pb.Business, error) {
 	var st *status.Status
-	md, _ := metadata.FromIncomingContext(ctx)
-	id := uuid.MustParse(req.Id)
-	res, err := m.businessService.UpdateBusiness(&dto.UpdateBusinessRequest{
-		Id:                       &id,
-		Name:                     req.Name,
-		Description:              req.Description,
-		Address:                  req.Address,
-		Phone:                    req.Phone,
-		Email:                    req.Email,
-		HighQualityPhoto:         req.HighQualityPhoto,
-		HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash,
-		LowQualityPhoto:          req.LowQualityPhoto,
-		LowQualityPhotoBlurHash:  req.LowQualityPhotoBlurHash,
-		Thumbnail:                req.Thumbnail,
-		ThumbnailBlurHash:        req.HighQualityPhotoBlurHash,
-		DeliveryPrice:            req.DeliveryPrice,
-		TimeMarginOrderMonth:     req.TimeMarginOrderMonth,
-		TimeMarginOrderDay:       req.TimeMarginOrderDay,
-		TimeMarginOrderHour:      req.TimeMarginOrderHour,
-		TimeMarginOrderMinute:    req.TimeMarginOrderMinute,
-		ToPickUp:                 req.ToPickUp,
-		HomeDelivery:             req.HomeDelivery,
-		ProvinceId:               req.ProvinceId,
-		MunicipalityId:           req.MunicipalityId,
-		Metadata:                 &md,
-	})
+	md := utils.GetMetadata(ctx)
+	res, err := m.businessService.UpdateBusiness(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
 		case "authorizationtoken not found":
@@ -138,7 +83,7 @@ func (m *BusinessServer) UpdateBusiness(ctx context.Context, req *pb.UpdateBusin
 		}
 		return nil, st.Err()
 	}
-	return &pb.UpdateBusinessResponse{Business: &pb.Business{Id: res.ID.String(), Name: res.Name, Address: res.Address, HighQualityPhoto: res.HighQualityPhoto, HighQualityPhotoBlurHash: res.HighQualityPhotoBlurHash, LowQualityPhoto: res.LowQualityPhoto, LowQualityPhotoBlurHash: res.LowQualityPhotoBlurHash, Thumbnail: res.Thumbnail, ThumbnailBlurHash: res.ThumbnailBlurHash, DeliveryPrice: res.DeliveryPrice, TimeMarginOrderMonth: res.TimeMarginOrderMonth, TimeMarginOrderDay: res.TimeMarginOrderDay, TimeMarginOrderHour: res.TimeMarginOrderHour, TimeMarginOrderMinute: res.TimeMarginOrderMinute, ToPickUp: res.ToPickUp, HomeDelivery: res.HomeDelivery, ProvinceId: res.ProvinceId.String(), MunicipalityId: res.MunicipalityId.String(), BusinessBrandId: res.BusinessBrandId.String(), CreateTime: timestamppb.New(res.CreateTime), UpdateTime: timestamppb.New(res.UpdateTime)}}, nil
+	return res, nil
 }
 
 func (m *BusinessServer) Feed(ctx context.Context, req *pb.FeedRequest) (*pb.FeedResponse, error) {

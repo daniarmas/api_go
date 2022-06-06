@@ -28,14 +28,14 @@ service BusinessService {
   rpc GetBusiness (GetBusinessRequest) returns (GetBusinessResponse) {}
   rpc CreateBusiness (CreateBusinessRequest) returns (CreateBusinessResponse) {}
   // rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
-  rpc UpdateBusiness (UpdateBusinessRequest) returns (UpdateBusinessResponse) {}
+  rpc UpdateBusiness (UpdateBusinessRequest) returns (Business) {}
 }
 
 service ItemService {
   rpc ListItem (ListItemRequest) returns (ListItemResponse) {}
   rpc GetItem (GetItemRequest) returns (GetItemResponse) {}
-  rpc CreateItem (CreateItemRequest) returns (CreateItemResponse) {}
-  rpc UpdateItem (UpdateItemRequest) returns (UpdateItemResponse) {}
+  rpc CreateItem (CreateItemRequest) returns (Item) {}
+  rpc UpdateItem (UpdateItemRequest) returns (Item) {}
   rpc DeleteItem (DeleteItemRequest) returns (google.protobuf.Empty) {}  
   rpc SearchItem (SearchItemRequest) returns (SearchItemResponse) {}
 }
@@ -68,7 +68,7 @@ service BanService {
 }
 
 service ObjectStorageService {
-  rpc GetPresignedPutObject (GetPresignedPutRequest) returns (GetPresignedPutResponse) {}
+  rpc GetPresignedPutObject (GetPresignedPutObjectRequest) returns (GetPresignedPutObjectResponse) {}
 }
 
 // Request & Response Message
@@ -145,14 +145,14 @@ service ObjectStorageService {
 // 	string closingTimeDeliverySaturday = 28;
 // }
 
-message GetPresignedPutRequest {
+message GetPresignedPutObjectRequest {
   string lowQualityPhoto = 1;
   string highQualityPhoto = 2;
   string thumbnailQualityPhoto = 3;
   PhotoType PhotoType = 4;
 }
 
-message GetPresignedPutResponse {
+message GetPresignedPutObjectResponse {
   string lowQualityPhotoPresignedPutUrl = 1;
   string highQualityPhotoPresignedPutUrl = 2;
   string thumbnailPresignedPutUrl = 3;
