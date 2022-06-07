@@ -43,6 +43,7 @@ type DAO interface {
 	NewDeprecatedVersionAppDatasource() DeprecatedVersionAppDatasource
 	NewBusinessScheduleDatasource() BusinessScheduleDatasource
 	NewOrderLifecycleDatasource() OrderLifecycleDatasource
+	NewBusinessCategoryDatasource() BusinessCategoryDatasource
 }
 
 type dao struct{}
@@ -258,6 +259,10 @@ func NewDB(config *utils.Config) (*gorm.DB, error) {
 
 func (d *dao) NewObjectStorageDatasource() ObjectStorageDatasource {
 	return &objectStorageDatasource{Minio: MinioClient}
+}
+
+func (d *dao) NewBusinessCategoryDatasource() BusinessCategoryDatasource {
+	return &businessCategoryDatasource{}
 }
 
 func (d *dao) NewOrderedItemDatasource() OrderedItemDatasource {
