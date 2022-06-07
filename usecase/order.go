@@ -248,7 +248,7 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		if businessScheduleErr != nil {
 			return businessScheduleErr
 		}
-		businessRes, businessErr := i.dao.NewBusinessQuery().GetBusinessWithLocation(tx, &models.Business{ID: (*listCartItemRes)[0].BusinessId, Coordinates: location})
+		businessRes, businessErr := i.dao.NewBusinessQuery().GetBusinessWithDistance(tx, &models.Business{ID: (*listCartItemRes)[0].BusinessId, Coordinates: location})
 		if businessErr != nil {
 			return businessErr
 		}

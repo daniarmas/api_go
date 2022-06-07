@@ -26,6 +26,7 @@ service AuthenticationService {
 service BusinessService {
   rpc Feed (FeedRequest) returns (FeedResponse) {}
   rpc GetBusiness (GetBusinessRequest) returns (GetBusinessResponse) {}
+  rpc GetBusinessWithDistance (GetBusinessWithDistanceRequest) returns (GetBusinessWithDistanceResponse) {}
   rpc CreateBusiness (CreateBusinessRequest) returns (CreateBusinessResponse) {}
   // rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
   rpc UpdateBusiness (UpdateBusinessRequest) returns (Business) {}
@@ -38,6 +39,7 @@ service ItemService {
   rpc UpdateItem (UpdateItemRequest) returns (Item) {}
   rpc DeleteItem (DeleteItemRequest) returns (google.protobuf.Empty) {}  
   rpc SearchItem (SearchItemRequest) returns (SearchItemResponse) {}
+  rpc SearchItemByBusiness (SearchItemByBusinessRequest) returns (SearchItemByBusinessResponse) {}
 }
 
 service UserService {
@@ -166,21 +168,19 @@ message UpdateBusinessRequest {
   string phone = 5;
   string email = 6;
   string highQualityPhoto = 7;
-  string highQualityPhotoBlurHash = 8;
-  string lowQualityPhoto = 9;
-  string lowQualityPhotoBlurHash = 10;
-  repeated string municipalities = 11;
-  string thumbnail = 12;
-  string thumbnailBlurHash = 13;
-  string deliveryPrice = 14;
-  int32 timeMarginOrderMonth = 15;
-  int32 timeMarginOrderDay = 16;
-  int32 timeMarginOrderHour = 17;
-  int32 timeMarginOrderMinute = 18;
-  bool toPickUp = 19;
-  bool homeDelivery = 20;
-  string provinceId = 21;
-  string municipalityId = 22;
+  string lowQualityPhoto = 8;
+  repeated string municipalities = 9;
+  string thumbnail = 10;
+  string blurHash = 11;
+  string deliveryPrice = 12;
+  int32 timeMarginOrderMonth = 13;
+  int32 timeMarginOrderDay = 14;
+  int32 timeMarginOrderHour = 15;
+  int32 timeMarginOrderMinute = 16;
+  bool toPickUp = 17;
+  bool homeDelivery = 18;
+  string provinceId = 19;
+  string municipalityId = 20;
 }
 
 message UpdateBusinessResponse {
@@ -194,23 +194,21 @@ message CreateBusinessRequest {
   string phone = 4;
   string email = 5;
   string highQualityPhoto = 6;
-  string highQualityPhotoBlurHash = 7;
-  string lowQualityPhoto = 8;
-  string lowQualityPhotoBlurHash = 9;
-  repeated string municipalities = 10;
-  string thumbnail = 11;
-  string thumbnailBlurHash = 12;
-  string deliveryPrice = 14;
-  Point coordinates = 15;
-  int32 timeMarginOrderMonth = 16;
-  int32 timeMarginOrderDay = 17;
-  int32 timeMarginOrderHour = 18;
-  int32 timeMarginOrderMinute = 19;
-  bool toPickUp = 20;
-  bool homeDelivery = 21;
-  string businessBrandId = 22;
-  string provinceId = 23;
-  string municipalityId = 24;
+  string lowQualityPhoto = 7;
+  repeated string municipalities = 8;
+  string thumbnail = 9;
+  string blurHash = 10;
+  string deliveryPrice = 11;
+  Point coordinates = 12;
+  int32 timeMarginOrderMonth = 13;
+  int32 timeMarginOrderDay = 14;
+  int32 timeMarginOrderHour = 15;
+  int32 timeMarginOrderMinute = 16;
+  bool toPickUp = 17;
+  bool homeDelivery = 18;
+  string businessBrandId = 19;
+  string provinceId = 20;
+  string municipalityId = 21;
 }
 
 message CreateBusinessResponse {
@@ -287,13 +285,11 @@ message UpdateItemRequest {
   string price = 4;
   string businessCollectionId = 5;
   string highQualityPhoto = 6;
-  string highQualityPhotoBlurHash = 7;
-  string lowQualityPhoto = 8;
-  string lowQualityPhotoBlurHash = 9;
-  string thumbnail = 10;
-  string thumbnailBlurHash = 11;
-	int64 availability = 12;       
-	ItemStatusType status = 13;         
+  string lowQualityPhoto = 7;
+  string thumbnail = 8;
+  string blurHash = 9;
+	int64 availability = 10;       
+	ItemStatusType status = 11;         
 }
 
 message UpdateItemResponse {
@@ -310,11 +306,9 @@ message CreateItemRequest {
   string price = 3;
   string businessCollectionId = 4;
   string highQualityPhoto = 5;
-  string highQualityPhotoBlurHash = 6;
-  string lowQualityPhoto = 7;
-  string lowQualityPhotoBlurHash = 8;
-  string thumbnail = 9;
-  string thumbnailBlurHash = 10;
+  string lowQualityPhoto = 6;
+  string thumbnail = 7;
+  string blurHash = 8;
   string businessId = 11;
 }
 
@@ -400,10 +394,21 @@ message SearchItemRequest {
   SearchMunicipalityType searchMunicipalityType = 5;
 }
 
+message SearchItemByBusinessRequest {
+  int32 nextPage = 1;
+  string name = 2;
+  string businessId = 3;
+}
+
 message SearchItemResponse {
   repeated SearchItem items = 1;
   SearchMunicipalityType searchMunicipalityType = 2;
   int32 nextPage = 3;
+}
+
+message SearchItemByBusinessResponse {
+  repeated SearchItem items = 1;
+  int32 nextPage = 2;
 }
 
 message ListItemRequest {
@@ -447,7 +452,17 @@ message GetBusinessRequest {
   Point location = 2;
 }
 
+message GetBusinessWithDistanceRequest {
+  string id = 1;
+  Point location = 2;
+}
+
 message GetBusinessResponse {
+  Business business = 1;
+  repeated ItemCategory itemCategory = 2;
+}
+
+message GetBusinessWithDistanceResponse {
   Business business = 1;
   repeated ItemCategory itemCategory = 2;
 }
@@ -576,17 +591,15 @@ message User {
   string email = 3; 
   string highQualityPhoto = 4;
   string highQualityPhotoUrl = 5;
-  string highQualityPhotoBlurHash = 6;
-  string lowQualityPhoto = 7;
-  string lowQualityPhotoUrl = 8;
-  string lowQualityPhotoBlurHash = 9;
-  string thumbnail = 10;
-  string thumbnailUrl = 11;
-  string thumbnailBlurHash = 12;
-  repeated UserAddress userAddress = 13;
-  repeated Permission permissions = 14;
-  google.protobuf.Timestamp createTime = 15;
-  google.protobuf.Timestamp updateTime = 16;
+  string lowQualityPhoto = 6;
+  string lowQualityPhotoUrl = 7;
+  string thumbnail = 8;
+  string thumbnailUrl = 9;
+  string blurHash = 10;
+  repeated UserAddress userAddress = 11;
+  repeated Permission permissions = 12;
+  google.protobuf.Timestamp createTime = 13;
+  google.protobuf.Timestamp updateTime = 14;
 }
 
 message Municipality {
@@ -606,32 +619,30 @@ message Business {
   string address = 3;
   string highQualityPhoto = 4;
   string highQualityPhotoUrl = 5;
-  string highQualityPhotoBlurHash = 6;
-  string lowQualityPhoto = 7;
-  string lowQualityPhotoUrl = 8;
-  string lowQualityPhotoBlurHash = 9;
-  string thumbnail = 10;
-  string thumbnailUrl = 11;
-  string thumbnailBlurHash = 12;
-  bool isOpen = 13;
-  string deliveryPrice = 14;
-  repeated double polygon = 15;
-  Point coordinates = 16;
-  int32 timeMarginOrderMonth = 17;
-  int32 timeMarginOrderDay = 18;
-  int32 timeMarginOrderHour = 19;
-  int32 timeMarginOrderMinute = 20;
-  bool toPickUp = 21;
-  bool homeDelivery = 22;
-  string businessBrandId = 23;
-  string provinceId = 24;
-  string municipalityId = 25;
-  double distance = 26;
-  BusinessStatusType status = 27;
-  int32 cursor = 28;
-  bool isInRange = 29;
-  google.protobuf.Timestamp createTime = 30;
-  google.protobuf.Timestamp updateTime = 31;
+  string lowQualityPhoto = 6;
+  string lowQualityPhotoUrl = 7;
+  string thumbnail = 8;
+  string thumbnailUrl = 9;
+  string blurHash = 10;
+  bool isOpen = 11;
+  string deliveryPrice = 12;
+  repeated double polygon = 13;
+  Point coordinates = 14;
+  int32 timeMarginOrderMonth = 15;
+  int32 timeMarginOrderDay = 16;
+  int32 timeMarginOrderHour = 17;
+  int32 timeMarginOrderMinute = 18;
+  bool toPickUp = 19;
+  bool homeDelivery = 20;
+  string businessBrandId = 21;
+  string provinceId = 22;
+  string municipalityId = 23;
+  double distance = 24;
+  BusinessStatusType status = 25;
+  int32 cursor = 26;
+  bool isInRange = 27;
+  google.protobuf.Timestamp createTime = 28;
+  google.protobuf.Timestamp updateTime = 29;
 }
 
 message Item {
@@ -645,17 +656,15 @@ message Item {
   string businessCollectionId = 8;
   string highQualityPhoto = 9;
   string highQualityPhotoUrl = 10;
-  string highQualityPhotoBlurHash = 11;
-  string lowQualityPhoto = 12;
-  string lowQualityPhotoUrl = 13;
-  string lowQualityPhotoBlurHash = 14;
-  string thumbnail = 15;
-  string thumbnailUrl = 16;
-  string thumbnailBlurHash = 17;
-  int32 cursor = 18;
-  bool isInRange = 19;
-  google.protobuf.Timestamp createTime = 20;
-  google.protobuf.Timestamp updateTime = 21;
+  string lowQualityPhoto = 11;
+  string lowQualityPhotoUrl = 12;
+  string thumbnail = 14;
+  string thumbnailUrl = 15;
+  string blurHash = 16;
+  int32 cursor = 17;
+  bool isInRange = 18;
+  google.protobuf.Timestamp createTime = 19;
+  google.protobuf.Timestamp updateTime = 20;
 }
 
 message CartItem {
@@ -667,7 +676,7 @@ message CartItem {
   int32 quantity = 6;
   string thumbnail = 7;
   string thumbnailUrl = 8;
-  string thumbnailBlurHash = 9;
+  string blurHash = 9;
   google.protobuf.Timestamp createTime = 10;
   google.protobuf.Timestamp updateTime = 11;
 }
@@ -689,7 +698,7 @@ message SearchItem {
   ItemStatusType status = 4;
   string thumbnail = 5;
   string thumbnailUrl = 6;
-  string thumbnailBlurHash = 7;
+  string blurHash = 7;
   int32 cursor = 8;
 }
 
@@ -697,13 +706,11 @@ message ItemPhoto {
   string id = 1;
   string itemId = 2;
   string highQualityPhoto = 3;
-  string highQualityPhotoBlurHash = 4;
-  string lowQualityPhoto = 5;
-  string lowQualityPhotoBlurHash = 6;
-  string thumbnail = 7;
-  string thumbnailBlurHash = 8;
-  google.protobuf.Timestamp createTime = 9;
-  google.protobuf.Timestamp updateTime = 10;
+  string lowQualityPhoto = 4;
+  string thumbnail = 5;
+  string blurHash = 6;
+  google.protobuf.Timestamp createTime = 7;
+  google.protobuf.Timestamp updateTime = 8;
 }
 
 // message BannedUser {

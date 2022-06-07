@@ -17,7 +17,7 @@ type businessCollectionDatasource struct{}
 func (i *businessCollectionDatasource) ListBusinessCollection(tx *gorm.DB, where *models.BusinessCollection, fields *[]string) (*[]models.BusinessCollection, error) {
 	var itemsCategory []models.BusinessCollection
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Where(where).Select(*selectFields).Find(&itemsCategory)
@@ -30,7 +30,7 @@ func (i *businessCollectionDatasource) ListBusinessCollection(tx *gorm.DB, where
 func (i *businessCollectionDatasource) GetBusinessCollection(tx *gorm.DB, where *models.BusinessCollection, fields *[]string) (*models.BusinessCollection, error) {
 	var businessBusinessCollection *models.BusinessCollection
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Where(where).Select(*selectFields).Take(&businessBusinessCollection)

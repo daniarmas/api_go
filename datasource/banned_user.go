@@ -16,7 +16,7 @@ type bannedUserDatasource struct{}
 func (v *bannedUserDatasource) GetBannedUser(tx *gorm.DB, where *models.BannedUser, fields *[]string) (*models.BannedUser, error) {
 	var res *models.BannedUser
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Where(where).Select(*selectFields).Take(&res)

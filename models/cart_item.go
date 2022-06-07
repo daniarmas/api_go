@@ -22,7 +22,7 @@ type CartItem struct {
 	BusinessId           *uuid.UUID     `gorm:"column:business_id;not null"`
 	Business             Business       `gorm:"foreignKey:BusinessId"`
 	Thumbnail            string         `gorm:"column:thumbnail;not null"`
-	ThumbnailBlurHash    string         `gorm:"column:thumbnail_blurhash;not null"`
+	BlurHash             string         `gorm:"column:blurhash;not null"`
 	UserId               *uuid.UUID     `gorm:"column:user_id;not null"`
 	AuthorizationTokenId *uuid.UUID     `gorm:"column:authorization_token_id;not null"`
 	CreateTime           time.Time      `gorm:"column:create_time;not null"`

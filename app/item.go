@@ -243,6 +243,59 @@ func (m *ItemServer) SearchItem(ctx context.Context, req *pb.SearchItemRequest) 
 	return res, nil
 }
 
+func (m *ItemServer) SearchItemByBusiness(ctx context.Context, req *pb.SearchItemByBusinessRequest) (*pb.SearchItemByBusinessResponse, error) {
+	var invalidBusinessId, invalidName *epb.BadRequest_FieldViolation
+	var invalidArgs bool
+	var st *status.Status
+	md := utils.GetMetadata(ctx)
+	if req.Name == "" {
+		invalidArgs = true
+		invalidName = &epb.BadRequest_FieldViolation{
+			Field:       "Name",
+			Description: "The Name field is required",
+		}
+	}
+	if req.BusinessId == "" {
+		invalidArgs = true
+		invalidBusinessId = &epb.BadRequest_FieldViolation{
+			Field:       "BusinessId",
+			Description: "The BusinessId field is required",
+		}
+	} else if req.BusinessId != "" {
+		if !utils.IsValidUUID(&req.BusinessId) {
+			invalidArgs = true
+			invalidBusinessId = &epb.BadRequest_FieldViolation{
+				Field:       "BusinessId",
+				Description: "The BusinessId field is not a valid uuid v4",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidName != nil {
+			st, _ = st.WithDetails(
+				invalidName,
+			)
+		}
+		if invalidBusinessId != nil {
+			st, _ = st.WithDetails(
+				invalidBusinessId,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.itemService.SearchItemByBusiness(ctx, req, md)
+	if err != nil {
+		switch err.Error() {
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return res, nil
+
+}
+
 func (m *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) (*gp.Empty, error) {
 	var st *status.Status
 	md := utils.GetMetadata(ctx)

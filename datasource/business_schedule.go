@@ -20,7 +20,7 @@ type businessScheduleDatasource struct{}
 func (v *businessScheduleDatasource) GetBusinessSchedule(tx *gorm.DB, where *models.BusinessSchedule, fields *[]string) (*models.BusinessSchedule, error) {
 	var res *models.BusinessSchedule
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Where(where).Select(*selectFields).Take(&res)

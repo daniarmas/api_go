@@ -18,7 +18,7 @@ type unionBusinessAndMunicipalityDatasource struct{}
 func (v *unionBusinessAndMunicipalityDatasource) GetUnionBusinessAndMunicipality(tx *gorm.DB, where *models.UnionBusinessAndMunicipality, fields *[]string) (*models.UnionBusinessAndMunicipality, error) {
 	var res *models.UnionBusinessAndMunicipality
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Where(where).Select(*selectFields).Take(&res)

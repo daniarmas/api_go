@@ -363,6 +363,7 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 type BusinessServiceClient interface {
 	Feed(ctx context.Context, in *FeedRequest, opts ...grpc.CallOption) (*FeedResponse, error)
 	GetBusiness(ctx context.Context, in *GetBusinessRequest, opts ...grpc.CallOption) (*GetBusinessResponse, error)
+	GetBusinessWithDistance(ctx context.Context, in *GetBusinessWithDistanceRequest, opts ...grpc.CallOption) (*GetBusinessWithDistanceResponse, error)
 	CreateBusiness(ctx context.Context, in *CreateBusinessRequest, opts ...grpc.CallOption) (*CreateBusinessResponse, error)
 	// rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
 	UpdateBusiness(ctx context.Context, in *UpdateBusinessRequest, opts ...grpc.CallOption) (*Business, error)
@@ -394,6 +395,15 @@ func (c *businessServiceClient) GetBusiness(ctx context.Context, in *GetBusiness
 	return out, nil
 }
 
+func (c *businessServiceClient) GetBusinessWithDistance(ctx context.Context, in *GetBusinessWithDistanceRequest, opts ...grpc.CallOption) (*GetBusinessWithDistanceResponse, error) {
+	out := new(GetBusinessWithDistanceResponse)
+	err := c.cc.Invoke(ctx, "/main.BusinessService/GetBusinessWithDistance", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *businessServiceClient) CreateBusiness(ctx context.Context, in *CreateBusinessRequest, opts ...grpc.CallOption) (*CreateBusinessResponse, error) {
 	out := new(CreateBusinessResponse)
 	err := c.cc.Invoke(ctx, "/main.BusinessService/CreateBusiness", in, out, opts...)
@@ -418,6 +428,7 @@ func (c *businessServiceClient) UpdateBusiness(ctx context.Context, in *UpdateBu
 type BusinessServiceServer interface {
 	Feed(context.Context, *FeedRequest) (*FeedResponse, error)
 	GetBusiness(context.Context, *GetBusinessRequest) (*GetBusinessResponse, error)
+	GetBusinessWithDistance(context.Context, *GetBusinessWithDistanceRequest) (*GetBusinessWithDistanceResponse, error)
 	CreateBusiness(context.Context, *CreateBusinessRequest) (*CreateBusinessResponse, error)
 	// rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
 	UpdateBusiness(context.Context, *UpdateBusinessRequest) (*Business, error)
@@ -433,6 +444,9 @@ func (UnimplementedBusinessServiceServer) Feed(context.Context, *FeedRequest) (*
 }
 func (UnimplementedBusinessServiceServer) GetBusiness(context.Context, *GetBusinessRequest) (*GetBusinessResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBusiness not implemented")
+}
+func (UnimplementedBusinessServiceServer) GetBusinessWithDistance(context.Context, *GetBusinessWithDistanceRequest) (*GetBusinessWithDistanceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBusinessWithDistance not implemented")
 }
 func (UnimplementedBusinessServiceServer) CreateBusiness(context.Context, *CreateBusinessRequest) (*CreateBusinessResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateBusiness not implemented")
@@ -489,6 +503,24 @@ func _BusinessService_GetBusiness_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BusinessService_GetBusinessWithDistance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBusinessWithDistanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusinessServiceServer).GetBusinessWithDistance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.BusinessService/GetBusinessWithDistance",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusinessServiceServer).GetBusinessWithDistance(ctx, req.(*GetBusinessWithDistanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BusinessService_CreateBusiness_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateBusinessRequest)
 	if err := dec(in); err != nil {
@@ -541,6 +573,10 @@ var BusinessService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BusinessService_GetBusiness_Handler,
 		},
 		{
+			MethodName: "GetBusinessWithDistance",
+			Handler:    _BusinessService_GetBusinessWithDistance_Handler,
+		},
+		{
 			MethodName: "CreateBusiness",
 			Handler:    _BusinessService_CreateBusiness_Handler,
 		},
@@ -563,6 +599,7 @@ type ItemServiceClient interface {
 	UpdateItem(ctx context.Context, in *UpdateItemRequest, opts ...grpc.CallOption) (*Item, error)
 	DeleteItem(ctx context.Context, in *DeleteItemRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	SearchItem(ctx context.Context, in *SearchItemRequest, opts ...grpc.CallOption) (*SearchItemResponse, error)
+	SearchItemByBusiness(ctx context.Context, in *SearchItemByBusinessRequest, opts ...grpc.CallOption) (*SearchItemByBusinessResponse, error)
 }
 
 type itemServiceClient struct {
@@ -627,6 +664,15 @@ func (c *itemServiceClient) SearchItem(ctx context.Context, in *SearchItemReques
 	return out, nil
 }
 
+func (c *itemServiceClient) SearchItemByBusiness(ctx context.Context, in *SearchItemByBusinessRequest, opts ...grpc.CallOption) (*SearchItemByBusinessResponse, error) {
+	out := new(SearchItemByBusinessResponse)
+	err := c.cc.Invoke(ctx, "/main.ItemService/SearchItemByBusiness", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ItemServiceServer is the server API for ItemService service.
 // All implementations must embed UnimplementedItemServiceServer
 // for forward compatibility
@@ -637,6 +683,7 @@ type ItemServiceServer interface {
 	UpdateItem(context.Context, *UpdateItemRequest) (*Item, error)
 	DeleteItem(context.Context, *DeleteItemRequest) (*emptypb.Empty, error)
 	SearchItem(context.Context, *SearchItemRequest) (*SearchItemResponse, error)
+	SearchItemByBusiness(context.Context, *SearchItemByBusinessRequest) (*SearchItemByBusinessResponse, error)
 	mustEmbedUnimplementedItemServiceServer()
 }
 
@@ -661,6 +708,9 @@ func (UnimplementedItemServiceServer) DeleteItem(context.Context, *DeleteItemReq
 }
 func (UnimplementedItemServiceServer) SearchItem(context.Context, *SearchItemRequest) (*SearchItemResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchItem not implemented")
+}
+func (UnimplementedItemServiceServer) SearchItemByBusiness(context.Context, *SearchItemByBusinessRequest) (*SearchItemByBusinessResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchItemByBusiness not implemented")
 }
 func (UnimplementedItemServiceServer) mustEmbedUnimplementedItemServiceServer() {}
 
@@ -783,6 +833,24 @@ func _ItemService_SearchItem_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ItemService_SearchItemByBusiness_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchItemByBusinessRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ItemServiceServer).SearchItemByBusiness(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.ItemService/SearchItemByBusiness",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ItemServiceServer).SearchItemByBusiness(ctx, req.(*SearchItemByBusinessRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ItemService_ServiceDesc is the grpc.ServiceDesc for ItemService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -813,6 +881,10 @@ var ItemService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SearchItem",
 			Handler:    _ItemService_SearchItem_Handler,
+		},
+		{
+			MethodName: "SearchItemByBusiness",
+			Handler:    _ItemService_SearchItemByBusiness_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

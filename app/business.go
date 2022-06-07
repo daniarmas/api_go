@@ -278,3 +278,80 @@ func (m *BusinessServer) GetBusiness(ctx context.Context, req *pb.GetBusinessReq
 	}
 	return res, nil
 }
+
+func (m *BusinessServer) GetBusinessWithDistance(ctx context.Context, req *pb.GetBusinessWithDistanceRequest) (*pb.GetBusinessWithDistanceResponse, error) {
+	var invalidId, invalidLocation *epb.BadRequest_FieldViolation
+	var invalidArgs bool
+	var st *status.Status
+	md := utils.GetMetadata(ctx)
+	if req.Id == "" {
+		invalidArgs = true
+		invalidId = &epb.BadRequest_FieldViolation{
+			Field:       "Id",
+			Description: "The Id field is required",
+		}
+	} else if req.Id != "" {
+		if !utils.IsValidUUID(&req.Id) {
+			invalidArgs = true
+			invalidId = &epb.BadRequest_FieldViolation{
+				Field:       "Id",
+				Description: "The Id field is not a valid uuid v4",
+			}
+		}
+	}
+	if req.Location == nil {
+		invalidArgs = true
+		invalidLocation = &epb.BadRequest_FieldViolation{
+			Field:       "Location",
+			Description: "The Location field is required",
+		}
+	} else if req.Location != nil {
+		if req.Location.Latitude == 0 {
+			invalidArgs = true
+			invalidLocation = &epb.BadRequest_FieldViolation{
+				Field:       "Location.Latitude",
+				Description: "The Location.Latitude field is required",
+			}
+		} else if req.Location.Longitude == 0 {
+			invalidArgs = true
+			invalidLocation = &epb.BadRequest_FieldViolation{
+				Field:       "Location.Longitude",
+				Description: "The Location.Longitude field is required",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidId != nil {
+			st, _ = st.WithDetails(
+				invalidId,
+			)
+		}
+		if invalidLocation != nil {
+			st, _ = st.WithDetails(
+				invalidLocation,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.businessService.GetBusinessWithDistance(ctx, req, md)
+	if err != nil {
+		switch err.Error() {
+		case "banned user":
+			st = status.New(codes.PermissionDenied, "User banned")
+		case "banned device":
+			st = status.New(codes.PermissionDenied, "Device banned")
+		case "business not found":
+			st = status.New(codes.NotFound, "Business not found")
+		case "user already exists":
+			st = status.New(codes.AlreadyExists, "User already exists")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
