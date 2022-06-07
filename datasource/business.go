@@ -26,7 +26,7 @@ type businessDatasource struct{}
 func (b *businessDatasource) GetBusiness(tx *gorm.DB, where *models.Business, fields *[]string) (*models.Business, error) {
 	var res *models.Business
 	var selectField *[]string
-	if fields != nil {
+	if fields == nil {
 		selectField = &[]string{"id", "name", "address", "high_quality_photo", "low_quality_photo", "thumbnail", "blurhash", "time_margin_order_month", "time_margin_order_day", "time_margin_order_hour", "time_margin_order_minute", "delivery_price", "to_pick_up", "home_delivery", "ST_AsEWKB(coordinates) AS coordinates", "province_id", "municipality_id", "business_brand_id", "enabled_flag", "create_time", "update_time", "cursor"}
 	} else {
 		selectField = fields
