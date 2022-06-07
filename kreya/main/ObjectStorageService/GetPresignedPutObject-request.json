@@ -1,6 +1,6 @@
 {
-  "lowQualityPhoto": "fooBar",
-  "highQualityPhoto": "fooBar",
-  "thumbnailQualityPhoto": "fooBar",
-  "PhotoType": "PhotoTypeUnspecified"
+  "lowQualityPhoto": "lq",
+  "highQualityPhoto": "hq",
+  "thumbnailQualityPhoto": "th",
+  "PhotoType": "PhotoTypeUser"
 }

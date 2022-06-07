@@ -1,6 +1,40 @@
 {
   "details": {
-    "methodFqn": "main.ObjectStorageService.GetPresignedPutObject"
+    "methodFqn": "main.ObjectStorageService.GetPresignedPutObject",
+    "metadata": [
+      {
+        "key": "Device-Id",
+        "value": "10"
+      },
+      {
+        "key": "App-Version",
+        "value": "1.0.0"
+      },
+      {
+        "key": "Access-Token",
+        "value": "O8pzXjp4QMk4cAD60dHeoOnxdVsDc9"
+      },
+      {
+        "key": "Platform",
+        "value": "iOS"
+      },
+      {
+        "key": "System-Version",
+        "value": "14"
+      },
+      {
+        "key": "Model",
+        "value": "iPhone 11"
+      },
+      {
+        "key": "App",
+        "value": "App"
+      },
+      {
+        "key": "Firebase-Cloud-Messaging-Id",
+        "value": "1"
+      }
+    ]
   },
   "requests": [
     {
