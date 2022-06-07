@@ -20,7 +20,7 @@ func (i *provinceDatasource) ProvinceByCoordinate(tx *gorm.DB, coordinate ewkb.P
 	var provinceResult *models.Province
 	p := fmt.Sprintf("'POINT(%v %v)'", coordinate.Point.Coords()[1], coordinate.Point.Coords()[0])
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Where("ST_Contains(province.polygon, ST_GeomFromText(%s, 4326)) as is_contained", p).Select(*selectFields).Take(&provinceResult)
@@ -37,7 +37,7 @@ func (i *provinceDatasource) ProvinceByCoordinate(tx *gorm.DB, coordinate ewkb.P
 func (i *provinceDatasource) GetProvince(tx *gorm.DB, where *models.Province, fields *[]string) (*models.Province, error) {
 	var res *models.Province
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Where(where).Select(*selectFields).Take(&res)

@@ -18,7 +18,7 @@ type deviceDatasource struct{}
 func (i *deviceDatasource) GetDevice(tx *gorm.DB, where *models.Device, fields *[]string) (*models.Device, error) {
 	var res *models.Device
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Where(where).Select(*selectFields).Take(&res)

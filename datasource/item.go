@@ -17,7 +17,8 @@ type ItemDatasource interface {
 	ListItem(tx *gorm.DB, where *models.Item, cursor time.Time, fields *[]string) (*[]models.Item, error)
 	ListItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]models.Item, error)
 	CreateItem(tx *gorm.DB, data *models.Item) (*models.Item, error)
-	SearchItem(tx *gorm.DB, name string, provinceid string, municipalityid string, cursor int64, municipalityNotEqual bool, limit int64, fields *[]string) (*[]models.Item, error)
+	SearchItem(tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64, fields *[]string) (*[]models.Item, error)
+	SearchItemByBusiness(tx *gorm.DB, name string, cursor int64, businessId string, fields *[]string) (*[]models.Item, error)
 	UpdateItem(tx *gorm.DB, where *models.Item, data *models.Item) (*models.Item, error)
 	UpdateItems(tx *gorm.DB, data *[]models.Item) (*[]models.Item, error)
 	DeleteItem(tx *gorm.DB, where *models.Item) error
@@ -45,7 +46,7 @@ func (v *itemDatasource) CreateItem(tx *gorm.DB, data *models.Item) (*models.Ite
 func (i *itemDatasource) ListItem(tx *gorm.DB, where *models.Item, cursor time.Time, fields *[]string) (*[]models.Item, error) {
 	var res []models.Item
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Limit(11).Select(*selectFields).Where(where).Where("create_time < ?", cursor).Order("create_time desc").Find(&res)
@@ -58,7 +59,7 @@ func (i *itemDatasource) ListItem(tx *gorm.DB, where *models.Item, cursor time.T
 func (i *itemDatasource) ListItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]models.Item, error) {
 	var res []models.Item
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Where("id IN ? ", ids).Select(*selectFields).Find(&res)
@@ -71,7 +72,7 @@ func (i *itemDatasource) ListItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]s
 func (i *itemDatasource) GetItemWithLocation(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error) {
 	var res *models.ItemBusiness
 	// p := fmt.Sprintf("'POINT(%v %v)'", point.Point.Coords()[1], point.Point.Coords()[0])
-	result := tx.Model(&models.Item{}).Select("item.id, item.name, item.business_collection_id, item.business_id, item.description, item.price, item.availability, item.business_id, item.high_quality_photo, item.high_quality_photo_blurhash, item.low_quality_photo, item.low_quality_photo_blurhash, item.thumbnail, item.thumbnail_blurhash, item.create_time, item.update_time, item.cursor").Where("item.id = ?", id).Take(&res)
+	result := tx.Model(&models.Item{}).Select("item.id, item.name, item.business_collection_id, item.business_id, item.description, item.price, item.availability, item.business_id, item.high_quality_photo, item.low_quality_photo, item.thumbnail, item.blurhash, item.create_time, item.update_time, item.cursor").Where("item.id = ?", id).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
@@ -85,7 +86,7 @@ func (i *itemDatasource) GetItemWithLocation(tx *gorm.DB, id string, point ewkb.
 func (i *itemDatasource) GetItem(tx *gorm.DB, where *models.Item, fields *[]string) (*models.Item, error) {
 	var res *models.Item
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Where(where).Select(*selectFields).Take(&res)
@@ -99,19 +100,34 @@ func (i *itemDatasource) GetItem(tx *gorm.DB, where *models.Item, fields *[]stri
 	return res, nil
 }
 
-func (i *itemDatasource) SearchItem(tx *gorm.DB, name string, provinceid string, municipalityid string, cursor int64, municipalityNotEqual bool, limit int64, fields *[]string) (*[]models.Item, error) {
+func (i *itemDatasource) SearchItem(tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64, fields *[]string) (*[]models.Item, error) {
 	var items []models.Item
 	var result *gorm.DB
 	where := "%" + name + "%"
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	if municipalityNotEqual {
-		result = tx.Limit(int(limit+1)).Select(*selectFields).Where("LOWER(unaccent(item.name)) LIKE LOWER(unaccent(?)) AND municipality_id != ? AND province_id = ? AND cursor > ?", where, municipalityid, provinceid, cursor).Order("cursor asc").Find(&items)
+		result = tx.Limit(int(limit+1)).Select(*selectFields).Where("LOWER(unaccent(item.name)) LIKE LOWER(unaccent(?)) AND municipality_id != ? AND province_id = ? AND cursor > ?", where, municipalityId, provinceId, cursor).Order("cursor asc").Find(&items)
 	} else {
-		result = tx.Limit(int(limit+1)).Select(*selectFields).Where("LOWER(unaccent(item.name)) LIKE LOWER(unaccent(?)) AND municipality_id = ? AND province_id = ? AND cursor > ?", where, municipalityid, provinceid, cursor).Order("cursor asc").Find(&items)
+		result = tx.Limit(int(limit+1)).Select(*selectFields).Where("LOWER(unaccent(item.name)) LIKE LOWER(unaccent(?)) AND municipality_id = ? AND province_id = ? AND cursor > ?", where, municipalityId, provinceId, cursor).Order("cursor asc").Find(&items)
 	}
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &items, nil
+}
+
+func (i *itemDatasource) SearchItemByBusiness(tx *gorm.DB, name string, cursor int64, businessId string, fields *[]string) (*[]models.Item, error) {
+	var items []models.Item
+	var result *gorm.DB
+	where := "%" + name + "%"
+	selectFields := &[]string{"*"}
+	if fields != nil {
+		selectFields = fields
+	}
+	result = tx.Limit(10).Select(*selectFields).Where("LOWER(unaccent(item.name)) LIKE LOWER(unaccent(?)) AND cursor > ? AND business_id = ?", where, cursor, businessId).Order("cursor asc").Find(&items)
 	if result.Error != nil {
 		return nil, result.Error
 	}

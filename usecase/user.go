@@ -117,22 +117,20 @@ func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*p
 		})
 	}
 	return &pb.GetUserResponse{User: &pb.User{
-		Id:                       userRes.ID.String(),
-		FullName:                 userRes.FullName,
-		Email:                    userRes.Email,
-		HighQualityPhoto:         userRes.HighQualityPhoto,
-		HighQualityPhotoUrl:      userRes.HighQualityPhoto,
-		HighQualityPhotoBlurHash: userRes.HighQualityPhotoBlurHash,
-		LowQualityPhoto:          userRes.LowQualityPhoto,
-		LowQualityPhotoUrl:       userRes.LowQualityPhoto,
-		LowQualityPhotoBlurHash:  userRes.LowQualityPhotoBlurHash,
-		Thumbnail:                userRes.Thumbnail,
-		ThumbnailUrl:             userRes.Thumbnail,
-		ThumbnailBlurHash:        userRes.ThumbnailBlurHash,
-		UserAddress:              userAddress,
-		Permissions:              permissions,
-		CreateTime:               timestamppb.New(userRes.CreateTime),
-		UpdateTime:               timestamppb.New(userRes.UpdateTime),
+		Id:                  userRes.ID.String(),
+		FullName:            userRes.FullName,
+		Email:               userRes.Email,
+		HighQualityPhoto:    userRes.HighQualityPhoto,
+		HighQualityPhotoUrl: userRes.HighQualityPhoto,
+		LowQualityPhoto:     userRes.LowQualityPhoto,
+		LowQualityPhotoUrl:  userRes.LowQualityPhoto,
+		Thumbnail:           userRes.Thumbnail,
+		ThumbnailUrl:        userRes.Thumbnail,
+		BlurHash:            userRes.BlurHash,
+		UserAddress:         userAddress,
+		Permissions:         permissions,
+		CreateTime:          timestamppb.New(userRes.CreateTime),
+		UpdateTime:          timestamppb.New(userRes.UpdateTime),
 	}}, nil
 }
 
@@ -198,7 +196,7 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 				return updatedUserErr
 			}
 
-		} else if req.User.HighQualityPhoto != "" && req.User.HighQualityPhotoBlurHash != "" && req.User.LowQualityPhoto != "" && req.User.LowQualityPhotoBlurHash != "" && req.User.Thumbnail != "" && req.User.ThumbnailBlurHash != "" {
+		} else if req.User.HighQualityPhoto != "" && req.User.LowQualityPhoto != "" && req.User.Thumbnail != "" && req.User.BlurHash != "" {
 			_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.UsersBulkName, req.User.HighQualityPhoto)
 			if hqErr != nil {
 				return hqErr
@@ -235,7 +233,7 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 			if rmThErr != nil {
 				return rmThErr
 			}
-			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: &userId}, &models.User{HighQualityPhoto: req.User.HighQualityPhoto, HighQualityPhotoBlurHash: req.User.HighQualityPhotoBlurHash, LowQualityPhoto: req.User.LowQualityPhoto, LowQualityPhotoBlurHash: req.User.LowQualityPhotoBlurHash, Thumbnail: req.User.Thumbnail, ThumbnailBlurHash: req.User.ThumbnailBlurHash})
+			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: &userId}, &models.User{HighQualityPhoto: req.User.HighQualityPhoto, LowQualityPhoto: req.User.LowQualityPhoto, Thumbnail: req.User.Thumbnail, BlurHash: req.User.BlurHash})
 			if updatedUserErr != nil {
 				return updatedUserErr
 			}
@@ -251,21 +249,19 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 		return nil, err
 	}
 	return &pb.UpdateUserResponse{User: &pb.User{
-		Id:                       updatedUserRes.ID.String(),
-		FullName:                 updatedUserRes.FullName,
-		Email:                    updatedUserRes.Email,
-		HighQualityPhoto:         updatedUserRes.HighQualityPhoto,
-		HighQualityPhotoUrl:      updatedUserRes.HighQualityPhoto,
-		HighQualityPhotoBlurHash: updatedUserRes.HighQualityPhotoBlurHash,
-		LowQualityPhoto:          updatedUserRes.LowQualityPhoto,
-		LowQualityPhotoUrl:       updatedUserRes.LowQualityPhoto,
-		LowQualityPhotoBlurHash:  updatedUserRes.LowQualityPhotoBlurHash,
-		Thumbnail:                updatedUserRes.Thumbnail,
-		ThumbnailUrl:             updatedUserRes.Thumbnail,
-		ThumbnailBlurHash:        updatedUserRes.ThumbnailBlurHash,
-		UserAddress:              nil,
-		Permissions:              nil,
-		CreateTime:               timestamppb.New(updatedUserRes.CreateTime),
-		UpdateTime:               timestamppb.New(updatedUserRes.UpdateTime),
+		Id:                  updatedUserRes.ID.String(),
+		FullName:            updatedUserRes.FullName,
+		Email:               updatedUserRes.Email,
+		HighQualityPhoto:    updatedUserRes.HighQualityPhoto,
+		HighQualityPhotoUrl: updatedUserRes.HighQualityPhoto,
+		LowQualityPhoto:     updatedUserRes.LowQualityPhoto,
+		LowQualityPhotoUrl:  updatedUserRes.LowQualityPhoto,
+		Thumbnail:           updatedUserRes.Thumbnail,
+		ThumbnailUrl:        updatedUserRes.Thumbnail,
+		BlurHash:            updatedUserRes.BlurHash,
+		UserAddress:         nil,
+		Permissions:         nil,
+		CreateTime:          timestamppb.New(updatedUserRes.CreateTime),
+		UpdateTime:          timestamppb.New(updatedUserRes.UpdateTime),
 	}}, nil
 }

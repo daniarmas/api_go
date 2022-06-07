@@ -20,6 +20,7 @@ import (
 type BusinessService interface {
 	Feed(ctx context.Context, req *pb.FeedRequest, meta *utils.ClientMetadata) (*pb.FeedResponse, error)
 	GetBusiness(ctx context.Context, req *pb.GetBusinessRequest, meta *utils.ClientMetadata) (*pb.GetBusinessResponse, error)
+	GetBusinessWithDistance(ctx context.Context, req *pb.GetBusinessWithDistanceRequest, meta *utils.ClientMetadata) (*pb.GetBusinessWithDistanceResponse, error)
 	CreateBusiness(ctx context.Context, req *pb.CreateBusinessRequest, md *utils.ClientMetadata) (*pb.CreateBusinessResponse, error)
 	UpdateBusiness(ctx context.Context, req *pb.UpdateBusinessRequest, md *utils.ClientMetadata) (*pb.Business, error)
 }
@@ -140,23 +141,21 @@ func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusi
 			municipalityId = uuid.MustParse(req.MunicipalityId)
 		}
 		businessRes, businessErr = i.dao.NewBusinessQuery().UpdateBusiness(tx, &models.Business{
-			Name:                     req.Name,
-			Address:                  req.Address,
-			HighQualityPhoto:         datasource.Config.BusinessAvatarBulkName + "/" + req.HighQualityPhoto,
-			HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash,
-			LowQualityPhoto:          datasource.Config.BusinessAvatarBulkName + "/" + req.LowQualityPhoto,
-			LowQualityPhotoBlurHash:  req.LowQualityPhotoBlurHash,
-			Thumbnail:                datasource.Config.BusinessAvatarBulkName + "/" + req.Thumbnail,
-			ThumbnailBlurHash:        req.ThumbnailBlurHash,
-			TimeMarginOrderMonth:     req.TimeMarginOrderMonth,
-			TimeMarginOrderDay:       req.TimeMarginOrderDay,
-			TimeMarginOrderHour:      req.TimeMarginOrderHour,
-			TimeMarginOrderMinute:    req.TimeMarginOrderMinute,
-			DeliveryPrice:            req.DeliveryPrice,
-			ToPickUp:                 req.ToPickUp,
-			HomeDelivery:             req.HomeDelivery,
-			ProvinceId:               &provinceId,
-			MunicipalityId:           &municipalityId,
+			Name:                  req.Name,
+			Address:               req.Address,
+			HighQualityPhoto:      datasource.Config.BusinessAvatarBulkName + "/" + req.HighQualityPhoto,
+			LowQualityPhoto:       datasource.Config.BusinessAvatarBulkName + "/" + req.LowQualityPhoto,
+			Thumbnail:             datasource.Config.BusinessAvatarBulkName + "/" + req.Thumbnail,
+			BlurHash:              req.BlurHash,
+			TimeMarginOrderMonth:  req.TimeMarginOrderMonth,
+			TimeMarginOrderDay:    req.TimeMarginOrderDay,
+			TimeMarginOrderHour:   req.TimeMarginOrderHour,
+			TimeMarginOrderMinute: req.TimeMarginOrderMinute,
+			DeliveryPrice:         req.DeliveryPrice,
+			ToPickUp:              req.ToPickUp,
+			HomeDelivery:          req.HomeDelivery,
+			ProvinceId:            &provinceId,
+			MunicipalityId:        &municipalityId,
 		}, &models.Business{ID: &id})
 		if businessErr != nil {
 			return businessErr
@@ -166,7 +165,7 @@ func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusi
 	if err != nil {
 		return nil, err
 	}
-	return &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, HighQualityPhotoBlurHash: businessRes.HighQualityPhotoBlurHash, LowQualityPhoto: businessRes.LowQualityPhoto, LowQualityPhotoBlurHash: businessRes.LowQualityPhotoBlurHash, Thumbnail: businessRes.Thumbnail, ThumbnailBlurHash: businessRes.ThumbnailBlurHash, DeliveryPrice: businessRes.DeliveryPrice, TimeMarginOrderMonth: businessRes.TimeMarginOrderMonth, TimeMarginOrderDay: businessRes.TimeMarginOrderDay, TimeMarginOrderHour: businessRes.TimeMarginOrderHour, TimeMarginOrderMinute: businessRes.TimeMarginOrderMinute, ToPickUp: businessRes.ToPickUp, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), CreateTime: timestamppb.New(businessRes.CreateTime), UpdateTime: timestamppb.New(businessRes.UpdateTime)}, nil
+	return &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, LowQualityPhoto: businessRes.LowQualityPhoto, Thumbnail: businessRes.Thumbnail, BlurHash: businessRes.BlurHash, DeliveryPrice: businessRes.DeliveryPrice, TimeMarginOrderMonth: businessRes.TimeMarginOrderMonth, TimeMarginOrderDay: businessRes.TimeMarginOrderDay, TimeMarginOrderHour: businessRes.TimeMarginOrderHour, TimeMarginOrderMinute: businessRes.TimeMarginOrderMinute, ToPickUp: businessRes.ToPickUp, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), CreateTime: timestamppb.New(businessRes.CreateTime), UpdateTime: timestamppb.New(businessRes.UpdateTime)}, nil
 }
 
 func (i *businessService) CreateBusiness(ctx context.Context, req *pb.CreateBusinessRequest, md *utils.ClientMetadata) (*pb.CreateBusinessResponse, error) {
@@ -223,30 +222,28 @@ func (i *businessService) CreateBusiness(ctx context.Context, req *pb.CreateBusi
 		municipalityId := uuid.MustParse(req.MunicipalityId)
 		businessBrandId := uuid.MustParse(req.BusinessBrandId)
 		businessRes, businessErr = i.dao.NewBusinessQuery().CreateBusiness(tx, &models.Business{
-			Name:                     req.Name,
-			Address:                  req.Address,
-			HighQualityPhoto:         req.HighQualityPhoto,
-			HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash,
-			LowQualityPhoto:          req.LowQualityPhoto,
-			LowQualityPhotoBlurHash:  req.LowQualityPhotoBlurHash,
-			Thumbnail:                req.Thumbnail,
-			ThumbnailBlurHash:        req.ThumbnailBlurHash,
-			TimeMarginOrderMonth:     req.TimeMarginOrderMonth,
-			TimeMarginOrderDay:       req.TimeMarginOrderDay,
-			TimeMarginOrderHour:      req.TimeMarginOrderHour,
-			TimeMarginOrderMinute:    req.TimeMarginOrderMinute,
-			DeliveryPrice:            req.DeliveryPrice,
-			ToPickUp:                 req.ToPickUp,
-			HomeDelivery:             req.HomeDelivery,
-			Coordinates:              ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Coordinates.Latitude, req.Coordinates.Longitude}).SetSRID(4326)},
-			ProvinceId:               &provinceId,
-			MunicipalityId:           &municipalityId,
-			BusinessBrandId:          &businessBrandId,
+			Name:                  req.Name,
+			Address:               req.Address,
+			HighQualityPhoto:      req.HighQualityPhoto,
+			LowQualityPhoto:       req.LowQualityPhoto,
+			Thumbnail:             req.Thumbnail,
+			BlurHash:              req.BlurHash,
+			TimeMarginOrderMonth:  req.TimeMarginOrderMonth,
+			TimeMarginOrderDay:    req.TimeMarginOrderDay,
+			TimeMarginOrderHour:   req.TimeMarginOrderHour,
+			TimeMarginOrderMinute: req.TimeMarginOrderMinute,
+			DeliveryPrice:         req.DeliveryPrice,
+			ToPickUp:              req.ToPickUp,
+			HomeDelivery:          req.HomeDelivery,
+			Coordinates:           ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Coordinates.Latitude, req.Coordinates.Longitude}).SetSRID(4326)},
+			ProvinceId:            &provinceId,
+			MunicipalityId:        &municipalityId,
+			BusinessBrandId:       &businessBrandId,
 		})
 		if businessErr != nil {
 			return businessErr
 		}
-		response.Business = &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, HighQualityPhotoBlurHash: businessRes.HighQualityPhotoBlurHash, LowQualityPhoto: businessRes.LowQualityPhoto, LowQualityPhotoBlurHash: businessRes.LowQualityPhotoBlurHash, Thumbnail: businessRes.Thumbnail, ThumbnailBlurHash: businessRes.ThumbnailBlurHash, DeliveryPrice: businessRes.DeliveryPrice, TimeMarginOrderMonth: businessRes.TimeMarginOrderMonth, TimeMarginOrderDay: businessRes.TimeMarginOrderDay, TimeMarginOrderHour: businessRes.TimeMarginOrderHour, TimeMarginOrderMinute: businessRes.TimeMarginOrderMinute, ToPickUp: businessRes.ToPickUp, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), CreateTime: timestamppb.New(businessRes.CreateTime), UpdateTime: timestamppb.New(businessRes.UpdateTime), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.FlatCoords()[0], Longitude: businessRes.Coordinates.FlatCoords()[1]}}
+		response.Business = &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, LowQualityPhoto: businessRes.LowQualityPhoto, Thumbnail: businessRes.Thumbnail, BlurHash: businessRes.BlurHash, DeliveryPrice: businessRes.DeliveryPrice, TimeMarginOrderMonth: businessRes.TimeMarginOrderMonth, TimeMarginOrderDay: businessRes.TimeMarginOrderDay, TimeMarginOrderHour: businessRes.TimeMarginOrderHour, TimeMarginOrderMinute: businessRes.TimeMarginOrderMinute, ToPickUp: businessRes.ToPickUp, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), CreateTime: timestamppb.New(businessRes.CreateTime), UpdateTime: timestamppb.New(businessRes.UpdateTime), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.FlatCoords()[0], Longitude: businessRes.Coordinates.FlatCoords()[1]}}
 		var unionBusinessAndMunicipalities = make([]*models.UnionBusinessAndMunicipality, 0, len(req.Municipalities))
 		for _, item := range req.Municipalities {
 			municipalityId := uuid.MustParse(item)
@@ -358,33 +355,30 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 		businessResponse := make([]*pb.Business, 0, len(*businessRes))
 		for _, e := range *businessRes {
 			businessResponse = append(businessResponse, &pb.Business{
-				Id:                       e.ID.String(),
-				Name:                     e.Name,
-				HighQualityPhoto:         e.HighQualityPhoto,
-				HighQualityPhotoUrl:      v.config.BusinessAvatarBulkName + "/" + e.HighQualityPhoto,
-				HighQualityPhotoBlurHash: e.HighQualityPhotoBlurHash,
-				LowQualityPhoto:          e.LowQualityPhoto,
-				LowQualityPhotoUrl:       v.config.BusinessAvatarBulkName + "/" + e.LowQualityPhoto,
-				LowQualityPhotoBlurHash:  e.LowQualityPhotoBlurHash,
-				Thumbnail:                e.Thumbnail,
-				ThumbnailUrl:             v.config.BusinessAvatarBulkName + "/" + e.Thumbnail,
-				ThumbnailBlurHash:        e.ThumbnailBlurHash,
-				Address:                  e.Address,
-				DeliveryPrice:            e.DeliveryPrice,
-				TimeMarginOrderMonth:     e.TimeMarginOrderMonth,
-				TimeMarginOrderDay:       e.TimeMarginOrderDay,
-				TimeMarginOrderHour:      e.TimeMarginOrderHour,
-				TimeMarginOrderMinute:    e.TimeMarginOrderMinute,
-				ToPickUp:                 e.ToPickUp,
-				HomeDelivery:             e.HomeDelivery,
-				BusinessBrandId:          e.BusinessBrandId.String(),
-				ProvinceId:               e.ProvinceId.String(),
-				MunicipalityId:           e.MunicipalityId.String(),
-				Cursor:                   int32(e.Cursor),
+				Id:                    e.ID.String(),
+				Name:                  e.Name,
+				HighQualityPhoto:      e.HighQualityPhoto,
+				HighQualityPhotoUrl:   v.config.BusinessAvatarBulkName + "/" + e.HighQualityPhoto,
+				LowQualityPhoto:       e.LowQualityPhoto,
+				LowQualityPhotoUrl:    v.config.BusinessAvatarBulkName + "/" + e.LowQualityPhoto,
+				Thumbnail:             e.Thumbnail,
+				ThumbnailUrl:          v.config.BusinessAvatarBulkName + "/" + e.Thumbnail,
+				BlurHash:              e.BlurHash,
+				Address:               e.Address,
+				DeliveryPrice:         e.DeliveryPrice,
+				TimeMarginOrderMonth:  e.TimeMarginOrderMonth,
+				TimeMarginOrderDay:    e.TimeMarginOrderDay,
+				TimeMarginOrderHour:   e.TimeMarginOrderHour,
+				TimeMarginOrderMinute: e.TimeMarginOrderMinute,
+				ToPickUp:              e.ToPickUp,
+				HomeDelivery:          e.HomeDelivery,
+				BusinessBrandId:       e.BusinessBrandId.String(),
+				ProvinceId:            e.ProvinceId.String(),
+				MunicipalityId:        e.MunicipalityId.String(),
+				Cursor:                int32(e.Cursor),
 			})
 		}
 		response.Businesses = businessResponse
-
 	}
 	return &response, nil
 }
@@ -426,5 +420,45 @@ func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRe
 	highQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.HighQualityPhoto
 	lowQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.LowQualityPhoto
 	thumbnailUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.Thumbnail
-	return &pb.GetBusinessResponse{Business: &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, HighQualityPhotoBlurHash: businessRes.HighQualityPhotoBlurHash, LowQualityPhoto: businessRes.LowQualityPhoto, LowQualityPhotoBlurHash: businessRes.LowQualityPhotoBlurHash, Thumbnail: businessRes.Thumbnail, ThumbnailBlurHash: businessRes.ThumbnailBlurHash, ToPickUp: businessRes.ToPickUp, DeliveryPrice: businessRes.DeliveryPrice, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.Coords()[1], Longitude: businessRes.Coordinates.Coords()[0]}, HighQualityPhotoUrl: highQualityPhotoUrl, LowQualityPhotoUrl: lowQualityPhotoUrl, ThumbnailUrl: thumbnailUrl}, ItemCategory: itemsCategoryResponse}, nil
+	return &pb.GetBusinessResponse{Business: &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, LowQualityPhoto: businessRes.LowQualityPhoto, Thumbnail: businessRes.Thumbnail, BlurHash: businessRes.BlurHash, ToPickUp: businessRes.ToPickUp, DeliveryPrice: businessRes.DeliveryPrice, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.Coords()[1], Longitude: businessRes.Coordinates.Coords()[0]}, HighQualityPhotoUrl: highQualityPhotoUrl, LowQualityPhotoUrl: lowQualityPhotoUrl, ThumbnailUrl: thumbnailUrl}, ItemCategory: itemsCategoryResponse}, nil
+}
+
+func (v *businessService) GetBusinessWithDistance(ctx context.Context, req *pb.GetBusinessWithDistanceRequest, meta *utils.ClientMetadata) (*pb.GetBusinessWithDistanceResponse, error) {
+	var businessRes *models.Business
+	var businessCollectionRes *[]models.BusinessCollection
+	var businessErr, itemCategoryErr error
+	var itemsCategoryResponse []*pb.ItemCategory
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		businessId := uuid.MustParse(req.Id)
+		businessRes, businessErr = v.dao.NewBusinessQuery().GetBusinessWithDistance(tx, &models.Business{ID: &businessId, Coordinates: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}})
+		if businessErr != nil && businessErr.Error() == "record not found" {
+			return errors.New("business not found")
+		} else if businessErr != nil {
+			return businessErr
+		}
+		businessCollectionRes, itemCategoryErr = v.dao.NewBusinessCollectionQuery().ListBusinessCollection(tx, &models.BusinessCollection{BusinessId: &businessId}, nil)
+		if itemCategoryErr != nil {
+			return itemCategoryErr
+		}
+		itemsCategoryResponse = make([]*pb.ItemCategory, 0, len(*businessCollectionRes))
+		for _, e := range *businessCollectionRes {
+			itemsCategoryResponse = append(itemsCategoryResponse, &pb.ItemCategory{
+				Id:         e.ID.String(),
+				Name:       e.Name,
+				BusinessId: e.BusinessId.String(),
+				Index:      e.Index,
+				CreateTime: timestamppb.New(e.CreateTime),
+				UpdateTime: timestamppb.New(e.UpdateTime),
+			})
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	var highQualityPhotoUrl, lowQualityPhotoUrl, thumbnailUrl string
+	highQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.HighQualityPhoto
+	lowQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.LowQualityPhoto
+	thumbnailUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.Thumbnail
+	return &pb.GetBusinessWithDistanceResponse{Business: &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, LowQualityPhoto: businessRes.LowQualityPhoto, Thumbnail: businessRes.Thumbnail, BlurHash: businessRes.BlurHash, ToPickUp: businessRes.ToPickUp, DeliveryPrice: businessRes.DeliveryPrice, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.Coords()[1], Longitude: businessRes.Coordinates.Coords()[0]}, HighQualityPhotoUrl: highQualityPhotoUrl, LowQualityPhotoUrl: lowQualityPhotoUrl, ThumbnailUrl: thumbnailUrl, Distance: businessRes.Distance}, ItemCategory: itemsCategoryResponse}, nil
 }

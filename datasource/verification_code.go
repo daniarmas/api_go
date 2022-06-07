@@ -28,7 +28,7 @@ func (v *verificationCodeDatasource) CreateVerificationCode(tx *gorm.DB, data *m
 func (v *verificationCodeDatasource) GetVerificationCode(tx *gorm.DB, verificationCode *models.VerificationCode, fields *[]string) (*models.VerificationCode, error) {
 	var res *models.VerificationCode
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Where(verificationCode).Select(*selectFields).Take(&res)

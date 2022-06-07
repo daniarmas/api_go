@@ -192,7 +192,7 @@ func (i *cartItemService) ListCartItem(ctx context.Context, req *pb.ListCartItem
 			Quantity:             item.Quantity,
 			Thumbnail:            item.Thumbnail,
 			ThumbnailUrl:         i.config.ItemsBulkName + "/" + item.Thumbnail,
-			ThumbnailBlurHash:    item.ThumbnailBlurHash,
+			BlurHash:             item.BlurHash,
 			CreateTime:           timestamppb.New(item.CreateTime),
 			UpdateTime:           timestamppb.New(item.UpdateTime),
 		})
@@ -254,7 +254,7 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 				return err
 			}
 		} else if cartItemRes == nil && err.Error() == "record not found" {
-			result, resultErr = i.dao.NewCartItemRepository().CreateCartItem(tx, &models.CartItem{Name: item.Name, Price: item.Price, Quantity: req.Quantity, ItemId: item.ID, UserId: authorizationTokenRes.UserId, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: item.BusinessId, Thumbnail: item.Thumbnail, ThumbnailBlurHash: item.ThumbnailBlurHash})
+			result, resultErr = i.dao.NewCartItemRepository().CreateCartItem(tx, &models.CartItem{Name: item.Name, Price: item.Price, Quantity: req.Quantity, ItemId: item.ID, UserId: authorizationTokenRes.UserId, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: item.BusinessId, Thumbnail: item.Thumbnail, BlurHash: item.BlurHash})
 			if resultErr != nil {
 				return resultErr
 			}
@@ -276,7 +276,7 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 			UpdateTime:           timestamppb.New(result.UpdateTime),
 			Thumbnail:            result.Thumbnail,
 			ThumbnailUrl:         i.config.ItemsBulkName + "/" + result.Thumbnail,
-			ThumbnailBlurHash:    result.ThumbnailBlurHash,
+			BlurHash:             result.BlurHash,
 		},
 	}, nil
 }
@@ -353,7 +353,7 @@ func (i *cartItemService) ReduceCartItem(ctx context.Context, req *pb.ReduceCart
 			UpdateTime:           timestamppb.New(result.UpdateTime),
 			Thumbnail:            result.Thumbnail,
 			ThumbnailUrl:         i.config.ItemsBulkName + "/" + result.Thumbnail,
-			ThumbnailBlurHash:    result.ThumbnailBlurHash,
+			BlurHash:             result.BlurHash,
 		}}, nil
 	} else {
 		return &pb.ReduceCartItemResponse{CartItem: &pb.CartItem{}}, nil

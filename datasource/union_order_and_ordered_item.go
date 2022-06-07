@@ -23,7 +23,7 @@ func (i *unionOrderAndOrderedItemDatasource) BatchCreateUnionOrderAndOrderedItem
 func (i *unionOrderAndOrderedItemDatasource) ListUnionOrderAndOrderedItem(tx *gorm.DB, where *models.UnionOrderAndOrderedItem, fields *[]string) (*[]models.UnionOrderAndOrderedItem, error) {
 	var res []models.UnionOrderAndOrderedItem
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Where(where).Select(*selectFields).Find(&res)

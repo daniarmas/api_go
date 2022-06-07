@@ -22,6 +22,7 @@ type ItemService interface {
 	GetItem(ctx context.Context, req *pb.GetItemRequest, md *utils.ClientMetadata) (*pb.GetItemResponse, error)
 	ListItem(ctx context.Context, req *pb.ListItemRequest, md *utils.ClientMetadata) (*pb.ListItemResponse, error)
 	SearchItem(ctx context.Context, req *pb.SearchItemRequest, md *utils.ClientMetadata) (*pb.SearchItemResponse, error)
+	SearchItemByBusiness(ctx context.Context, req *pb.SearchItemByBusinessRequest, md *utils.ClientMetadata) (*pb.SearchItemByBusinessResponse, error)
 	CreateItem(ctx context.Context, req *pb.CreateItemRequest, md *utils.ClientMetadata) (*pb.Item, error)
 	UpdateItem(ctx context.Context, req *pb.UpdateItemRequest, md *utils.ClientMetadata) (*pb.Item, error)
 	DeleteItem(ctx context.Context, req *pb.DeleteItemRequest, md *utils.ClientMetadata) error
@@ -133,7 +134,7 @@ func (i *itemService) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest,
 				return rmThErr
 			}
 		}
-		updateItemRes, updateItemErr = i.dao.NewItemQuery().UpdateItem(tx, &models.Item{ID: &id}, &models.Item{Name: req.Name, Description: req.Description, Price: req.Price, Availability: req.Availability, HighQualityPhoto: req.HighQualityPhoto, HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash, LowQualityPhoto: req.LowQualityPhoto, LowQualityPhotoBlurHash: req.LowQualityPhotoBlurHash, Thumbnail: req.Thumbnail, ThumbnailBlurHash: req.ThumbnailBlurHash})
+		updateItemRes, updateItemErr = i.dao.NewItemQuery().UpdateItem(tx, &models.Item{ID: &id}, &models.Item{Name: req.Name, Description: req.Description, Price: req.Price, Availability: req.Availability, HighQualityPhoto: req.HighQualityPhoto, LowQualityPhoto: req.LowQualityPhoto, Thumbnail: req.Thumbnail, BlurHash: req.BlurHash})
 		if updateItemErr != nil {
 			return updateItemErr
 		}
@@ -143,23 +144,21 @@ func (i *itemService) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest,
 		return nil, err
 	}
 	return &pb.Item{
-		Id:                       updateItemRes.ID.String(),
-		Name:                     updateItemRes.Name,
-		Description:              updateItemRes.Description,
-		Price:                    updateItemRes.Price,
-		Availability:             int32(updateItemRes.Availability),
-		BusinessId:               updateItemRes.BusinessId.String(),
-		BusinessCollectionId:     updateItemRes.BusinessCollectionId.String(),
-		HighQualityPhoto:         updateItemRes.HighQualityPhoto,
-		HighQualityPhotoBlurHash: updateItemRes.HighQualityPhotoBlurHash,
-		LowQualityPhoto:          updateItemRes.LowQualityPhoto,
-		LowQualityPhotoBlurHash:  updateItemRes.LowQualityPhotoBlurHash,
-		Thumbnail:                updateItemRes.Thumbnail,
-		ThumbnailBlurHash:        updateItemRes.ThumbnailBlurHash,
-		Cursor:                   updateItemRes.Cursor,
-		Status:                   *utils.ParseItemStatusType(&updateItemRes.Status),
-		CreateTime:               timestamppb.New(updateItemRes.CreateTime),
-		UpdateTime:               timestamppb.New(updateItemRes.UpdateTime),
+		Id:                   updateItemRes.ID.String(),
+		Name:                 updateItemRes.Name,
+		Description:          updateItemRes.Description,
+		Price:                updateItemRes.Price,
+		Availability:         int32(updateItemRes.Availability),
+		BusinessId:           updateItemRes.BusinessId.String(),
+		BusinessCollectionId: updateItemRes.BusinessCollectionId.String(),
+		HighQualityPhoto:     updateItemRes.HighQualityPhoto,
+		LowQualityPhoto:      updateItemRes.LowQualityPhoto,
+		Thumbnail:            updateItemRes.Thumbnail,
+		BlurHash:             updateItemRes.BlurHash,
+		Cursor:               updateItemRes.Cursor,
+		Status:               *utils.ParseItemStatusType(&updateItemRes.Status),
+		CreateTime:           timestamppb.New(updateItemRes.CreateTime),
+		UpdateTime:           timestamppb.New(updateItemRes.UpdateTime),
 	}, nil
 }
 
@@ -304,7 +303,7 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 			return businessErr
 		}
 		businessCollectionId := uuid.MustParse(req.BusinessCollectionId)
-		itemRes, itemErr = i.dao.NewItemQuery().CreateItem(tx, &models.Item{Name: req.Name, Description: req.Description, Price: req.Price, Availability: -1, BusinessId: &businessId, BusinessCollectionId: &businessCollectionId, HighQualityPhoto: req.HighQualityPhoto, LowQualityPhoto: req.LowQualityPhoto, Thumbnail: req.Thumbnail, HighQualityPhotoBlurHash: req.HighQualityPhotoBlurHash, LowQualityPhotoBlurHash: req.LowQualityPhotoBlurHash, ThumbnailBlurHash: req.ThumbnailBlurHash, Status: "Unavailable", ProvinceId: businessRes.ProvinceId, MunicipalityId: businessRes.MunicipalityId})
+		itemRes, itemErr = i.dao.NewItemQuery().CreateItem(tx, &models.Item{Name: req.Name, Description: req.Description, Price: req.Price, Availability: -1, BusinessId: &businessId, BusinessCollectionId: &businessCollectionId, HighQualityPhoto: req.HighQualityPhoto, LowQualityPhoto: req.LowQualityPhoto, Thumbnail: req.Thumbnail, BlurHash: req.BlurHash, Status: "Unavailable", ProvinceId: businessRes.ProvinceId, MunicipalityId: businessRes.MunicipalityId})
 		if itemErr != nil {
 			return itemErr
 		}
@@ -313,7 +312,7 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 	if err != nil {
 		return nil, err
 	}
-	return &pb.Item{Id: itemRes.ID.String(), Name: itemRes.Name, Description: itemRes.Description, Price: itemRes.Price, Status: *utils.ParseItemStatusType(&itemRes.Status), Availability: int32(itemRes.Availability), BusinessId: itemRes.BusinessId.String(), BusinessCollectionId: itemRes.BusinessCollectionId.String(), HighQualityPhoto: itemRes.HighQualityPhoto, HighQualityPhotoBlurHash: itemRes.HighQualityPhotoBlurHash, LowQualityPhoto: itemRes.LowQualityPhoto, LowQualityPhotoBlurHash: itemRes.LowQualityPhotoBlurHash, Thumbnail: itemRes.Thumbnail, ThumbnailBlurHash: itemRes.ThumbnailBlurHash, CreateTime: timestamppb.New(itemRes.CreateTime), UpdateTime: timestamppb.New(itemRes.UpdateTime)}, nil
+	return &pb.Item{Id: itemRes.ID.String(), Name: itemRes.Name, Description: itemRes.Description, Price: itemRes.Price, Status: *utils.ParseItemStatusType(&itemRes.Status), Availability: int32(itemRes.Availability), BusinessId: itemRes.BusinessId.String(), BusinessCollectionId: itemRes.BusinessCollectionId.String(), HighQualityPhoto: itemRes.HighQualityPhoto, LowQualityPhoto: itemRes.LowQualityPhoto, Thumbnail: itemRes.Thumbnail, BlurHash: itemRes.BlurHash, CreateTime: timestamppb.New(itemRes.CreateTime), UpdateTime: timestamppb.New(itemRes.UpdateTime)}, nil
 }
 
 func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md *utils.ClientMetadata) (*pb.ListItemResponse, error) {
@@ -357,25 +356,23 @@ func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md 
 		itemsResponse := make([]*pb.Item, 0, len(*items))
 		for _, item := range *items {
 			itemsResponse = append(itemsResponse, &pb.Item{
-				Id:                       item.ID.String(),
-				Name:                     item.Name,
-				Description:              item.Description,
-				Price:                    item.Price,
-				Availability:             int32(item.Availability),
-				BusinessId:               item.BusinessId.String(),
-				BusinessCollectionId:     item.BusinessCollectionId.String(),
-				HighQualityPhoto:         item.HighQualityPhoto,
-				HighQualityPhotoUrl:      i.config.ItemsBulkName + "/" + item.HighQualityPhoto,
-				HighQualityPhotoBlurHash: item.HighQualityPhotoBlurHash,
-				LowQualityPhoto:          item.LowQualityPhoto,
-				LowQualityPhotoUrl:       i.config.ItemsBulkName + "/" + item.LowQualityPhoto,
-				LowQualityPhotoBlurHash:  item.LowQualityPhotoBlurHash,
-				Thumbnail:                item.Thumbnail,
-				ThumbnailUrl:             i.config.ItemsBulkName + "/" + item.Thumbnail,
-				ThumbnailBlurHash:        item.ThumbnailBlurHash,
-				Cursor:                   int32(item.Cursor),
-				CreateTime:               timestamppb.New(item.CreateTime),
-				UpdateTime:               timestamppb.New(item.UpdateTime),
+				Id:                   item.ID.String(),
+				Name:                 item.Name,
+				Description:          item.Description,
+				Price:                item.Price,
+				Availability:         int32(item.Availability),
+				BusinessId:           item.BusinessId.String(),
+				BusinessCollectionId: item.BusinessCollectionId.String(),
+				HighQualityPhoto:     item.HighQualityPhoto,
+				HighQualityPhotoUrl:  i.config.ItemsBulkName + "/" + item.HighQualityPhoto,
+				LowQualityPhoto:      item.LowQualityPhoto,
+				LowQualityPhotoUrl:   i.config.ItemsBulkName + "/" + item.LowQualityPhoto,
+				Thumbnail:            item.Thumbnail,
+				ThumbnailUrl:         i.config.ItemsBulkName + "/" + item.Thumbnail,
+				BlurHash:             item.BlurHash,
+				Cursor:               int32(item.Cursor),
+				CreateTime:           timestamppb.New(item.CreateTime),
+				UpdateTime:           timestamppb.New(item.UpdateTime),
 			})
 		}
 		res.Items = itemsResponse
@@ -393,25 +390,23 @@ func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *u
 			return itemErr
 		}
 		res.Item = &pb.Item{
-			Id:                       item.ID.String(),
-			Name:                     item.Name,
-			Description:              item.Description,
-			Price:                    item.Price,
-			Availability:             int32(item.Availability),
-			BusinessId:               item.BusinessId.String(),
-			BusinessCollectionId:     item.BusinessCollectionId.String(),
-			HighQualityPhoto:         item.HighQualityPhoto,
-			HighQualityPhotoUrl:      i.config.ItemsBulkName + "/" + item.HighQualityPhoto,
-			HighQualityPhotoBlurHash: item.HighQualityPhotoBlurHash,
-			LowQualityPhoto:          item.LowQualityPhoto,
-			LowQualityPhotoUrl:       i.config.ItemsBulkName + "/" + item.LowQualityPhoto,
-			LowQualityPhotoBlurHash:  item.LowQualityPhotoBlurHash,
-			Thumbnail:                item.Thumbnail,
-			ThumbnailUrl:             i.config.ItemsBulkName + "/" + item.Thumbnail,
-			ThumbnailBlurHash:        item.ThumbnailBlurHash,
-			Cursor:                   item.Cursor,
-			CreateTime:               timestamppb.New(item.CreateTime),
-			UpdateTime:               timestamppb.New(item.UpdateTime),
+			Id:                   item.ID.String(),
+			Name:                 item.Name,
+			Description:          item.Description,
+			Price:                item.Price,
+			Availability:         int32(item.Availability),
+			BusinessId:           item.BusinessId.String(),
+			BusinessCollectionId: item.BusinessCollectionId.String(),
+			HighQualityPhoto:     item.HighQualityPhoto,
+			HighQualityPhotoUrl:  i.config.ItemsBulkName + "/" + item.HighQualityPhoto,
+			LowQualityPhoto:      item.LowQualityPhoto,
+			LowQualityPhotoUrl:   i.config.ItemsBulkName + "/" + item.LowQualityPhoto,
+			Thumbnail:            item.Thumbnail,
+			ThumbnailUrl:         i.config.ItemsBulkName + "/" + item.Thumbnail,
+			BlurHash:             item.BlurHash,
+			Cursor:               item.Cursor,
+			CreateTime:           timestamppb.New(item.CreateTime),
+			UpdateTime:           timestamppb.New(item.UpdateTime),
 		}
 		return nil
 	})
@@ -482,14 +477,54 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 		itemsResponse := make([]*pb.SearchItem, 0, len(*response))
 		for _, e := range *response {
 			itemsResponse = append(itemsResponse, &pb.SearchItem{
-				Id:                e.ID.String(),
-				Name:              e.Name,
-				Thumbnail:         e.Thumbnail,
-				ThumbnailUrl:      i.config.ItemsBulkName + "/" + e.Thumbnail,
-				ThumbnailBlurHash: e.ThumbnailBlurHash,
-				Price:             e.Price,
-				Cursor:            int32(e.Cursor),
-				Status:            *utils.ParseItemStatusType(&e.Status),
+				Id:           e.ID.String(),
+				Name:         e.Name,
+				Thumbnail:    e.Thumbnail,
+				ThumbnailUrl: i.config.ItemsBulkName + "/" + e.Thumbnail,
+				BlurHash:     e.BlurHash,
+				Price:        e.Price,
+				Cursor:       int32(e.Cursor),
+				Status:       *utils.ParseItemStatusType(&e.Status),
+			})
+		}
+		searchItemResponse.Items = itemsResponse
+	}
+	return &searchItemResponse, nil
+}
+
+func (i *itemService) SearchItemByBusiness(ctx context.Context, req *pb.SearchItemByBusinessRequest, md *utils.ClientMetadata) (*pb.SearchItemByBusinessResponse, error) {
+	var response *[]models.Item
+	var searchItemResponse pb.SearchItemByBusinessResponse
+	var responseErr error
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		response, responseErr = i.dao.NewItemQuery().SearchItemByBusiness(tx, req.Name, int64(req.NextPage), req.BusinessId, &[]string{"id", "name", "price", "thumbnail", "thumbnail_blurhash", "cursor"})
+		if responseErr != nil {
+			return responseErr
+		}
+		if len(*response) <= 10 && len(*response) > 1 {
+			*response = (*response)[:len(*response)]
+			searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
+		} else if len(*response) == 1 {
+			*response = (*response)[:len(*response)]
+			searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(*response) != 0 {
+		itemsResponse := make([]*pb.SearchItem, 0, len(*response))
+		for _, e := range *response {
+			itemsResponse = append(itemsResponse, &pb.SearchItem{
+				Id:           e.ID.String(),
+				Name:         e.Name,
+				Thumbnail:    e.Thumbnail,
+				ThumbnailUrl: i.config.ItemsBulkName + "/" + e.Thumbnail,
+				BlurHash:     e.BlurHash,
+				Price:        e.Price,
+				Cursor:       int32(e.Cursor),
+				Status:       *utils.ParseItemStatusType(&e.Status),
 			})
 		}
 		searchItemResponse.Items = itemsResponse
