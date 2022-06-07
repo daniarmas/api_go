@@ -10,7 +10,7 @@ type BusinessQuery interface {
 	Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceId string, municipalityId string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]models.Business, error)
 	CreateBusiness(tx *gorm.DB, data *models.Business) (*models.Business, error)
 	GetBusiness(tx *gorm.DB, where *models.Business, fields *[]string) (*models.Business, error)
-	GetBusinessWithLocation(tx *gorm.DB, where *models.Business) (*models.Business, error)
+	GetBusinessWithDistance(tx *gorm.DB, where *models.Business) (*models.Business, error)
 	UpdateBusiness(tx *gorm.DB, data *models.Business, where *models.Business) (*models.Business, error)
 	UpdateBusinessCoordinate(tx *gorm.DB, data *models.Business, where *models.Business) error
 }
@@ -49,8 +49,8 @@ func (b *businessQuery) Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, p
 	return result, nil
 }
 
-func (b *businessQuery) GetBusinessWithLocation(tx *gorm.DB, where *models.Business) (*models.Business, error) {
-	result, err := Datasource.NewBusinessDatasource().GetBusinessWithLocation(tx, where)
+func (b *businessQuery) GetBusinessWithDistance(tx *gorm.DB, where *models.Business) (*models.Business, error) {
+	result, err := Datasource.NewBusinessDatasource().GetBusinessWithDistance(tx, where)
 	if err != nil {
 		return nil, err
 	}

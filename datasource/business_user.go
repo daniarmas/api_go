@@ -28,7 +28,7 @@ func (v *businessUserDatasource) CreateBusinessUser(tx *gorm.DB, data *models.Bu
 func (v *businessUserDatasource) GetBusinessUser(tx *gorm.DB, where *models.BusinessUser, fields *[]string) (*models.BusinessUser, error) {
 	var res *models.BusinessUser
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Where(where).Select(*selectFields).Take(&res)

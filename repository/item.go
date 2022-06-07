@@ -16,6 +16,7 @@ type ItemQuery interface {
 	ListItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]models.Item, error)
 	CreateItem(tx *gorm.DB, data *models.Item) (*models.Item, error)
 	SearchItem(tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64, fields *[]string) (*[]models.Item, error)
+	SearchItemByBusiness(tx *gorm.DB, name string, cursor int64, businessId string, fields *[]string) (*[]models.Item, error)
 	UpdateItem(tx *gorm.DB, where *models.Item, data *models.Item) (*models.Item, error)
 	UpdateItems(tx *gorm.DB, data *[]models.Item) (*[]models.Item, error)
 	DeleteItem(tx *gorm.DB, where *models.Item) error
@@ -89,6 +90,14 @@ func (i *itemQuery) UpdateItems(tx *gorm.DB, data *[]models.Item) (*[]models.Ite
 
 func (i *itemQuery) SearchItem(tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64, fields *[]string) (*[]models.Item, error) {
 	result, err := Datasource.NewItemDatasource().SearchItem(tx, name, provinceId, municipalityId, cursor, municipalityNotEqual, limit, fields)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (i *itemQuery) SearchItemByBusiness(tx *gorm.DB, name string, cursor int64, businessId string, fields *[]string) (*[]models.Item, error) {
+	result, err := Datasource.NewItemDatasource().SearchItemByBusiness(tx, name, cursor, businessId, fields)
 	if err != nil {
 		return nil, err
 	}

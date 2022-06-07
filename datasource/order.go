@@ -66,7 +66,7 @@ func (i *orderDatasource) CreateOrder(tx *gorm.DB, data *models.Order) (*models.
 func (i *orderDatasource) ListOrder(tx *gorm.DB, where *models.Order, fields *[]string) (*[]models.Order, error) {
 	var res []models.Order
 	selectFields := &[]string{"id", "status", "business_name", "short_id", "cancel_reasons", "items_quantity", "order_type", "price", "number", "address", "instructions", "business_id", "authorization_token_id", "user_id", "order_time", "create_time", "update_time", "delete_time", "ST_AsEWKB(coordinates) AS coordinates"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Limit(11).Select(*selectFields).Where("user_id = ? AND create_time < ?", where.UserId, where.CreateTime).Order("create_time desc").Find(&res)

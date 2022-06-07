@@ -16,7 +16,7 @@ type userPermissionDatasource struct{}
 func (i *userPermissionDatasource) GetUserPermission(tx *gorm.DB, where *models.UserPermission, fields *[]string) (*models.UserPermission, error) {
 	var res *models.UserPermission
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Where(where).Select(*selectFields).Take(&res)

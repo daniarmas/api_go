@@ -44,7 +44,7 @@ func (r *refreshTokenDatasource) DeleteRefreshToken(tx *gorm.DB, where *models.R
 func (v *refreshTokenDatasource) GetRefreshToken(tx *gorm.DB, where *models.RefreshToken, fields *[]string) (*models.RefreshToken, error) {
 	var res *models.RefreshToken
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Where(where).Select(*selectFields).Take(&res)

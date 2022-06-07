@@ -15,35 +15,34 @@ func (Business) TableName() string {
 }
 
 type Business struct {
-	ID                       *uuid.UUID           `gorm:"type:uuid;default:uuid_generate_v4()"`
-	Name                     string               `gorm:"column:name"`
-	Address                  string               `gorm:"column:address"`
-	HighQualityPhoto         string               `gorm:"column:high_quality_photo;not null"`
-	HighQualityPhotoBlurHash string               `gorm:"column:high_quality_photo_blurhash;not null"`
-	LowQualityPhoto          string               `gorm:"column:low_quality_photo;not null"`
-	LowQualityPhotoBlurHash  string               `gorm:"column:low_quality_photo_blurhash;not null"`
-	Thumbnail                string               `gorm:"column:thumbnail;not null"`
-	ThumbnailBlurHash        string               `gorm:"column:thumbnail_blurhash;not null"`
-	Cursor                   int64                `gorm:"column:cursor"`
-	TimeMarginOrderMonth     int32                `gorm:"column:time_margin_order_month"`
-	TimeMarginOrderDay       int32                `gorm:"column:time_margin_order_day"`
-	TimeMarginOrderHour      int32                `gorm:"column:time_margin_order_hour"`
-	TimeMarginOrderMinute    int32                `gorm:"column:time_margin_order_minute"`
-	DeliveryPrice            string               `gorm:"column:delivery_price"`
-	ToPickUp                 bool                 `gorm:"column:to_pick_up"`
-	HomeDelivery             bool                 `gorm:"column:home_delivery"`
-	Coordinates              ewkb.Point           `gorm:"column:coordinates"`
-	ProvinceId               *uuid.UUID           `gorm:"column:province_id"`
-	MunicipalityId           *uuid.UUID           `gorm:"column:municipality_id"`
-	BusinessBrandId          *uuid.UUID           `gorm:"column:business_brand_id"`
-	BusinessBrand            BusinessBrand        `gorm:"foreignKey:BusinessBrandId"`
-	BusinessCollection       []BusinessCollection `gorm:"foreignKey:BusinessId"`
-	BusinessSchedule         BusinessSchedule     `gorm:"foreignKey:BusinessId"`
-	Status                   string               `gorm:"column:status"`
-	Municipality             []Municipality       `gorm:"many2many:union_business_and_municipality;"`
-	CreateTime               time.Time            `gorm:"column:create_time"`
-	UpdateTime               time.Time            `gorm:"column:update_time"`
-	DeleteTime               gorm.DeletedAt       `gorm:"index;column:delete_time"`
+	ID                    *uuid.UUID           `gorm:"type:uuid;default:uuid_generate_v4()"`
+	Name                  string               `gorm:"column:name"`
+	Address               string               `gorm:"column:address"`
+	HighQualityPhoto      string               `gorm:"column:high_quality_photo;not null"`
+	LowQualityPhoto       string               `gorm:"column:low_quality_photo;not null"`
+	Thumbnail             string               `gorm:"column:thumbnail;not null"`
+	BlurHash              string               `gorm:"column:blurhash;not null"`
+	Cursor                int64                `gorm:"column:cursor"`
+	Distance              float64              `gorm:"column:distance"`
+	TimeMarginOrderMonth  int32                `gorm:"column:time_margin_order_month"`
+	TimeMarginOrderDay    int32                `gorm:"column:time_margin_order_day"`
+	TimeMarginOrderHour   int32                `gorm:"column:time_margin_order_hour"`
+	TimeMarginOrderMinute int32                `gorm:"column:time_margin_order_minute"`
+	DeliveryPrice         string               `gorm:"column:delivery_price"`
+	ToPickUp              bool                 `gorm:"column:to_pick_up"`
+	HomeDelivery          bool                 `gorm:"column:home_delivery"`
+	Coordinates           ewkb.Point           `gorm:"column:coordinates"`
+	ProvinceId            *uuid.UUID           `gorm:"column:province_id"`
+	MunicipalityId        *uuid.UUID           `gorm:"column:municipality_id"`
+	BusinessBrandId       *uuid.UUID           `gorm:"column:business_brand_id"`
+	BusinessBrand         BusinessBrand        `gorm:"foreignKey:BusinessBrandId"`
+	BusinessCollection    []BusinessCollection `gorm:"foreignKey:BusinessId"`
+	BusinessSchedule      BusinessSchedule     `gorm:"foreignKey:BusinessId"`
+	Status                string               `gorm:"column:status"`
+	Municipality          []Municipality       `gorm:"many2many:union_business_and_municipality;"`
+	CreateTime            time.Time            `gorm:"column:create_time"`
+	UpdateTime            time.Time            `gorm:"column:update_time"`
+	DeleteTime            gorm.DeletedAt       `gorm:"index;column:delete_time"`
 }
 
 func (i *Business) BeforeCreate(tx *gorm.DB) (err error) {

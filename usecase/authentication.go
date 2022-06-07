@@ -227,22 +227,20 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 	}
 	go smtp.SendSignInMail(req.Email, time.Now(), v.config, md)
 	return &pb.SignInResponse{AuthorizationToken: *jwtAuthorizationToken.Token, RefreshToken: *jwtRefreshToken.Token, User: &pb.User{
-		Id:                       userRes.ID.String(),
-		FullName:                 userRes.FullName,
-		Email:                    userRes.Email,
-		HighQualityPhoto:         userRes.HighQualityPhoto,
-		HighQualityPhotoUrl:      userRes.HighQualityPhoto,
-		HighQualityPhotoBlurHash: userRes.HighQualityPhotoBlurHash,
-		LowQualityPhoto:          userRes.LowQualityPhoto,
-		LowQualityPhotoUrl:       userRes.LowQualityPhoto,
-		LowQualityPhotoBlurHash:  userRes.LowQualityPhotoBlurHash,
-		Thumbnail:                userRes.Thumbnail,
-		ThumbnailUrl:             userRes.Thumbnail,
-		ThumbnailBlurHash:        userRes.ThumbnailBlurHash,
-		Permissions:              permissions,
-		UserAddress:              userAddress,
-		CreateTime:               timestamppb.New(userRes.CreateTime),
-		UpdateTime:               timestamppb.New(userRes.UpdateTime),
+		Id:                  userRes.ID.String(),
+		FullName:            userRes.FullName,
+		Email:               userRes.Email,
+		HighQualityPhoto:    userRes.HighQualityPhoto,
+		HighQualityPhotoUrl: userRes.HighQualityPhoto,
+		LowQualityPhoto:     userRes.LowQualityPhoto,
+		LowQualityPhotoUrl:  userRes.LowQualityPhoto,
+		Thumbnail:           userRes.Thumbnail,
+		ThumbnailUrl:        userRes.Thumbnail,
+		BlurHash:            userRes.BlurHash,
+		Permissions:         permissions,
+		UserAddress:         userAddress,
+		CreateTime:          timestamppb.New(userRes.CreateTime),
+		UpdateTime:          timestamppb.New(userRes.UpdateTime),
 	}}, nil
 }
 

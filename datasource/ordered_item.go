@@ -25,7 +25,7 @@ func (i *orderedItemDatasource) BatchCreateOrderedItem(tx *gorm.DB, data *[]mode
 func (i *orderedItemDatasource) ListOrderedItemByIds(tx *gorm.DB, ids *[]uuid.UUID, fields *[]string) (*[]models.OrderedItem, error) {
 	var res []models.OrderedItem
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Where("id IN ? ", *ids).Select(*selectFields).Find(&res)
@@ -38,7 +38,7 @@ func (i *orderedItemDatasource) ListOrderedItemByIds(tx *gorm.DB, ids *[]uuid.UU
 func (i *orderedItemDatasource) ListOrderedItem(tx *gorm.DB, where *models.OrderedItem, fields *[]string) (*[]models.OrderedItem, error) {
 	var res []models.OrderedItem
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Model(&models.OrderedItem{}).Where(where).Select(*selectFields).Find(&res)

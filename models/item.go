@@ -14,53 +14,49 @@ func (Item) TableName() string {
 }
 
 type Item struct {
-	ID                       *uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
-	Name                     string         `gorm:"column:name;not null"`
-	Description              string         `gorm:"column:description"`
-	Price                    string         `gorm:"column:price;not null"`
-	AvailableFlag            bool           `gorm:"column:available_flag;not null"`
-	EnabledFlag              bool           `gorm:"column:enabled_flag;not null"`
-	Availability             int64          `gorm:"column:availability;not null"`
-	BusinessId               *uuid.UUID      `gorm:"column:business_id;not null"`
-	Business                 Business       `gorm:"foreignKey:BusinessId"`
-	BusinessCollectionId     *uuid.UUID      `gorm:"column:business_collection_id;not null"`
-	ProvinceId               *uuid.UUID      `gorm:"column:province_id;not null"`
-	MunicipalityId           *uuid.UUID      `gorm:"column:municipality_id;not null"`
-	HighQualityPhoto         string         `gorm:"column:high_quality_photo;not null"`
-	HighQualityPhotoBlurHash string         `gorm:"column:high_quality_photo_blurhash;not null"`
-	LowQualityPhoto          string         `gorm:"column:low_quality_photo;not null"`
-	LowQualityPhotoBlurHash  string         `gorm:"column:low_quality_photo_blurhash;not null"`
-	Thumbnail                string         `gorm:"column:thumbnail;not null"`
-	ThumbnailBlurHash        string         `gorm:"column:thumbnail_blurhash;not null"`
-	Cursor                   int32          `gorm:"column:cursor"`
-	Status                   string         `gorm:"column:status;not null"`
-	CreateTime               time.Time      `gorm:"column:create_time;not null"`
-	UpdateTime               time.Time      `gorm:"column:update_time;not null"`
-	DeleteTime               gorm.DeletedAt `gorm:"index;column:delete_time"`
+	ID                   *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
+	Name                 string         `gorm:"column:name;not null"`
+	Description          string         `gorm:"column:description"`
+	Price                string         `gorm:"column:price;not null"`
+	AvailableFlag        bool           `gorm:"column:available_flag;not null"`
+	EnabledFlag          bool           `gorm:"column:enabled_flag;not null"`
+	Availability         int64          `gorm:"column:availability;not null"`
+	BusinessId           *uuid.UUID     `gorm:"column:business_id;not null"`
+	Business             Business       `gorm:"foreignKey:BusinessId"`
+	BusinessCollectionId *uuid.UUID     `gorm:"column:business_collection_id;not null"`
+	ProvinceId           *uuid.UUID     `gorm:"column:province_id;not null"`
+	MunicipalityId       *uuid.UUID     `gorm:"column:municipality_id;not null"`
+	HighQualityPhoto     string         `gorm:"column:high_quality_photo;not null"`
+	LowQualityPhoto      string         `gorm:"column:low_quality_photo;not null"`
+	Thumbnail            string         `gorm:"column:thumbnail;not null"`
+	BlurHash             string         `gorm:"column:blurhash;not null"`
+	Cursor               int32          `gorm:"column:cursor"`
+	Status               string         `gorm:"column:status;not null"`
+	CreateTime           time.Time      `gorm:"column:create_time;not null"`
+	UpdateTime           time.Time      `gorm:"column:update_time;not null"`
+	DeleteTime           gorm.DeletedAt `gorm:"index;column:delete_time"`
 }
 
 type ItemBusiness struct {
-	ID                       *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
-	Name                     string         `gorm:"column:name;not null"`
-	Description              string         `gorm:"column:description"`
-	AvailableFlag            bool           `gorm:"column:available_flag;not null"`
-	EnabledFlag              bool           `gorm:"column:enabled_flag;not null"`
-	Price                    string         `gorm:"column:price;not null"`
-	Availability             int64          `gorm:"column:availability;not null"`
-	BusinessId               *uuid.UUID     `gorm:"column:business_id;not null"`
-	Business                 Business       `gorm:"foreignKey:BusinessId"`
-	BusinessCollectionId     *uuid.UUID     `gorm:"column:business_collection_id;not null"`
-	HighQualityPhoto         string         `gorm:"column:high_quality_photo;not null"`
-	HighQualityPhotoBlurHash string         `gorm:"column:high_quality_photo_blurhash;not null"`
-	LowQualityPhoto          string         `gorm:"column:low_quality_photo;not null"`
-	LowQualityPhotoBlurHash  string         `gorm:"column:low_quality_photo_blurhash;not null"`
-	Thumbnail                string         `gorm:"column:thumbnail;not null"`
-	ThumbnailBlurHash        string         `gorm:"column:thumbnail_blurhash;not null"`
-	Cursor                   int32          `gorm:"column:cursor"`
-	Status                   string         `gorm:"column:status;not null"`
-	CreateTime               time.Time      `gorm:"column:create_time;not null"`
-	UpdateTime               time.Time      `gorm:"column:update_time;not null"`
-	DeleteTime               gorm.DeletedAt `gorm:"index;column:delete_time"`
+	ID                   *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
+	Name                 string         `gorm:"column:name;not null"`
+	Description          string         `gorm:"column:description"`
+	AvailableFlag        bool           `gorm:"column:available_flag;not null"`
+	EnabledFlag          bool           `gorm:"column:enabled_flag;not null"`
+	Price                string         `gorm:"column:price;not null"`
+	Availability         int64          `gorm:"column:availability;not null"`
+	BusinessId           *uuid.UUID     `gorm:"column:business_id;not null"`
+	Business             Business       `gorm:"foreignKey:BusinessId"`
+	BusinessCollectionId *uuid.UUID     `gorm:"column:business_collection_id;not null"`
+	HighQualityPhoto     string         `gorm:"column:high_quality_photo;not null"`
+	LowQualityPhoto      string         `gorm:"column:low_quality_photo;not null"`
+	Thumbnail            string         `gorm:"column:thumbnail;not null"`
+	BlurHash             string         `gorm:"column:blurhash;not null"`
+	Cursor               int32          `gorm:"column:cursor"`
+	Status               string         `gorm:"column:status;not null"`
+	CreateTime           time.Time      `gorm:"column:create_time;not null"`
+	UpdateTime           time.Time      `gorm:"column:update_time;not null"`
+	DeleteTime           gorm.DeletedAt `gorm:"index;column:delete_time"`
 }
 
 // Contains tells whether a contains x.

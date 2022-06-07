@@ -42,7 +42,7 @@ func (u *userDatasource) GetUserWithAddress(tx *gorm.DB, where *models.User, fie
 func (u *userDatasource) GetUser(tx *gorm.DB, where *models.User, fields *[]string) (*models.User, error) {
 	var res *models.User
 	selectFields := &[]string{"*"}
-	if fields == nil {
+	if fields != nil {
 		selectFields = fields
 	}
 	result := tx.Where(where).Select(*selectFields).Take(&res)
