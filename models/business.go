@@ -24,6 +24,7 @@ type Business struct {
 	BlurHash              string               `gorm:"column:blurhash;not null"`
 	Cursor                int64                `gorm:"column:cursor"`
 	Distance              float64              `gorm:"column:distance"`
+	BusinessCategory      string               `gorm:"column:business_category"`
 	TimeMarginOrderMonth  int32                `gorm:"column:time_margin_order_month"`
 	TimeMarginOrderDay    int32                `gorm:"column:time_margin_order_day"`
 	TimeMarginOrderHour   int32                `gorm:"column:time_margin_order_hour"`
@@ -34,6 +35,7 @@ type Business struct {
 	Coordinates           ewkb.Point           `gorm:"column:coordinates"`
 	ProvinceId            *uuid.UUID           `gorm:"column:province_id"`
 	MunicipalityId        *uuid.UUID           `gorm:"column:municipality_id"`
+	BusinessCategoryId    *uuid.UUID           `gorm:"column:business_category_id"`
 	BusinessBrandId       *uuid.UUID           `gorm:"column:business_brand_id"`
 	BusinessBrand         BusinessBrand        `gorm:"foreignKey:BusinessBrandId"`
 	BusinessCollection    []BusinessCollection `gorm:"foreignKey:BusinessId"`
