@@ -14,9 +14,9 @@ func (UnionBusinessAndBusinessUser) TableName() string {
 }
 
 type UnionBusinessAndBusinessUser struct {
-	ID             uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
-	BusinessId     uuid.UUID      `gorm:"column:business_id;not null"`
-	BusinessUserId uuid.UUID      `gorm:"column:business_user_id;not null"`
+	ID             *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
+	BusinessId     *uuid.UUID     `gorm:"column:business_id;not null"`
+	BusinessUserId *uuid.UUID     `gorm:"column:business_user_id;not null"`
 	CreateTime     time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime     time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime     gorm.DeletedAt `gorm:"index;column:delete_time"`
