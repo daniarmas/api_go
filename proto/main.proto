@@ -465,6 +465,7 @@ message GetBusinessResponse {
 message GetBusinessWithDistanceResponse {
   Business business = 1;
   repeated ItemCategory itemCategory = 2;
+  string businessCategory = 3;
 }
 
 // message GetPresignedPutUserAvatarRequest {

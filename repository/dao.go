@@ -8,7 +8,7 @@ import (
 
 type DAO interface {
 	NewItemQuery() ItemQuery
-	NewVerificationCodeQuery() VerificationCodeQuery
+	NewVerificationCodeQuery() VerificationCodeRepository
 	NewUserQuery() UserQuery
 	NewBannedUserQuery() BannedUserQuery
 	NewBannedDeviceQuery() BannedDeviceQuery
@@ -31,6 +31,7 @@ type DAO interface {
 	NewDeprecatedVersionAppRepository() DeprecatedVersionAppRepository
 	NewBusinessScheduleRepository() BusinessScheduleRepository
 	NewOrderLifecycleRepository() OrderLifecycleRepository
+	NewBusinessCategoryRepository() BusinessCategoryRepository
 }
 
 type dao struct {
@@ -85,8 +86,8 @@ func (d *dao) NewItemQuery() ItemQuery {
 	return &itemQuery{}
 }
 
-func (d *dao) NewVerificationCodeQuery() VerificationCodeQuery {
-	return &municipalityRepository{}
+func (d *dao) NewVerificationCodeQuery() VerificationCodeRepository {
+	return &verificationCodeRepository{}
 }
 
 func (d *dao) NewDeprecatedVersionAppRepository() DeprecatedVersionAppRepository {
@@ -147,6 +148,10 @@ func (d *dao) NewRefreshTokenQuery() RefreshTokenQuery {
 
 func (d *dao) NewAuthorizationTokenQuery() AuthorizationTokenQuery {
 	return &authorizationTokenQuery{}
+}
+
+func (d *dao) NewBusinessCategoryRepository() BusinessCategoryRepository {
+	return &businessCategoryRepository{}
 }
 
 func (d *dao) NewSessionQuery() SessionQuery {
