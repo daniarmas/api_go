@@ -532,7 +532,7 @@ func (v *authenticationService) ListSession(ctx context.Context, meta *utils.Cli
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		listSessionRes, listSessionErr = v.dao.NewSessionQuery().ListSession(tx, &models.Session{UserId: *authorizationTokenRes.UserId}, nil)
+		listSessionRes, listSessionErr = v.dao.NewSessionQuery().ListSession(tx, &models.Session{UserId: authorizationTokenRes.UserId}, nil)
 		if listSessionErr != nil {
 			return listSessionErr
 		}
@@ -544,7 +544,7 @@ func (v *authenticationService) ListSession(ctx context.Context, meta *utils.Cli
 	var actualSession pb.Session
 	otherSessions := make([]*pb.Session, 0, len(*listSessionRes))
 	for _, e := range *listSessionRes {
-		if e.DeviceId != *authorizationTokenRes.DeviceId {
+		if *e.DeviceId != *authorizationTokenRes.DeviceId {
 			otherSessions = append(otherSessions, &pb.Session{
 				Id:            e.ID.String(),
 				Platform:      *utils.ParsePlatformType(&e.Platform),

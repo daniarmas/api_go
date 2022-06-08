@@ -14,7 +14,7 @@ func (Term) TableName() string {
 }
 
 type Term struct {
-	ID              uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ID              *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Name            string         `gorm:"column:name;not null"`
 	Description     string         `gorm:"column:description;not null"`
 	BanTimeInYears  int            `gorm:"column:ban_time_in_years;not null"`

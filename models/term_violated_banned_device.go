@@ -14,8 +14,8 @@ func (TermsViolatedBannedDevice) TableName() string {
 }
 
 type TermsViolatedBannedDevice struct {
-	ID             uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4()"`
-	BannedDeviceId uuid.UUID      `gorm:"column:banned_device_id;not null"`
+	ID             *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
+	BannedDeviceId *uuid.UUID     `gorm:"column:banned_device_id;not null"`
 	BannedDevice   BannedDevice   `gorm:"foreignKey:BannedDeviceId"`
 	TermId         uuid.UUID      `gorm:"column:term_id;not null"`
 	Term           Term           `gorm:"foreignKey:TermId"`
