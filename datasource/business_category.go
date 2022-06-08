@@ -18,9 +18,18 @@ type BusinessCategoryDatasource interface {
 type businessCategoryDatasource struct{}
 
 func (v *businessCategoryDatasource) CreateBusinessCategory(tx *gorm.DB, data *models.BusinessCategory) (*models.BusinessCategory, error) {
-	result := tx.Create(&data)
-	if result.Error != nil {
-		return nil, result.Error
+	var existBusinessCategory *models.BusinessCategory
+	existResult := tx.Where("name = ?", data.Name).Select("id").Take(&existBusinessCategory)
+	if existResult.Error != nil && existResult.Error.Error() != "record not found" {
+		return nil, existResult.Error
+	}
+	if existResult.Error.Error() == "record not found" {
+		result := tx.Create(&data)
+		if result.Error != nil {
+			return nil, result.Error
+		}
+	} else {
+		return nil, errors.New("record exists")
 	}
 	return data, nil
 }
