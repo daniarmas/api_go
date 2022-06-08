@@ -57,9 +57,18 @@ func (u *userDatasource) GetUser(tx *gorm.DB, where *models.User, fields *[]stri
 }
 
 func (u *userDatasource) CreateUser(tx *gorm.DB, data *models.User) (*models.User, error) {
-	result := tx.Create(&data)
-	if result.Error != nil {
-		return nil, result.Error
+	var existUser *models.User
+	existResult := tx.Where("email = ?", data.Email).Select("id").Take(&existUser)
+	if existResult.Error != nil && existResult.Error.Error() != "record not found" {
+		return nil, existResult.Error
+	}
+	if existResult.Error.Error() == "record not found" {
+		result := tx.Create(&data)
+		if result.Error != nil {
+			return nil, result.Error
+		}
+	} else {
+		return nil, errors.New("record exists")
 	}
 	return data, nil
 }
