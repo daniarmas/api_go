@@ -205,7 +205,6 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 	var result *models.CartItem
 	var resultErr error
 	itemId := uuid.MustParse(req.ItemId)
-	location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
@@ -227,7 +226,7 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		item, itemErr := i.dao.NewItemQuery().GetItemWithLocation(tx, req.ItemId, location)
+		item, itemErr := i.dao.NewItemQuery().GetItem(tx, &models.Item{ID: &itemId}, nil)
 		var itemAvailability int64
 		if itemErr != nil && itemErr.Error() == "record not found" {
 			return errors.New("item not found")
@@ -245,15 +244,21 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 		if updateItemErr != nil {
 			return updateItemErr
 		}
-		cartItemRes, err := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{ItemId: &itemId, UserId: authorizationTokenRes.UserId}, &[]string{"id", "quantity"})
+		cartItemRes, err := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{ItemId: &itemId}, &[]string{"id", "quantity"})
 		if err != nil && err.Error() != "record not found" {
 			return err
 		} else if cartItemRes != nil {
-			result, err = i.dao.NewCartItemRepository().UpdateCartItem(tx, &models.CartItem{ItemId: &itemId, UserId: authorizationTokenRes.UserId}, &models.CartItem{Quantity: cartItemRes.Quantity + req.Quantity})
+			result, err = i.dao.NewCartItemRepository().UpdateCartItem(tx, &models.CartItem{ItemId: &itemId}, &models.CartItem{Quantity: cartItemRes.Quantity + req.Quantity})
 			if err != nil {
 				return err
 			}
 		} else if cartItemRes == nil && err.Error() == "record not found" {
+			cartItemRes, err := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{UserId: authorizationTokenRes.UserId}, &[]string{"id", "business_id"})
+			if err != nil && err.Error() != "record not found" {
+				return err
+			} else if cartItemRes != nil && cartItemRes.BusinessId != item.BusinessId {
+				return errors.New("the items in the cart can only be from one business")
+			}
 			result, resultErr = i.dao.NewCartItemRepository().CreateCartItem(tx, &models.CartItem{Name: item.Name, Price: item.Price, Quantity: req.Quantity, ItemId: item.ID, UserId: authorizationTokenRes.UserId, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: item.BusinessId, Thumbnail: item.Thumbnail, BlurHash: item.BlurHash})
 			if resultErr != nil {
 				return resultErr

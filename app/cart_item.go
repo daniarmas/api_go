@@ -150,6 +150,8 @@ func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemReq
 				},
 			)
 			st = ds
+		case "the items in the cart can only be from one business":
+			st = status.New(codes.Unauthenticated, "The items in the cart can only be from one business")
 		case "authorizationtoken expired":
 			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
 		case "signature is invalid":
