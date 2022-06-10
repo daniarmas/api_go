@@ -614,6 +614,22 @@ message UnionBusinessAndMunicipality {
   string municipalityId = 3;
 }
 
+message BusinessAnalytics {
+  string id = 1;
+  string businessId = 2;
+  BusinessAnalyticsType type = 3;
+  google.protobuf.Timestamp createTime = 4;
+  google.protobuf.Timestamp updateTime = 5;
+}
+
+message ItemAnalytics {
+  string id = 1;
+  string itemId = 2;
+  ItemAnalyticsType type = 3;
+  google.protobuf.Timestamp createTime = 4;
+  google.protobuf.Timestamp updateTime = 5;
+}
+
 message Business {
   string id = 1;
   string name = 2;
@@ -849,6 +865,18 @@ enum OrderType {
   OrderTypeUnspecified = 0;
   OrderTypePickUp = 1; 
   OrderTypeHomeDelivery = 2;
+}
+
+enum BusinessAnalyticsType {
+  BusinessAnalyticsTypeUnspecified = 0;
+  BusinessAnalyticsTypeView = 1; 
+  BusinessAnalyticsTypeDetailView = 2;
+}
+
+enum ItemAnalyticsType {
+  ItemAnalyticsTypeUnspecified = 0;
+  ItemAnalyticsTypeView = 1; 
+  ItemAnalyticsTypeDetailView = 2;
 }
 
 enum SignUpType {
