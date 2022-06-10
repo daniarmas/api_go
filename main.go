@@ -7,11 +7,11 @@ import (
 	"github.com/daniarmas/api_go/app"
 	"github.com/daniarmas/api_go/datasource"
 	pb "github.com/daniarmas/api_go/pkg"
-	log "github.com/sirupsen/logrus"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/tlscert"
 	"github.com/daniarmas/api_go/usecase"
 	"github.com/daniarmas/api_go/utils"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
@@ -68,7 +68,7 @@ func serviceRegister(sv *grpc.Server) {
 	itemService := usecase.NewItemService(repositoryDao, config)
 	authenticationService := usecase.NewAuthenticationService(repositoryDao, config)
 	businessService := usecase.NewBusinessService(repositoryDao, config)
-	userService := usecase.NewUserService(repositoryDao)
+	userService := usecase.NewUserService(repositoryDao, config)
 	cartItemService := usecase.NewCartItemService(repositoryDao, config)
 	orderService := usecase.NewOrderService(repositoryDao)
 	banService := usecase.NewBanService(repositoryDao)
