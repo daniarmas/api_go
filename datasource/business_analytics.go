@@ -8,14 +8,14 @@ import (
 )
 
 type BusinessAnalyticsDatasource interface {
-	CreateBusinessAnalytics(tx *gorm.DB, data *models.BusinessAnalytics) (*models.BusinessAnalytics, error)
+	CreateBusinessAnalytics(tx *gorm.DB, data *[]models.BusinessAnalytics) (*[]models.BusinessAnalytics, error)
 	GetBusinessAnalytics(tx *gorm.DB, where *models.BusinessAnalytics, fields *[]string) (*models.BusinessAnalytics, error)
 	ListBusinessAnalytics(tx *gorm.DB, where *models.BusinessAnalytics, fields *[]string) (*[]models.BusinessAnalytics, error)
 }
 
 type businessAnalyticsDatasource struct{}
 
-func (i *businessAnalyticsDatasource) CreateBusinessAnalytics(tx *gorm.DB, data *models.BusinessAnalytics) (*models.BusinessAnalytics, error) {
+func (i *businessAnalyticsDatasource) CreateBusinessAnalytics(tx *gorm.DB, data *[]models.BusinessAnalytics) (*[]models.BusinessAnalytics, error) {
 	result := tx.Create(&data)
 	if result.Error != nil {
 		return nil, result.Error

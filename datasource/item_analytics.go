@@ -8,14 +8,14 @@ import (
 )
 
 type ItemAnalyticsDatasource interface {
-	CreateItemAnalytics(tx *gorm.DB, data *models.ItemAnalytics) (*models.ItemAnalytics, error)
+	CreateItemAnalytics(tx *gorm.DB, data *[]models.ItemAnalytics) (*[]models.ItemAnalytics, error)
 	GetItemAnalytics(tx *gorm.DB, where *models.ItemAnalytics, fields *[]string) (*models.ItemAnalytics, error)
 	ListItemAnalytics(tx *gorm.DB, where *models.ItemAnalytics, fields *[]string) (*[]models.ItemAnalytics, error)
 }
 
 type itemAnalyticsDatasource struct{}
 
-func (i *itemAnalyticsDatasource) CreateItemAnalytics(tx *gorm.DB, data *models.ItemAnalytics) (*models.ItemAnalytics, error) {
+func (i *itemAnalyticsDatasource) CreateItemAnalytics(tx *gorm.DB, data *[]models.ItemAnalytics) (*[]models.ItemAnalytics, error) {
 	result := tx.Create(&data)
 	if result.Error != nil {
 		return nil, result.Error
