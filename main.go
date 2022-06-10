@@ -1,8 +1,8 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
-	// "log"
 
 	"github.com/daniarmas/api_go/app"
 	"github.com/daniarmas/api_go/datasource"
@@ -11,6 +11,7 @@ import (
 	"github.com/daniarmas/api_go/tlscert"
 	"github.com/daniarmas/api_go/usecase"
 	"github.com/daniarmas/api_go/utils"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
@@ -50,13 +51,20 @@ func serviceRegister(sv *grpc.Server) {
 	if err != nil {
 		log.Fatal("cannot load config:", err)
 	}
-	// Database
+	// Standard Library Database Connection
+	stDb, err := sql.Open("pgx",
+		config.DBDsn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// defer stDb.Close()
+	// Database GORM
 	db, err := datasource.NewDB(config)
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 		return
 	}
-	// ObjectStorageServer5
+	// ObjectStorageServer
 	objectStorage, objectStorageErr := datasource.NewMinioClient(config)
 	if objectStorageErr != nil {
 		log.Fatalf("Error connecting to minio: %v", objectStorageErr)
@@ -65,9 +73,9 @@ func serviceRegister(sv *grpc.Server) {
 	datasourceDao := datasource.NewDAO(db, config, objectStorage)
 	// Repository
 	repositoryDao := repository.NewDAO(db, config, datasourceDao)
-	itemService := usecase.NewItemService(repositoryDao, config)
+	itemService := usecase.NewItemService(repositoryDao, config, stDb)
 	authenticationService := usecase.NewAuthenticationService(repositoryDao, config)
-	businessService := usecase.NewBusinessService(repositoryDao, config)
+	businessService := usecase.NewBusinessService(repositoryDao, config, stDb)
 	userService := usecase.NewUserService(repositoryDao, config)
 	cartItemService := usecase.NewCartItemService(repositoryDao, config)
 	orderService := usecase.NewOrderService(repositoryDao)

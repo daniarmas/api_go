@@ -847,6 +847,7 @@ enum AppType  {
   AppTypeUnspecified = 0;
   App = 1;
   BusinessApp = 2;
+  AdminApp = 3;
 }
 
 enum OrderStatusType {

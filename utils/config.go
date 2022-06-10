@@ -6,6 +6,7 @@ type Config struct {
 	Environment                        string `mapstructure:"ENVIRONMENT"`
 	DBUser                             string `mapstructure:"DB_USER"`
 	Tls                                string `mapstructure:"TLS"`
+	DBDsn                              string `mapstructure:"DB_DSN"`
 	DBPassword                         string `mapstructure:"DB_PASSWORD"`
 	DBDatabase                         string `mapstructure:"DB_DATABASE"`
 	DBPort                             int    `mapstructure:"DB_PORT"`
