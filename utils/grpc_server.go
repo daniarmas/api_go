@@ -110,7 +110,7 @@ func (sb *GrpcServerBuilder) Build() GrpcServer {
 }
 
 // RegisterService register the services to the server
-func (s grpcServer) RegisterService(reg func(*grpc.Server)) {
+func (s grpcServer) RegisterService(reg func(*grpc.Server, )) {
 	reg(s.server)
 }
 

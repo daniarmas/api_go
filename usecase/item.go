@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
+	log "github.com/sirupsen/logrus"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -31,10 +33,11 @@ type ItemService interface {
 type itemService struct {
 	dao    repository.DAO
 	config *utils.Config
+	stDb   *sql.DB
 }
 
-func NewItemService(dao repository.DAO, config *utils.Config) ItemService {
-	return &itemService{dao: dao, config: config}
+func NewItemService(dao repository.DAO, config *utils.Config, stDb *sql.DB) ItemService {
+	return &itemService{dao: dao, config: config, stDb: stDb}
 }
 
 func (i *itemService) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest, md *utils.ClientMetadata) (*pb.Item, error) {
@@ -384,6 +387,35 @@ func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *u
 	var res pb.GetItemResponse
 	var item *models.ItemBusiness
 	var itemErr error
+	// Collecting analytics
+	if *md.App == "App" {
+		go func() {
+			ctx := context.Background()
+			// Get a Tx for making transaction requests.
+			tx, err := i.stDb.BeginTx(ctx, nil)
+			if err != nil {
+				log.Fatal(err)
+			}
+			// Defer a rollback in case anything fails.
+			defer tx.Rollback()
+
+			// Set transaction priority
+			_, err = tx.ExecContext(ctx, "SET TRANSACTION PRIORITY LOW")
+			if err != nil {
+				log.Fatal(err)
+			}
+			time := time.Now()
+			_, err = tx.Exec(`INSERT INTO "item_analytics" ("type", "item_id", "create_time", "update_time") VALUES ($1, $2, $3, $3)`, "ItemAnalyticsTypeDetailView", req.Id, time)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			// Commit the transaction.
+			if err = tx.Commit(); err != nil {
+				log.Fatal(err)
+			}
+		}()
+	}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		item, itemErr = i.dao.NewItemQuery().GetItemWithLocation(tx, req.Id, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)})
 		if itemErr != nil {

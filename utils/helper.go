@@ -14,7 +14,6 @@ import (
 
 func requestErrorHandler(p interface{}) (err error) {
 	logrus.Error(p)
-	// return status.Errorf(codes.Internal, "Something went wrong :( ")
 	return status.Errorf(codes.Internal, "Internal server error")
 }
 
