@@ -282,107 +282,108 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 	var businessResAdd *[]models.Business
 	var businessErr, businessErrAdd error
 	var response pb.FeedResponse
-	if req.SearchMunicipalityType == pb.SearchMunicipalityType_More {
-		err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	var businessCategories []*pb.BusinessCategory
+	provinceId := uuid.MustParse(req.ProvinceId)
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		if req.SearchMunicipalityType == pb.SearchMunicipalityType_More {
 			businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, 5, req.ProvinceId, req.MunicipalityId, req.NextPage, false, req.HomeDelivery, req.ToPickUp)
 			if businessErr != nil {
 				return businessErr
-			}
-			return nil
-		})
-		if err != nil {
-			return nil, err
-		}
-		if len(*businessRes) > 5 {
-			*businessRes = (*businessRes)[:len(*businessRes)-1]
-			response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
-			response.SearchMunicipalityType = pb.SearchMunicipalityType_More
-		} else if len(*businessRes) <= 5 && len(*businessRes) != 0 {
-			length := 5 - len(*businessRes)
-			err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-				businessResAdd, businessErrAdd = v.dao.NewBusinessQuery().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, int32(length), req.ProvinceId, req.MunicipalityId, 0, true, req.HomeDelivery, req.ToPickUp)
-				if businessErrAdd != nil {
-					return businessErrAdd
-				}
-				return nil
-			})
-			if err != nil {
-				return nil, err
-			}
-			if businessResAdd != nil {
-				if len(*businessResAdd) > length {
-					*businessResAdd = (*businessResAdd)[:len(*businessResAdd)-1]
-				}
-				*businessRes = append(*businessRes, *businessResAdd...)
-			}
-			response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
-			response.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
-		} else if len(*businessRes) == 0 {
-			err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-				businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, 5, req.ProvinceId, req.MunicipalityId, 0, true, req.HomeDelivery, req.ToPickUp)
-				if businessErr != nil {
-					return businessErr
-				}
-				return nil
-			})
-			if err != nil {
-				return nil, err
 			}
 			if len(*businessRes) > 5 {
 				*businessRes = (*businessRes)[:len(*businessRes)-1]
 				response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
 				response.SearchMunicipalityType = pb.SearchMunicipalityType_More
+			} else if len(*businessRes) <= 5 && len(*businessRes) != 0 {
+				length := 5 - len(*businessRes)
+				businessResAdd, businessErrAdd = v.dao.NewBusinessQuery().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, int32(length), req.ProvinceId, req.MunicipalityId, 0, true, req.HomeDelivery, req.ToPickUp)
+				if businessErrAdd != nil {
+					return businessErrAdd
+				}
+				if businessResAdd != nil {
+					if len(*businessResAdd) > length {
+						*businessResAdd = (*businessResAdd)[:len(*businessResAdd)-1]
+					}
+					*businessRes = append(*businessRes, *businessResAdd...)
+				}
+				response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
+				response.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
+			} else if len(*businessRes) == 0 {
+				businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, 5, req.ProvinceId, req.MunicipalityId, 0, true, req.HomeDelivery, req.ToPickUp)
+				if businessErr != nil {
+					return businessErr
+				}
+				if len(*businessRes) > 5 {
+					*businessRes = (*businessRes)[:len(*businessRes)-1]
+					response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
+					response.SearchMunicipalityType = pb.SearchMunicipalityType_More
+				}
 			}
-		}
-	} else {
-		err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		} else {
 			businessRes, businessErr = v.dao.NewBusinessQuery().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, 5, req.ProvinceId, req.MunicipalityId, req.NextPage, true, req.HomeDelivery, req.ToPickUp)
 			if businessErr != nil {
 				return businessErr
 			}
-			return nil
-		})
-		if err != nil {
-			return nil, err
+			if businessRes != nil && len(*businessRes) > 5 {
+				*businessRes = (*businessRes)[:len(*businessRes)-1]
+				response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
+			} else if businessRes != nil && len(*businessRes) <= 5 && len(*businessRes) != 0 {
+				response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
+			} else {
+				response.NextPage = req.NextPage
+			}
+			response.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
 		}
-		if businessRes != nil && len(*businessRes) > 5 {
-			*businessRes = (*businessRes)[:len(*businessRes)-1]
-			response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
-		} else if businessRes != nil && len(*businessRes) <= 5 && len(*businessRes) != 0 {
-			response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
-		} else {
-			response.NextPage = req.NextPage
+		if businessRes != nil {
+			businessResponse := make([]*pb.Business, 0, len(*businessRes))
+			for _, e := range *businessRes {
+				businessResponse = append(businessResponse, &pb.Business{
+					Id:                    e.ID.String(),
+					Name:                  e.Name,
+					HighQualityPhoto:      e.HighQualityPhoto,
+					HighQualityPhotoUrl:   v.config.BusinessAvatarBulkName + "/" + e.HighQualityPhoto,
+					LowQualityPhoto:       e.LowQualityPhoto,
+					LowQualityPhotoUrl:    v.config.BusinessAvatarBulkName + "/" + e.LowQualityPhoto,
+					Thumbnail:             e.Thumbnail,
+					ThumbnailUrl:          v.config.BusinessAvatarBulkName + "/" + e.Thumbnail,
+					BlurHash:              e.BlurHash,
+					Address:               e.Address,
+					DeliveryPrice:         e.DeliveryPrice,
+					TimeMarginOrderMonth:  e.TimeMarginOrderMonth,
+					TimeMarginOrderDay:    e.TimeMarginOrderDay,
+					TimeMarginOrderHour:   e.TimeMarginOrderHour,
+					TimeMarginOrderMinute: e.TimeMarginOrderMinute,
+					ToPickUp:              e.ToPickUp,
+					HomeDelivery:          e.HomeDelivery,
+					BusinessBrandId:       e.BusinessBrandId.String(),
+					ProvinceId:            e.ProvinceId.String(),
+					MunicipalityId:        e.MunicipalityId.String(),
+					Cursor:                int32(e.Cursor),
+				})
+			}
+			response.Businesses = businessResponse
 		}
-		response.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
-	}
-	if businessRes != nil {
-		businessResponse := make([]*pb.Business, 0, len(*businessRes))
-		for _, e := range *businessRes {
-			businessResponse = append(businessResponse, &pb.Business{
-				Id:                    e.ID.String(),
-				Name:                  e.Name,
-				HighQualityPhoto:      e.HighQualityPhoto,
-				HighQualityPhotoUrl:   v.config.BusinessAvatarBulkName + "/" + e.HighQualityPhoto,
-				LowQualityPhoto:       e.LowQualityPhoto,
-				LowQualityPhotoUrl:    v.config.BusinessAvatarBulkName + "/" + e.LowQualityPhoto,
-				Thumbnail:             e.Thumbnail,
-				ThumbnailUrl:          v.config.BusinessAvatarBulkName + "/" + e.Thumbnail,
-				BlurHash:              e.BlurHash,
-				Address:               e.Address,
-				DeliveryPrice:         e.DeliveryPrice,
-				TimeMarginOrderMonth:  e.TimeMarginOrderMonth,
-				TimeMarginOrderDay:    e.TimeMarginOrderDay,
-				TimeMarginOrderHour:   e.TimeMarginOrderHour,
-				TimeMarginOrderMinute: e.TimeMarginOrderMinute,
-				ToPickUp:              e.ToPickUp,
-				HomeDelivery:          e.HomeDelivery,
-				BusinessBrandId:       e.BusinessBrandId.String(),
-				ProvinceId:            e.ProvinceId.String(),
-				MunicipalityId:        e.MunicipalityId.String(),
-				Cursor:                int32(e.Cursor),
-			})
+		if req.Categories {
+			res, err := v.dao.NewBusinessCategoryRepository().ListBusinessCategory(tx, &models.BusinessCategory{ProvinceId: &provinceId}, nil)
+			if err != nil {
+				return err
+			}
+			for _, i := range *res {
+				businessCategories = append(businessCategories, &pb.BusinessCategory{
+					Id:             i.ID.String(),
+					Name:           i.Name,
+					ProvinceId:     i.ProvinceId.String(),
+					MunicipalityId: i.MunicipalityId.String(),
+					CreateTime:     timestamppb.New(i.CreateTime),
+					UpdateTime:     timestamppb.New(i.UpdateTime),
+				})
+			}
+			response.Categories = businessCategories
 		}
-		response.Businesses = businessResponse
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
@@ -390,8 +391,8 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRequest, meta *utils.ClientMetadata) (*pb.GetBusinessResponse, error) {
 	var businessRes *models.Business
 	var businessCollectionRes *[]models.BusinessCollection
-	var businessErr, itemCategoryErr error
-	var itemsCategoryResponse []*pb.ItemCategory
+	var businessErr, businessCollectionErr error
+	var itemsCategoryResponse []*pb.BusinessCollection
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		businessId := uuid.MustParse(req.Id)
 		businessRes, businessErr = v.dao.NewBusinessQuery().GetBusiness(tx, &models.Business{ID: &businessId}, nil)
@@ -400,13 +401,13 @@ func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRe
 		} else if businessErr != nil {
 			return businessErr
 		}
-		businessCollectionRes, itemCategoryErr = v.dao.NewBusinessCollectionQuery().ListBusinessCollection(tx, &models.BusinessCollection{BusinessId: &businessId}, nil)
-		if itemCategoryErr != nil {
-			return itemCategoryErr
+		businessCollectionRes, businessCollectionErr = v.dao.NewBusinessCollectionQuery().ListBusinessCollection(tx, &models.BusinessCollection{BusinessId: &businessId}, nil)
+		if businessCollectionErr != nil {
+			return businessCollectionErr
 		}
-		itemsCategoryResponse = make([]*pb.ItemCategory, 0, len(*businessCollectionRes))
+		itemsCategoryResponse = make([]*pb.BusinessCollection, 0, len(*businessCollectionRes))
 		for _, e := range *businessCollectionRes {
-			itemsCategoryResponse = append(itemsCategoryResponse, &pb.ItemCategory{
+			itemsCategoryResponse = append(itemsCategoryResponse, &pb.BusinessCollection{
 				Id:         e.ID.String(),
 				Name:       e.Name,
 				BusinessId: e.BusinessId.String(),
@@ -424,14 +425,14 @@ func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRe
 	highQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.HighQualityPhoto
 	lowQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.LowQualityPhoto
 	thumbnailUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.Thumbnail
-	return &pb.GetBusinessResponse{Business: &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, LowQualityPhoto: businessRes.LowQualityPhoto, Thumbnail: businessRes.Thumbnail, BlurHash: businessRes.BlurHash, ToPickUp: businessRes.ToPickUp, DeliveryPrice: businessRes.DeliveryPrice, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.Coords()[1], Longitude: businessRes.Coordinates.Coords()[0]}, HighQualityPhotoUrl: highQualityPhotoUrl, LowQualityPhotoUrl: lowQualityPhotoUrl, ThumbnailUrl: thumbnailUrl}, ItemCategory: itemsCategoryResponse}, nil
+	return &pb.GetBusinessResponse{Business: &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, LowQualityPhoto: businessRes.LowQualityPhoto, Thumbnail: businessRes.Thumbnail, BlurHash: businessRes.BlurHash, ToPickUp: businessRes.ToPickUp, DeliveryPrice: businessRes.DeliveryPrice, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.Coords()[1], Longitude: businessRes.Coordinates.Coords()[0]}, HighQualityPhotoUrl: highQualityPhotoUrl, LowQualityPhotoUrl: lowQualityPhotoUrl, ThumbnailUrl: thumbnailUrl}, BusinessCollections: itemsCategoryResponse}, nil
 }
 
 func (v *businessService) GetBusinessWithDistance(ctx context.Context, req *pb.GetBusinessWithDistanceRequest, md *utils.ClientMetadata) (*pb.GetBusinessWithDistanceResponse, error) {
 	var businessRes *models.Business
 	var businessCollectionRes *[]models.BusinessCollection
-	var businessErr, itemCategoryErr error
-	var itemsCategoryResponse []*pb.ItemCategory
+	var businessErr, businessCollectionErr error
+	var businessCollectionResponse []*pb.BusinessCollection
 	// Collecting analytics
 	if *md.App == "App" {
 		go func() {
@@ -480,13 +481,13 @@ func (v *businessService) GetBusinessWithDistance(ctx context.Context, req *pb.G
 		} else if businessErr != nil {
 			return businessErr
 		}
-		businessCollectionRes, itemCategoryErr = v.dao.NewBusinessCollectionQuery().ListBusinessCollection(tx, &models.BusinessCollection{BusinessId: &businessId}, nil)
-		if itemCategoryErr != nil {
-			return itemCategoryErr
+		businessCollectionRes, businessCollectionErr = v.dao.NewBusinessCollectionQuery().ListBusinessCollection(tx, &models.BusinessCollection{BusinessId: &businessId}, nil)
+		if businessCollectionErr != nil {
+			return businessCollectionErr
 		}
-		itemsCategoryResponse = make([]*pb.ItemCategory, 0, len(*businessCollectionRes))
+		businessCollectionResponse = make([]*pb.BusinessCollection, 0, len(*businessCollectionRes))
 		for _, e := range *businessCollectionRes {
-			itemsCategoryResponse = append(itemsCategoryResponse, &pb.ItemCategory{
+			businessCollectionResponse = append(businessCollectionResponse, &pb.BusinessCollection{
 				Id:         e.ID.String(),
 				Name:       e.Name,
 				BusinessId: e.BusinessId.String(),
@@ -504,5 +505,5 @@ func (v *businessService) GetBusinessWithDistance(ctx context.Context, req *pb.G
 	highQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.HighQualityPhoto
 	lowQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.LowQualityPhoto
 	thumbnailUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.Thumbnail
-	return &pb.GetBusinessWithDistanceResponse{Business: &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, LowQualityPhoto: businessRes.LowQualityPhoto, Thumbnail: businessRes.Thumbnail, BlurHash: businessRes.BlurHash, ToPickUp: businessRes.ToPickUp, DeliveryPrice: businessRes.DeliveryPrice, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.Coords()[1], Longitude: businessRes.Coordinates.Coords()[0]}, HighQualityPhotoUrl: highQualityPhotoUrl, LowQualityPhotoUrl: lowQualityPhotoUrl, ThumbnailUrl: thumbnailUrl, Distance: businessRes.Distance}, ItemCategory: itemsCategoryResponse, BusinessCategory: businessRes.BusinessCategory}, nil
+	return &pb.GetBusinessWithDistanceResponse{Business: &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, LowQualityPhoto: businessRes.LowQualityPhoto, Thumbnail: businessRes.Thumbnail, BlurHash: businessRes.BlurHash, ToPickUp: businessRes.ToPickUp, DeliveryPrice: businessRes.DeliveryPrice, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.Coords()[1], Longitude: businessRes.Coordinates.Coords()[0]}, HighQualityPhotoUrl: highQualityPhotoUrl, LowQualityPhotoUrl: lowQualityPhotoUrl, ThumbnailUrl: thumbnailUrl, Distance: businessRes.Distance}, BusinessCollections: businessCollectionResponse, BusinessCategory: businessRes.BusinessCategory}, nil
 }
