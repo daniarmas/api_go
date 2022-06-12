@@ -3,8 +3,6 @@ package usecase
 import (
 	"context"
 	"database/sql"
-	// "fmt"
-	// "time"
 
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"

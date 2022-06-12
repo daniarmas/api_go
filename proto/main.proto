@@ -448,12 +448,14 @@ message FeedRequest {
   bool homeDelivery = 5;
   SearchMunicipalityType searchMunicipalityType = 6;
   int32 nextPage = 7;
+  bool categories = 8;
 }
 
 message FeedResponse {
   repeated Business businesses = 1;
   SearchMunicipalityType searchMunicipalityType = 2;
-  int32 nextPage = 3;
+  repeated BusinessCategory categories = 3;
+  int32 nextPage = 4;
 }
 
 message GetBusinessRequest {
@@ -468,12 +470,12 @@ message GetBusinessWithDistanceRequest {
 
 message GetBusinessResponse {
   Business business = 1;
-  repeated ItemCategory itemCategory = 2;
+  repeated BusinessCollection businessCollections = 2;
 }
 
 message GetBusinessWithDistanceResponse {
   Business business = 1;
-  repeated ItemCategory itemCategory = 2;
+  repeated BusinessCollection businessCollections = 2;
   string businessCategory = 3;
 }
 
@@ -561,7 +563,7 @@ message SignInResponse {
 //   string hostname = 1;
 // }
 
-// // Entites Messages
+// Entites Messages
 
 message OrderedItem {
   string id = 1;
@@ -708,11 +710,20 @@ message CartItem {
 }
 
 
-message ItemCategory {
+message BusinessCollection {
   string id = 1;
   string name = 2;
   int32 index = 3;
   string businessId = 4;
+  google.protobuf.Timestamp createTime = 5;
+  google.protobuf.Timestamp updateTime = 6;
+}
+
+message BusinessCategory {
+  string id = 1;
+  string name = 2;
+  string provinceId = 3;
+  string municipalityId = 4;
   google.protobuf.Timestamp createTime = 5;
   google.protobuf.Timestamp updateTime = 6;
 }

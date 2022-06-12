@@ -13,9 +13,23 @@ type BusinessCategoryDatasource interface {
 	GetBusinessCategory(tx *gorm.DB, where *models.BusinessCategory, fields *[]string) (*models.BusinessCategory, error)
 	CreateBusinessCategory(tx *gorm.DB, data *models.BusinessCategory) (*models.BusinessCategory, error)
 	DeleteBusinessCategory(tx *gorm.DB, where *models.BusinessCategory, ids *[]uuid.UUID) (*[]models.BusinessCategory, error)
+	ListBusinessCategory(tx *gorm.DB, where *models.BusinessCategory, fields *[]string) (*[]models.BusinessCategory, error)
 }
 
 type businessCategoryDatasource struct{}
+
+func (i *businessCategoryDatasource) ListBusinessCategory(tx *gorm.DB, where *models.BusinessCategory, fields *[]string) (*[]models.BusinessCategory, error) {
+	var res []models.BusinessCategory
+	selectFields := &[]string{"*"}
+	if fields != nil {
+		selectFields = fields
+	}
+	result := tx.Where(where).Select(*selectFields).Find(&res)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &res, nil
+}
 
 func (v *businessCategoryDatasource) CreateBusinessCategory(tx *gorm.DB, data *models.BusinessCategory) (*models.BusinessCategory, error) {
 	var existBusinessCategory *models.BusinessCategory
