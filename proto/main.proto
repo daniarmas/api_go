@@ -448,6 +448,7 @@ message FeedRequest {
   bool homeDelivery = 5;
   SearchMunicipalityType searchMunicipalityType = 6;
   int32 nextPage = 7;
+  bool categories = 8;
 }
 
 message FeedResponse {
@@ -721,8 +722,10 @@ message BusinessCollection {
 message BusinessCategory {
   string id = 1;
   string name = 2;
-  google.protobuf.Timestamp createTime = 3;
-  google.protobuf.Timestamp updateTime = 4;
+  string provinceId = 3;
+  string municipalityId = 4;
+  google.protobuf.Timestamp createTime = 5;
+  google.protobuf.Timestamp updateTime = 6;
 }
 
 message SearchItem {

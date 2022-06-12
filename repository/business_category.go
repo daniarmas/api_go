@@ -10,9 +10,18 @@ type BusinessCategoryRepository interface {
 	GetBusinessCategory(tx *gorm.DB, where *models.BusinessCategory, fields *[]string) (*models.BusinessCategory, error)
 	CreateBusinessCategory(tx *gorm.DB, data *models.BusinessCategory) (*models.BusinessCategory, error)
 	DeleteBusinessCategory(tx *gorm.DB, where *models.BusinessCategory, ids *[]uuid.UUID) (*[]models.BusinessCategory, error)
+	ListBusinessCategory(tx *gorm.DB, where *models.BusinessCategory, fields *[]string) (*[]models.BusinessCategory, error)
 }
 
 type businessCategoryRepository struct{}
+
+func (i *businessCategoryRepository) ListBusinessCategory(tx *gorm.DB, where *models.BusinessCategory, fields *[]string) (*[]models.BusinessCategory, error) {
+	res, err := Datasource.NewBusinessCategoryDatasource().ListBusinessCategory(tx, where, fields)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
 
 func (v *businessCategoryRepository) CreateBusinessCategory(tx *gorm.DB, data *models.BusinessCategory) (*models.BusinessCategory, error) {
 	res, err := Datasource.NewBusinessCategoryDatasource().CreateBusinessCategory(tx, data)
