@@ -2,7 +2,9 @@ package usecase
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
@@ -11,6 +13,7 @@ import (
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
+	log "github.com/sirupsen/logrus"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -20,7 +23,7 @@ import (
 type BusinessService interface {
 	Feed(ctx context.Context, req *pb.FeedRequest, meta *utils.ClientMetadata) (*pb.FeedResponse, error)
 	GetBusiness(ctx context.Context, req *pb.GetBusinessRequest, meta *utils.ClientMetadata) (*pb.GetBusinessResponse, error)
-	GetBusinessWithDistance(ctx context.Context, req *pb.GetBusinessWithDistanceRequest, meta *utils.ClientMetadata) (*pb.GetBusinessWithDistanceResponse, error)
+	GetBusinessWithDistance(ctx context.Context, req *pb.GetBusinessWithDistanceRequest, md *utils.ClientMetadata) (*pb.GetBusinessWithDistanceResponse, error)
 	CreateBusiness(ctx context.Context, req *pb.CreateBusinessRequest, md *utils.ClientMetadata) (*pb.CreateBusinessResponse, error)
 	UpdateBusiness(ctx context.Context, req *pb.UpdateBusinessRequest, md *utils.ClientMetadata) (*pb.Business, error)
 }
@@ -28,10 +31,11 @@ type BusinessService interface {
 type businessService struct {
 	config *utils.Config
 	dao    repository.DAO
+	stDb   *sql.DB
 }
 
-func NewBusinessService(dao repository.DAO, config *utils.Config) BusinessService {
-	return &businessService{dao: dao, config: config}
+func NewBusinessService(dao repository.DAO, config *utils.Config, stDb *sql.DB) BusinessService {
+	return &businessService{dao: dao, config: config, stDb: stDb}
 }
 
 func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusinessRequest, md *utils.ClientMetadata) (*pb.Business, error) {
@@ -423,11 +427,51 @@ func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRe
 	return &pb.GetBusinessResponse{Business: &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, LowQualityPhoto: businessRes.LowQualityPhoto, Thumbnail: businessRes.Thumbnail, BlurHash: businessRes.BlurHash, ToPickUp: businessRes.ToPickUp, DeliveryPrice: businessRes.DeliveryPrice, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.Coords()[1], Longitude: businessRes.Coordinates.Coords()[0]}, HighQualityPhotoUrl: highQualityPhotoUrl, LowQualityPhotoUrl: lowQualityPhotoUrl, ThumbnailUrl: thumbnailUrl}, ItemCategory: itemsCategoryResponse}, nil
 }
 
-func (v *businessService) GetBusinessWithDistance(ctx context.Context, req *pb.GetBusinessWithDistanceRequest, meta *utils.ClientMetadata) (*pb.GetBusinessWithDistanceResponse, error) {
+func (v *businessService) GetBusinessWithDistance(ctx context.Context, req *pb.GetBusinessWithDistanceRequest, md *utils.ClientMetadata) (*pb.GetBusinessWithDistanceResponse, error) {
 	var businessRes *models.Business
 	var businessCollectionRes *[]models.BusinessCollection
 	var businessErr, itemCategoryErr error
 	var itemsCategoryResponse []*pb.ItemCategory
+	// Collecting analytics
+	if *md.App == "App" {
+		go func() {
+			// type TransactionPriority struct {
+			// 	Priority string
+			// }
+			// var priority TransactionPriority
+			ctx := context.Background()
+			// Get a Tx for making transaction requests.
+			tx, err := v.stDb.BeginTx(ctx, nil)
+			if err != nil {
+				log.Fatal(err)
+			}
+			// Defer a rollback in case anything fails.
+			defer tx.Rollback()
+
+			// Set transaction priority
+			_, err = tx.ExecContext(ctx, "SET TRANSACTION PRIORITY LOW")
+			if err != nil {
+				log.Fatal(err)
+			}
+			time := time.Now()
+			_, err = tx.Exec(`INSERT INTO "business_analytics" ("type", "business_id", "create_time", "update_time") VALUES ($1, $2, $3, $4)`, "BusinessAnalyticsTypeDetailView", req.Id, time, time)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			// err = tx.QueryRow("SHOW transaction_priority").Scan(&priority.Priority)
+			// if err != nil {
+			// 	log.Fatal(err)
+			// }
+
+			// fmt.Println("TRANSACTION PRIORITY: " + priority.Priority)
+
+			// Commit the transaction.
+			if err = tx.Commit(); err != nil {
+				log.Fatal(err)
+			}
+		}()
+	}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		businessId := uuid.MustParse(req.Id)
 		businessRes, businessErr = v.dao.NewBusinessQuery().GetBusinessWithDistance(tx, &models.Business{ID: &businessId, Coordinates: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}})

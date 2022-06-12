@@ -1,21 +1,24 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
-	// "log"
+	"time"
 
 	"github.com/daniarmas/api_go/app"
 	"github.com/daniarmas/api_go/datasource"
 	pb "github.com/daniarmas/api_go/pkg"
-	log "github.com/sirupsen/logrus"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/tlscert"
 	"github.com/daniarmas/api_go/usecase"
 	"github.com/daniarmas/api_go/utils"
+	_ "github.com/jackc/pgx/v4/stdlib"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
 func main() {
+	fmt.Println(time.Now().UTC())
 	// Configurations
 	config, err := datasource.NewConfig()
 	if err != nil {
@@ -50,13 +53,20 @@ func serviceRegister(sv *grpc.Server) {
 	if err != nil {
 		log.Fatal("cannot load config:", err)
 	}
-	// Database
+	// Standard Library Database Connection
+	stDb, err := sql.Open("pgx",
+		config.DBDsn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// defer stDb.Close()
+	// Database GORM
 	db, err := datasource.NewDB(config)
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 		return
 	}
-	// ObjectStorageServer5
+	// ObjectStorageServer
 	objectStorage, objectStorageErr := datasource.NewMinioClient(config)
 	if objectStorageErr != nil {
 		log.Fatalf("Error connecting to minio: %v", objectStorageErr)
@@ -65,14 +75,15 @@ func serviceRegister(sv *grpc.Server) {
 	datasourceDao := datasource.NewDAO(db, config, objectStorage)
 	// Repository
 	repositoryDao := repository.NewDAO(db, config, datasourceDao)
-	itemService := usecase.NewItemService(repositoryDao, config)
+	itemService := usecase.NewItemService(repositoryDao, config, stDb)
 	authenticationService := usecase.NewAuthenticationService(repositoryDao, config)
-	businessService := usecase.NewBusinessService(repositoryDao, config)
-	userService := usecase.NewUserService(repositoryDao)
+	businessService := usecase.NewBusinessService(repositoryDao, config, stDb)
+	userService := usecase.NewUserService(repositoryDao, config)
 	cartItemService := usecase.NewCartItemService(repositoryDao, config)
 	orderService := usecase.NewOrderService(repositoryDao)
 	banService := usecase.NewBanService(repositoryDao)
 	objectStorageService := usecase.NewObjectStorageService(repositoryDao)
+	analyicsService := usecase.NewAnalyticsService(repositoryDao, stDb)
 	pb.RegisterItemServiceServer(sv, app.NewItemServer(
 		itemService,
 	))
@@ -97,6 +108,7 @@ func serviceRegister(sv *grpc.Server) {
 	pb.RegisterObjectStorageServiceServer(sv, app.NewObjectStorageServer(
 		objectStorageService,
 	))
+	pb.RegisterAnalyticsServiceServer(sv, app.NewAnalyticsServer(analyicsService))
 }
 
 func addInterceptors(s *utils.GrpcServerBuilder) {

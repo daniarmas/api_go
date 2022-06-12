@@ -73,7 +73,16 @@ service ObjectStorageService {
   rpc GetPresignedPutObject (GetPresignedPutObjectRequest) returns (GetPresignedPutObjectResponse) {}
 }
 
+service AnalyticsService {
+  rpc CollectAnalytics (CollectAnalyticsRequest) returns (google.protobuf.Empty) {}
+}
+
 // Request & Response Message
+
+message CollectAnalyticsRequest {
+  repeated BusinessAnalytics businessAnalytics = 1;
+  repeated ItemAnalytics itemAnalytics = 2;
+}
 
 // message GetOrderRequest {
 //   string id = 1;
@@ -614,6 +623,22 @@ message UnionBusinessAndMunicipality {
   string municipalityId = 3;
 }
 
+message BusinessAnalytics {
+  string id = 1;
+  string businessId = 2;
+  BusinessAnalyticsType type = 3;
+  google.protobuf.Timestamp createTime = 4;
+  google.protobuf.Timestamp updateTime = 5;
+}
+
+message ItemAnalytics {
+  string id = 1;
+  string itemId = 2;
+  ItemAnalyticsType type = 3;
+  google.protobuf.Timestamp createTime = 4;
+  google.protobuf.Timestamp updateTime = 5;
+}
+
 message Business {
   string id = 1;
   string name = 2;
@@ -831,6 +856,7 @@ enum AppType  {
   AppTypeUnspecified = 0;
   App = 1;
   BusinessApp = 2;
+  AdminApp = 3;
 }
 
 enum OrderStatusType {
@@ -849,6 +875,18 @@ enum OrderType {
   OrderTypeUnspecified = 0;
   OrderTypePickUp = 1; 
   OrderTypeHomeDelivery = 2;
+}
+
+enum BusinessAnalyticsType {
+  BusinessAnalyticsTypeUnspecified = 0;
+  BusinessAnalyticsTypeView = 1; 
+  BusinessAnalyticsTypeDetailView = 2;
+}
+
+enum ItemAnalyticsType {
+  ItemAnalyticsTypeUnspecified = 0;
+  ItemAnalyticsTypeView = 1; 
+  ItemAnalyticsTypeDetailView = 2;
 }
 
 enum SignUpType {

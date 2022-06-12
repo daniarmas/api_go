@@ -32,6 +32,8 @@ type DAO interface {
 	NewBusinessScheduleRepository() BusinessScheduleRepository
 	NewOrderLifecycleRepository() OrderLifecycleRepository
 	NewBusinessCategoryRepository() BusinessCategoryRepository
+	NewBusinessAnalyticsRepository() BusinessAnalyticsRepository
+	NewItemAnalyticsRepository() ItemAnalyticsRepository
 }
 
 type dao struct {
@@ -112,6 +114,14 @@ func (d *dao) NewOrderLifecycleRepository() OrderLifecycleRepository {
 
 func (d *dao) NewProvinceRepository() ProvinceRepository {
 	return &provinceRepository{}
+}
+
+func (d *dao) NewBusinessAnalyticsRepository() BusinessAnalyticsRepository {
+	return &businessAnalyticsRepository{}
+}
+
+func (d *dao) NewItemAnalyticsRepository() ItemAnalyticsRepository {
+	return &itemAnalyticsRepository{}
 }
 
 func (d *dao) NewOrderRepository() OrderRepository {

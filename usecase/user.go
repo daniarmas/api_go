@@ -24,11 +24,12 @@ type UserService interface {
 }
 
 type userService struct {
-	dao repository.DAO
+	dao    repository.DAO
+	config *utils.Config
 }
 
-func NewUserService(dao repository.DAO) UserService {
-	return &userService{dao: dao}
+func NewUserService(dao repository.DAO, config *utils.Config) UserService {
+	return &userService{dao: dao, config: config}
 }
 
 func (i *userService) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoRequest, md *utils.ClientMetadata) (*pb.GetAddressInfoResponse, error) {
@@ -168,7 +169,7 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 				return err
 			}
 		}
-		userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserId}, &[]string{"id"})
+		userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserId}, &[]string{"id", "high_quality_photo", "low_quality_photo", "thumbnail"})
 		if userErr != nil {
 			return userErr
 		}
@@ -209,29 +210,41 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 			if tnErr != nil {
 				return tnErr
 			}
-			_, copyHqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.UsersDeletedBulkName, Object: userRes.HighQualityPhoto}, minio.CopySrcOptions{Bucket: repository.Config.UsersBulkName, Object: userRes.HighQualityPhoto})
-			if copyHqErr != nil {
-				return copyHqErr
+			if userRes.HighQualityPhoto != "" {
+				_, copyHqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.UsersDeletedBulkName, Object: userRes.HighQualityPhoto}, minio.CopySrcOptions{Bucket: repository.Config.UsersBulkName, Object: userRes.HighQualityPhoto})
+				if copyHqErr != nil {
+					return copyHqErr
+				}
 			}
-			_, copyLqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.UsersDeletedBulkName, Object: userRes.LowQualityPhoto}, minio.CopySrcOptions{Bucket: repository.Config.UsersBulkName, Object: userRes.LowQualityPhoto})
-			if copyLqErr != nil {
-				return copyLqErr
+			if userRes.LowQualityPhoto != "" {
+				_, copyLqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.UsersDeletedBulkName, Object: userRes.LowQualityPhoto}, minio.CopySrcOptions{Bucket: repository.Config.UsersBulkName, Object: userRes.LowQualityPhoto})
+				if copyLqErr != nil {
+					return copyLqErr
+				}
 			}
-			_, copyThErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.UsersDeletedBulkName, Object: userRes.Thumbnail}, minio.CopySrcOptions{Bucket: repository.Config.UsersBulkName, Object: userRes.Thumbnail})
-			if copyThErr != nil {
-				return copyThErr
+			if userRes.Thumbnail != "" {
+				_, copyThErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.UsersDeletedBulkName, Object: userRes.Thumbnail}, minio.CopySrcOptions{Bucket: repository.Config.UsersBulkName, Object: userRes.Thumbnail})
+				if copyThErr != nil {
+					return copyThErr
+				}
 			}
-			rmHqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.UsersBulkName, userRes.HighQualityPhoto, minio.RemoveObjectOptions{})
-			if rmHqErr != nil {
-				return rmHqErr
+			if userRes.HighQualityPhoto != "" {
+				rmHqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.UsersBulkName, userRes.HighQualityPhoto, minio.RemoveObjectOptions{})
+				if rmHqErr != nil {
+					return rmHqErr
+				}
 			}
-			rmLqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.UsersBulkName, userRes.LowQualityPhoto, minio.RemoveObjectOptions{})
-			if rmLqErr != nil {
-				return rmLqErr
+			if userRes.LowQualityPhoto != "" {
+				rmLqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.UsersBulkName, userRes.LowQualityPhoto, minio.RemoveObjectOptions{})
+				if rmLqErr != nil {
+					return rmLqErr
+				}
 			}
-			rmThErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.UsersBulkName, userRes.Thumbnail, minio.RemoveObjectOptions{})
-			if rmThErr != nil {
-				return rmThErr
+			if userRes.Thumbnail != "" {
+				rmThErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.UsersBulkName, userRes.Thumbnail, minio.RemoveObjectOptions{})
+				if rmThErr != nil {
+					return rmThErr
+				}
 			}
 			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: &userId}, &models.User{HighQualityPhoto: req.User.HighQualityPhoto, LowQualityPhoto: req.User.LowQualityPhoto, Thumbnail: req.User.Thumbnail, BlurHash: req.User.BlurHash})
 			if updatedUserErr != nil {
@@ -253,11 +266,11 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 		FullName:            updatedUserRes.FullName,
 		Email:               updatedUserRes.Email,
 		HighQualityPhoto:    updatedUserRes.HighQualityPhoto,
-		HighQualityPhotoUrl: updatedUserRes.HighQualityPhoto,
+		HighQualityPhotoUrl: i.config.UsersBulkName + "/" + updatedUserRes.HighQualityPhoto,
 		LowQualityPhoto:     updatedUserRes.LowQualityPhoto,
-		LowQualityPhotoUrl:  updatedUserRes.LowQualityPhoto,
+		LowQualityPhotoUrl:  i.config.UsersBulkName + "/" + updatedUserRes.LowQualityPhoto,
 		Thumbnail:           updatedUserRes.Thumbnail,
-		ThumbnailUrl:        updatedUserRes.Thumbnail,
+		ThumbnailUrl:        i.config.UsersBulkName + "/" + updatedUserRes.Thumbnail,
 		BlurHash:            updatedUserRes.BlurHash,
 		UserAddress:         nil,
 		Permissions:         nil,
