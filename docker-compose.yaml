@@ -7,8 +7,8 @@ services:
     volumes:
       - cockroach:/cockroach/cockroach-data
     ports:
-      - 26257:26257
-      - 8082:8080
+      - 26222:26257
+      - 8888:8080
     restart: always
     command: start-single-node --insecure
   pgweb:
@@ -16,7 +16,7 @@ services:
     restart: always
     image: sosedoff/pgweb:0.11.9
     ports: 
-      - "8083:8081" 
+      - "8085:8081" 
     links: 
       - cockroach:cockroach 
     environment:
@@ -68,8 +68,8 @@ services:
       MINIO_ROOT_USER: root
       MINIO_ROOT_PASSWORD: root1234
     ports:
-      - 9000:9000
-      - 9001:9001
+      - 9011:9000
+      - 9010:9001
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s

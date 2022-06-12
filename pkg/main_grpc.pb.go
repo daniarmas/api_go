@@ -1716,3 +1716,89 @@ var ObjectStorageService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "main.proto",
 }
+
+// AnalyticsServiceClient is the client API for AnalyticsService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type AnalyticsServiceClient interface {
+	CollectAnalytics(ctx context.Context, in *CollectAnalyticsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+}
+
+type analyticsServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAnalyticsServiceClient(cc grpc.ClientConnInterface) AnalyticsServiceClient {
+	return &analyticsServiceClient{cc}
+}
+
+func (c *analyticsServiceClient) CollectAnalytics(ctx context.Context, in *CollectAnalyticsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/main.AnalyticsService/CollectAnalytics", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AnalyticsServiceServer is the server API for AnalyticsService service.
+// All implementations must embed UnimplementedAnalyticsServiceServer
+// for forward compatibility
+type AnalyticsServiceServer interface {
+	CollectAnalytics(context.Context, *CollectAnalyticsRequest) (*emptypb.Empty, error)
+	mustEmbedUnimplementedAnalyticsServiceServer()
+}
+
+// UnimplementedAnalyticsServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedAnalyticsServiceServer struct {
+}
+
+func (UnimplementedAnalyticsServiceServer) CollectAnalytics(context.Context, *CollectAnalyticsRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CollectAnalytics not implemented")
+}
+func (UnimplementedAnalyticsServiceServer) mustEmbedUnimplementedAnalyticsServiceServer() {}
+
+// UnsafeAnalyticsServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AnalyticsServiceServer will
+// result in compilation errors.
+type UnsafeAnalyticsServiceServer interface {
+	mustEmbedUnimplementedAnalyticsServiceServer()
+}
+
+func RegisterAnalyticsServiceServer(s grpc.ServiceRegistrar, srv AnalyticsServiceServer) {
+	s.RegisterService(&AnalyticsService_ServiceDesc, srv)
+}
+
+func _AnalyticsService_CollectAnalytics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CollectAnalyticsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AnalyticsServiceServer).CollectAnalytics(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.AnalyticsService/CollectAnalytics",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AnalyticsServiceServer).CollectAnalytics(ctx, req.(*CollectAnalyticsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// AnalyticsService_ServiceDesc is the grpc.ServiceDesc for AnalyticsService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AnalyticsService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "main.AnalyticsService",
+	HandlerType: (*AnalyticsServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CollectAnalytics",
+			Handler:    _AnalyticsService_CollectAnalytics_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "main.proto",
+}

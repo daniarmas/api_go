@@ -1,19 +1,21 @@
 package repository
 
 import (
+	"database/sql"
+
 	"github.com/daniarmas/api_go/models"
 	"gorm.io/gorm"
 )
 
 type ItemAnalyticsRepository interface {
-	CreateItemAnalytics(tx *gorm.DB, data *[]models.ItemAnalytics) (*[]models.ItemAnalytics, error)
+	CreateItemAnalytics(tx *sql.Tx, data *[]models.ItemAnalytics) (*[]models.ItemAnalytics, error)
 	GetItemAnalytics(tx *gorm.DB, where *models.ItemAnalytics, fields *[]string) (*models.ItemAnalytics, error)
 	ListItemAnalytics(tx *gorm.DB, where *models.ItemAnalytics, fields *[]string) (*[]models.ItemAnalytics, error)
 }
 
 type itemAnalyticsRepository struct{}
 
-func (i *itemAnalyticsRepository) CreateItemAnalytics(tx *gorm.DB, data *[]models.ItemAnalytics) (*[]models.ItemAnalytics, error) {
+func (i *itemAnalyticsRepository) CreateItemAnalytics(tx *sql.Tx, data *[]models.ItemAnalytics) (*[]models.ItemAnalytics, error) {
 	res, err := Datasource.NewItemAnalyticsDatasource().CreateItemAnalytics(tx, data)
 	if err != nil {
 		return nil, err

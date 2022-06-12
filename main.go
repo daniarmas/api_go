@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/daniarmas/api_go/app"
 	"github.com/daniarmas/api_go/datasource"
@@ -17,6 +18,7 @@ import (
 )
 
 func main() {
+	fmt.Println(time.Now().UTC())
 	// Configurations
 	config, err := datasource.NewConfig()
 	if err != nil {
@@ -81,6 +83,7 @@ func serviceRegister(sv *grpc.Server) {
 	orderService := usecase.NewOrderService(repositoryDao)
 	banService := usecase.NewBanService(repositoryDao)
 	objectStorageService := usecase.NewObjectStorageService(repositoryDao)
+	analyicsService := usecase.NewAnalyticsService(repositoryDao, stDb)
 	pb.RegisterItemServiceServer(sv, app.NewItemServer(
 		itemService,
 	))
@@ -105,6 +108,7 @@ func serviceRegister(sv *grpc.Server) {
 	pb.RegisterObjectStorageServiceServer(sv, app.NewObjectStorageServer(
 		objectStorageService,
 	))
+	pb.RegisterAnalyticsServiceServer(sv, app.NewAnalyticsServer(analyicsService))
 }
 
 func addInterceptors(s *utils.GrpcServerBuilder) {
