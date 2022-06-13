@@ -9,6 +9,7 @@ import (
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/utils"
+	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"github.com/twpayne/go-geom"
@@ -26,10 +27,11 @@ type UserService interface {
 type userService struct {
 	dao    repository.DAO
 	config *utils.Config
+	rdb    *redis.Client
 }
 
-func NewUserService(dao repository.DAO, config *utils.Config) UserService {
-	return &userService{dao: dao, config: config}
+func NewUserService(dao repository.DAO, config *utils.Config, rdb *redis.Client) UserService {
+	return &userService{dao: dao, config: config, rdb: rdb}
 }
 
 func (i *userService) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoRequest, md *utils.ClientMetadata) (*pb.GetAddressInfoResponse, error) {
@@ -75,7 +77,7 @@ func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*p
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, err := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("authorization token not found")
 		} else if err != nil && err.Error() != "record not found" {
@@ -117,16 +119,23 @@ func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*p
 			UpdateTime:     timestamppb.New(item.UpdateTime),
 		})
 	}
+	var highQualityPhotoUrl, lowQualityPhotoUrl, thumbnailUrl string
+	if userRes.HighQualityPhoto != "" {
+		highQualityPhotoUrl = i.config.UsersBulkName + "/" + userRes.HighQualityPhoto
+		lowQualityPhotoUrl = i.config.UsersBulkName + "/" + userRes.LowQualityPhoto
+		thumbnailUrl = i.config.UsersBulkName + "/" + userRes.Thumbnail
+
+	}
 	return &pb.GetUserResponse{User: &pb.User{
 		Id:                  userRes.ID.String(),
 		FullName:            userRes.FullName,
 		Email:               userRes.Email,
 		HighQualityPhoto:    userRes.HighQualityPhoto,
-		HighQualityPhotoUrl: i.config.UsersBulkName + "/" + userRes.HighQualityPhoto,
+		HighQualityPhotoUrl: highQualityPhotoUrl,
 		LowQualityPhoto:     userRes.LowQualityPhoto,
-		LowQualityPhotoUrl:  i.config.UsersBulkName + "/" + userRes.LowQualityPhoto,
+		LowQualityPhotoUrl:  lowQualityPhotoUrl,
 		Thumbnail:           userRes.Thumbnail,
-		ThumbnailUrl:        i.config.UsersBulkName + "/" + userRes.Thumbnail,
+		ThumbnailUrl:        thumbnailUrl,
 		BlurHash:            userRes.BlurHash,
 		UserAddress:         userAddress,
 		Permissions:         permissions,
@@ -154,7 +163,7 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if authorizationTokenErr != nil {
@@ -261,16 +270,23 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 	if err != nil {
 		return nil, err
 	}
+	var highQualityPhotoUrl, lowQualityPhotoUrl, thumbnailUrl string
+	if updatedUserRes.HighQualityPhoto != "" {
+		highQualityPhotoUrl = i.config.UsersBulkName + "/" + updatedUserRes.HighQualityPhoto
+		lowQualityPhotoUrl = i.config.UsersBulkName + "/" + updatedUserRes.LowQualityPhoto
+		thumbnailUrl = i.config.UsersBulkName + "/" + updatedUserRes.Thumbnail
+
+	}
 	return &pb.UpdateUserResponse{User: &pb.User{
 		Id:                  updatedUserRes.ID.String(),
 		FullName:            updatedUserRes.FullName,
 		Email:               updatedUserRes.Email,
 		HighQualityPhoto:    updatedUserRes.HighQualityPhoto,
-		HighQualityPhotoUrl: i.config.UsersBulkName + "/" + updatedUserRes.HighQualityPhoto,
+		HighQualityPhotoUrl: highQualityPhotoUrl,
 		LowQualityPhoto:     updatedUserRes.LowQualityPhoto,
-		LowQualityPhotoUrl:  i.config.UsersBulkName + "/" + updatedUserRes.LowQualityPhoto,
+		LowQualityPhotoUrl:  lowQualityPhotoUrl,
 		Thumbnail:           updatedUserRes.Thumbnail,
-		ThumbnailUrl:        i.config.UsersBulkName + "/" + updatedUserRes.Thumbnail,
+		ThumbnailUrl:        thumbnailUrl,
 		BlurHash:            updatedUserRes.BlurHash,
 		UserAddress:         nil,
 		Permissions:         nil,

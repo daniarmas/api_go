@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/daniarmas/api_go/app"
 	"github.com/daniarmas/api_go/datasource"
@@ -12,13 +11,13 @@ import (
 	"github.com/daniarmas/api_go/tlscert"
 	"github.com/daniarmas/api_go/usecase"
 	"github.com/daniarmas/api_go/utils"
+	"github.com/go-redis/redis/v9"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
 func main() {
-	fmt.Println(time.Now().UTC())
 	// Configurations
 	config, err := datasource.NewConfig()
 	if err != nil {
@@ -53,6 +52,13 @@ func serviceRegister(sv *grpc.Server) {
 	if err != nil {
 		log.Fatal("cannot load config:", err)
 	}
+	// Redis
+	rdbAddres := fmt.Sprintf("%s:%d", config.RedisHost, config.RedisPort)
+	rdb := redis.NewClient(&redis.Options{
+		Addr: rdbAddres,
+		// Password: config.RedisPassword, // no password set
+		// DB:       config.RedisDb,       // use default DB
+	})
 	// Standard Library Database Connection
 	stDb, err := sql.Open("pgx",
 		config.DBDsn)
@@ -74,11 +80,11 @@ func serviceRegister(sv *grpc.Server) {
 	// Datasource
 	datasourceDao := datasource.NewDAO(db, config, objectStorage)
 	// Repository
-	repositoryDao := repository.NewDAO(db, config, datasourceDao)
+	repositoryDao := repository.NewDAO(db, config, datasourceDao, rdb)
 	itemService := usecase.NewItemService(repositoryDao, config, stDb)
 	authenticationService := usecase.NewAuthenticationService(repositoryDao, config)
 	businessService := usecase.NewBusinessService(repositoryDao, config, stDb)
-	userService := usecase.NewUserService(repositoryDao, config)
+	userService := usecase.NewUserService(repositoryDao, config, rdb)
 	cartItemService := usecase.NewCartItemService(repositoryDao, config)
 	orderService := usecase.NewOrderService(repositoryDao)
 	banService := usecase.NewBanService(repositoryDao)

@@ -44,7 +44,7 @@ func (r *authorizationTokenDatasource) DeleteAuthorizationToken(tx *gorm.DB, whe
 
 func (r *authorizationTokenDatasource) DeleteAuthorizationTokenByRefreshTokenIds(tx *gorm.DB, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error) {
 	var res *[]models.AuthorizationToken
-	result := tx.Clauses(clause.Returning{}).Where(`refresh_token_id IN ?`, ids).Delete(&res)
+	result := tx.Clauses(clause.Returning{}).Where(`refresh_token_id IN ?`, *ids).Delete(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	} else if result.RowsAffected == 0 {
