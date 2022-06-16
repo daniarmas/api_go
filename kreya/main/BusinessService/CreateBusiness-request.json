@@ -14,7 +14,7 @@
   ],
   "thumbnail": "fooBar",
   "thumbnailBlurHash": "fooBar",
-  "deliveryPrice": "fooBar",
+  "deliveryCup": "fooBar",
   "coordinates": {
     "latitude": 1.23,
     "longitude": 1.23

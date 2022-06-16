@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const UserPermissionTableName = "user_permission"
+const UserPermissionTableName = "business_user_permission"
 
 func (UserPermission) TableName() string {
 	return UserPermissionTableName

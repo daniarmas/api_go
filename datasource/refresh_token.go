@@ -13,6 +13,7 @@ type RefreshTokenDatasource interface {
 	GetRefreshToken(tx *gorm.DB, where *models.RefreshToken, fields *[]string) (*models.RefreshToken, error)
 	CreateRefreshToken(tx *gorm.DB, data *models.RefreshToken) (*models.RefreshToken, error)
 	DeleteRefreshToken(tx *gorm.DB, where *models.RefreshToken, ids *[]uuid.UUID) (*[]models.RefreshToken, error)
+	DeleteRefreshTokenDeviceIdNotEqual(tx *gorm.DB, where *models.RefreshToken, ids *[]uuid.UUID) (*[]models.RefreshToken, error)
 }
 
 type refreshTokenDatasource struct{}
@@ -32,6 +33,22 @@ func (r *refreshTokenDatasource) DeleteRefreshToken(tx *gorm.DB, where *models.R
 		result = tx.Clauses(clause.Returning{}).Where(`id IN ?`, ids).Delete(&res)
 	} else {
 		result = tx.Clauses(clause.Returning{}).Where(where).Delete(&res)
+	}
+	if result.Error != nil {
+		return nil, result.Error
+	} else if result.RowsAffected == 0 {
+		return nil, errors.New("record not found")
+	}
+	return res, nil
+}
+
+func (r *refreshTokenDatasource) DeleteRefreshTokenDeviceIdNotEqual(tx *gorm.DB, where *models.RefreshToken, ids *[]uuid.UUID) (*[]models.RefreshToken, error) {
+	var res *[]models.RefreshToken
+	var result *gorm.DB
+	if ids != nil {
+		result = tx.Clauses(clause.Returning{}).Where(`id IN ?`, ids).Delete(&res)
+	} else {
+		result = tx.Clauses(clause.Returning{}).Where(`device_id != ?`, where.DeviceId).Delete(&res)
 	}
 	if result.Error != nil {
 		return nil, result.Error

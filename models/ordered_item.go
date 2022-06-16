@@ -16,7 +16,12 @@ func (OrderedItem) TableName() string {
 type OrderedItem struct {
 	ID         *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Name       string         `gorm:"column:name;not null"`
-	Price      string         `gorm:"column:price;not null"`
+	PriceCup   string         `gorm:"column:price_cup;not null"`
+	CostCup    string         `gorm:"column:cost_cup"`
+	ProfitCup  string         `gorm:"column:profit_cup"`
+	PriceUsd   string         `gorm:"column:price_usd"`
+	CostUsd    string         `gorm:"column:cost_usd"`
+	ProfitUsd  string         `gorm:"column:profit_usd"`
 	Quantity   int32          `gorm:"column:quantity;not null"`
 	ItemId     *uuid.UUID     `gorm:"column:item_id;not null"`
 	Item       CartItem       `gorm:"foreignKey:ItemId"`

@@ -29,7 +29,7 @@ type Business struct {
 	TimeMarginOrderDay    int32                `gorm:"column:time_margin_order_day"`
 	TimeMarginOrderHour   int32                `gorm:"column:time_margin_order_hour"`
 	TimeMarginOrderMinute int32                `gorm:"column:time_margin_order_minute"`
-	DeliveryPrice         string               `gorm:"column:delivery_price"`
+	DeliveryPriceCup      string               `gorm:"column:delivery_price_cup"`
 	ToPickUp              bool                 `gorm:"column:to_pick_up"`
 	HomeDelivery          bool                 `gorm:"column:home_delivery"`
 	Coordinates           ewkb.Point           `gorm:"column:coordinates"`

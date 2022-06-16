@@ -168,7 +168,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 			return deleteRefreshTokenErr
 		}
 		if deleteRefreshTokenRes != nil && len(*deleteRefreshTokenRes) != 0 {
-			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: (*deleteRefreshTokenRes)[0].ID}, nil)
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(ctx, tx, &models.AuthorizationToken{RefreshTokenId: (*deleteRefreshTokenRes)[0].ID}, nil)
 			if deleteAuthorizationTokenErr != nil {
 				return deleteAuthorizationTokenErr
 			}
@@ -177,7 +177,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		if refreshTokenErr != nil {
 			return refreshTokenErr
 		}
-		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().CreateAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: refreshTokenRes.ID, UserId: userRes.ID, DeviceId: deviceRes.ID, App: md.App, AppVersion: md.AppVersion})
+		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().CreateAuthorizationToken(ctx, tx, &models.AuthorizationToken{RefreshTokenId: refreshTokenRes.ID, UserId: userRes.ID, DeviceId: deviceRes.ID, App: md.App, AppVersion: md.AppVersion})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
@@ -226,16 +226,23 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		})
 	}
 	go smtp.SendSignInMail(req.Email, time.Now(), v.config, md)
+	var highQualityPhotoUrl, lowQualityPhotoUrl, thumbnailUrl string
+	if userRes.HighQualityPhoto != "" {
+		highQualityPhotoUrl = v.config.UsersBulkName + "/" + userRes.HighQualityPhoto
+		lowQualityPhotoUrl = v.config.UsersBulkName + "/" + userRes.LowQualityPhoto
+		thumbnailUrl = v.config.UsersBulkName + "/" + userRes.Thumbnail
+
+	}
 	return &pb.SignInResponse{AuthorizationToken: *jwtAuthorizationToken.Token, RefreshToken: *jwtRefreshToken.Token, User: &pb.User{
 		Id:                  userRes.ID.String(),
 		FullName:            userRes.FullName,
 		Email:               userRes.Email,
 		HighQualityPhoto:    userRes.HighQualityPhoto,
-		HighQualityPhotoUrl: v.config.UsersBulkName + "/" + userRes.HighQualityPhoto,
+		HighQualityPhotoUrl: highQualityPhotoUrl,
 		LowQualityPhoto:     userRes.LowQualityPhoto,
-		LowQualityPhotoUrl:  v.config.UsersBulkName + "/" + userRes.LowQualityPhoto,
+		LowQualityPhotoUrl:  lowQualityPhotoUrl,
 		Thumbnail:           userRes.Thumbnail,
-		ThumbnailUrl:        v.config.UsersBulkName + "/" + userRes.Thumbnail,
+		ThumbnailUrl:        thumbnailUrl,
 		BlurHash:            userRes.BlurHash,
 		Permissions:         permissions,
 		UserAddress:         userAddress,
@@ -315,7 +322,7 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 		if refreshTokenErr != nil {
 			return refreshTokenErr
 		}
-		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().CreateAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: refreshTokenRes.ID, UserId: createUserRes.ID, DeviceId: deviceRes.ID, App: meta.App, AppVersion: meta.AppVersion})
+		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().CreateAuthorizationToken(ctx, tx, &models.AuthorizationToken{RefreshTokenId: refreshTokenRes.ID, UserId: createUserRes.ID, DeviceId: deviceRes.ID, App: meta.App, AppVersion: meta.AppVersion})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
@@ -401,7 +408,7 @@ func (v *authenticationService) CheckSession(ctx context.Context, meta *utils.Cl
 					return authorizationTokenParseErr
 				}
 			}
-			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "user_id"})
+			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 			if authorizationTokenErr != nil {
 				return authorizationTokenErr
 			} else if authorizationTokenRes == nil {
@@ -454,7 +461,7 @@ func (v *authenticationService) SignOut(ctx context.Context, req *pb.SignOutRequ
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId}, &[]string{"id", "user_id"})
+		authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtTokenAuthorization.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if authorizationTokenErr != nil {
@@ -462,28 +469,28 @@ func (v *authenticationService) SignOut(ctx context.Context, req *pb.SignOutRequ
 		}
 		if req.All {
 			var refreshTokenIds []uuid.UUID
-			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserId: authorizationTokenRes.UserId}, nil)
+			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshTokenDeviceIdNotEqual(tx, &models.RefreshToken{DeviceId: authorizationTokenRes.DeviceId}, nil)
 			if deleteRefreshTokenErr != nil {
 				return deleteRefreshTokenErr
 			}
 			for _, e := range *deleteRefreshTokenRes {
 				refreshTokenIds = append(refreshTokenIds, *e.ID)
 			}
-			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationTokenByRefreshTokenIds(tx, &refreshTokenIds)
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationTokenByRefreshTokenIds(ctx, tx, &refreshTokenIds)
 			if deleteAuthorizationTokenErr != nil {
 				return deleteAuthorizationTokenErr
 			}
 			return nil
 		} else if req.AuthorizationTokenId != "" {
-			authorizationTokenByReqRes, authorizationTokenByReqErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: &authorizationTokenId}, &[]string{"id", "user_id", "device_id"})
+			authorizationTokenByReqRes, authorizationTokenByReqErr := v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: &authorizationTokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 			if authorizationTokenByReqErr != nil {
 				return authorizationTokenByReqErr
 			}
-			_, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{UserId: authorizationTokenByReqRes.UserId, DeviceId: authorizationTokenByReqRes.DeviceId}, nil)
+			_, deleteRefreshTokenErr := v.dao.NewRefreshTokenQuery().DeleteRefreshToken(tx, &models.RefreshToken{ID: authorizationTokenByReqRes.RefreshTokenId}, nil)
 			if deleteRefreshTokenErr != nil {
 				return deleteRefreshTokenErr
 			}
-			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{ID: authorizationTokenByReqRes.ID}, nil)
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: authorizationTokenByReqRes.ID}, nil)
 			if deleteAuthorizationTokenErr != nil {
 				return deleteAuthorizationTokenErr
 			}
@@ -493,7 +500,7 @@ func (v *authenticationService) SignOut(ctx context.Context, req *pb.SignOutRequ
 			if deleteRefreshTokenErr != nil {
 				return deleteRefreshTokenErr
 			}
-			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{ID: authorizationTokenRes.ID}, nil)
+			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: authorizationTokenRes.ID}, nil)
 			if deleteAuthorizationTokenErr != nil {
 				return deleteAuthorizationTokenErr
 			}
@@ -526,7 +533,7 @@ func (v *authenticationService) ListSession(ctx context.Context, meta *utils.Cli
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "user_id", "device_id"})
+		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
@@ -617,7 +624,7 @@ func (v *authenticationService) RefreshToken(ctx context.Context, req *pb.Refres
 		if deleteRefreshTokenErr != nil {
 			return deleteRefreshTokenErr
 		}
-		_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: (*deleteRefreshTokenRes)[0].ID}, nil)
+		_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenQuery().DeleteAuthorizationToken(ctx, tx, &models.AuthorizationToken{RefreshTokenId: (*deleteRefreshTokenRes)[0].ID}, nil)
 		if deleteAuthorizationTokenErr != nil {
 			return deleteAuthorizationTokenErr
 		}
@@ -625,7 +632,7 @@ func (v *authenticationService) RefreshToken(ctx context.Context, req *pb.Refres
 		if refreshTokenErr != nil {
 			return refreshTokenErr
 		}
-		authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().CreateAuthorizationToken(tx, &models.AuthorizationToken{RefreshTokenId: refreshTokenRes.ID, UserId: userRes.ID, DeviceId: deviceRes.ID, App: meta.App, AppVersion: meta.AppVersion})
+		authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenQuery().CreateAuthorizationToken(ctx, tx, &models.AuthorizationToken{RefreshTokenId: refreshTokenRes.ID, UserId: userRes.ID, DeviceId: deviceRes.ID, App: meta.App, AppVersion: meta.AppVersion})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}

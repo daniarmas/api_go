@@ -92,7 +92,7 @@ func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.GetUserRes
 	res, err := m.userService.GetUser(ctx, meta)
 	if err != nil {
 		switch err.Error() {
-		case "authorizationtoken not found":
+		case "authorization token not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "authorizationtoken expired":
 			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")

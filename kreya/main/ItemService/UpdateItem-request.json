@@ -2,7 +2,7 @@
   "id": "{{ faker.random.uuid }}",
   "name": "{{ faker.name.last_name }}",
   "description": "fooBar",
-  "price": "{{ faker.commerce.price }}",
+  "priceCup": "{{ faker.commerce.price }}",
   "businessCollectionId": "fooBar",
   "highQualityPhoto": "fooBar",
   "highQualityPhotoBlurHash": "fooBar",

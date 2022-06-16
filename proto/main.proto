@@ -181,7 +181,7 @@ message UpdateBusinessRequest {
   repeated string municipalities = 9;
   string thumbnail = 10;
   string blurHash = 11;
-  string deliveryPrice = 12;
+  string deliveryPriceCup = 12;
   int32 timeMarginOrderMonth = 13;
   int32 timeMarginOrderDay = 14;
   int32 timeMarginOrderHour = 15;
@@ -207,7 +207,7 @@ message CreateBusinessRequest {
   repeated string municipalities = 8;
   string thumbnail = 9;
   string blurHash = 10;
-  string deliveryPrice = 11;
+  string deliveryPriceCup = 11;
   Point coordinates = 12;
   int32 timeMarginOrderMonth = 13;
   int32 timeMarginOrderDay = 14;
@@ -291,7 +291,7 @@ message UpdateItemRequest {
   string id = 1;
   string name = 2;
   string description = 3;
-  string price = 4;
+  string priceCup = 4;
   string businessCollectionId = 5;
   string highQualityPhoto = 6;
   string lowQualityPhoto = 7;
@@ -312,7 +312,7 @@ message IsEmptyCartItemResponse {
 message CreateItemRequest {
   string name = 1;
   string description = 2;
-  string price = 3;
+  string priceCup = 3;
   string businessCollectionId = 4;
   string highQualityPhoto = 5;
   string lowQualityPhoto = 6;
@@ -568,7 +568,7 @@ message SignInResponse {
 message OrderedItem {
   string id = 1;
   string name = 2;
-	string price = 3;
+	string priceCup = 3;
   string cartItemId = 4;
 	string itemId = 5;
 	int32 quantity = 6;
@@ -587,7 +587,7 @@ message Order {
   string instructions = 7;
   string cancelReasons = 8;
   Point coordinates = 9;
-  string price = 10;
+  string priceCup = 10;
   string businessId = 11;
   string userId = 12;
   string businessName = 13;
@@ -653,7 +653,7 @@ message Business {
   string thumbnailUrl = 9;
   string blurHash = 10;
   bool isOpen = 11;
-  string deliveryPrice = 12;
+  string deliveryPriceCup = 12;
   repeated double polygon = 13;
   Point coordinates = 14;
   int32 timeMarginOrderMonth = 15;
@@ -677,7 +677,7 @@ message Item {
   string id = 1;
   string name = 2;
   string description = 3;
-  string price = 4;
+  string priceCup = 4;
   ItemStatusType status = 5;
   int32 availability = 6;
   string businessId = 7;
@@ -700,7 +700,7 @@ message CartItem {
   string name = 2;
   string itemId = 3;
   string authorizationTokenId = 4;
-  string price = 5;
+  string priceCup = 5;
   int32 quantity = 6;
   string thumbnail = 7;
   string thumbnailUrl = 8;
@@ -731,7 +731,7 @@ message BusinessCategory {
 message SearchItem {
   string id = 1;
   string name = 2;
-  string price = 3;
+  string priceCup = 3;
   ItemStatusType status = 4;
   string thumbnail = 5;
   string thumbnailUrl = 6;
