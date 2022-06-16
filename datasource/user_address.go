@@ -13,6 +13,10 @@ import (
 
 type UserAddressDatasource interface {
 	ListUserAddress(tx *gorm.DB, where *models.UserAddress, fields *[]string) (*[]models.UserAddress, error)
+	CreateUserAddress(tx *gorm.DB, data *models.UserAddress) (*models.UserAddress, error)
+	UpdateUserAddress(tx *gorm.DB, where *models.UserAddress, data *models.UserAddress) (*models.UserAddress, error)
+	GetUserAddress(tx *gorm.DB, where *models.UserAddress) (*models.UserAddress, error)
+	DeleteUserAddress(tx *gorm.DB, where *models.UserAddress, ids *[]uuid.UUID) (*[]models.UserAddress, error)
 }
 
 type userAddressDatasource struct{}
@@ -37,6 +41,25 @@ func (i *userAddressDatasource) CreateUserAddress(tx *gorm.DB, data *models.User
 	result := tx.Raw(`INSERT INTO "user_address" ("tag", "address", "number", "coordinates", "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time") VALUES (?, ?, ?, ST_GeomFromText(?, 4326), ?, ?, ?, ?, ?, ?) RETURNING "id", "tag", "address", "number", ST_AsEWKB(coordinates) AS coordinates, "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time"`, data.Tag, data.Address, data.Number, point, data.Instructions, data.UserId, data.ProvinceId, data.MunicipalityId, time, time).Scan(&res)
 	if result.Error != nil {
 		return nil, result.Error
+	}
+	return &res, nil
+}
+
+func (i *userAddressDatasource) UpdateUserAddress(tx *gorm.DB, where *models.UserAddress, data *models.UserAddress) (*models.UserAddress, error) {
+	var point *string
+	if data.Coordinates.Point != nil {
+		value := fmt.Sprintf("POINT(%v %v)", data.Coordinates.Point.Coords()[1], data.Coordinates.Point.Coords()[0])
+		point = &value
+	}
+	var res models.UserAddress
+	var time = time.Now().UTC()
+	result := tx.Raw(`UPDATE "user_address" SET "tag"=?,"address"=?,"number"=?,"coordinates"=?,"instructions"=?,"user_id"=?,"province_id"=?,"municipality_id"=?,"create_time"=?,"update_time"=? WHERE "user_address"."id" = ? AND "user_address"."delete_time" IS NULL RETURNING "id", "tag", "address", "number", "ST_AsEWKB(coordinates) AS coordinates", "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time"`, data.Tag, time, data.Address, data.Number, point, data.Instructions, data.UserId, data.ProvinceId, data.MunicipalityId, time, time).Scan(&res)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("record not found")
+		} else {
+			return nil, result.Error
+		}
 	}
 	return &res, nil
 }
