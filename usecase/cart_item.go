@@ -186,7 +186,7 @@ func (i *cartItemService) ListCartItem(ctx context.Context, req *pb.ListCartItem
 		itemsResponse = append(itemsResponse, &pb.CartItem{
 			Id:                   item.ID.String(),
 			Name:                 item.Name,
-			Price:                item.Price,
+			PriceCup:             item.PriceCup,
 			ItemId:               item.ItemId.String(),
 			AuthorizationTokenId: item.AuthorizationTokenId.String(),
 			Quantity:             item.Quantity,
@@ -259,7 +259,7 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 			} else if cartItemRes != nil && cartItemRes.BusinessId != item.BusinessId {
 				return errors.New("the items in the cart can only be from one business")
 			}
-			result, resultErr = i.dao.NewCartItemRepository().CreateCartItem(tx, &models.CartItem{Name: item.Name, Price: item.Price, Quantity: req.Quantity, ItemId: item.ID, UserId: authorizationTokenRes.UserId, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: item.BusinessId, Thumbnail: item.Thumbnail, BlurHash: item.BlurHash})
+			result, resultErr = i.dao.NewCartItemRepository().CreateCartItem(tx, &models.CartItem{Name: item.Name, PriceCup: item.PriceCup, Quantity: req.Quantity, ItemId: item.ID, UserId: authorizationTokenRes.UserId, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: item.BusinessId, Thumbnail: item.Thumbnail, BlurHash: item.BlurHash})
 			if resultErr != nil {
 				return resultErr
 			}
@@ -273,7 +273,7 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 		CartItem: &pb.CartItem{
 			Id:                   result.ID.String(),
 			Name:                 result.Name,
-			Price:                result.Price,
+			PriceCup:             result.PriceCup,
 			ItemId:               result.ItemId.String(),
 			AuthorizationTokenId: result.AuthorizationTokenId.String(),
 			Quantity:             result.Quantity,
@@ -350,7 +350,7 @@ func (i *cartItemService) ReduceCartItem(ctx context.Context, req *pb.ReduceCart
 		return &pb.ReduceCartItemResponse{CartItem: &pb.CartItem{
 			Id:                   result.ID.String(),
 			Name:                 result.Name,
-			Price:                result.Price,
+			PriceCup:             result.PriceCup,
 			ItemId:               result.ItemId.String(),
 			AuthorizationTokenId: result.AuthorizationTokenId.String(),
 			Quantity:             result.Quantity,

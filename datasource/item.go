@@ -72,7 +72,7 @@ func (i *itemDatasource) ListItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]s
 func (i *itemDatasource) GetItemWithLocation(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error) {
 	var res *models.ItemBusiness
 	// p := fmt.Sprintf("'POINT(%v %v)'", point.Point.Coords()[1], point.Point.Coords()[0])
-	result := tx.Model(&models.Item{}).Select("item.id, item.name, item.business_collection_id, item.business_id, item.description, item.price, item.availability, item.business_id, item.high_quality_photo, item.low_quality_photo, item.thumbnail, item.blurhash, item.create_time, item.update_time, item.cursor").Where("item.id = ?", id).Take(&res)
+	result := tx.Model(&models.Item{}).Select("item.id, item.name, item.business_collection_id, item.business_id, item.description, item.price_cup, item.availability, item.business_id, item.high_quality_photo, item.low_quality_photo, item.thumbnail, item.blurhash, item.create_time, item.update_time, item.cursor").Where("item.id = ?", id).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

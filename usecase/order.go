@@ -68,13 +68,13 @@ func (i *orderService) ListOrderedItemWithItem(ctx context.Context, req *pb.List
 		for _, item := range *unionOrderAndOrderedItemRes {
 			orderedItemFks = append(orderedItemFks, *item.OrderedItemId)
 		}
-		orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, &orderedItemFks, &[]string{"id", "name", "price", "quantity", "item_id", "cart_item_id", "user_id", "create_time", "update_time"})
+		orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, &orderedItemFks, &[]string{"id", "name", "price_cup", "quantity", "item_id", "cart_item_id", "user_id", "create_time", "update_time"})
 		if orderedItemsErr != nil {
 			return orderedItemsErr
 		}
 		orderedItems := make([]*pb.OrderedItem, 0, len(*orderedItemsRes))
 		for _, item := range *orderedItemsRes {
-			orderedItems = append(orderedItems, &pb.OrderedItem{Id: item.ID.String(), Name: item.Name, Price: item.Price, ItemId: item.ItemId.String(), Quantity: item.Quantity, UserId: item.UserId.String(), CreateTime: timestamppb.New(item.CreateTime), UpdateTime: timestamppb.New(item.UpdateTime), CartItemId: item.CartItemId.String()})
+			orderedItems = append(orderedItems, &pb.OrderedItem{Id: item.ID.String(), Name: item.Name, PriceCup: item.PriceCup, ItemId: item.ItemId.String(), Quantity: item.Quantity, UserId: item.UserId.String(), CreateTime: timestamppb.New(item.CreateTime), UpdateTime: timestamppb.New(item.UpdateTime), CartItemId: item.CartItemId.String()})
 		}
 		res.OrderedItems = orderedItems
 		return nil
@@ -182,7 +182,7 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 		if createOrderLcErr != nil {
 			return createOrderLcErr
 		}
-		res = &pb.Order{Id: updateOrderRes.ID.String(), Status: *utils.ParseOrderStatusType(&updateOrderRes.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.OrderType), Price: updateOrderRes.Price, BusinessId: updateOrderRes.BusinessId.String(), UserId: updateOrderRes.UserId.String(), Coordinates: &pb.Point{Latitude: updateOrderRes.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Coordinates.FlatCoords()[1]}, OrderTime: timestamppb.New(updateOrderRes.OrderTime), CreateTime: timestamppb.New(updateOrderRes.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.UpdateTime), Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions, ShortId: updateOrderRes.ShortId, CancelReasons: updateOrderRes.CancelReasons, BusinessName: updateOrderRes.BusinessName, ItemsQuantity: updateOrderRes.ItemsQuantity}
+		res = &pb.Order{Id: updateOrderRes.ID.String(), Status: *utils.ParseOrderStatusType(&updateOrderRes.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.OrderType), PriceCup: updateOrderRes.PriceCup, BusinessId: updateOrderRes.BusinessId.String(), UserId: updateOrderRes.UserId.String(), Coordinates: &pb.Point{Latitude: updateOrderRes.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Coordinates.FlatCoords()[1]}, OrderTime: timestamppb.New(updateOrderRes.OrderTime), CreateTime: timestamppb.New(updateOrderRes.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.UpdateTime), Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions, ShortId: updateOrderRes.ShortId, CancelReasons: updateOrderRes.CancelReasons, BusinessName: updateOrderRes.BusinessName, ItemsQuantity: updateOrderRes.ItemsQuantity}
 		return nil
 	})
 	if err != nil {
@@ -223,7 +223,7 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		listCartItemRes, listCartItemErr := i.dao.NewCartItemRepository().ListCartItemAll(tx, &models.CartItem{UserId: authorizationTokenRes.UserId}, &[]string{"id", "business_id", "price", "item_id", "user_id", "quantity", "name"})
+		listCartItemRes, listCartItemErr := i.dao.NewCartItemRepository().ListCartItemAll(tx, &models.CartItem{UserId: authorizationTokenRes.UserId}, &[]string{"id", "business_id", "price_cup", "item_id", "user_id", "quantity", "name"})
 		if listCartItemErr != nil {
 			return listCartItemErr
 		} else if listCartItemRes == nil {
@@ -232,17 +232,17 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		for _, item := range *listCartItemRes {
 			cartItems = append(cartItems, *item.ID)
 		}
-		var price decimal.Decimal
+		var price_cup decimal.Decimal
 		var quantity int32 = 0
 		orderedItems := make([]models.OrderedItem, 0, len(*listCartItemRes))
 		for _, item := range *listCartItemRes {
-			itemPrice, itemPriceErr := decimal.NewFromString(item.Price)
-			if itemPriceErr != nil {
-				return itemPriceErr
+			itemPriceCup, itemPriceCupErr := decimal.NewFromString(item.PriceCup)
+			if itemPriceCupErr != nil {
+				return itemPriceCupErr
 			}
-			price = price.Add(itemPrice)
+			price_cup = price_cup.Add(itemPriceCup)
 			quantity += item.Quantity
-			orderedItems = append(orderedItems, models.OrderedItem{Quantity: item.Quantity, Price: item.Price, CartItemId: item.ID, UserId: item.UserId, ItemId: item.ItemId, Name: item.Name})
+			orderedItems = append(orderedItems, models.OrderedItem{Quantity: item.Quantity, PriceCup: item.PriceCup, CartItemId: item.ID, UserId: item.UserId, ItemId: item.ItemId, Name: item.Name})
 		}
 		businessScheduleRes, businessScheduleErr := i.dao.NewBusinessScheduleRepository().GetBusinessSchedule(tx, &models.BusinessSchedule{BusinessId: (*listCartItemRes)[0].BusinessId}, nil)
 		if businessScheduleErr != nil {
@@ -660,7 +660,7 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		if createOrderedItemsErr != nil {
 			return createOrderedItemsErr
 		}
-		createOrderRes, createOrderErr := i.dao.NewOrderRepository().CreateOrder(tx, &models.Order{ItemsQuantity: quantity, OrderType: req.OrderType.String(), UserId: authorizationTokenRes.UserId, OrderTime: req.OrderTime.AsTime().UTC(), Coordinates: location, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: (*listCartItemRes)[0].BusinessId, Price: price.String(), CreateTime: createTime, UpdateTime: createTime, Number: req.Number, Address: req.Address, Instructions: req.Instructions, BusinessName: businessRes.Name})
+		createOrderRes, createOrderErr := i.dao.NewOrderRepository().CreateOrder(tx, &models.Order{ItemsQuantity: quantity, OrderType: req.OrderType.String(), UserId: authorizationTokenRes.UserId, OrderTime: req.OrderTime.AsTime().UTC(), Coordinates: location, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: (*listCartItemRes)[0].BusinessId, PriceCup: price_cup.String(), CreateTime: createTime, UpdateTime: createTime, Number: req.Number, Address: req.Address, Instructions: req.Instructions, BusinessName: businessRes.Name})
 		if createOrderErr != nil {
 			return createOrderErr
 		}
@@ -680,7 +680,7 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		if err != nil {
 			return err
 		}
-		res = &pb.Order{BusinessName: businessRes.Name, ItemsQuantity: quantity, Status: *utils.ParseOrderStatusType(&createOrderRes.Status), OrderType: *utils.ParseOrderType(&createOrderRes.OrderType), Number: createOrderRes.Number, BusinessId: createOrderRes.BusinessId.String(), UserId: createOrderRes.UserId.String(), OrderTime: timestamppb.New(createOrderRes.OrderTime), Coordinates: &pb.Point{Latitude: createOrderRes.Coordinates.FlatCoords()[0], Longitude: createOrderRes.Coordinates.FlatCoords()[1]}, Price: price.String(), CreateTime: timestamppb.New(createOrderRes.CreateTime), UpdateTime: timestamppb.New(createOrderRes.UpdateTime), Address: createOrderRes.Address, Instructions: createOrderRes.Instructions, Id: createOrderRes.ID.String(), ShortId: createOrderRes.ShortId}
+		res = &pb.Order{BusinessName: businessRes.Name, ItemsQuantity: quantity, Status: *utils.ParseOrderStatusType(&createOrderRes.Status), OrderType: *utils.ParseOrderType(&createOrderRes.OrderType), Number: createOrderRes.Number, BusinessId: createOrderRes.BusinessId.String(), UserId: createOrderRes.UserId.String(), OrderTime: timestamppb.New(createOrderRes.OrderTime), Coordinates: &pb.Point{Latitude: createOrderRes.Coordinates.FlatCoords()[0], Longitude: createOrderRes.Coordinates.FlatCoords()[1]}, PriceCup: price_cup.String(), CreateTime: timestamppb.New(createOrderRes.CreateTime), UpdateTime: timestamppb.New(createOrderRes.UpdateTime), Address: createOrderRes.Address, Instructions: createOrderRes.Instructions, Id: createOrderRes.ID.String(), ShortId: createOrderRes.ShortId}
 		return nil
 	})
 	if err != nil {
@@ -745,7 +745,7 @@ func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, 
 			CancelReasons: item.CancelReasons,
 			BusinessName:  item.BusinessName,
 			ItemsQuantity: item.ItemsQuantity,
-			Price:         item.Price,
+			PriceCup:      item.PriceCup,
 			Number:        item.Number, Address: item.Address,
 			Instructions: item.Instructions,
 			UserId:       item.UserId.String(),

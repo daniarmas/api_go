@@ -17,7 +17,12 @@ type Item struct {
 	ID                   *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Name                 string         `gorm:"column:name;not null"`
 	Description          string         `gorm:"column:description"`
-	Price                string         `gorm:"column:price;not null"`
+	PriceCup             string         `gorm:"column:price_cup;not null"`
+	CostCup              string         `gorm:"column:cost_cup"`
+	ProfitCup            string         `gorm:"column:profit_cup"`
+	PriceUsd             string         `gorm:"column:price_usd"`
+	CostUsd              string         `gorm:"column:cost_usd"`
+	ProfitUsd            string         `gorm:"column:profit_usd"`
 	AvailableFlag        bool           `gorm:"column:available_flag;not null"`
 	EnabledFlag          bool           `gorm:"column:enabled_flag;not null"`
 	Availability         int64          `gorm:"column:availability;not null"`
@@ -43,7 +48,12 @@ type ItemBusiness struct {
 	Description          string         `gorm:"column:description"`
 	AvailableFlag        bool           `gorm:"column:available_flag;not null"`
 	EnabledFlag          bool           `gorm:"column:enabled_flag;not null"`
-	Price                string         `gorm:"column:price;not null"`
+	PriceCup             string         `gorm:"column:price_cup;not null"`
+	CostCup              string         `gorm:"column:cost_cup;not null"`
+	ProfitCup            string         `gorm:"column:profit_cup;not null"`
+	PriceUsd             string         `gorm:"column:price_usd"`
+	CostUsd              string         `gorm:"column:cost_usd"`
+	ProfitUsd            string         `gorm:"column:profit_usd"`
 	Availability         int64          `gorm:"column:availability;not null"`
 	BusinessId           *uuid.UUID     `gorm:"column:business_id;not null"`
 	Business             Business       `gorm:"foreignKey:BusinessId"`

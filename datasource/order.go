@@ -23,7 +23,7 @@ type orderDatasource struct{}
 
 func (i *orderDatasource) GetOrder(tx *gorm.DB, where *models.Order) (*models.Order, error) {
 	var res models.Order
-	result := tx.Raw(`SELECT "id", "short_id", "items_quantity", "status", "order_type", "price", "number", "address", "business_id", ST_AsEWKB(coordinates) AS coordinates, "user_id", "authorization_token_id", "order_time", "create_time", "update_time", "instructions", "cancel_reasons" FROM "order" WHERE id = ? LIMIT 1`, where.ID).Scan(&res)
+	result := tx.Raw(`SELECT "id", "short_id", "items_quantity", "status", "order_type", "price_cup", "number", "address", "business_id", ST_AsEWKB(coordinates) AS coordinates, "user_id", "authorization_token_id", "order_time", "create_time", "update_time", "instructions", "cancel_reasons" FROM "order" WHERE id = ? LIMIT 1`, where.ID).Scan(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
@@ -37,7 +37,7 @@ func (i *orderDatasource) GetOrder(tx *gorm.DB, where *models.Order) (*models.Or
 func (i *orderDatasource) UpdateOrder(tx *gorm.DB, where *models.Order, data *models.Order) (*models.Order, error) {
 	var res models.Order
 	var time = time.Now().UTC()
-	result := tx.Raw(`UPDATE "order" SET "status"=?,"update_time"=?,"cancel_reasons"=? WHERE "order"."id" = ? AND "order"."delete_time" IS NULL RETURNING "id", "short_id", "items_quantity", "status", "order_type", "price", "number", "address", "business_id", ST_AsEWKB(coordinates) AS coordinates, "user_id", "authorization_token_id", "order_time", "create_time", "update_time", "instructions", "cancel_reasons", "business_name"`, data.Status, time, data.CancelReasons, where.ID).Scan(&res)
+	result := tx.Raw(`UPDATE "order" SET "status"=?,"update_time"=?,"cancel_reasons"=? WHERE "order"."id" = ? AND "order"."delete_time" IS NULL RETURNING "id", "short_id", "items_quantity", "status", "order_type", "price_cup", "number", "address", "business_id", ST_AsEWKB(coordinates) AS coordinates, "user_id", "authorization_token_id", "order_time", "create_time", "update_time", "instructions", "cancel_reasons", "business_name"`, data.Status, time, data.CancelReasons, where.ID).Scan(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
@@ -56,7 +56,7 @@ func (i *orderDatasource) CreateOrder(tx *gorm.DB, data *models.Order) (*models.
 		return nil, err
 	}
 	var res models.Order
-	result := tx.Raw(`INSERT INTO "order" ("id", "business_name", "items_quantity", "authorization_token_id", "business_id", "coordinates", "order_time", "order_type", "number", "address", "instructions", "price", "user_id", "create_time", "update_time", "short_id") VALUES (?, ?, ?, ?, ?, ST_GeomFromText(?, 4326), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING "id", "short_id", "business_name", "items_quantity", "status", "order_type", "price", "number", "address", "business_id", ST_AsEWKB(coordinates) AS coordinates, "user_id", "authorization_token_id", "order_time", "instructions", "cancel_reasons", "create_time", "update_time"`, uuid.New().String(), data.BusinessName, data.ItemsQuantity, data.AuthorizationTokenId, data.BusinessId, point, data.OrderTime, data.OrderType, data.Number, data.Address, data.Instructions, data.Price, data.UserId, time, time, shortId).Scan(&res)
+	result := tx.Raw(`INSERT INTO "order" ("id", "business_name", "items_quantity", "authorization_token_id", "business_id", "coordinates", "order_time", "order_type", "number", "address", "instructions", "price_cup", "user_id", "create_time", "update_time", "short_id") VALUES (?, ?, ?, ?, ?, ST_GeomFromText(?, 4326), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING "id", "short_id", "business_name", "items_quantity", "status", "order_type", "price_cup", "number", "address", "business_id", ST_AsEWKB(coordinates) AS coordinates, "user_id", "authorization_token_id", "order_time", "instructions", "cancel_reasons", "create_time", "update_time"`, uuid.New().String(), data.BusinessName, data.ItemsQuantity, data.AuthorizationTokenId, data.BusinessId, point, data.OrderTime, data.OrderType, data.Number, data.Address, data.Instructions, data.PriceCup, data.UserId, time, time, shortId).Scan(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -65,7 +65,7 @@ func (i *orderDatasource) CreateOrder(tx *gorm.DB, data *models.Order) (*models.
 
 func (i *orderDatasource) ListOrder(tx *gorm.DB, where *models.Order, fields *[]string) (*[]models.Order, error) {
 	var res []models.Order
-	selectFields := &[]string{"id", "status", "business_name", "short_id", "cancel_reasons", "items_quantity", "order_type", "price", "number", "address", "instructions", "business_id", "authorization_token_id", "user_id", "order_time", "create_time", "update_time", "delete_time", "ST_AsEWKB(coordinates) AS coordinates"}
+	selectFields := &[]string{"id", "status", "business_name", "short_id", "cancel_reasons", "items_quantity", "order_type", "price_cup", "number", "address", "instructions", "business_id", "authorization_token_id", "user_id", "order_time", "create_time", "update_time", "delete_time", "ST_AsEWKB(coordinates) AS coordinates"}
 	if fields != nil {
 		selectFields = fields
 	}
@@ -78,7 +78,7 @@ func (i *orderDatasource) ListOrder(tx *gorm.DB, where *models.Order, fields *[]
 
 func (i *orderDatasource) ListOrderWithBusiness(tx *gorm.DB, where *models.OrderBusiness) (*[]models.OrderBusiness, error) {
 	var res []models.OrderBusiness
-	result := tx.Model(&models.Order{}).Limit(11).Select(`"order"."id", "order"."cancel_reasons", "order"."short_id", "order"."status", "order"."order_type", "order"."price", "order"."number", "order"."address", "order"."instructions", "order"."business_id", "order"."user_id", "order"."order_time", "order"."create_time", "order"."update_time", "order"."delete_time", ST_AsEWKB("order"."coordinates") AS "coordinates", "order"."business_name", "order"."items_quantity"`).Where(`"order"."user_id" = ? AND "order"."create_time" < ?`, where.UserId, where.CreateTime).Order(`"order"."create_time" desc`).Scan(&res)
+	result := tx.Model(&models.Order{}).Limit(11).Select(`"order"."id", "order"."cancel_reasons", "order"."short_id", "order"."status", "order"."order_type", "order"."price_cup", "order"."number", "order"."address", "order"."instructions", "order"."business_id", "order"."user_id", "order"."order_time", "order"."create_time", "order"."update_time", "order"."delete_time", ST_AsEWKB("order"."coordinates") AS "coordinates", "order"."business_name", "order"."items_quantity"`).Where(`"order"."user_id" = ? AND "order"."create_time" < ?`, where.UserId, where.CreateTime).Order(`"order"."create_time" desc`).Scan(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}
