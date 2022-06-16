@@ -16,6 +16,8 @@ services:
     container_name: redis
     volumes:
       - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - 6379:6379
     restart: always
     command: redis-server /usr/local/etc/redis/redis.conf
   pgweb:
@@ -64,24 +66,24 @@ services:
   #     PGADMIN_DEFAULT_PASSWORD: admin
   #   ports:
   #     - 8080:80
-  minio:
-    image: docker.uclv.cu/minio/minio:RELEASE.2022-01-08T03-11-54Z
-    container_name: minio
-    volumes:
-      - miniodata:/data
-    restart: always
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: root
-      MINIO_ROOT_PASSWORD: root1234
-    ports:
-      - 9011:9000
-      - 9010:9001
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
+  # minio:
+  #   image: docker.uclv.cu/minio/minio:RELEASE.2022-01-08T03-11-54Z
+  #   container_name: minio
+  #   volumes:
+  #     - miniodata:/data
+  #   restart: always
+  #   command: server /data --console-address ":9001"
+  #   environment:
+  #     MINIO_ROOT_USER: root
+  #     MINIO_ROOT_PASSWORD: root1234
+  #   ports:
+  #     - 9011:9000
+  #     - 9010:9001
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+  #     interval: 30s
+  #     timeout: 20s
+  #     retries: 3
   createbuckets:
     image: docker.uclv.cu/minio/mc:RELEASE.2022-04-16T21-11-21Z
     depends_on:
@@ -90,7 +92,7 @@ services:
     restart: on-failure
     entrypoint: >
       /bin/sh -c "
-      /usr/bin/mc alias set minio http://minio:9000 root root1234;
+      /usr/bin/mc alias set minio http://192.168.1.2:9011 root root1234;
       /usr/bin/mc mb minio/business-avatar;
       /usr/bin/mc mb minio/business-avatar-deleted;
       /usr/bin/mc mb minio/items;
@@ -106,5 +108,5 @@ services:
       "
 volumes:
   cockroach:
-  miniodata:
+  # miniodata:
   pgadmin4:

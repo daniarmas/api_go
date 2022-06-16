@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"errors"
 
 	"github.com/daniarmas/api_go/datasource"
@@ -40,6 +41,7 @@ func (i *banService) GetBannedDevice(metadata *metadata.MD) (*models.BannedDevic
 }
 
 func (i *banService) GetBannedUser(metadata *metadata.MD) (*models.BannedUser, error) {
+	var ctx = context.Background()
 	var bannedUser *models.BannedUser
 	var bannedUserErr error
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
@@ -57,7 +59,7 @@ func (i *banService) GetBannedUser(metadata *metadata.MD) (*models.BannedUser, e
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, nil)
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
