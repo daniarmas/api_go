@@ -48,6 +48,7 @@ service UserService {
   rpc GetAddressInfo (GetAddressInfoRequest) returns (GetAddressInfoResponse) {}
   rpc ListUserAddress (google.protobuf.Empty) returns (ListUserAddressResponse) {}
   rpc CreateUserAddress (CreateUserAddressRequest) returns (UserAddress) {}
+  rpc UpdateUserAddress (UpdateUserAddressRequest) returns (UserAddress) {}
   rpc DeleteUserAddress (DeleteUserAddressRequest) returns (google.protobuf.Empty) {}
 }
 
@@ -88,6 +89,11 @@ message DeleteUserAddressRequest {
 
 message CreateUserAddressRequest {
   UserAddress userAddress = 1;
+}
+
+message UpdateUserAddressRequest {
+  string id = 1;
+  UserAddress userAddress = 2;
 }
 
 message ListUserAddressResponse {

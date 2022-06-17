@@ -25,6 +25,7 @@ type UserService interface {
 	GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoRequest, md *utils.ClientMetadata) (*pb.GetAddressInfoResponse, error)
 	ListUserAddress(ctx context.Context, req *gp.Empty, md *utils.ClientMetadata) (*pb.ListUserAddressResponse, error)
 	CreateUserAddress(ctx context.Context, req *pb.CreateUserAddressRequest, md *utils.ClientMetadata) (*pb.UserAddress, error)
+	UpdateUserAddress(ctx context.Context, req *pb.UpdateUserAddressRequest, md *utils.ClientMetadata) (*pb.UserAddress, error)
 	DeleteUserAddress(ctx context.Context, req *pb.DeleteUserAddressRequest, md *utils.ClientMetadata) (*gp.Empty, error)
 }
 
@@ -36,6 +37,71 @@ type userService struct {
 
 func NewUserService(dao repository.DAO, config *utils.Config, rdb *redis.Client) UserService {
 	return &userService{dao: dao, config: config, rdb: rdb}
+}
+
+func (i *userService) UpdateUserAddress(ctx context.Context, req *pb.UpdateUserAddressRequest, md *utils.ClientMetadata) (*pb.UserAddress, error) {
+	var res pb.UserAddress
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("authorization token not found")
+		} else if err != nil && err.Error() != "record not found" {
+			return err
+		}
+		userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserId}, &[]string{"id"})
+		if userErr != nil {
+			return userErr
+		}
+		listAddressRes, listAddressErr := i.dao.NewUserAddressRepository().ListUserAddress(tx, &models.UserAddress{UserId: userRes.ID}, &[]string{"id"})
+		if listAddressErr != nil {
+			return listAddressErr
+		}
+		if len(*listAddressRes) == 10 {
+			return errors.New("only can have 10 user_address")
+		}
+		id := uuid.MustParse(req.Id)
+		provinceId := uuid.MustParse(req.UserAddress.ProvinceId)
+		municipalityId := uuid.MustParse(req.UserAddress.MunicipalityId)
+		location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.UserAddress.Coordinates.Latitude, req.UserAddress.Coordinates.Longitude}).SetSRID(4326)}
+		updateUserAddressRes, updateUserAddressErr := i.dao.NewUserAddressRepository().UpdateUserAddress(tx, &models.UserAddress{ID: &id}, &models.UserAddress{Tag: req.UserAddress.Tag, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, UserId: userRes.ID, ProvinceId: &provinceId, MunicipalityId: &municipalityId, Coordinates: location})
+		if updateUserAddressErr != nil && updateUserAddressErr.Error() == "record not found" {
+			return errors.New("user address not found")
+		} else if updateUserAddressErr != nil {
+			return updateUserAddressErr
+		}
+		res = pb.UserAddress{
+			Id:             updateUserAddressRes.ID.String(),
+			Tag:            updateUserAddressRes.Tag,
+			Number:         updateUserAddressRes.Number,
+			Instructions:   updateUserAddressRes.Instructions,
+			Address:        updateUserAddressRes.Address,
+			UserId:         updateUserAddressRes.UserId.String(),
+			ProvinceId:     updateUserAddressRes.ProvinceId.String(),
+			MunicipalityId: updateUserAddressRes.MunicipalityId.String(),
+			Coordinates:    &pb.Point{Latitude: updateUserAddressRes.Coordinates.FlatCoords()[0], Longitude: updateUserAddressRes.Coordinates.FlatCoords()[1]},
+			CreateTime:     timestamppb.New(updateUserAddressRes.CreateTime),
+			UpdateTime:     timestamppb.New(updateUserAddressRes.UpdateTime),
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
 }
 
 func (i *userService) DeleteUserAddress(ctx context.Context, req *pb.DeleteUserAddressRequest, md *utils.ClientMetadata) (*gp.Empty, error) {

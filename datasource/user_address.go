@@ -53,13 +53,15 @@ func (i *userAddressDatasource) UpdateUserAddress(tx *gorm.DB, where *models.Use
 	}
 	var res models.UserAddress
 	var time = time.Now().UTC()
-	result := tx.Raw(`UPDATE "user_address" SET "tag"=?,"address"=?,"number"=?,"coordinates"=?,"instructions"=?,"user_id"=?,"province_id"=?,"municipality_id"=?,"create_time"=?,"update_time"=? WHERE "user_address"."id" = ? AND "user_address"."delete_time" IS NULL RETURNING "id", "tag", "address", "number", "ST_AsEWKB(coordinates) AS coordinates", "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time"`, data.Tag, time, data.Address, data.Number, point, data.Instructions, data.UserId, data.ProvinceId, data.MunicipalityId, time, time).Scan(&res)
+	result := tx.Raw(`UPDATE "user_address" SET "tag"=?,"address"=?,"number"=?,"coordinates"=ST_GeomFromText(?, 4326),"instructions"=?,"user_id"=?,"province_id"=?,"municipality_id"=?,"create_time"=?,"update_time"=? WHERE "user_address"."id" = ? AND "user_address"."delete_time" IS NULL RETURNING "id", "tag", "address", "number", ST_AsEWKB(coordinates) AS coordinates, "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time"`, data.Tag, data.Address, data.Number, point, data.Instructions, data.UserId, data.ProvinceId, data.MunicipalityId, time, time, where.ID).Scan(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
 		} else {
 			return nil, result.Error
 		}
+	} else if result.RowsAffected == 0 {
+		return nil, errors.New("record not found")
 	}
 	return &res, nil
 }

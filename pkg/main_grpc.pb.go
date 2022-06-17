@@ -900,6 +900,7 @@ type UserServiceClient interface {
 	GetAddressInfo(ctx context.Context, in *GetAddressInfoRequest, opts ...grpc.CallOption) (*GetAddressInfoResponse, error)
 	ListUserAddress(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListUserAddressResponse, error)
 	CreateUserAddress(ctx context.Context, in *CreateUserAddressRequest, opts ...grpc.CallOption) (*UserAddress, error)
+	UpdateUserAddress(ctx context.Context, in *UpdateUserAddressRequest, opts ...grpc.CallOption) (*UserAddress, error)
 	DeleteUserAddress(ctx context.Context, in *DeleteUserAddressRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -956,6 +957,15 @@ func (c *userServiceClient) CreateUserAddress(ctx context.Context, in *CreateUse
 	return out, nil
 }
 
+func (c *userServiceClient) UpdateUserAddress(ctx context.Context, in *UpdateUserAddressRequest, opts ...grpc.CallOption) (*UserAddress, error) {
+	out := new(UserAddress)
+	err := c.cc.Invoke(ctx, "/main.UserService/UpdateUserAddress", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) DeleteUserAddress(ctx context.Context, in *DeleteUserAddressRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/main.UserService/DeleteUserAddress", in, out, opts...)
@@ -974,6 +984,7 @@ type UserServiceServer interface {
 	GetAddressInfo(context.Context, *GetAddressInfoRequest) (*GetAddressInfoResponse, error)
 	ListUserAddress(context.Context, *emptypb.Empty) (*ListUserAddressResponse, error)
 	CreateUserAddress(context.Context, *CreateUserAddressRequest) (*UserAddress, error)
+	UpdateUserAddress(context.Context, *UpdateUserAddressRequest) (*UserAddress, error)
 	DeleteUserAddress(context.Context, *DeleteUserAddressRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
@@ -996,6 +1007,9 @@ func (UnimplementedUserServiceServer) ListUserAddress(context.Context, *emptypb.
 }
 func (UnimplementedUserServiceServer) CreateUserAddress(context.Context, *CreateUserAddressRequest) (*UserAddress, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUserAddress not implemented")
+}
+func (UnimplementedUserServiceServer) UpdateUserAddress(context.Context, *UpdateUserAddressRequest) (*UserAddress, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserAddress not implemented")
 }
 func (UnimplementedUserServiceServer) DeleteUserAddress(context.Context, *DeleteUserAddressRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteUserAddress not implemented")
@@ -1103,6 +1117,24 @@ func _UserService_CreateUserAddress_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_UpdateUserAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserAddressRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpdateUserAddress(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.UserService/UpdateUserAddress",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpdateUserAddress(ctx, req.(*UpdateUserAddressRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_DeleteUserAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteUserAddressRequest)
 	if err := dec(in); err != nil {
@@ -1147,6 +1179,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateUserAddress",
 			Handler:    _UserService_CreateUserAddress_Handler,
+		},
+		{
+			MethodName: "UpdateUserAddress",
+			Handler:    _UserService_UpdateUserAddress_Handler,
 		},
 		{
 			MethodName: "DeleteUserAddress",
