@@ -46,7 +46,7 @@ service UserService {
   rpc GetUser (google.protobuf.Empty) returns (GetUserResponse) {}
   rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse) {}
   rpc GetAddressInfo (GetAddressInfoRequest) returns (GetAddressInfoResponse) {}
-  rpc ListUserAddress (ListUserAddressRequest) returns (ListUserAddressResponse) {}
+  rpc ListUserAddress (google.protobuf.Empty) returns (ListUserAddressResponse) {}
 }
 
 service OrderService {
@@ -79,10 +79,6 @@ service AnalyticsService {
 }
 
 // Request & Response Message
-
-message ListUserAddressRequest {
-  string user_id = 1;
-}
 
 message ListUserAddressResponse {
   repeated UserAddress userAddress = 1;

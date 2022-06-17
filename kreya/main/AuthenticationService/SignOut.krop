@@ -4,7 +4,7 @@
     "metadata": [
       {
         "key": "Authorization",
-        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTMwNzk2OTksInN1YiI6IjFmOGFkZTc2LWQ3N2ItNDQ2Yi04YjkwLTNmYThjNTdkZjU0YiJ9.WyZ1F2x4FTmpKr4cIBb9iNhvqLLHxylKc6F-aarx4n8"
+        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTU1MDI0NzksInN1YiI6IjA0MzY0NTVlLWNkM2QtNGYzMC1iODA4LWU4MDBmZDE5ZmMwYyJ9.yJC2Wp6dZSDRgG9LMLC4wDsW2KzJ_TlxwxUYHHWSs6o"
       },
       {
         "key": "Device-Id",

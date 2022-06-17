@@ -89,7 +89,37 @@ func (m *UserServer) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoR
 func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.GetUserResponse, error) {
 	var st *status.Status
 	meta := utils.GetMetadata(ctx)
+	if meta.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
 	res, err := m.userService.GetUser(ctx, meta)
+	if err != nil {
+		switch err.Error() {
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorizationtoken expired":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return res, nil
+}
+
+func (m *UserServer) ListUserAddress(ctx context.Context, req *gp.Empty) (*pb.ListUserAddressResponse, error) {
+	var st *status.Status
+	meta := utils.GetMetadata(ctx)
+	if meta.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
+	res, err := m.userService.ListUserAddress(ctx, req, meta)
 	if err != nil {
 		switch err.Error() {
 		case "authorization token not found":
@@ -113,6 +143,10 @@ func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) 
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
 	if req.User.Email != "" {
 		_, err := mail.ParseAddress(req.User.Email)
 		if err != nil {

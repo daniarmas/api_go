@@ -14,6 +14,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
+	gp "google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 )
@@ -22,6 +23,7 @@ type UserService interface {
 	GetUser(ctx context.Context, md *utils.ClientMetadata) (*pb.GetUserResponse, error)
 	UpdateUser(ctx context.Context, req *pb.UpdateUserRequest, md *utils.ClientMetadata) (*pb.UpdateUserResponse, error)
 	GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoRequest, md *utils.ClientMetadata) (*pb.GetAddressInfoResponse, error)
+	ListUserAddress(ctx context.Context, req *gp.Empty, md *utils.ClientMetadata) (*pb.ListUserAddressResponse, error)
 }
 
 type userService struct {
@@ -32,6 +34,59 @@ type userService struct {
 
 func NewUserService(dao repository.DAO, config *utils.Config, rdb *redis.Client) UserService {
 	return &userService{dao: dao, config: config, rdb: rdb}
+}
+
+func (i *userService) ListUserAddress(ctx context.Context, req *gp.Empty, md *utils.ClientMetadata) (*pb.ListUserAddressResponse, error) {
+	var res pb.ListUserAddressResponse
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("authorization token not found")
+		} else if err != nil && err.Error() != "record not found" {
+			return err
+		}
+		userId := *authorizationTokenRes.UserId
+		listUserAddressRes, listUserAddressErr := i.dao.NewUserAddressRepository().ListUserAddress(tx, &models.UserAddress{UserId: &userId}, nil)
+		if listUserAddressErr != nil {
+			return listUserAddressErr
+		}
+		userAddress := make([]*pb.UserAddress, 0, len(*listUserAddressRes))
+		for _, i := range *listUserAddressRes {
+			userAddress = append(userAddress, &pb.UserAddress{
+				Id:             i.ID.String(),
+				Tag:            i.Tag,
+				UserId:         i.UserId.String(),
+				Coordinates:    &pb.Point{Latitude: i.Coordinates.FlatCoords()[0], Longitude: i.Coordinates.FlatCoords()[1]},
+				Address:        i.Address,
+				Number:         i.Number,
+				Instructions:   i.Instructions,
+				ProvinceId:     i.ProvinceId.String(),
+				MunicipalityId: i.MunicipalityId.String(),
+				CreateTime:     timestamppb.New(i.CreateTime),
+				UpdateTime:     timestamppb.New(i.UpdateTime),
+			})
+		}
+		res.UserAddress = userAddress
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
 }
 
 func (i *userService) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoRequest, md *utils.ClientMetadata) (*pb.GetAddressInfoResponse, error) {
@@ -93,8 +148,8 @@ func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*p
 		return nil, err
 	}
 	userAddress := make([]*pb.UserAddress, 0, len(userRes.UserAddress))
-	permissions := make([]*pb.Permission, 0, len(userRes.UserPermissions))
-	for _, item := range userRes.UserPermissions {
+	permissions := make([]*pb.Permission, 0, len(userRes.BusinessUserPermissions))
+	for _, item := range userRes.BusinessUserPermissions {
 		permissions = append(permissions, &pb.Permission{
 			Id:         item.ID.String(),
 			Name:       item.Name,
@@ -171,7 +226,7 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 		}
 		// chech if is the user or if have permission
 		if req.User.Id != "" && authorizationTokenRes.UserId.String() != req.User.Id {
-			_, err := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{Name: "admin"}, &[]string{"id"})
+			_, err := i.dao.NewBusinessUserPermissionRepository().GetBusinessUserPermission(tx, &models.BusinessUserPermission{Name: "admin"}, &[]string{"id"})
 			if err != nil && err.Error() == "record not found" {
 				return errors.New("not have permission")
 			} else if err != nil && err.Error() != "record not found" {

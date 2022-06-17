@@ -898,7 +898,7 @@ type UserServiceClient interface {
 	GetUser(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetUserResponse, error)
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error)
 	GetAddressInfo(ctx context.Context, in *GetAddressInfoRequest, opts ...grpc.CallOption) (*GetAddressInfoResponse, error)
-	ListUserAddress(ctx context.Context, in *ListUserAddressRequest, opts ...grpc.CallOption) (*ListUserAddressResponse, error)
+	ListUserAddress(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListUserAddressResponse, error)
 }
 
 type userServiceClient struct {
@@ -936,7 +936,7 @@ func (c *userServiceClient) GetAddressInfo(ctx context.Context, in *GetAddressIn
 	return out, nil
 }
 
-func (c *userServiceClient) ListUserAddress(ctx context.Context, in *ListUserAddressRequest, opts ...grpc.CallOption) (*ListUserAddressResponse, error) {
+func (c *userServiceClient) ListUserAddress(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListUserAddressResponse, error) {
 	out := new(ListUserAddressResponse)
 	err := c.cc.Invoke(ctx, "/main.UserService/ListUserAddress", in, out, opts...)
 	if err != nil {
@@ -952,7 +952,7 @@ type UserServiceServer interface {
 	GetUser(context.Context, *emptypb.Empty) (*GetUserResponse, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
 	GetAddressInfo(context.Context, *GetAddressInfoRequest) (*GetAddressInfoResponse, error)
-	ListUserAddress(context.Context, *ListUserAddressRequest) (*ListUserAddressResponse, error)
+	ListUserAddress(context.Context, *emptypb.Empty) (*ListUserAddressResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -969,7 +969,7 @@ func (UnimplementedUserServiceServer) UpdateUser(context.Context, *UpdateUserReq
 func (UnimplementedUserServiceServer) GetAddressInfo(context.Context, *GetAddressInfoRequest) (*GetAddressInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAddressInfo not implemented")
 }
-func (UnimplementedUserServiceServer) ListUserAddress(context.Context, *ListUserAddressRequest) (*ListUserAddressResponse, error) {
+func (UnimplementedUserServiceServer) ListUserAddress(context.Context, *emptypb.Empty) (*ListUserAddressResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListUserAddress not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
@@ -1040,7 +1040,7 @@ func _UserService_GetAddressInfo_Handler(srv interface{}, ctx context.Context, d
 }
 
 func _UserService_ListUserAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListUserAddressRequest)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1052,7 +1052,7 @@ func _UserService_ListUserAddress_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: "/main.UserService/ListUserAddress",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).ListUserAddress(ctx, req.(*ListUserAddressRequest))
+		return srv.(UserServiceServer).ListUserAddress(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }

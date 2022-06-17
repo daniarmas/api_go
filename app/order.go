@@ -13,6 +13,10 @@ import (
 func (m *OrderServer) ListOrder(ctx context.Context, req *pb.ListOrderRequest) (*pb.ListOrderResponse, error) {
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
 	res, err := m.orderService.ListOrder(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
@@ -53,6 +57,10 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
 	if req.Location == nil {
 		invalidArgs = true
 		invalidLocation = &epb.BadRequest_FieldViolation{
@@ -164,6 +172,10 @@ func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReques
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
 	if req.Order.Id == "" {
 		invalidArgs = true
 		invalidId = &epb.BadRequest_FieldViolation{
@@ -228,6 +240,10 @@ func (m *OrderServer) ListOrderedItem(ctx context.Context, req *pb.ListOrderedIt
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
 	if req.OrderId == "" {
 		invalidArgs = true
 		invalidOrderId = &epb.BadRequest_FieldViolation{
