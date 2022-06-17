@@ -46,6 +46,10 @@ service UserService {
   rpc GetUser (google.protobuf.Empty) returns (GetUserResponse) {}
   rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse) {}
   rpc GetAddressInfo (GetAddressInfoRequest) returns (GetAddressInfoResponse) {}
+  rpc ListUserAddress (google.protobuf.Empty) returns (ListUserAddressResponse) {}
+  rpc CreateUserAddress (CreateUserAddressRequest) returns (UserAddress) {}
+  rpc UpdateUserAddress (UpdateUserAddressRequest) returns (UserAddress) {}
+  rpc DeleteUserAddress (DeleteUserAddressRequest) returns (google.protobuf.Empty) {}
 }
 
 service OrderService {
@@ -78,6 +82,23 @@ service AnalyticsService {
 }
 
 // Request & Response Message
+
+message DeleteUserAddressRequest {
+  string id = 1;
+}
+
+message CreateUserAddressRequest {
+  UserAddress userAddress = 1;
+}
+
+message UpdateUserAddressRequest {
+  string id = 1;
+  UserAddress userAddress = 2;
+}
+
+message ListUserAddressResponse {
+  repeated UserAddress userAddress = 1;
+}
 
 message CollectAnalyticsRequest {
   repeated BusinessAnalytics businessAnalytics = 1;
@@ -792,11 +813,6 @@ message Session {
 // }
 
 message UserAddress {
-  enum UserAddressType {
-  UNSPECIFIED = 0;
-  HOUSE = 1;
-  APARTAMENT = 2;
-  }
   string id = 1;
   string tag = 2;
   string number = 3;

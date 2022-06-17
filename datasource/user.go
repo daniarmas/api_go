@@ -22,7 +22,7 @@ func (u *userDatasource) GetUserWithAddress(tx *gorm.DB, where *models.User, fie
 	var res *models.User
 	var userAddressResult []models.UserAddress
 	var userAddressErr error
-	result := tx.Preload("UserPermissions").Where(where).Take(&res)
+	result := tx.Preload("BusinessUserPermissions").Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return res, nil

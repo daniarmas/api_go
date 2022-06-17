@@ -15,6 +15,10 @@ import (
 func (m *CartItemServer) EmptyCartItem(ctx context.Context, req *gp.Empty) (*gp.Empty, error) {
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
 	res, err := m.cartItemService.EmptyCartItem(ctx, md)
 	if err != nil {
 		switch err.Error() {
@@ -39,6 +43,10 @@ func (m *CartItemServer) EmptyCartItem(ctx context.Context, req *gp.Empty) (*gp.
 func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemRequest) (*pb.ListCartItemResponse, error) {
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
 	res, err := m.cartItemService.ListCartItem(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
@@ -65,6 +73,10 @@ func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemReq
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
 	if req.Quantity <= 0 {
 		invalidArgs = true
 		invalidQuantity = &epb.BadRequest_FieldViolation{
@@ -171,6 +183,10 @@ func (m *CartItemServer) ReduceCartItem(ctx context.Context, req *pb.ReduceCartI
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
 	if req.Quantity <= 0 {
 		invalidArgs = true
 		invalidQuantity = &epb.BadRequest_FieldViolation{
@@ -275,6 +291,10 @@ func (m *CartItemServer) DeleteCartItem(ctx context.Context, req *pb.DeleteCartI
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
 	if req.Location == nil {
 		invalidArgs = true
 		invalidLocation = &epb.BadRequest_FieldViolation{
@@ -365,6 +385,10 @@ func (m *CartItemServer) DeleteCartItem(ctx context.Context, req *pb.DeleteCartI
 func (m *CartItemServer) IsEmptyCartItem(ctx context.Context, req *gp.Empty) (*pb.IsEmptyCartItemResponse, error) {
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
 	res, err := m.cartItemService.IsEmptyCartItem(ctx, req, md)
 	if err != nil {
 		errorr := strings.Split(err.Error(), ":")
