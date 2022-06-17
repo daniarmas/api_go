@@ -81,9 +81,9 @@ func (v *userAddressDatasource) DeleteUserAddress(tx *gorm.DB, where *models.Use
 	var res *[]models.UserAddress
 	var result *gorm.DB
 	if ids != nil {
-		result = tx.Clauses(clause.Returning{}).Where(`id IN ?`, ids).Delete(&res)
+		result = tx.Clauses(clause.Returning{Columns: []clause.Column{{Name: "id"}}}).Where(`id IN ?`, ids).Delete(&res)
 	} else {
-		result = tx.Clauses(clause.Returning{}).Where(where).Delete(&res)
+		result = tx.Clauses(clause.Returning{Columns: []clause.Column{{Name: "id"}}}).Where(where).Delete(&res)
 	}
 	if result.Error != nil {
 		return nil, result.Error

@@ -138,6 +138,60 @@ func (m *UserServer) ListUserAddress(ctx context.Context, req *gp.Empty) (*pb.Li
 	return res, nil
 }
 
+func (m *UserServer) DeleteUserAddress(ctx context.Context, req *pb.DeleteUserAddressRequest) (*gp.Empty, error) {
+	var invalidId *epb.BadRequest_FieldViolation
+	var invalidArgs bool
+	var st *status.Status
+	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
+	if req.Id == "" {
+		invalidArgs = true
+		invalidId = &epb.BadRequest_FieldViolation{
+			Field:       "Id",
+			Description: "The Id field is required",
+		}
+	} else if req.Id != "" {
+		if !utils.IsValidUUID(&req.Id) {
+			invalidArgs = true
+			invalidId = &epb.BadRequest_FieldViolation{
+				Field:       "Id",
+				Description: "The Id is not a valid uuid v4",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidId != nil {
+			st, _ = st.WithDetails(
+				invalidId,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.userService.DeleteUserAddress(ctx, req, md)
+	if err != nil {
+		switch err.Error() {
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorizationtoken expired":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "user address not found":
+			st = status.New(codes.NotFound, "UserAddress not found")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return res, nil
+}
+
 func (m *UserServer) CreateUserAddress(ctx context.Context, req *pb.CreateUserAddressRequest) (*pb.UserAddress, error) {
 	var invalidCoordinates, invalidNumber, invalidAddress, invalidTag, invalidProvinceId, invalidMunicipalityId *epb.BadRequest_FieldViolation
 	var invalidArgs bool

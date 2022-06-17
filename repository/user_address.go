@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/daniarmas/api_go/models"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -10,6 +11,7 @@ type UserAddressRepository interface {
 	CreateUserAddress(tx *gorm.DB, data *models.UserAddress) (*models.UserAddress, error)
 	UpdateUserAddress(tx *gorm.DB, where *models.UserAddress, data *models.UserAddress) (*models.UserAddress, error)
 	GetUserAddress(tx *gorm.DB, where *models.UserAddress) (*models.UserAddress, error)
+	DeleteUserAddress(tx *gorm.DB, where *models.UserAddress, ids *[]uuid.UUID) (*[]models.UserAddress, error)
 }
 
 type userAddressRepository struct{}
@@ -20,6 +22,14 @@ func (i *userAddressRepository) ListUserAddress(tx *gorm.DB, where *models.UserA
 		return nil, err
 	}
 	return result, nil
+}
+
+func (i *userAddressRepository) DeleteUserAddress(tx *gorm.DB, where *models.UserAddress, ids *[]uuid.UUID) (*[]models.UserAddress, error) {
+	res, err := Datasource.NewUserAddressDatasource().DeleteUserAddress(tx, where, ids)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (i *userAddressRepository) GetUserAddress(tx *gorm.DB, where *models.UserAddress) (*models.UserAddress, error) {

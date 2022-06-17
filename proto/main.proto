@@ -48,6 +48,7 @@ service UserService {
   rpc GetAddressInfo (GetAddressInfoRequest) returns (GetAddressInfoResponse) {}
   rpc ListUserAddress (google.protobuf.Empty) returns (ListUserAddressResponse) {}
   rpc CreateUserAddress (CreateUserAddressRequest) returns (UserAddress) {}
+  rpc DeleteUserAddress (DeleteUserAddressRequest) returns (google.protobuf.Empty) {}
 }
 
 service OrderService {
@@ -80,6 +81,10 @@ service AnalyticsService {
 }
 
 // Request & Response Message
+
+message DeleteUserAddressRequest {
+  string id = 1;
+}
 
 message CreateUserAddressRequest {
   UserAddress userAddress = 1;
