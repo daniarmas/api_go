@@ -899,6 +899,7 @@ type UserServiceClient interface {
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error)
 	GetAddressInfo(ctx context.Context, in *GetAddressInfoRequest, opts ...grpc.CallOption) (*GetAddressInfoResponse, error)
 	ListUserAddress(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListUserAddressResponse, error)
+	CreateUserAddress(ctx context.Context, in *CreateUserAddressRequest, opts ...grpc.CallOption) (*UserAddress, error)
 }
 
 type userServiceClient struct {
@@ -945,6 +946,15 @@ func (c *userServiceClient) ListUserAddress(ctx context.Context, in *emptypb.Emp
 	return out, nil
 }
 
+func (c *userServiceClient) CreateUserAddress(ctx context.Context, in *CreateUserAddressRequest, opts ...grpc.CallOption) (*UserAddress, error) {
+	out := new(UserAddress)
+	err := c.cc.Invoke(ctx, "/main.UserService/CreateUserAddress", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
@@ -953,6 +963,7 @@ type UserServiceServer interface {
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
 	GetAddressInfo(context.Context, *GetAddressInfoRequest) (*GetAddressInfoResponse, error)
 	ListUserAddress(context.Context, *emptypb.Empty) (*ListUserAddressResponse, error)
+	CreateUserAddress(context.Context, *CreateUserAddressRequest) (*UserAddress, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -971,6 +982,9 @@ func (UnimplementedUserServiceServer) GetAddressInfo(context.Context, *GetAddres
 }
 func (UnimplementedUserServiceServer) ListUserAddress(context.Context, *emptypb.Empty) (*ListUserAddressResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListUserAddress not implemented")
+}
+func (UnimplementedUserServiceServer) CreateUserAddress(context.Context, *CreateUserAddressRequest) (*UserAddress, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateUserAddress not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 
@@ -1057,6 +1071,24 @@ func _UserService_ListUserAddress_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_CreateUserAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateUserAddressRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).CreateUserAddress(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.UserService/CreateUserAddress",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).CreateUserAddress(ctx, req.(*CreateUserAddressRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1079,6 +1111,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListUserAddress",
 			Handler:    _UserService_ListUserAddress_Handler,
+		},
+		{
+			MethodName: "CreateUserAddress",
+			Handler:    _UserService_CreateUserAddress_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

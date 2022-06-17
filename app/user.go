@@ -138,6 +138,142 @@ func (m *UserServer) ListUserAddress(ctx context.Context, req *gp.Empty) (*pb.Li
 	return res, nil
 }
 
+func (m *UserServer) CreateUserAddress(ctx context.Context, req *pb.CreateUserAddressRequest) (*pb.UserAddress, error) {
+	var invalidCoordinates, invalidNumber, invalidAddress, invalidTag, invalidProvinceId, invalidMunicipalityId *epb.BadRequest_FieldViolation
+	var invalidArgs bool
+	var st *status.Status
+	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
+	if req.UserAddress.ProvinceId == "" {
+		invalidArgs = true
+		invalidProvinceId = &epb.BadRequest_FieldViolation{
+			Field:       "UserAddress.ProvinceId",
+			Description: "The UserAddress.ProvinceId field is required",
+		}
+	} else if req.UserAddress.ProvinceId != "" {
+		if !utils.IsValidUUID(&req.UserAddress.ProvinceId) {
+			invalidArgs = true
+			invalidProvinceId = &epb.BadRequest_FieldViolation{
+				Field:       "UserAddress.ProvinceId",
+				Description: "The UserAddress.ProvinceId is not a valid uuid v4",
+			}
+		}
+	}
+	if req.UserAddress.MunicipalityId == "" {
+		invalidArgs = true
+		invalidMunicipalityId = &epb.BadRequest_FieldViolation{
+			Field:       "UserAddress.MunicipalityId",
+			Description: "The UserAddress.MunicipalityId field is required",
+		}
+	} else if req.UserAddress.MunicipalityId != "" {
+		if !utils.IsValidUUID(&req.UserAddress.MunicipalityId) {
+			invalidArgs = true
+			invalidMunicipalityId = &epb.BadRequest_FieldViolation{
+				Field:       "UserAddress.MunicipalityId",
+				Description: "The UserAddress.MunicipalityId is not a valid uuid v4",
+			}
+		}
+	}
+	if req.UserAddress.Tag == "" {
+		invalidArgs = true
+		invalidTag = &epb.BadRequest_FieldViolation{
+			Field:       "UserAddress.Tag",
+			Description: "The UserAddress.Tag field is required",
+		}
+	}
+	if req.UserAddress.Coordinates == nil {
+		invalidArgs = true
+		invalidCoordinates = &epb.BadRequest_FieldViolation{
+			Field:       "UserAddress.Coordinates",
+			Description: "The UserAddress.Coordinates field is required",
+		}
+	} else if req.UserAddress.Coordinates != nil {
+		if req.UserAddress.Coordinates.Latitude == 0 {
+			invalidArgs = true
+			invalidCoordinates = &epb.BadRequest_FieldViolation{
+				Field:       "UserAddress.Coordinates.Latitude",
+				Description: "The UserAddress.Coordinates.Latitude field is required",
+			}
+		} else if req.UserAddress.Coordinates.Longitude == 0 {
+			invalidArgs = true
+			invalidCoordinates = &epb.BadRequest_FieldViolation{
+				Field:       "UserAddress.Coordinates.Longitude",
+				Description: "The UserAddress.Coordinates.Longitude field is required",
+			}
+		}
+	}
+	if req.UserAddress.Address == "" {
+		invalidArgs = true
+		invalidAddress = &epb.BadRequest_FieldViolation{
+			Field:       "Address",
+			Description: "The Address field is required",
+		}
+	}
+	if req.UserAddress.Number == "" {
+		invalidArgs = true
+		invalidNumber = &epb.BadRequest_FieldViolation{
+			Field:       "Number",
+			Description: "The Number field is required",
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidCoordinates != nil {
+			st, _ = st.WithDetails(
+				invalidCoordinates,
+			)
+		}
+		if invalidAddress != nil {
+			st, _ = st.WithDetails(
+				invalidAddress,
+			)
+		}
+		if invalidMunicipalityId != nil {
+			st, _ = st.WithDetails(
+				invalidMunicipalityId,
+			)
+		}
+		if invalidProvinceId != nil {
+			st, _ = st.WithDetails(
+				invalidProvinceId,
+			)
+		}
+		if invalidTag != nil {
+			st, _ = st.WithDetails(
+				invalidTag,
+			)
+		}
+		if invalidNumber != nil {
+			st, _ = st.WithDetails(
+				invalidNumber,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.userService.CreateUserAddress(ctx, req, md)
+	if err != nil {
+		switch err.Error() {
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorizationtoken expired":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "only can have 10 user_address":
+			st = status.New(codes.ResourceExhausted, "UserAddress limit reached")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return res, nil
+}
+
 func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
 	var invalidCode, invalidEmail, invalidId *epb.BadRequest_FieldViolation
 	var invalidArgs bool
