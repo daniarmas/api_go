@@ -13,6 +13,10 @@ import (
 func (m *BusinessServer) CreateBusiness(ctx context.Context, req *pb.CreateBusinessRequest) (*pb.CreateBusinessResponse, error) {
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
 	res, err := m.businessService.CreateBusiness(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
@@ -53,6 +57,10 @@ func (m *BusinessServer) CreateBusiness(ctx context.Context, req *pb.CreateBusin
 func (m *BusinessServer) UpdateBusiness(ctx context.Context, req *pb.UpdateBusinessRequest) (*pb.Business, error) {
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
 	res, err := m.businessService.UpdateBusiness(ctx, req, md)
 	if err != nil {
 		switch err.Error() {

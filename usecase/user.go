@@ -14,6 +14,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
+	gp "google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 )
@@ -22,6 +23,10 @@ type UserService interface {
 	GetUser(ctx context.Context, md *utils.ClientMetadata) (*pb.GetUserResponse, error)
 	UpdateUser(ctx context.Context, req *pb.UpdateUserRequest, md *utils.ClientMetadata) (*pb.UpdateUserResponse, error)
 	GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoRequest, md *utils.ClientMetadata) (*pb.GetAddressInfoResponse, error)
+	ListUserAddress(ctx context.Context, req *gp.Empty, md *utils.ClientMetadata) (*pb.ListUserAddressResponse, error)
+	CreateUserAddress(ctx context.Context, req *pb.CreateUserAddressRequest, md *utils.ClientMetadata) (*pb.UserAddress, error)
+	UpdateUserAddress(ctx context.Context, req *pb.UpdateUserAddressRequest, md *utils.ClientMetadata) (*pb.UserAddress, error)
+	DeleteUserAddress(ctx context.Context, req *pb.DeleteUserAddressRequest, md *utils.ClientMetadata) (*gp.Empty, error)
 }
 
 type userService struct {
@@ -32,6 +37,223 @@ type userService struct {
 
 func NewUserService(dao repository.DAO, config *utils.Config, rdb *redis.Client) UserService {
 	return &userService{dao: dao, config: config, rdb: rdb}
+}
+
+func (i *userService) UpdateUserAddress(ctx context.Context, req *pb.UpdateUserAddressRequest, md *utils.ClientMetadata) (*pb.UserAddress, error) {
+	var res pb.UserAddress
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("authorization token not found")
+		} else if err != nil && err.Error() != "record not found" {
+			return err
+		}
+		userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserId}, &[]string{"id"})
+		if userErr != nil {
+			return userErr
+		}
+		listAddressRes, listAddressErr := i.dao.NewUserAddressRepository().ListUserAddress(tx, &models.UserAddress{UserId: userRes.ID}, &[]string{"id"})
+		if listAddressErr != nil {
+			return listAddressErr
+		}
+		if len(*listAddressRes) == 10 {
+			return errors.New("only can have 10 user_address")
+		}
+		id := uuid.MustParse(req.Id)
+		provinceId := uuid.MustParse(req.UserAddress.ProvinceId)
+		municipalityId := uuid.MustParse(req.UserAddress.MunicipalityId)
+		location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.UserAddress.Coordinates.Latitude, req.UserAddress.Coordinates.Longitude}).SetSRID(4326)}
+		updateUserAddressRes, updateUserAddressErr := i.dao.NewUserAddressRepository().UpdateUserAddress(tx, &models.UserAddress{ID: &id}, &models.UserAddress{Tag: req.UserAddress.Tag, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, UserId: userRes.ID, ProvinceId: &provinceId, MunicipalityId: &municipalityId, Coordinates: location})
+		if updateUserAddressErr != nil && updateUserAddressErr.Error() == "record not found" {
+			return errors.New("user address not found")
+		} else if updateUserAddressErr != nil {
+			return updateUserAddressErr
+		}
+		res = pb.UserAddress{
+			Id:             updateUserAddressRes.ID.String(),
+			Tag:            updateUserAddressRes.Tag,
+			Number:         updateUserAddressRes.Number,
+			Instructions:   updateUserAddressRes.Instructions,
+			Address:        updateUserAddressRes.Address,
+			UserId:         updateUserAddressRes.UserId.String(),
+			ProvinceId:     updateUserAddressRes.ProvinceId.String(),
+			MunicipalityId: updateUserAddressRes.MunicipalityId.String(),
+			Coordinates:    &pb.Point{Latitude: updateUserAddressRes.Coordinates.FlatCoords()[0], Longitude: updateUserAddressRes.Coordinates.FlatCoords()[1]},
+			CreateTime:     timestamppb.New(updateUserAddressRes.CreateTime),
+			UpdateTime:     timestamppb.New(updateUserAddressRes.UpdateTime),
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (i *userService) DeleteUserAddress(ctx context.Context, req *pb.DeleteUserAddressRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		_, err := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("authorization token not found")
+		} else if err != nil && err.Error() != "record not found" {
+			return err
+		}
+		id := uuid.MustParse(req.Id)
+		_, err = i.dao.NewUserAddressRepository().DeleteUserAddress(tx, &models.UserAddress{ID: &id}, nil)
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("user address not found")
+		} else if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &gp.Empty{}, nil
+}
+
+func (i *userService) CreateUserAddress(ctx context.Context, req *pb.CreateUserAddressRequest, md *utils.ClientMetadata) (*pb.UserAddress, error) {
+	var res pb.UserAddress
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("authorization token not found")
+		} else if err != nil && err.Error() != "record not found" {
+			return err
+		}
+		userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserId}, &[]string{"id"})
+		if userErr != nil {
+			return userErr
+		}
+		listAddressRes, listAddressErr := i.dao.NewUserAddressRepository().ListUserAddress(tx, &models.UserAddress{UserId: userRes.ID}, &[]string{"id"})
+		if listAddressErr != nil {
+			return listAddressErr
+		}
+		if len(*listAddressRes) == 10 {
+			return errors.New("only can have 10 user_address")
+		}
+		provinceId := uuid.MustParse(req.UserAddress.ProvinceId)
+		municipalityId := uuid.MustParse(req.UserAddress.MunicipalityId)
+		location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.UserAddress.Coordinates.Latitude, req.UserAddress.Coordinates.Longitude}).SetSRID(4326)}
+		createUserAddressRes, createUserAddressErr := i.dao.NewUserAddressRepository().CreateUserAddress(tx, &models.UserAddress{Tag: req.UserAddress.Tag, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, UserId: userRes.ID, ProvinceId: &provinceId, MunicipalityId: &municipalityId, Coordinates: location})
+		if createUserAddressErr != nil {
+			return createUserAddressErr
+		}
+		res = pb.UserAddress{
+			Id:             createUserAddressRes.ID.String(),
+			Tag:            createUserAddressRes.Tag,
+			Number:         createUserAddressRes.Number,
+			Instructions:   createUserAddressRes.Instructions,
+			Address:        createUserAddressRes.Address,
+			UserId:         createUserAddressRes.UserId.String(),
+			ProvinceId:     createUserAddressRes.ProvinceId.String(),
+			MunicipalityId: createUserAddressRes.MunicipalityId.String(),
+			Coordinates:    &pb.Point{Latitude: createUserAddressRes.Coordinates.FlatCoords()[0], Longitude: createUserAddressRes.Coordinates.FlatCoords()[1]},
+			CreateTime:     timestamppb.New(createUserAddressRes.CreateTime),
+			UpdateTime:     timestamppb.New(createUserAddressRes.UpdateTime),
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (i *userService) ListUserAddress(ctx context.Context, req *gp.Empty, md *utils.ClientMetadata) (*pb.ListUserAddressResponse, error) {
+	var res pb.ListUserAddressResponse
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("authorization token not found")
+		} else if err != nil && err.Error() != "record not found" {
+			return err
+		}
+		userId := *authorizationTokenRes.UserId
+		listUserAddressRes, listUserAddressErr := i.dao.NewUserAddressRepository().ListUserAddress(tx, &models.UserAddress{UserId: &userId}, nil)
+		if listUserAddressErr != nil {
+			return listUserAddressErr
+		}
+		userAddress := make([]*pb.UserAddress, 0, len(*listUserAddressRes))
+		for _, i := range *listUserAddressRes {
+			userAddress = append(userAddress, &pb.UserAddress{
+				Id:             i.ID.String(),
+				Tag:            i.Tag,
+				UserId:         i.UserId.String(),
+				Coordinates:    &pb.Point{Latitude: i.Coordinates.FlatCoords()[0], Longitude: i.Coordinates.FlatCoords()[1]},
+				Address:        i.Address,
+				Number:         i.Number,
+				Instructions:   i.Instructions,
+				ProvinceId:     i.ProvinceId.String(),
+				MunicipalityId: i.MunicipalityId.String(),
+				CreateTime:     timestamppb.New(i.CreateTime),
+				UpdateTime:     timestamppb.New(i.UpdateTime),
+			})
+		}
+		res.UserAddress = userAddress
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
 }
 
 func (i *userService) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoRequest, md *utils.ClientMetadata) (*pb.GetAddressInfoResponse, error) {
@@ -93,8 +315,8 @@ func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*p
 		return nil, err
 	}
 	userAddress := make([]*pb.UserAddress, 0, len(userRes.UserAddress))
-	permissions := make([]*pb.Permission, 0, len(userRes.UserPermissions))
-	for _, item := range userRes.UserPermissions {
+	permissions := make([]*pb.Permission, 0, len(userRes.BusinessUserPermissions))
+	for _, item := range userRes.BusinessUserPermissions {
 		permissions = append(permissions, &pb.Permission{
 			Id:         item.ID.String(),
 			Name:       item.Name,
@@ -171,7 +393,7 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 		}
 		// chech if is the user or if have permission
 		if req.User.Id != "" && authorizationTokenRes.UserId.String() != req.User.Id {
-			_, err := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{Name: "admin"}, &[]string{"id"})
+			_, err := i.dao.NewBusinessUserPermissionRepository().GetBusinessUserPermission(tx, &models.BusinessUserPermission{Name: "admin"}, &[]string{"id"})
 			if err != nil && err.Error() == "record not found" {
 				return errors.New("not have permission")
 			} else if err != nil && err.Error() != "record not found" {

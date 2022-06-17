@@ -23,7 +23,7 @@ type DAO interface {
 	NewBusinessCollectionQuery() BusinessCollectionQuery
 	NewObjectStorageRepository() ObjectStorageRepository
 	NewCartItemRepository() CartItemQuery
-	NewUserPermissionRepository() UserPermissionRepository
+	NewBusinessUserPermissionRepository() BusinessUserPermissionRepository
 	NewUnionBusinessAndMunicipalityRepository() UnionBusinessAndMunicipalityRepository
 	NewOrderRepository() OrderRepository
 	NewOrderedRepository() OrderedRepository
@@ -35,6 +35,7 @@ type DAO interface {
 	NewBusinessCategoryRepository() BusinessCategoryRepository
 	NewBusinessAnalyticsRepository() BusinessAnalyticsRepository
 	NewItemAnalyticsRepository() ItemAnalyticsRepository
+	NewUserAddressRepository() UserAddressRepository
 }
 
 type dao struct {
@@ -99,6 +100,10 @@ func (d *dao) NewBusinessScheduleRepository() BusinessScheduleRepository {
 	return &businessScheduleRepository{}
 }
 
+func (d *dao) NewUserAddressRepository() UserAddressRepository {
+	return &userAddressRepository{}
+}
+
 func (d *dao) NewBannedUserQuery() BannedUserQuery {
 	return &bannedUserQuery{}
 }
@@ -155,6 +160,6 @@ func (d *dao) NewCartItemRepository() CartItemQuery {
 	return &cartItemQuery{}
 }
 
-func (d *dao) NewUserPermissionRepository() UserPermissionRepository {
-	return &userPermissionRepository{}
+func (d *dao) NewBusinessUserPermissionRepository() BusinessUserPermissionRepository {
+	return &businessUserPermissionRepository{}
 }

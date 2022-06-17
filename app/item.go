@@ -126,6 +126,10 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 func (m *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) (*pb.Item, error) {
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
 	res, err := m.itemService.UpdateItem(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
@@ -299,6 +303,10 @@ func (m *ItemServer) SearchItemByBusiness(ctx context.Context, req *pb.SearchIte
 func (m *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) (*gp.Empty, error) {
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
 	err := m.itemService.DeleteItem(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
@@ -335,8 +343,12 @@ func (m *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) 
 }
 
 func (m *ItemServer) CreateItem(ctx context.Context, req *pb.CreateItemRequest) (*pb.Item, error) {
-	md := utils.GetMetadata(ctx)
 	var st *status.Status
+	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
 	res, err := m.itemService.CreateItem(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
