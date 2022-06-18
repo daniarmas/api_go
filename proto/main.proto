@@ -31,6 +31,7 @@ service BusinessService {
   // rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
   rpc UpdateBusiness (UpdateBusinessRequest) returns (Business) {}
   rpc CreatePartnerApplication (CreatePartnerApplicationRequest) returns (PartnerApplication) {}
+  rpc ListPartnerApplication (ListPartnerApplicationRequest) returns (ListPartnerApplicationResponse) {}
 }
 
 service ItemService {
@@ -83,6 +84,14 @@ service AnalyticsService {
 }
 
 // Request & Response Message
+
+message ListPartnerApplicationRequest {
+
+}
+
+message ListPartnerApplicationResponse {
+  repeated PartnerApplication partnerApplications = 1;
+}
 
 message CreatePartnerApplicationRequest {
   PartnerApplication partnerApplication = 1;
