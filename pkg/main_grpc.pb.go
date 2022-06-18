@@ -367,6 +367,7 @@ type BusinessServiceClient interface {
 	CreateBusiness(ctx context.Context, in *CreateBusinessRequest, opts ...grpc.CallOption) (*CreateBusinessResponse, error)
 	// rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
 	UpdateBusiness(ctx context.Context, in *UpdateBusinessRequest, opts ...grpc.CallOption) (*Business, error)
+	CreateMembershipApplication(ctx context.Context, in *CreateMembershipApplicationRequest, opts ...grpc.CallOption) (*MembershipApplication, error)
 }
 
 type businessServiceClient struct {
@@ -422,6 +423,15 @@ func (c *businessServiceClient) UpdateBusiness(ctx context.Context, in *UpdateBu
 	return out, nil
 }
 
+func (c *businessServiceClient) CreateMembershipApplication(ctx context.Context, in *CreateMembershipApplicationRequest, opts ...grpc.CallOption) (*MembershipApplication, error) {
+	out := new(MembershipApplication)
+	err := c.cc.Invoke(ctx, "/main.BusinessService/CreateMembershipApplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BusinessServiceServer is the server API for BusinessService service.
 // All implementations must embed UnimplementedBusinessServiceServer
 // for forward compatibility
@@ -432,6 +442,7 @@ type BusinessServiceServer interface {
 	CreateBusiness(context.Context, *CreateBusinessRequest) (*CreateBusinessResponse, error)
 	// rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
 	UpdateBusiness(context.Context, *UpdateBusinessRequest) (*Business, error)
+	CreateMembershipApplication(context.Context, *CreateMembershipApplicationRequest) (*MembershipApplication, error)
 	mustEmbedUnimplementedBusinessServiceServer()
 }
 
@@ -453,6 +464,9 @@ func (UnimplementedBusinessServiceServer) CreateBusiness(context.Context, *Creat
 }
 func (UnimplementedBusinessServiceServer) UpdateBusiness(context.Context, *UpdateBusinessRequest) (*Business, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBusiness not implemented")
+}
+func (UnimplementedBusinessServiceServer) CreateMembershipApplication(context.Context, *CreateMembershipApplicationRequest) (*MembershipApplication, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateMembershipApplication not implemented")
 }
 func (UnimplementedBusinessServiceServer) mustEmbedUnimplementedBusinessServiceServer() {}
 
@@ -557,6 +571,24 @@ func _BusinessService_UpdateBusiness_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BusinessService_CreateMembershipApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateMembershipApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusinessServiceServer).CreateMembershipApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.BusinessService/CreateMembershipApplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusinessServiceServer).CreateMembershipApplication(ctx, req.(*CreateMembershipApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BusinessService_ServiceDesc is the grpc.ServiceDesc for BusinessService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -583,6 +615,10 @@ var BusinessService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateBusiness",
 			Handler:    _BusinessService_UpdateBusiness_Handler,
+		},
+		{
+			MethodName: "CreateMembershipApplication",
+			Handler:    _BusinessService_CreateMembershipApplication_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

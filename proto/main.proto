@@ -30,6 +30,7 @@ service BusinessService {
   rpc CreateBusiness (CreateBusinessRequest) returns (CreateBusinessResponse) {}
   // rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
   rpc UpdateBusiness (UpdateBusinessRequest) returns (Business) {}
+  rpc CreateMembershipApplication (CreateMembershipApplicationRequest) returns (MembershipApplication) {}
 }
 
 service ItemService {
@@ -82,6 +83,10 @@ service AnalyticsService {
 }
 
 // Request & Response Message
+
+message CreateMembershipApplicationRequest {
+  MembershipApplication membershipApplication = 1;
+}
 
 message DeleteUserAddressRequest {
   string id = 1;
@@ -716,6 +721,17 @@ message Item {
   google.protobuf.Timestamp updateTime = 20;
 }
 
+message MembershipApplication {
+  string id = 1;
+  string businessName = 2;
+  Point coordinates = 3;
+  string description = 4;
+  MembershipApplicationStatus status = 5;
+  string userId = 6;
+  google.protobuf.Timestamp createTime = 7;
+  google.protobuf.Timestamp updateTime = 8;
+}
+
 message CartItem {
   string id = 1;
   string name = 2;
@@ -896,6 +912,14 @@ enum OrderStatusType {
   OrderStatusTypeExpired = 6;
   OrderStatusTypeDone = 7;
   OrderStatusTypeStarted = 8;
+}
+
+enum MembershipApplicationStatus {
+  MembershipApplicationStatusUnspecified = 0;
+  MembershipApplicationStatusPending = 1;
+  MembershipApplicationStatusCanceled = 2;
+  MembershipApplicationStatusApproved = 3;
+  MembershipApplicationStatusRejected = 4;
 }
 
 enum OrderType {
