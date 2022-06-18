@@ -8,13 +8,13 @@ import (
 	"gorm.io/gorm"
 )
 
-const MembershipApplicationTableName = "membership_application"
+const PartnerApplicationTableName = "partner_application"
 
-func (MembershipApplication) TableName() string {
-	return MembershipApplicationTableName
+func (PartnerApplication) TableName() string {
+	return PartnerApplicationTableName
 }
 
-type MembershipApplication struct {
+type PartnerApplication struct {
 	ID             *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
 	BusinessName   string         `gorm:"column:business_name"`
 	Description    string         `gorm:"column:description"`
@@ -27,13 +27,13 @@ type MembershipApplication struct {
 	DeleteTime     gorm.DeletedAt `gorm:"index;column:delete_time"`
 }
 
-func (i *MembershipApplication) BeforeCreate(tx *gorm.DB) (err error) {
+func (i *PartnerApplication) BeforeCreate(tx *gorm.DB) (err error) {
 	i.CreateTime = time.Now().UTC()
 	i.UpdateTime = time.Now().UTC()
 	return
 }
 
-func (u *MembershipApplication) BeforeUpdate(tx *gorm.DB) (err error) {
+func (u *PartnerApplication) BeforeUpdate(tx *gorm.DB) (err error) {
 	u.UpdateTime = time.Now().UTC()
 	return
 }
