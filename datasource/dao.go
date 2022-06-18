@@ -47,6 +47,7 @@ type DAO interface {
 	NewBusinessAnalyticsDatasource() BusinessAnalyticsDatasource
 	NewItemAnalyticsDatasource() ItemAnalyticsDatasource
 	NewUserAddressDatasource() UserAddressDatasource
+	NewPartnerApplicationDatasource() PartnerApplicationDatasource
 }
 
 type dao struct{}
@@ -342,6 +343,10 @@ func (d *dao) NewMunicipalityDatasource() MunicipalityDatasource {
 
 func (d *dao) NewBusinessCollectionDatasource() BusinessCollectionDatasource {
 	return &businessCollectionDatasource{}
+}
+
+func (d *dao) NewPartnerApplicationDatasource() PartnerApplicationDatasource {
+	return &partnerApplicationDatasource{}
 }
 
 func (d *dao) NewBusinessPermissionDatasource() BusinessPermissionDatasource {

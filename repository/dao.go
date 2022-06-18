@@ -36,6 +36,7 @@ type DAO interface {
 	NewBusinessAnalyticsRepository() BusinessAnalyticsRepository
 	NewItemAnalyticsRepository() ItemAnalyticsRepository
 	NewUserAddressRepository() UserAddressRepository
+	NewPartnerApplicationRepository() PartnerApplicationRepository
 }
 
 type dao struct {
@@ -126,6 +127,10 @@ func (d *dao) NewDeviceQuery() DeviceRepository {
 
 func (d *dao) NewRefreshTokenQuery() RefreshTokenQuery {
 	return &refreshTokenQuery{}
+}
+
+func (d *dao) NewPartnerApplicationRepository() PartnerApplicationRepository {
+	return &partnerApplicationRepository{}
 }
 
 func (d *dao) NewAuthorizationTokenQuery() AuthorizationTokenQuery {
