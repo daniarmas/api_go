@@ -367,7 +367,7 @@ type BusinessServiceClient interface {
 	CreateBusiness(ctx context.Context, in *CreateBusinessRequest, opts ...grpc.CallOption) (*CreateBusinessResponse, error)
 	// rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
 	UpdateBusiness(ctx context.Context, in *UpdateBusinessRequest, opts ...grpc.CallOption) (*Business, error)
-	CreateMembershipApplication(ctx context.Context, in *CreateMembershipApplicationRequest, opts ...grpc.CallOption) (*MembershipApplication, error)
+	CreatePartnerApplication(ctx context.Context, in *CreatePartnerApplicationRequest, opts ...grpc.CallOption) (*PartnerApplication, error)
 }
 
 type businessServiceClient struct {
@@ -423,9 +423,9 @@ func (c *businessServiceClient) UpdateBusiness(ctx context.Context, in *UpdateBu
 	return out, nil
 }
 
-func (c *businessServiceClient) CreateMembershipApplication(ctx context.Context, in *CreateMembershipApplicationRequest, opts ...grpc.CallOption) (*MembershipApplication, error) {
-	out := new(MembershipApplication)
-	err := c.cc.Invoke(ctx, "/main.BusinessService/CreateMembershipApplication", in, out, opts...)
+func (c *businessServiceClient) CreatePartnerApplication(ctx context.Context, in *CreatePartnerApplicationRequest, opts ...grpc.CallOption) (*PartnerApplication, error) {
+	out := new(PartnerApplication)
+	err := c.cc.Invoke(ctx, "/main.BusinessService/CreatePartnerApplication", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -442,7 +442,7 @@ type BusinessServiceServer interface {
 	CreateBusiness(context.Context, *CreateBusinessRequest) (*CreateBusinessResponse, error)
 	// rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
 	UpdateBusiness(context.Context, *UpdateBusinessRequest) (*Business, error)
-	CreateMembershipApplication(context.Context, *CreateMembershipApplicationRequest) (*MembershipApplication, error)
+	CreatePartnerApplication(context.Context, *CreatePartnerApplicationRequest) (*PartnerApplication, error)
 	mustEmbedUnimplementedBusinessServiceServer()
 }
 
@@ -465,8 +465,8 @@ func (UnimplementedBusinessServiceServer) CreateBusiness(context.Context, *Creat
 func (UnimplementedBusinessServiceServer) UpdateBusiness(context.Context, *UpdateBusinessRequest) (*Business, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBusiness not implemented")
 }
-func (UnimplementedBusinessServiceServer) CreateMembershipApplication(context.Context, *CreateMembershipApplicationRequest) (*MembershipApplication, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateMembershipApplication not implemented")
+func (UnimplementedBusinessServiceServer) CreatePartnerApplication(context.Context, *CreatePartnerApplicationRequest) (*PartnerApplication, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePartnerApplication not implemented")
 }
 func (UnimplementedBusinessServiceServer) mustEmbedUnimplementedBusinessServiceServer() {}
 
@@ -571,20 +571,20 @@ func _BusinessService_UpdateBusiness_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BusinessService_CreateMembershipApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateMembershipApplicationRequest)
+func _BusinessService_CreatePartnerApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePartnerApplicationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BusinessServiceServer).CreateMembershipApplication(ctx, in)
+		return srv.(BusinessServiceServer).CreatePartnerApplication(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/main.BusinessService/CreateMembershipApplication",
+		FullMethod: "/main.BusinessService/CreatePartnerApplication",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BusinessServiceServer).CreateMembershipApplication(ctx, req.(*CreateMembershipApplicationRequest))
+		return srv.(BusinessServiceServer).CreatePartnerApplication(ctx, req.(*CreatePartnerApplicationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -617,8 +617,8 @@ var BusinessService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BusinessService_UpdateBusiness_Handler,
 		},
 		{
-			MethodName: "CreateMembershipApplication",
-			Handler:    _BusinessService_CreateMembershipApplication_Handler,
+			MethodName: "CreatePartnerApplication",
+			Handler:    _BusinessService_CreatePartnerApplication_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

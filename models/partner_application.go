@@ -22,6 +22,7 @@ type PartnerApplication struct {
 	Status         string         `gorm:"column:status"`
 	ProvinceId     *uuid.UUID     `gorm:"column:province_id"`
 	MunicipalityId *uuid.UUID     `gorm:"column:municipality_id"`
+	UserId         *uuid.UUID     `gorm:"column:user_id"`
 	CreateTime     time.Time      `gorm:"column:create_time"`
 	UpdateTime     time.Time      `gorm:"column:update_time"`
 	DeleteTime     gorm.DeletedAt `gorm:"index;column:delete_time"`

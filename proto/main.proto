@@ -30,7 +30,7 @@ service BusinessService {
   rpc CreateBusiness (CreateBusinessRequest) returns (CreateBusinessResponse) {}
   // rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
   rpc UpdateBusiness (UpdateBusinessRequest) returns (Business) {}
-  rpc CreateMembershipApplication (CreateMembershipApplicationRequest) returns (MembershipApplication) {}
+  rpc CreatePartnerApplication (CreatePartnerApplicationRequest) returns (PartnerApplication) {}
 }
 
 service ItemService {
@@ -84,8 +84,8 @@ service AnalyticsService {
 
 // Request & Response Message
 
-message CreateMembershipApplicationRequest {
-  MembershipApplication membershipApplication = 1;
+message CreatePartnerApplicationRequest {
+  PartnerApplication partnerApplication = 1;
 }
 
 message DeleteUserAddressRequest {
@@ -721,15 +721,17 @@ message Item {
   google.protobuf.Timestamp updateTime = 20;
 }
 
-message MembershipApplication {
+message PartnerApplication {
   string id = 1;
   string businessName = 2;
   Point coordinates = 3;
   string description = 4;
-  MembershipApplicationStatus status = 5;
+  PartnerApplicationStatus status = 5;
   string userId = 6;
-  google.protobuf.Timestamp createTime = 7;
-  google.protobuf.Timestamp updateTime = 8;
+  string municipalityId = 7;
+  string provinceId = 8;
+  google.protobuf.Timestamp createTime = 9;
+  google.protobuf.Timestamp updateTime = 10;
 }
 
 message CartItem {
@@ -914,12 +916,12 @@ enum OrderStatusType {
   OrderStatusTypeStarted = 8;
 }
 
-enum MembershipApplicationStatus {
-  MembershipApplicationStatusUnspecified = 0;
-  MembershipApplicationStatusPending = 1;
-  MembershipApplicationStatusCanceled = 2;
-  MembershipApplicationStatusApproved = 3;
-  MembershipApplicationStatusRejected = 4;
+enum PartnerApplicationStatus {
+  PartnerApplicationStatusUnspecified = 0;
+  PartnerApplicationStatusPending = 1;
+  PartnerApplicationStatusCanceled = 2;
+  PartnerApplicationStatusApproved = 3;
+  PartnerApplicationStatusRejected = 4;
 }
 
 enum OrderType {

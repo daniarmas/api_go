@@ -10,6 +10,136 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+func (m *BusinessServer) CreatePartnerApplication(ctx context.Context, req *pb.CreatePartnerApplicationRequest) (*pb.PartnerApplication, error) {
+	var invalidBusinessName, invalidDescription, invalidCoordinates, invalidMunicipalityId, invalidProvinceId *epb.BadRequest_FieldViolation
+	var invalidArgs bool
+	var st *status.Status
+	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
+	if req.PartnerApplication.Coordinates == nil {
+		invalidArgs = true
+		invalidCoordinates = &epb.BadRequest_FieldViolation{
+			Field:       "PartnerApplication.Coordinates",
+			Description: "The PartnerApplication.Coordinates field is required",
+		}
+	} else if req.PartnerApplication.Coordinates != nil {
+		if req.PartnerApplication.Coordinates.Latitude == 0 {
+			invalidArgs = true
+			invalidCoordinates = &epb.BadRequest_FieldViolation{
+				Field:       "PartnerApplication.Coordinates.Latitude",
+				Description: "The PartnerApplication.Coordinates.Latitude field is required",
+			}
+		} else if req.PartnerApplication.Coordinates.Longitude == 0 {
+			invalidArgs = true
+			invalidCoordinates = &epb.BadRequest_FieldViolation{
+				Field:       "PartnerApplication.Coordinates.Longitude",
+				Description: "The PartnerApplication.Coordinates.Longitude field is required",
+			}
+		}
+	}
+	if req.PartnerApplication.BusinessName == "" {
+		invalidArgs = true
+		invalidBusinessName = &epb.BadRequest_FieldViolation{
+			Field:       "PartnerApplication.BusinessName",
+			Description: "The PartnerApplication.BusinessName field is required",
+		}
+	}
+	if req.PartnerApplication.Description == "" {
+		invalidArgs = true
+		invalidDescription = &epb.BadRequest_FieldViolation{
+			Field:       "PartnerApplication.Description",
+			Description: "The PartnerApplication.Description field is required",
+		}
+	}
+	if req.PartnerApplication.ProvinceId == "" {
+		invalidArgs = true
+		invalidProvinceId = &epb.BadRequest_FieldViolation{
+			Field:       "PartnerApplication.ProvinceId",
+			Description: "The PartnerApplication.ProvinceId field is required",
+		}
+	} else if req.PartnerApplication.ProvinceId != "" {
+		if !utils.IsValidUUID(&req.PartnerApplication.ProvinceId) {
+			invalidArgs = true
+			invalidProvinceId = &epb.BadRequest_FieldViolation{
+				Field:       "PartnerApplication.ProvinceId",
+				Description: "The PartnerApplication.ProvinceId field is not a valid uuid v4",
+			}
+		}
+	}
+	if req.PartnerApplication.MunicipalityId == "" {
+		invalidArgs = true
+		invalidMunicipalityId = &epb.BadRequest_FieldViolation{
+			Field:       "PartnerApplication.MunicipalityId",
+			Description: "The PartnerApplication.MunicipalityId field is required",
+		}
+	} else if req.PartnerApplication.MunicipalityId != "" {
+		if !utils.IsValidUUID(&req.PartnerApplication.MunicipalityId) {
+			invalidArgs = true
+			invalidMunicipalityId = &epb.BadRequest_FieldViolation{
+				Field:       "PartnerApplication.MunicipalityId",
+				Description: "The PartnerApplication.MunicipalityId field is not a valid uuid v4",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidProvinceId != nil {
+			st, _ = st.WithDetails(
+				invalidProvinceId,
+			)
+		}
+		if invalidDescription != nil {
+			st, _ = st.WithDetails(
+				invalidDescription,
+			)
+		}
+		if invalidBusinessName != nil {
+			st, _ = st.WithDetails(
+				invalidBusinessName,
+			)
+		}
+		if invalidCoordinates != nil {
+			st, _ = st.WithDetails(
+				invalidCoordinates,
+			)
+		}
+		if invalidMunicipalityId != nil {
+			st, _ = st.WithDetails(
+				invalidMunicipalityId,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.businessService.CreatePartnerApplication(ctx, req, md)
+	if err != nil {
+		switch err.Error() {
+		case "authorizationtoken not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorizationtoken expired":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "already register as business user":
+			st = status.New(codes.AlreadyExists, "Already register as business user")
+		case "already exists a business with that name":
+			st = status.New(codes.AlreadyExists, "Already exists a business with that name")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "user not found":
+			st = status.New(codes.NotFound, "User not found")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return res, nil
+}
+
 func (m *BusinessServer) CreateBusiness(ctx context.Context, req *pb.CreateBusinessRequest) (*pb.CreateBusinessResponse, error) {
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
@@ -43,14 +173,6 @@ func (m *BusinessServer) CreateBusiness(ctx context.Context, req *pb.CreateBusin
 		}
 		return nil, st.Err()
 	}
-	// municipalities := make([]*pb.UnionBusinessAndMunicipality, 0, len(*res.UnionBusinessAndMunicipalityWithMunicipality))
-	// for _, item := range *res.UnionBusinessAndMunicipalityWithMunicipality {
-	// 	municipalities = append(municipalities, &pb.UnionBusinessAndMunicipality{
-	// 		Id:             item.ID.String(),
-	// 		Name:           item.MunicipalityName,
-	// 		MunicipalityId: item.MunicipalityId.String(),
-	// 	})
-	// }
 	return res, nil
 }
 

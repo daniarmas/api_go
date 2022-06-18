@@ -26,6 +26,7 @@ type BusinessService interface {
 	GetBusinessWithDistance(ctx context.Context, req *pb.GetBusinessWithDistanceRequest, md *utils.ClientMetadata) (*pb.GetBusinessWithDistanceResponse, error)
 	CreateBusiness(ctx context.Context, req *pb.CreateBusinessRequest, md *utils.ClientMetadata) (*pb.CreateBusinessResponse, error)
 	UpdateBusiness(ctx context.Context, req *pb.UpdateBusinessRequest, md *utils.ClientMetadata) (*pb.Business, error)
+	CreatePartnerApplication(ctx context.Context, req *pb.CreatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error)
 }
 
 type businessService struct {
@@ -36,6 +37,70 @@ type businessService struct {
 
 func NewBusinessService(dao repository.DAO, config *utils.Config, stDb *sql.DB) BusinessService {
 	return &businessService{dao: dao, config: config, stDb: stDb}
+}
+
+func (i *businessService) CreatePartnerApplication(ctx context.Context, req *pb.CreatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error) {
+	var res pb.PartnerApplication
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
+			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		}
+		businessUserRes, businessUserErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: authorizationTokenRes.UserId}, &[]string{"id"})
+		if businessUserErr != nil && businessUserErr.Error() != "record not found" {
+			return businessUserErr
+		}
+		if businessUserRes != nil {
+			return errors.New("already register as business user")
+		}
+		businessRes, businessErr := i.dao.NewBusinessQuery().GetBusiness(tx, &models.Business{Name: req.PartnerApplication.BusinessName}, &[]string{"id"})
+		if businessErr != nil && businessErr.Error() != "record not found" {
+			return businessErr
+		}
+		if businessRes != nil {
+			return errors.New("already exists a business with that name")
+		}
+		municipalityId := uuid.MustParse(req.PartnerApplication.MunicipalityId)
+		provinceId := uuid.MustParse(req.PartnerApplication.ProvinceId)
+		location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.PartnerApplication.Coordinates.Latitude, req.PartnerApplication.Coordinates.Longitude}).SetSRID(4326)}
+		createPartnerAppRes, createPartnerAppErr := i.dao.NewPartnerApplicationRepository().CreatePartnerApplication(tx, &models.PartnerApplication{BusinessName: req.PartnerApplication.BusinessName, Description: req.PartnerApplication.Description, ProvinceId: &provinceId, MunicipalityId: &municipalityId, UserId: authorizationTokenRes.UserId, Coordinates: location})
+		if createPartnerAppErr != nil {
+			return createPartnerAppErr
+		}
+		res = pb.PartnerApplication{
+			Id:             createPartnerAppRes.ID.String(),
+			BusinessName:   createPartnerAppRes.BusinessName,
+			Coordinates:    &pb.Point{Latitude: createPartnerAppRes.Coordinates.FlatCoords()[0], Longitude: createPartnerAppRes.Coordinates.FlatCoords()[1]},
+			Description:    createPartnerAppRes.Description,
+			UserId:         createPartnerAppRes.UserId.String(),
+			Status:         *utils.ParsePartnerApplicationStatus(&createPartnerAppRes.Status),
+			MunicipalityId: createPartnerAppRes.MunicipalityId.String(),
+			ProvinceId:     createPartnerAppRes.ProvinceId.String(),
+			CreateTime:     timestamppb.New(createPartnerAppRes.CreateTime),
+			UpdateTime:     timestamppb.New(createPartnerAppRes.UpdateTime),
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
 }
 
 func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusinessRequest, md *utils.ClientMetadata) (*pb.Business, error) {
@@ -58,10 +123,10 @@ func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusi
 			}
 		}
 		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
-		if authorizationTokenErr != nil {
-			return authorizationTokenErr
-		} else if authorizationTokenRes == nil {
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
 		}
 		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: authorizationTokenRes.UserId}, nil)
 		if businessOwnerErr != nil {
@@ -192,10 +257,10 @@ func (i *businessService) CreateBusiness(ctx context.Context, req *pb.CreateBusi
 			}
 		}
 		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
-		if authorizationTokenErr != nil {
-			return authorizationTokenErr
-		} else if authorizationTokenRes == nil {
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
 		}
 		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: authorizationTokenRes.UserId}, nil)
 		if businessOwnerErr != nil {
@@ -348,7 +413,7 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 					ThumbnailUrl:          v.config.BusinessAvatarBulkName + "/" + e.Thumbnail,
 					BlurHash:              e.BlurHash,
 					Address:               e.Address,
-					DeliveryPriceCup:         e.DeliveryPriceCup,
+					DeliveryPriceCup:      e.DeliveryPriceCup,
 					TimeMarginOrderMonth:  e.TimeMarginOrderMonth,
 					TimeMarginOrderDay:    e.TimeMarginOrderDay,
 					TimeMarginOrderHour:   e.TimeMarginOrderHour,

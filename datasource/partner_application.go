@@ -68,7 +68,7 @@ func (i *partnerApplicationDatasource) CreatePartnerApplication(tx *gorm.DB, dat
 	point := fmt.Sprintf("POINT(%v %v)", data.Coordinates.Point.Coords()[1], data.Coordinates.Point.Coords()[0])
 	var time = time.Now().UTC()
 	var res models.PartnerApplication
-	result := tx.Raw(`INSERT INTO "partner_application" ("business_name", "description", "status", "coordinates", "province_id", "municipality_id", "create_time", "update_time") VALUES (?, ?, ?, ST_GeomFromText(?, 4326), ?, ?, ?, ?) RETURNING "id", "business_name", "description", "status", ST_AsEWKB(coordinates) AS coordinates, "province_id", "municipality_id", "create_time", "update_time"`, uuid.New().String(), data.BusinessName, data.Description, data.Status, point, data.ProvinceId, data.MunicipalityId, time, time).Scan(&res)
+	result := tx.Raw(`INSERT INTO "partner_application" ("user_id", "business_name", "description", "coordinates", "province_id", "municipality_id", "create_time", "update_time") VALUES (?, ?, ?, ST_GeomFromText(?, 4326), ?, ?, ?, ?) RETURNING "id", "business_name", "description", "status", ST_AsEWKB(coordinates) AS coordinates, "province_id", "municipality_id", "user_id", "create_time", "update_time"`, data.UserId, data.BusinessName, data.Description, point, data.ProvinceId, data.MunicipalityId, time, time).Scan(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}
