@@ -32,6 +32,7 @@ service BusinessService {
   rpc UpdateBusiness (UpdateBusinessRequest) returns (Business) {}
   rpc CreatePartnerApplication (CreatePartnerApplicationRequest) returns (PartnerApplication) {}
   rpc ListPartnerApplication (ListPartnerApplicationRequest) returns (ListPartnerApplicationResponse) {}
+  rpc UpdatePartnerApplication (UpdatePartnerApplicationRequest) returns (PartnerApplication) {}
 }
 
 service ItemService {
@@ -84,6 +85,11 @@ service AnalyticsService {
 }
 
 // Request & Response Message
+
+message UpdatePartnerApplicationRequest {
+  string id = 1;
+  PartnerApplication partnerApplication = 2;
+}
 
 message ListPartnerApplicationRequest {
   google.protobuf.Timestamp nextPage = 1;

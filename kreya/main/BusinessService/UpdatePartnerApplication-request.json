@@ -1,0 +1,15 @@
+{
+  "id": "e9c7ed6c-b5d9-425b-a4e0-ef4ee74a1317",
+  "partnerApplication": {
+    "businessName": "Kadis1",
+    "coordinates": {
+      "latitude": 1.23,
+      "longitude": 1.23
+    },
+    "description": "Es una cafeteria",
+    "userId": "aecf0725-63f2-4e75-b46b-40a2894305de",
+    "municipalityId": "42aa4a78-4f77-4190-977e-a9b751879711",
+    "provinceId": "fdd8d920-af20-40e8-bb4f-6c1194a1b756",
+    "status": "PartnerApplicationStatusCanceled"
+  }
+}

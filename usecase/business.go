@@ -28,6 +28,7 @@ type BusinessService interface {
 	UpdateBusiness(ctx context.Context, req *pb.UpdateBusinessRequest, md *utils.ClientMetadata) (*pb.Business, error)
 	CreatePartnerApplication(ctx context.Context, req *pb.CreatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error)
 	ListPartnerApplication(ctx context.Context, req *pb.ListPartnerApplicationRequest, md *utils.ClientMetadata) (*pb.ListPartnerApplicationResponse, error)
+	UpdatePartnerApplication(ctx context.Context, req *pb.UpdatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error)
 }
 
 type businessService struct {
@@ -38,6 +39,77 @@ type businessService struct {
 
 func NewBusinessService(dao repository.DAO, config *utils.Config, stDb *sql.DB) BusinessService {
 	return &businessService{dao: dao, config: config, stDb: stDb}
+}
+
+func (i *businessService) UpdatePartnerApplication(ctx context.Context, req *pb.UpdatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error) {
+	var res pb.PartnerApplication
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
+			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		}
+		id := uuid.MustParse(req.Id)
+		getPartnerAppRes, getPartnerAppErr := i.dao.NewPartnerApplicationRepository().GetPartnerApplication(tx, &models.PartnerApplication{ID: &id}, &[]string{"user_id"})
+		if getPartnerAppErr != nil && getPartnerAppErr.Error() == "record not found" {
+			return errors.New("partner application not found")
+		} else if getPartnerAppErr != nil {
+			return getPartnerAppErr
+		}
+		if req.PartnerApplication.Status == pb.PartnerApplicationStatus_PartnerApplicationStatusApproved || req.PartnerApplication.Status == pb.PartnerApplicationStatus_PartnerApplicationStatusRejected {
+			_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_partner_application"}, &[]string{"id"})
+			if permissionErr != nil && permissionErr.Error() == "record not found" {
+				return errors.New("permission denied")
+			}
+			if req.PartnerApplication.Status == pb.PartnerApplicationStatus_PartnerApplicationStatusApproved {
+				userId := uuid.MustParse(req.PartnerApplication.UserId)
+				_, businessUserErr := i.dao.NewBusinessUserRepository().CreateBusinessUser(tx, &models.BusinessUser{IsBusinessOwner: true, UserId: &userId})
+				if businessUserErr != nil {
+					return businessUserErr
+				}
+			}
+		} else if req.PartnerApplication.Status == pb.PartnerApplicationStatus_PartnerApplicationStatusCanceled {
+			if *getPartnerAppRes.UserId != *authorizationTokenRes.UserId {
+				return errors.New("permission denied")
+			}
+		}
+		updatePartnerAppRes, updatePartnerAppErr := i.dao.NewPartnerApplicationRepository().UpdatePartnerApplication(tx, &models.PartnerApplication{ID: &id}, &models.PartnerApplication{Status: req.PartnerApplication.Status.String()})
+		if updatePartnerAppErr != nil {
+			return updatePartnerAppErr
+		}
+		res = pb.PartnerApplication{
+			Id:             updatePartnerAppRes.ID.String(),
+			BusinessName:   updatePartnerAppRes.BusinessName,
+			Coordinates:    &pb.Point{Latitude: updatePartnerAppRes.Coordinates.FlatCoords()[0], Longitude: updatePartnerAppRes.Coordinates.FlatCoords()[1]},
+			Description:    updatePartnerAppRes.Description,
+			UserId:         updatePartnerAppRes.UserId.String(),
+			MunicipalityId: updatePartnerAppRes.MunicipalityId.String(),
+			ProvinceId:     updatePartnerAppRes.ProvinceId.String(),
+			Status:         *utils.ParsePartnerApplicationStatus(&updatePartnerAppRes.Status),
+			CreateTime:     timestamppb.New(updatePartnerAppRes.CreateTime),
+			UpdateTime:     timestamppb.New(updatePartnerAppRes.UpdateTime),
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
 }
 
 func (i *businessService) ListPartnerApplication(ctx context.Context, req *pb.ListPartnerApplicationRequest, md *utils.ClientMetadata) (*pb.ListPartnerApplicationResponse, error) {
