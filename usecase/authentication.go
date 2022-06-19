@@ -197,9 +197,9 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		return nil, err
 	}
 	userAddress := make([]*pb.UserAddress, 0, len(userRes.UserAddress))
-	permissions := make([]*pb.Permission, 0, len(userRes.BusinessUserPermissions))
+	permissions := make([]*pb.Permission, 0, len(userRes.UserPermissions))
 	if *md.App == "Business" {
-		for _, item := range userRes.BusinessUserPermissions {
+		for _, item := range userRes.UserPermissions {
 			permissions = append(permissions, &pb.Permission{
 				Id:         item.ID.String(),
 				Name:       item.Name,

@@ -192,7 +192,7 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 		if getItemErr != nil {
 			return getItemErr
 		}
-		_, err := i.dao.NewBusinessUserPermissionRepository().GetBusinessUserPermission(tx, &models.BusinessUserPermission{Name: "delete_item", UserId: authorizationTokenRes.UserId, BusinessId: getItemRes.BusinessId}, &[]string{"id"})
+		_, err := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{Name: "delete_item", UserId: authorizationTokenRes.UserId, BusinessId: getItemRes.BusinessId}, &[]string{"id"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		} else if err != nil {
@@ -277,7 +277,7 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		_, err := i.dao.NewBusinessUserPermissionRepository().GetBusinessUserPermission(tx, &models.BusinessUserPermission{Name: "create_item", UserId: authorizationTokenRes.UserId, BusinessId: &businessId}, &[]string{"id"})
+		_, err := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{Name: "create_item", UserId: authorizationTokenRes.UserId, BusinessId: &businessId}, &[]string{"id"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		} else if err != nil {

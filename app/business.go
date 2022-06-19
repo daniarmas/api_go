@@ -10,6 +10,36 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+func (m *BusinessServer) ListPartnerApplication(ctx context.Context, req *pb.ListPartnerApplicationRequest) (*pb.ListPartnerApplicationResponse, error) {
+	var st *status.Status
+	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
+	res, err := m.businessService.ListPartnerApplication(ctx, req, md)
+	if err != nil {
+		switch err.Error() {
+		case "authorizationtoken not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorizationtoken expired":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "not permission":
+			st = status.New(codes.PermissionDenied, "Permission Denied")
+		case "signature is invalid":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "token contains an invalid number of segments":
+			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return res, nil
+}
+
 func (m *BusinessServer) CreatePartnerApplication(ctx context.Context, req *pb.CreatePartnerApplicationRequest) (*pb.PartnerApplication, error) {
 	var invalidBusinessName, invalidDescription, invalidCoordinates, invalidMunicipalityId, invalidProvinceId *epb.BadRequest_FieldViolation
 	var invalidArgs bool

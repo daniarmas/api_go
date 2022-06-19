@@ -1,6 +1,6 @@
 {
   "details": {
-    "methodFqn": "main.BusinessService.CreatePartnerApplication",
+    "methodFqn": "main.BusinessService.ListPartnerApplication",
     "metadata": [
       {
         "key": "Device-Id",
@@ -36,13 +36,13 @@
       },
       {
         "key": "Authorization",
-        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTU2ODgwMTAsInN1YiI6IjU1ZDc3MDhiLWIyNjYtNGRhNi04ZDNjLTM5MzkxMzZkY2E2MiJ9.JklaTiCxNRk6TWGFf2vct0iYfRZuRn05qx-0agg6Szc"
+        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTU2ODc5NTQsInN1YiI6IjUxNmFmYzljLTMyMjctNDUyYS1hOTVmLTRkZTc5ODRmYzk2NCJ9.SuFzbjqZD1Oe9_tP_qYl45ZdjLURYWeIAR9oYjLAGGQ"
       }
     ]
   },
   "requests": [
     {
-      "location": "CreatePartnerApplication-request.json"
+      "location": "ListPartnerApplication-request.json"
     }
   ],
   "operationType": "unary",

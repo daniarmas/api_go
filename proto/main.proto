@@ -86,11 +86,12 @@ service AnalyticsService {
 // Request & Response Message
 
 message ListPartnerApplicationRequest {
-
+  google.protobuf.Timestamp nextPage = 1;
 }
 
 message ListPartnerApplicationResponse {
   repeated PartnerApplication partnerApplications = 1;
+  google.protobuf.Timestamp nextPage = 2;
 }
 
 message CreatePartnerApplicationRequest {

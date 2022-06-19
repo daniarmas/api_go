@@ -315,8 +315,8 @@ func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*p
 		return nil, err
 	}
 	userAddress := make([]*pb.UserAddress, 0, len(userRes.UserAddress))
-	permissions := make([]*pb.Permission, 0, len(userRes.BusinessUserPermissions))
-	for _, item := range userRes.BusinessUserPermissions {
+	permissions := make([]*pb.Permission, 0, len(userRes.UserPermissions))
+	for _, item := range userRes.UserPermissions {
 		permissions = append(permissions, &pb.Permission{
 			Id:         item.ID.String(),
 			Name:       item.Name,
@@ -393,7 +393,7 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 		}
 		// chech if is the user or if have permission
 		if req.User.Id != "" && authorizationTokenRes.UserId.String() != req.User.Id {
-			_, err := i.dao.NewBusinessUserPermissionRepository().GetBusinessUserPermission(tx, &models.BusinessUserPermission{Name: "admin"}, &[]string{"id"})
+			_, err := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{Name: "admin"}, &[]string{"id"})
 			if err != nil && err.Error() == "record not found" {
 				return errors.New("not have permission")
 			} else if err != nil && err.Error() != "record not found" {

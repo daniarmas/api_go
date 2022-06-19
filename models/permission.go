@@ -7,13 +7,13 @@ import (
 	"gorm.io/gorm"
 )
 
-const BusinessPermissionTableName = "permission"
+const PermissionTableName = "permission"
 
-func (BusinessPermission) TableName() string {
-	return BusinessPermissionTableName
+func (Permission) TableName() string {
+	return PermissionTableName
 }
 
-type BusinessPermission struct {
+type Permission struct {
 	ID         *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Name       string         `gorm:"column:name;not null"`
 	CreateTime time.Time      `gorm:"column:create_time;not null"`
@@ -21,7 +21,7 @@ type BusinessPermission struct {
 	DeleteTime gorm.DeletedAt `gorm:"index;column:delete_time"`
 }
 
-func (r *BusinessPermission) BeforeCreate(tx *gorm.DB) (err error) {
+func (r *Permission) BeforeCreate(tx *gorm.DB) (err error) {
 	r.CreateTime = time.Now().UTC()
 	r.UpdateTime = time.Now().UTC()
 	return

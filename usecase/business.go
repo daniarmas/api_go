@@ -27,6 +27,7 @@ type BusinessService interface {
 	CreateBusiness(ctx context.Context, req *pb.CreateBusinessRequest, md *utils.ClientMetadata) (*pb.CreateBusinessResponse, error)
 	UpdateBusiness(ctx context.Context, req *pb.UpdateBusinessRequest, md *utils.ClientMetadata) (*pb.Business, error)
 	CreatePartnerApplication(ctx context.Context, req *pb.CreatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error)
+	ListPartnerApplication(ctx context.Context, req *pb.ListPartnerApplicationRequest, md *utils.ClientMetadata) (*pb.ListPartnerApplicationResponse, error)
 }
 
 type businessService struct {
@@ -37,6 +38,74 @@ type businessService struct {
 
 func NewBusinessService(dao repository.DAO, config *utils.Config, stDb *sql.DB) BusinessService {
 	return &businessService{dao: dao, config: config, stDb: stDb}
+}
+
+func (i *businessService) ListPartnerApplication(ctx context.Context, req *pb.ListPartnerApplicationRequest, md *utils.ClientMetadata) (*pb.ListPartnerApplicationResponse, error) {
+	var res pb.ListPartnerApplicationResponse
+	var nextPage time.Time
+	if req.NextPage == nil {
+		nextPage = time.Now()
+	} else {
+		nextPage = req.NextPage.AsTime()
+	}
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
+			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		}
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_partner_application"}, &[]string{"id"})
+		if permissionErr != nil && permissionErr.Error() == "record not found" {
+			return errors.New("not permission")
+		}
+		partnerApplicationsRes, partnerApplicationsErr := i.dao.NewPartnerApplicationRepository().ListPartnerApplication(tx, nil, &nextPage, nil)
+		if partnerApplicationsErr != nil {
+			return partnerApplicationsErr
+		} else if len(*partnerApplicationsRes) > 10 {
+			*partnerApplicationsRes = (*partnerApplicationsRes)[:len(*partnerApplicationsRes)-1]
+			res.NextPage = timestamppb.New((*partnerApplicationsRes)[len(*partnerApplicationsRes)-1].CreateTime)
+		} else if len(*partnerApplicationsRes) == 0 {
+			res.NextPage = timestamppb.New(nextPage)
+		} else {
+			res.NextPage = timestamppb.New((*partnerApplicationsRes)[len(*partnerApplicationsRes)-1].CreateTime)
+		}
+		partnerApplications := make([]*pb.PartnerApplication, 0, len(*partnerApplicationsRes))
+		for _, i := range *partnerApplicationsRes {
+			partnerApplications = append(partnerApplications, &pb.PartnerApplication{
+				Id:             i.ID.String(),
+				BusinessName:   i.BusinessName,
+				Coordinates:    &pb.Point{Latitude: i.Coordinates.FlatCoords()[0], Longitude: i.Coordinates.FlatCoords()[1]},
+				Description:    i.Description,
+				Status:         *utils.ParsePartnerApplicationStatus(&i.Status),
+				UserId:         i.UserId.String(),
+				MunicipalityId: i.MunicipalityId.String(),
+				ProvinceId:     i.ProvinceId.String(),
+				CreateTime:     timestamppb.New(i.CreateTime),
+				UpdateTime:     timestamppb.New(i.UpdateTime),
+			})
+		}
+		res.PartnerApplications = partnerApplications
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
 }
 
 func (i *businessService) CreatePartnerApplication(ctx context.Context, req *pb.CreatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error) {

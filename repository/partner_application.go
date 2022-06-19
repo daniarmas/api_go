@@ -19,7 +19,7 @@ type PartnerApplicationRepository interface {
 type partnerApplicationRepository struct{}
 
 func (i *partnerApplicationRepository) ListPartnerApplication(tx *gorm.DB, where *models.PartnerApplication, cursor *time.Time, fields *[]string) (*[]models.PartnerApplication, error) {
-	res, err := Datasource.NewPartnerApplicationDatasource().ListPartnerApplication(tx, where, fields)
+	res, err := Datasource.NewPartnerApplicationDatasource().ListPartnerApplication(tx, where, fields, cursor)
 	if err != nil {
 		return nil, err
 	}
