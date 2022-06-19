@@ -7,10 +7,10 @@ import (
 	"gorm.io/gorm"
 )
 
-const OrderItemTableName = "ordered_item"
+const OrderedItemTableName = "ordered_item"
 
 func (OrderedItem) TableName() string {
-	return OrderItemTableName
+	return OrderedItemTableName
 }
 
 type OrderedItem struct {
