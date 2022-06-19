@@ -66,7 +66,6 @@ service CartItemService {
   rpc ListCartItem (ListCartItemRequest) returns (ListCartItemResponse) {}
   rpc AddCartItem (AddCartItemRequest) returns (AddCartItemResponse) {}
   rpc IsEmptyCartItem (google.protobuf.Empty) returns (IsEmptyCartItemResponse) {}
-  rpc ReduceCartItem (ReduceCartItemRequest) returns (ReduceCartItemResponse) {}
   rpc DeleteCartItem (DeleteCartItemRequest) returns (google.protobuf.Empty) {}
   rpc EmptyCartItem (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
@@ -424,16 +423,6 @@ message AddCartItemRequest {
 }
 
 message AddCartItemResponse {
-  CartItem cartItem = 1;
-}
-
-message ReduceCartItemRequest {
-  string itemId = 1;
-  Point location = 2;
-  int32 quantity = 3;
-}
-
-message ReduceCartItemResponse {
   CartItem cartItem = 1;
 }
 

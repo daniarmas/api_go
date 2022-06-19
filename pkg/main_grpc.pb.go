@@ -1502,7 +1502,6 @@ type CartItemServiceClient interface {
 	ListCartItem(ctx context.Context, in *ListCartItemRequest, opts ...grpc.CallOption) (*ListCartItemResponse, error)
 	AddCartItem(ctx context.Context, in *AddCartItemRequest, opts ...grpc.CallOption) (*AddCartItemResponse, error)
 	IsEmptyCartItem(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*IsEmptyCartItemResponse, error)
-	ReduceCartItem(ctx context.Context, in *ReduceCartItemRequest, opts ...grpc.CallOption) (*ReduceCartItemResponse, error)
 	DeleteCartItem(ctx context.Context, in *DeleteCartItemRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	EmptyCartItem(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
@@ -1542,15 +1541,6 @@ func (c *cartItemServiceClient) IsEmptyCartItem(ctx context.Context, in *emptypb
 	return out, nil
 }
 
-func (c *cartItemServiceClient) ReduceCartItem(ctx context.Context, in *ReduceCartItemRequest, opts ...grpc.CallOption) (*ReduceCartItemResponse, error) {
-	out := new(ReduceCartItemResponse)
-	err := c.cc.Invoke(ctx, "/main.CartItemService/ReduceCartItem", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *cartItemServiceClient) DeleteCartItem(ctx context.Context, in *DeleteCartItemRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/main.CartItemService/DeleteCartItem", in, out, opts...)
@@ -1576,7 +1566,6 @@ type CartItemServiceServer interface {
 	ListCartItem(context.Context, *ListCartItemRequest) (*ListCartItemResponse, error)
 	AddCartItem(context.Context, *AddCartItemRequest) (*AddCartItemResponse, error)
 	IsEmptyCartItem(context.Context, *emptypb.Empty) (*IsEmptyCartItemResponse, error)
-	ReduceCartItem(context.Context, *ReduceCartItemRequest) (*ReduceCartItemResponse, error)
 	DeleteCartItem(context.Context, *DeleteCartItemRequest) (*emptypb.Empty, error)
 	EmptyCartItem(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	mustEmbedUnimplementedCartItemServiceServer()
@@ -1594,9 +1583,6 @@ func (UnimplementedCartItemServiceServer) AddCartItem(context.Context, *AddCartI
 }
 func (UnimplementedCartItemServiceServer) IsEmptyCartItem(context.Context, *emptypb.Empty) (*IsEmptyCartItemResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsEmptyCartItem not implemented")
-}
-func (UnimplementedCartItemServiceServer) ReduceCartItem(context.Context, *ReduceCartItemRequest) (*ReduceCartItemResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ReduceCartItem not implemented")
 }
 func (UnimplementedCartItemServiceServer) DeleteCartItem(context.Context, *DeleteCartItemRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteCartItem not implemented")
@@ -1671,24 +1657,6 @@ func _CartItemService_IsEmptyCartItem_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CartItemService_ReduceCartItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReduceCartItemRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CartItemServiceServer).ReduceCartItem(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/main.CartItemService/ReduceCartItem",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CartItemServiceServer).ReduceCartItem(ctx, req.(*ReduceCartItemRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _CartItemService_DeleteCartItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteCartItemRequest)
 	if err := dec(in); err != nil {
@@ -1743,10 +1711,6 @@ var CartItemService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IsEmptyCartItem",
 			Handler:    _CartItemService_IsEmptyCartItem_Handler,
-		},
-		{
-			MethodName: "ReduceCartItem",
-			Handler:    _CartItemService_ReduceCartItem_Handler,
 		},
 		{
 			MethodName: "DeleteCartItem",
