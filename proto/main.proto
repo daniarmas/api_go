@@ -413,7 +413,8 @@ message DeleteItemRequest {
 
 message DeleteCartItemRequest {
   string id = 1;
-  Point location = 2;
+  string itemId = 2;
+  Point location = 3;
 }
 
 message AddCartItemRequest {

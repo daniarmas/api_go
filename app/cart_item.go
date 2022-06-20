@@ -179,13 +179,38 @@ func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemReq
 }
 
 func (m *CartItemServer) DeleteCartItem(ctx context.Context, req *pb.DeleteCartItemRequest) (*gp.Empty, error) {
-	var invalidId, invalidLocation *epb.BadRequest_FieldViolation
+	var invalidId, invalidItemId, invalidLocation *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
 		st = status.New(codes.Unauthenticated, "Unauthenticated")
 		return nil, st.Err()
+	}
+	if req.Id == "" && req.ItemId == "" {
+		invalidArgs = true
+		invalidId = &epb.BadRequest_FieldViolation{
+			Field:       "Id|ItemId",
+			Description: "The Id or ItemId fields are required",
+		}
+	}
+	if req.Id != "" {
+		if !utils.IsValidUUID(&req.Id) {
+			invalidArgs = true
+			invalidId = &epb.BadRequest_FieldViolation{
+				Field:       "Id",
+				Description: "The Id field is not a valid uuid v4",
+			}
+		}
+	}
+	if req.ItemId != "" {
+		if !utils.IsValidUUID(&req.ItemId) {
+			invalidArgs = true
+			invalidItemId = &epb.BadRequest_FieldViolation{
+				Field:       "ItemId",
+				Description: "The ItemId field is not a valid uuid v4",
+			}
+		}
 	}
 	if req.Location == nil {
 		invalidArgs = true
@@ -208,26 +233,16 @@ func (m *CartItemServer) DeleteCartItem(ctx context.Context, req *pb.DeleteCartI
 			}
 		}
 	}
-	if req.Id == "" {
-		invalidArgs = true
-		invalidId = &epb.BadRequest_FieldViolation{
-			Field:       "Id",
-			Description: "The Id field is required",
-		}
-	} else if req.Id != "" {
-		if !utils.IsValidUUID(&req.Id) {
-			invalidArgs = true
-			invalidId = &epb.BadRequest_FieldViolation{
-				Field:       "Id",
-				Description: "The Id field is not a valid uuid v4",
-			}
-		}
-	}
 	if invalidArgs {
 		st = status.New(codes.InvalidArgument, "Invalid Arguments")
 		if invalidLocation != nil {
 			st, _ = st.WithDetails(
 				invalidLocation,
+			)
+		}
+		if invalidItemId != nil {
+			st, _ = st.WithDetails(
+				invalidItemId,
 			)
 		}
 		if invalidId != nil {

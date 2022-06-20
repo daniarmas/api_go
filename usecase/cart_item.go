@@ -292,7 +292,6 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 }
 
 func (i *cartItemService) DeleteCartItem(ctx context.Context, req *pb.DeleteCartItemRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
-	id := uuid.MustParse(req.Id)
 	location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
@@ -315,7 +314,17 @@ func (i *cartItemService) DeleteCartItem(ctx context.Context, req *pb.DeleteCart
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		cartItemRes, cartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &models.CartItem{ID: &id}, &[]string{"id", "quantity", "item_id"})
+		var whereCartItem models.CartItem
+		if req.ItemId != "" {
+			value := uuid.MustParse(req.ItemId)
+			whereCartItem.ItemId = &value
+		}
+		if req.Id != "" {
+			value := uuid.MustParse(req.Id)
+			whereCartItem.ID = &value
+		}
+		whereCartItem.UserId = authorizationTokenRes.UserId
+		cartItemRes, cartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &whereCartItem, &[]string{"id", "quantity", "item_id"})
 		if cartItemErr != nil && cartItemErr.Error() != "record not found" {
 			return errors.New("cartitem not found")
 		}
@@ -330,7 +339,7 @@ func (i *cartItemService) DeleteCartItem(ctx context.Context, req *pb.DeleteCart
 		if updateItemErr != nil {
 			return updateItemErr
 		}
-		_, err := i.dao.NewCartItemRepository().DeleteCartItem(tx, &models.CartItem{ID: cartItemRes.ID, UserId: authorizationTokenRes.UserId}, nil)
+		_, err := i.dao.NewCartItemRepository().DeleteCartItem(tx, &whereCartItem, nil)
 		if err != nil {
 			return err
 		}
