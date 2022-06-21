@@ -36,7 +36,7 @@
       },
       {
         "key": "Authorization",
-        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTU3NTMyMjksInN1YiI6ImJlMjM4ZmNlLTlhM2YtNGZkNy04ZWRjLWI2NDMwZGVmMWY3MiJ9.OzT6jt9-PbXx8BML7i6Mjk-URq44sje2Bpm38ux4uxE"
+        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTU3NzI0MzYsInN1YiI6ImJhZmE3NWNkLTc4MzAtNGEwOS1hZDg1LWFlYzQ5MGQ1ZGRhYSJ9.bJO3LpgMjYkL3p_urX_CXYYcLz8pKrTQbncZQAP_MtE"
       }
     ]
   },

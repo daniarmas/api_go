@@ -744,14 +744,15 @@ message CartItem {
   string id = 1;
   string name = 2;
   string itemId = 3;
-  string authorizationTokenId = 4;
-  string priceCup = 5;
-  int32 quantity = 6;
-  string thumbnail = 7;
-  string thumbnailUrl = 8;
-  string blurHash = 9;
-  google.protobuf.Timestamp createTime = 10;
-  google.protobuf.Timestamp updateTime = 11;
+  string businessId = 4;
+  string authorizationTokenId = 5;
+  string priceCup = 6;
+  int32 quantity = 7;
+  string thumbnail = 8;
+  string thumbnailUrl = 9;
+  string blurHash = 10;
+  google.protobuf.Timestamp createTime = 11;
+  google.protobuf.Timestamp updateTime = 12;
 }
 
 
