@@ -7,14 +7,14 @@ import (
 	"gorm.io/gorm"
 )
 
-type BusinessPermissionDatasource interface {
-	GetBusinessPermission(tx *gorm.DB, where *models.BusinessPermission, fields *[]string) (*models.BusinessPermission, error)
+type PermissionDatasource interface {
+	GetPermission(tx *gorm.DB, where *models.Permission, fields *[]string) (*models.Permission, error)
 }
 
-type businessPermissionDatasource struct{}
+type permissionDatasource struct{}
 
-func (i *businessPermissionDatasource) GetBusinessPermission(tx *gorm.DB, where *models.BusinessPermission, fields *[]string) (*models.BusinessPermission, error) {
-	var res *models.BusinessPermission
+func (i *permissionDatasource) GetPermission(tx *gorm.DB, where *models.Permission, fields *[]string) (*models.Permission, error) {
+	var res *models.Permission
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields

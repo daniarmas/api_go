@@ -55,7 +55,7 @@ func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb
 	return res, nil
 }
 
-func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.GetItemResponse, error) {
+func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.Item, error) {
 	var invalidId, invalidLocation *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status

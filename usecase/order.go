@@ -141,7 +141,7 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 			for _, item := range *orderedItemsRes {
 				itemFks = append(itemFks, *item.ItemId)
 			}
-			itemsRes, itemsErr := i.dao.NewItemQuery().ListItemInIds(tx, itemFks, nil)
+			itemsRes, itemsErr := i.dao.NewItemRepository().ListItemInIds(tx, itemFks, nil)
 			if itemsErr != nil {
 				return itemsErr
 			}
@@ -155,7 +155,7 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 				(*itemsRes)[index].Availability += int64(item.Quantity)
 			}
 			for _, item := range *itemsRes {
-				_, updateItemsErr := i.dao.NewItemQuery().UpdateItem(tx, &models.Item{ID: item.ID}, &item)
+				_, updateItemsErr := i.dao.NewItemRepository().UpdateItem(tx, &models.Item{ID: item.ID}, &item)
 				if updateItemsErr != nil {
 					return updateItemsErr
 				}
