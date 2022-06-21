@@ -35,6 +35,21 @@ func ParseOrderStatusType(tp *string) *pb.OrderStatusType {
 	}
 }
 
+func ParsePartnerApplicationStatus(tp *string) *pb.PartnerApplicationStatus {
+	switch *tp {
+	case "PartnerApplicationStatusPending":
+		return pb.PartnerApplicationStatus_PartnerApplicationStatusPending.Enum()
+	case "PartnerApplicationStatusCanceled":
+		return pb.PartnerApplicationStatus_PartnerApplicationStatusCanceled.Enum()
+	case "PartnerApplicationStatusApproved":
+		return pb.PartnerApplicationStatus_PartnerApplicationStatusApproved.Enum()
+	case "PartnerApplicationStatusRejected":
+		return pb.PartnerApplicationStatus_PartnerApplicationStatusRejected.Enum()
+	default:
+		return pb.PartnerApplicationStatus_PartnerApplicationStatusUnspecified.Enum().Enum()
+	}
+}
+
 func ParseAppType(tp *string) *pb.AppType {
 	if *tp == "App" {
 		return pb.AppType_App.Enum()

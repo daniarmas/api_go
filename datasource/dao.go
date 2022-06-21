@@ -32,8 +32,8 @@ type DAO interface {
 	NewBusinessUserDatasource() BusinessUserDatasource
 	NewBannedDeviceDatasource() BannedDeviceDatasource
 	NewCartItemDatasource() CartItemDatasource
-	NewBusinessPermissionDatasource() BusinessPermissionDatasource
-	NewBusinessUserPermissionDatasource() BusinessUserPermissionDatasource
+	NewPermissionDatasource() PermissionDatasource
+	NewUserPermissionDatasource() UserPermissionDatasource
 	NewProvinceDatasource() ProvinceDatasource
 	NewMunicipalityDatasource() MunicipalityDatasource
 	NewUnionBusinessAndMunicipalityDatasource() UnionBusinessAndMunicipalityDatasource
@@ -47,6 +47,8 @@ type DAO interface {
 	NewBusinessAnalyticsDatasource() BusinessAnalyticsDatasource
 	NewItemAnalyticsDatasource() ItemAnalyticsDatasource
 	NewUserAddressDatasource() UserAddressDatasource
+	NewPartnerApplicationDatasource() PartnerApplicationDatasource
+	NewBusinessRoleDatasource() BusinessRoleDatasource
 }
 
 type dao struct{}
@@ -344,12 +346,20 @@ func (d *dao) NewBusinessCollectionDatasource() BusinessCollectionDatasource {
 	return &businessCollectionDatasource{}
 }
 
-func (d *dao) NewBusinessPermissionDatasource() BusinessPermissionDatasource {
-	return &businessPermissionDatasource{}
+func (d *dao) NewPartnerApplicationDatasource() PartnerApplicationDatasource {
+	return &partnerApplicationDatasource{}
 }
 
-func (d *dao) NewBusinessUserPermissionDatasource() BusinessUserPermissionDatasource {
-	return &businessUserPermissionDatasource{}
+func (d *dao) NewBusinessRoleDatasource() BusinessRoleDatasource {
+	return &businessRoleDatasource{}
+}
+
+func (d *dao) NewPermissionDatasource() PermissionDatasource {
+	return &permissionDatasource{}
+}
+
+func (d *dao) NewUserPermissionDatasource() UserPermissionDatasource {
+	return &userPermissionDatasource{}
 }
 
 func (d *dao) NewOrderDatasource() OrderDatasource {

@@ -21,7 +21,7 @@ import (
 )
 
 type ItemService interface {
-	GetItem(ctx context.Context, req *pb.GetItemRequest, md *utils.ClientMetadata) (*pb.GetItemResponse, error)
+	GetItem(ctx context.Context, req *pb.GetItemRequest, md *utils.ClientMetadata) (*pb.Item, error)
 	ListItem(ctx context.Context, req *pb.ListItemRequest, md *utils.ClientMetadata) (*pb.ListItemResponse, error)
 	SearchItem(ctx context.Context, req *pb.SearchItemRequest, md *utils.ClientMetadata) (*pb.SearchItemResponse, error)
 	SearchItemByBusiness(ctx context.Context, req *pb.SearchItemByBusinessRequest, md *utils.ClientMetadata) (*pb.SearchItemByBusinessResponse, error)
@@ -89,7 +89,7 @@ func (i *itemService) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest,
 		} else if getCartItemRes != nil {
 			return errors.New("item in the cart")
 		}
-		getItemRes, getItemErr := i.dao.NewItemQuery().GetItem(tx, &models.Item{ID: &id}, &[]string{})
+		getItemRes, getItemErr := i.dao.NewItemRepository().GetItem(tx, &models.Item{ID: &id}, &[]string{})
 		if getItemErr != nil {
 			return getItemErr
 		}
@@ -137,7 +137,7 @@ func (i *itemService) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest,
 				return rmThErr
 			}
 		}
-		updateItemRes, updateItemErr = i.dao.NewItemQuery().UpdateItem(tx, &models.Item{ID: &id}, &models.Item{Name: req.Name, Description: req.Description, PriceCup: req.PriceCup, Availability: req.Availability, HighQualityPhoto: req.HighQualityPhoto, LowQualityPhoto: req.LowQualityPhoto, Thumbnail: req.Thumbnail, BlurHash: req.BlurHash})
+		updateItemRes, updateItemErr = i.dao.NewItemRepository().UpdateItem(tx, &models.Item{ID: &id}, &models.Item{Name: req.Name, Description: req.Description, PriceCup: req.PriceCup, Availability: req.Availability, HighQualityPhoto: req.HighQualityPhoto, LowQualityPhoto: req.LowQualityPhoto, Thumbnail: req.Thumbnail, BlurHash: req.BlurHash})
 		if updateItemErr != nil {
 			return updateItemErr
 		}
@@ -188,11 +188,11 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		getItemRes, getItemErr := i.dao.NewItemQuery().GetItem(tx, &models.Item{ID: &id}, &[]string{})
+		getItemRes, getItemErr := i.dao.NewItemRepository().GetItem(tx, &models.Item{ID: &id}, &[]string{})
 		if getItemErr != nil {
 			return getItemErr
 		}
-		_, err := i.dao.NewBusinessUserPermissionRepository().GetBusinessUserPermission(tx, &models.BusinessUserPermission{Name: "delete_item", UserId: authorizationTokenRes.UserId, BusinessId: getItemRes.BusinessId}, &[]string{"id"})
+		_, err := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{Name: "delete_item", UserId: authorizationTokenRes.UserId, BusinessId: getItemRes.BusinessId}, &[]string{"id"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		} else if err != nil {
@@ -216,7 +216,7 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 		} else if getCartItemRes != nil {
 			return errors.New("item in the cart")
 		}
-		deleteItemErr := i.dao.NewItemQuery().DeleteItem(tx, &models.Item{ID: &id})
+		deleteItemErr := i.dao.NewItemRepository().DeleteItem(tx, &models.Item{ID: &id})
 		if deleteItemErr != nil {
 			return deleteItemErr
 		}
@@ -256,7 +256,7 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 	var itemRes *models.Item
 	var itemErr error
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		businessId := uuid.MustParse(req.BusinessId)
+		businessId := uuid.MustParse(req.Item.BusinessId)
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -277,25 +277,25 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 		} else if authorizationTokenRes == nil {
 			return errors.New("unauthenticated")
 		}
-		_, err := i.dao.NewBusinessUserPermissionRepository().GetBusinessUserPermission(tx, &models.BusinessUserPermission{Name: "create_item", UserId: authorizationTokenRes.UserId, BusinessId: &businessId}, &[]string{"id"})
+		_, err := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{Name: "create_item", UserId: authorizationTokenRes.UserId, BusinessId: &businessId}, &[]string{"id"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		} else if err != nil {
 			return err
 		}
-		_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.HighQualityPhoto)
+		_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.Item.HighQualityPhoto)
 		if hqErr != nil && hqErr.Error() == "ObjectMissing" {
 			return errors.New("HighQualityPhotoObject missing")
 		} else if hqErr != nil {
 			return hqErr
 		}
-		_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.LowQualityPhoto)
+		_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.Item.LowQualityPhoto)
 		if lqErr != nil && lqErr.Error() == "ObjectMissing" {
 			return errors.New("LowQualityPhotoObject missing")
 		} else if lqErr != nil {
 			return lqErr
 		}
-		_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.Thumbnail)
+		_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.Item.Thumbnail)
 		if tnErr != nil && tnErr.Error() == "ObjectMissing" {
 			return errors.New("ThumbnailObject missing")
 		} else if tnErr != nil {
@@ -305,8 +305,8 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 		if businessErr != nil {
 			return businessErr
 		}
-		businessCollectionId := uuid.MustParse(req.BusinessCollectionId)
-		itemRes, itemErr = i.dao.NewItemQuery().CreateItem(tx, &models.Item{Name: req.Name, Description: req.Description, PriceCup: req.PriceCup, Availability: -1, BusinessId: &businessId, BusinessCollectionId: &businessCollectionId, HighQualityPhoto: req.HighQualityPhoto, LowQualityPhoto: req.LowQualityPhoto, Thumbnail: req.Thumbnail, BlurHash: req.BlurHash, Status: "Unavailable", ProvinceId: businessRes.ProvinceId, MunicipalityId: businessRes.MunicipalityId})
+		businessCollectionId := uuid.MustParse(req.Item.BusinessCollectionId)
+		itemRes, itemErr = i.dao.NewItemRepository().CreateItem(tx, &models.Item{Name: req.Item.Name, Description: req.Item.Description, PriceCup: req.Item.PriceCup, Availability: -1, BusinessId: &businessId, BusinessCollectionId: &businessCollectionId, HighQualityPhoto: req.Item.HighQualityPhoto, LowQualityPhoto: req.Item.LowQualityPhoto, Thumbnail: req.Item.Thumbnail, BlurHash: req.Item.BlurHash, Status: "Unavailable", ProvinceId: businessRes.ProvinceId, MunicipalityId: businessRes.MunicipalityId})
 		if itemErr != nil {
 			return itemErr
 		}
@@ -339,7 +339,7 @@ func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md 
 		where.BusinessId = &businessId
 	}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		items, itemsErr = i.dao.NewItemQuery().ListItem(tx, &where, nextPage, nil)
+		items, itemsErr = i.dao.NewItemRepository().ListItem(tx, &where, nextPage, nil)
 		if itemsErr != nil {
 			return itemsErr
 		} else if len(*items) > 10 {
@@ -383,8 +383,8 @@ func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md 
 	return &res, nil
 }
 
-func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *utils.ClientMetadata) (*pb.GetItemResponse, error) {
-	var res pb.GetItemResponse
+func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *utils.ClientMetadata) (*pb.Item, error) {
+	var res pb.Item
 	var item *models.ItemBusiness
 	var itemErr error
 	// Collecting analytics
@@ -417,11 +417,11 @@ func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *u
 		}()
 	}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		item, itemErr = i.dao.NewItemQuery().GetItemWithLocation(tx, req.Id, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)})
+		item, itemErr = i.dao.NewItemRepository().GetItemWithLocation(tx, req.Id, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)})
 		if itemErr != nil {
 			return itemErr
 		}
-		res.Item = &pb.Item{
+		res = pb.Item{
 			Id:                   item.ID.String(),
 			Name:                 item.Name,
 			Description:          item.Description,
@@ -454,7 +454,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 	var responseErr error
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		if req.SearchMunicipalityType.String() == "More" {
-			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), false, 10, &[]string{"id", "name", "price", "thumbnail", "thumbnail_blurhash", "cursor"})
+			response, responseErr = i.dao.NewItemRepository().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), false, 10, &[]string{"id", "name", "price_cup", "thumbnail", "blurhash", "cursor"})
 			if responseErr != nil {
 				return responseErr
 			}
@@ -464,7 +464,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_More
 			} else if len(*response) <= 10 && len(*response) != 0 {
 				length := 10 - len(*response)
-				responseAdd, responseErr := i.dao.NewItemQuery().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, int64(length), &[]string{"id", "name", "price", "thumbnail", "thumbnail_blurhash", "cursor"})
+				responseAdd, responseErr := i.dao.NewItemRepository().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, int64(length), &[]string{"id", "name", "price_cup", "thumbnail", "blurhash", "cursor"})
 				if responseErr != nil {
 					return responseErr
 				}
@@ -475,7 +475,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 				searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
 				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
 			} else if len(*response) == 0 {
-				response, responseErr = i.dao.NewItemQuery().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10, &[]string{"id", "name", "price", "thumbnail", "thumbnail_blurhash", "cursor"})
+				response, responseErr = i.dao.NewItemRepository().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10, &[]string{"id", "name", "price_cup", "thumbnail", "blurhash", "cursor"})
 				if responseErr != nil {
 					return responseErr
 				}
@@ -488,7 +488,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
 			}
 		} else {
-			response, responseErr = i.dao.NewItemQuery().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10, &[]string{"id", "name", "price", "thumbnail", "thumbnail_blurhash", "cursor"})
+			response, responseErr = i.dao.NewItemRepository().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10, &[]string{"id", "name", "priceCup", "thumbnail", "thumbnail_blurhash", "cursor"})
 			if responseErr != nil {
 				return responseErr
 			}
@@ -529,7 +529,7 @@ func (i *itemService) SearchItemByBusiness(ctx context.Context, req *pb.SearchIt
 	var searchItemResponse pb.SearchItemByBusinessResponse
 	var responseErr error
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		response, responseErr = i.dao.NewItemQuery().SearchItemByBusiness(tx, req.Name, int64(req.NextPage), req.BusinessId, &[]string{"id", "name", "price", "thumbnail", "thumbnail_blurhash", "cursor"})
+		response, responseErr = i.dao.NewItemRepository().SearchItemByBusiness(tx, req.Name, int64(req.NextPage), req.BusinessId, &[]string{"id", "name", "price", "thumbnail", "thumbnail_blurhash", "cursor"})
 		if responseErr != nil {
 			return responseErr
 		}

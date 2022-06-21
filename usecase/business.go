@@ -22,10 +22,13 @@ import (
 
 type BusinessService interface {
 	Feed(ctx context.Context, req *pb.FeedRequest, meta *utils.ClientMetadata) (*pb.FeedResponse, error)
-	GetBusiness(ctx context.Context, req *pb.GetBusinessRequest, meta *utils.ClientMetadata) (*pb.GetBusinessResponse, error)
-	GetBusinessWithDistance(ctx context.Context, req *pb.GetBusinessWithDistanceRequest, md *utils.ClientMetadata) (*pb.GetBusinessWithDistanceResponse, error)
+	GetBusiness(ctx context.Context, req *pb.GetBusinessRequest, meta *utils.ClientMetadata) (*pb.Business, error)
+	GetBusinessWithDistance(ctx context.Context, req *pb.GetBusinessWithDistanceRequest, md *utils.ClientMetadata) (*pb.Business, error)
 	CreateBusiness(ctx context.Context, req *pb.CreateBusinessRequest, md *utils.ClientMetadata) (*pb.CreateBusinessResponse, error)
 	UpdateBusiness(ctx context.Context, req *pb.UpdateBusinessRequest, md *utils.ClientMetadata) (*pb.Business, error)
+	CreatePartnerApplication(ctx context.Context, req *pb.CreatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error)
+	ListPartnerApplication(ctx context.Context, req *pb.ListPartnerApplicationRequest, md *utils.ClientMetadata) (*pb.ListPartnerApplicationResponse, error)
+	UpdatePartnerApplication(ctx context.Context, req *pb.UpdatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error)
 }
 
 type businessService struct {
@@ -36,6 +39,209 @@ type businessService struct {
 
 func NewBusinessService(dao repository.DAO, config *utils.Config, stDb *sql.DB) BusinessService {
 	return &businessService{dao: dao, config: config, stDb: stDb}
+}
+
+func (i *businessService) UpdatePartnerApplication(ctx context.Context, req *pb.UpdatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error) {
+	var res pb.PartnerApplication
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
+			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		}
+		id := uuid.MustParse(req.Id)
+		getPartnerAppRes, getPartnerAppErr := i.dao.NewPartnerApplicationRepository().GetPartnerApplication(tx, &models.PartnerApplication{ID: &id}, &[]string{"user_id"})
+		if getPartnerAppErr != nil && getPartnerAppErr.Error() == "record not found" {
+			return errors.New("partner application not found")
+		} else if getPartnerAppErr != nil {
+			return getPartnerAppErr
+		}
+		if req.PartnerApplication.Status == pb.PartnerApplicationStatus_PartnerApplicationStatusApproved || req.PartnerApplication.Status == pb.PartnerApplicationStatus_PartnerApplicationStatusRejected {
+			_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_partner_application"}, &[]string{"id"})
+			if permissionErr != nil && permissionErr.Error() == "record not found" {
+				return errors.New("permission denied")
+			}
+			if req.PartnerApplication.Status == pb.PartnerApplicationStatus_PartnerApplicationStatusApproved {
+				userId := uuid.MustParse(req.PartnerApplication.UserId)
+				_, businessUserErr := i.dao.NewBusinessUserRepository().CreateBusinessUser(tx, &models.BusinessUser{IsBusinessOwner: true, UserId: &userId})
+				if businessUserErr != nil {
+					return businessUserErr
+				}
+			}
+		} else if req.PartnerApplication.Status == pb.PartnerApplicationStatus_PartnerApplicationStatusCanceled {
+			if *getPartnerAppRes.UserId != *authorizationTokenRes.UserId {
+				return errors.New("permission denied")
+			}
+		}
+		updatePartnerAppRes, updatePartnerAppErr := i.dao.NewPartnerApplicationRepository().UpdatePartnerApplication(tx, &models.PartnerApplication{ID: &id}, &models.PartnerApplication{Status: req.PartnerApplication.Status.String()})
+		if updatePartnerAppErr != nil {
+			return updatePartnerAppErr
+		}
+		res = pb.PartnerApplication{
+			Id:             updatePartnerAppRes.ID.String(),
+			BusinessName:   updatePartnerAppRes.BusinessName,
+			Coordinates:    &pb.Point{Latitude: updatePartnerAppRes.Coordinates.FlatCoords()[0], Longitude: updatePartnerAppRes.Coordinates.FlatCoords()[1]},
+			Description:    updatePartnerAppRes.Description,
+			UserId:         updatePartnerAppRes.UserId.String(),
+			MunicipalityId: updatePartnerAppRes.MunicipalityId.String(),
+			ProvinceId:     updatePartnerAppRes.ProvinceId.String(),
+			Status:         *utils.ParsePartnerApplicationStatus(&updatePartnerAppRes.Status),
+			CreateTime:     timestamppb.New(updatePartnerAppRes.CreateTime),
+			UpdateTime:     timestamppb.New(updatePartnerAppRes.UpdateTime),
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (i *businessService) ListPartnerApplication(ctx context.Context, req *pb.ListPartnerApplicationRequest, md *utils.ClientMetadata) (*pb.ListPartnerApplicationResponse, error) {
+	var res pb.ListPartnerApplicationResponse
+	var nextPage time.Time
+	if req.NextPage == nil {
+		nextPage = time.Now()
+	} else {
+		nextPage = req.NextPage.AsTime()
+	}
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
+			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		}
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_partner_application"}, &[]string{"id"})
+		if permissionErr != nil && permissionErr.Error() == "record not found" {
+			return errors.New("not permission")
+		}
+		partnerApplicationsRes, partnerApplicationsErr := i.dao.NewPartnerApplicationRepository().ListPartnerApplication(tx, nil, &nextPage, nil)
+		if partnerApplicationsErr != nil {
+			return partnerApplicationsErr
+		} else if len(*partnerApplicationsRes) > 10 {
+			*partnerApplicationsRes = (*partnerApplicationsRes)[:len(*partnerApplicationsRes)-1]
+			res.NextPage = timestamppb.New((*partnerApplicationsRes)[len(*partnerApplicationsRes)-1].CreateTime)
+		} else if len(*partnerApplicationsRes) == 0 {
+			res.NextPage = timestamppb.New(nextPage)
+		} else {
+			res.NextPage = timestamppb.New((*partnerApplicationsRes)[len(*partnerApplicationsRes)-1].CreateTime)
+		}
+		partnerApplications := make([]*pb.PartnerApplication, 0, len(*partnerApplicationsRes))
+		for _, i := range *partnerApplicationsRes {
+			partnerApplications = append(partnerApplications, &pb.PartnerApplication{
+				Id:             i.ID.String(),
+				BusinessName:   i.BusinessName,
+				Coordinates:    &pb.Point{Latitude: i.Coordinates.FlatCoords()[0], Longitude: i.Coordinates.FlatCoords()[1]},
+				Description:    i.Description,
+				Status:         *utils.ParsePartnerApplicationStatus(&i.Status),
+				UserId:         i.UserId.String(),
+				MunicipalityId: i.MunicipalityId.String(),
+				ProvinceId:     i.ProvinceId.String(),
+				CreateTime:     timestamppb.New(i.CreateTime),
+				UpdateTime:     timestamppb.New(i.UpdateTime),
+			})
+		}
+		res.PartnerApplications = partnerApplications
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (i *businessService) CreatePartnerApplication(ctx context.Context, req *pb.CreatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error) {
+	var res pb.PartnerApplication
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorizationtoken expired")
+			case "signature is invalid":
+				return errors.New("signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
+			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		}
+		businessUserRes, businessUserErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: authorizationTokenRes.UserId}, &[]string{"id"})
+		if businessUserErr != nil && businessUserErr.Error() != "record not found" {
+			return businessUserErr
+		}
+		if businessUserRes != nil {
+			return errors.New("already register as business user")
+		}
+		businessRes, businessErr := i.dao.NewBusinessQuery().GetBusiness(tx, &models.Business{Name: req.PartnerApplication.BusinessName}, &[]string{"id"})
+		if businessErr != nil && businessErr.Error() != "record not found" {
+			return businessErr
+		}
+		if businessRes != nil {
+			return errors.New("already exists a business with that name")
+		}
+		municipalityId := uuid.MustParse(req.PartnerApplication.MunicipalityId)
+		provinceId := uuid.MustParse(req.PartnerApplication.ProvinceId)
+		location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.PartnerApplication.Coordinates.Latitude, req.PartnerApplication.Coordinates.Longitude}).SetSRID(4326)}
+		createPartnerAppRes, createPartnerAppErr := i.dao.NewPartnerApplicationRepository().CreatePartnerApplication(tx, &models.PartnerApplication{BusinessName: req.PartnerApplication.BusinessName, Description: req.PartnerApplication.Description, ProvinceId: &provinceId, MunicipalityId: &municipalityId, UserId: authorizationTokenRes.UserId, Coordinates: location})
+		if createPartnerAppErr != nil {
+			return createPartnerAppErr
+		}
+		res = pb.PartnerApplication{
+			Id:             createPartnerAppRes.ID.String(),
+			BusinessName:   createPartnerAppRes.BusinessName,
+			Coordinates:    &pb.Point{Latitude: createPartnerAppRes.Coordinates.FlatCoords()[0], Longitude: createPartnerAppRes.Coordinates.FlatCoords()[1]},
+			Description:    createPartnerAppRes.Description,
+			UserId:         createPartnerAppRes.UserId.String(),
+			Status:         *utils.ParsePartnerApplicationStatus(&createPartnerAppRes.Status),
+			MunicipalityId: createPartnerAppRes.MunicipalityId.String(),
+			ProvinceId:     createPartnerAppRes.ProvinceId.String(),
+			CreateTime:     timestamppb.New(createPartnerAppRes.CreateTime),
+			UpdateTime:     timestamppb.New(createPartnerAppRes.UpdateTime),
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
 }
 
 func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusinessRequest, md *utils.ClientMetadata) (*pb.Business, error) {
@@ -58,10 +264,10 @@ func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusi
 			}
 		}
 		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
-		if authorizationTokenErr != nil {
-			return authorizationTokenErr
-		} else if authorizationTokenRes == nil {
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
 		}
 		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: authorizationTokenRes.UserId}, nil)
 		if businessOwnerErr != nil {
@@ -192,10 +398,10 @@ func (i *businessService) CreateBusiness(ctx context.Context, req *pb.CreateBusi
 			}
 		}
 		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
-		if authorizationTokenErr != nil {
-			return authorizationTokenErr
-		} else if authorizationTokenRes == nil {
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
 		}
 		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &models.BusinessUser{UserId: authorizationTokenRes.UserId}, nil)
 		if businessOwnerErr != nil {
@@ -348,7 +554,7 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 					ThumbnailUrl:          v.config.BusinessAvatarBulkName + "/" + e.Thumbnail,
 					BlurHash:              e.BlurHash,
 					Address:               e.Address,
-					DeliveryPriceCup:         e.DeliveryPriceCup,
+					DeliveryPriceCup:      e.DeliveryPriceCup,
 					TimeMarginOrderMonth:  e.TimeMarginOrderMonth,
 					TimeMarginOrderDay:    e.TimeMarginOrderDay,
 					TimeMarginOrderHour:   e.TimeMarginOrderHour,
@@ -388,7 +594,7 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 	return &response, nil
 }
 
-func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRequest, meta *utils.ClientMetadata) (*pb.GetBusinessResponse, error) {
+func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRequest, meta *utils.ClientMetadata) (*pb.Business, error) {
 	var businessRes *models.Business
 	var businessCollectionRes *[]models.BusinessCollection
 	var businessErr, businessCollectionErr error
@@ -425,10 +631,10 @@ func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRe
 	highQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.HighQualityPhoto
 	lowQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.LowQualityPhoto
 	thumbnailUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.Thumbnail
-	return &pb.GetBusinessResponse{Business: &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, LowQualityPhoto: businessRes.LowQualityPhoto, Thumbnail: businessRes.Thumbnail, BlurHash: businessRes.BlurHash, ToPickUp: businessRes.ToPickUp, DeliveryPriceCup: businessRes.DeliveryPriceCup, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.Coords()[1], Longitude: businessRes.Coordinates.Coords()[0]}, HighQualityPhotoUrl: highQualityPhotoUrl, LowQualityPhotoUrl: lowQualityPhotoUrl, ThumbnailUrl: thumbnailUrl}, BusinessCollections: itemsCategoryResponse}, nil
+	return &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, LowQualityPhoto: businessRes.LowQualityPhoto, Thumbnail: businessRes.Thumbnail, BlurHash: businessRes.BlurHash, ToPickUp: businessRes.ToPickUp, DeliveryPriceCup: businessRes.DeliveryPriceCup, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.Coords()[1], Longitude: businessRes.Coordinates.Coords()[0]}, HighQualityPhotoUrl: highQualityPhotoUrl, LowQualityPhotoUrl: lowQualityPhotoUrl, ThumbnailUrl: thumbnailUrl, BusinessCollections: itemsCategoryResponse}, nil
 }
 
-func (v *businessService) GetBusinessWithDistance(ctx context.Context, req *pb.GetBusinessWithDistanceRequest, md *utils.ClientMetadata) (*pb.GetBusinessWithDistanceResponse, error) {
+func (v *businessService) GetBusinessWithDistance(ctx context.Context, req *pb.GetBusinessWithDistanceRequest, md *utils.ClientMetadata) (*pb.Business, error) {
 	var businessRes *models.Business
 	var businessCollectionRes *[]models.BusinessCollection
 	var businessErr, businessCollectionErr error
@@ -505,5 +711,5 @@ func (v *businessService) GetBusinessWithDistance(ctx context.Context, req *pb.G
 	highQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.HighQualityPhoto
 	lowQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.LowQualityPhoto
 	thumbnailUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.Thumbnail
-	return &pb.GetBusinessWithDistanceResponse{Business: &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, LowQualityPhoto: businessRes.LowQualityPhoto, Thumbnail: businessRes.Thumbnail, BlurHash: businessRes.BlurHash, ToPickUp: businessRes.ToPickUp, DeliveryPriceCup: businessRes.DeliveryPriceCup, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.Coords()[1], Longitude: businessRes.Coordinates.Coords()[0]}, HighQualityPhotoUrl: highQualityPhotoUrl, LowQualityPhotoUrl: lowQualityPhotoUrl, ThumbnailUrl: thumbnailUrl, Distance: businessRes.Distance}, BusinessCollections: businessCollectionResponse, BusinessCategory: businessRes.BusinessCategory}, nil
+	return &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, LowQualityPhoto: businessRes.LowQualityPhoto, Thumbnail: businessRes.Thumbnail, BlurHash: businessRes.BlurHash, ToPickUp: businessRes.ToPickUp, DeliveryPriceCup: businessRes.DeliveryPriceCup, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.Coords()[1], Longitude: businessRes.Coordinates.Coords()[0]}, HighQualityPhotoUrl: highQualityPhotoUrl, LowQualityPhotoUrl: lowQualityPhotoUrl, ThumbnailUrl: thumbnailUrl, Distance: businessRes.Distance, BusinessCollections: businessCollectionResponse, BusinessCategory: businessRes.BusinessCategory}, nil
 }

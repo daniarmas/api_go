@@ -8,7 +8,7 @@ import (
 )
 
 type DAO interface {
-	NewItemQuery() ItemQuery
+	NewItemRepository() ItemRepository
 	NewVerificationCodeQuery() VerificationCodeRepository
 	NewUserQuery() UserQuery
 	NewBannedUserQuery() BannedUserQuery
@@ -23,7 +23,7 @@ type DAO interface {
 	NewBusinessCollectionQuery() BusinessCollectionQuery
 	NewObjectStorageRepository() ObjectStorageRepository
 	NewCartItemRepository() CartItemQuery
-	NewBusinessUserPermissionRepository() BusinessUserPermissionRepository
+	NewUserPermissionRepository() UserPermissionRepository
 	NewUnionBusinessAndMunicipalityRepository() UnionBusinessAndMunicipalityRepository
 	NewOrderRepository() OrderRepository
 	NewOrderedRepository() OrderedRepository
@@ -36,6 +36,8 @@ type DAO interface {
 	NewBusinessAnalyticsRepository() BusinessAnalyticsRepository
 	NewItemAnalyticsRepository() ItemAnalyticsRepository
 	NewUserAddressRepository() UserAddressRepository
+	NewPartnerApplicationRepository() PartnerApplicationRepository
+	NewBusinessRoleRepository() BusinessRoleRepository
 }
 
 type dao struct {
@@ -52,8 +54,8 @@ func NewDAO(db *gorm.DB, config *utils.Config, datasourceDao datasource.DAO, rdb
 	return &dao{}
 }
 
-func (d *dao) NewItemQuery() ItemQuery {
-	return &itemQuery{}
+func (d *dao) NewItemRepository() ItemRepository {
+	return &itemRepository{}
 }
 
 func (d *dao) NewVerificationCodeQuery() VerificationCodeRepository {
@@ -128,6 +130,10 @@ func (d *dao) NewRefreshTokenQuery() RefreshTokenQuery {
 	return &refreshTokenQuery{}
 }
 
+func (d *dao) NewPartnerApplicationRepository() PartnerApplicationRepository {
+	return &partnerApplicationRepository{}
+}
+
 func (d *dao) NewAuthorizationTokenQuery() AuthorizationTokenQuery {
 	return &authorizationTokenQuery{}
 }
@@ -152,6 +158,10 @@ func (d *dao) NewUnionBusinessAndMunicipalityRepository() UnionBusinessAndMunici
 	return &unionBusinessAndMunicipality{}
 }
 
+func (d *dao) NewBusinessRoleRepository() BusinessRoleRepository {
+	return &businessRoleRepository{}
+}
+
 func (d *dao) NewObjectStorageRepository() ObjectStorageRepository {
 	return &objectStorageRepository{}
 }
@@ -160,6 +170,6 @@ func (d *dao) NewCartItemRepository() CartItemQuery {
 	return &cartItemQuery{}
 }
 
-func (d *dao) NewBusinessUserPermissionRepository() BusinessUserPermissionRepository {
-	return &businessUserPermissionRepository{}
+func (d *dao) NewUserPermissionRepository() UserPermissionRepository {
+	return &userPermissionRepository{}
 }
