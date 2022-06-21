@@ -9,20 +9,20 @@ import (
 
 type DAO interface {
 	NewItemRepository() ItemRepository
-	NewVerificationCodeQuery() VerificationCodeRepository
-	NewUserQuery() UserQuery
-	NewBannedUserQuery() BannedUserQuery
-	NewBannedDeviceQuery() BannedDeviceQuery
-	NewDeviceQuery() DeviceRepository
-	NewRefreshTokenQuery() RefreshTokenQuery
-	NewAuthorizationTokenQuery() AuthorizationTokenQuery
-	NewSessionQuery() SessionQuery
-	NewBusinessQuery() BusinessQuery
+	NewVerificationCodeRepository() VerificationCodeRepository
+	NewUserRepository() UserRepository
+	NewBannedUserRepository() BannedUserRepository
+	NewBannedDeviceRepository() BannedDeviceRepository
+	NewDeviceRepository() DeviceRepository
+	NewRefreshTokenRepository() RefreshTokenRepository
+	NewAuthorizationTokenRepository() AuthorizationTokenRepository
+	NewSessionRepository() SessionRepository
+	NewBusinessRepository() BusinessRepository
 	NewMunicipalityRepository() MunicipalityRepository
 	NewProvinceRepository() ProvinceRepository
-	NewBusinessCollectionQuery() BusinessCollectionQuery
+	NewBusinessCollectionRepository() BusinessCollectionRepository
 	NewObjectStorageRepository() ObjectStorageRepository
-	NewCartItemRepository() CartItemQuery
+	NewCartItemRepository() CartItemRepository
 	NewUserPermissionRepository() UserPermissionRepository
 	NewUnionBusinessAndMunicipalityRepository() UnionBusinessAndMunicipalityRepository
 	NewOrderRepository() OrderRepository
@@ -58,7 +58,7 @@ func (d *dao) NewItemRepository() ItemRepository {
 	return &itemRepository{}
 }
 
-func (d *dao) NewVerificationCodeQuery() VerificationCodeRepository {
+func (d *dao) NewVerificationCodeRepository() VerificationCodeRepository {
 	return &verificationCodeRepository{}
 }
 
@@ -66,8 +66,8 @@ func (d *dao) NewDeprecatedVersionAppRepository() DeprecatedVersionAppRepository
 	return &deprecatedVersionAppRepository{}
 }
 
-func (d *dao) NewUserQuery() UserQuery {
-	return &userQuery{}
+func (d *dao) NewUserRepository() UserRepository {
+	return &userRepository{}
 }
 
 func (d *dao) NewMunicipalityRepository() MunicipalityRepository {
@@ -106,8 +106,8 @@ func (d *dao) NewUserAddressRepository() UserAddressRepository {
 	return &userAddressRepository{}
 }
 
-func (d *dao) NewBannedUserQuery() BannedUserQuery {
-	return &bannedUserQuery{}
+func (d *dao) NewBannedUserRepository() BannedUserRepository {
+	return &bannedUserRepository{}
 }
 
 func (d *dao) NewOrderedRepository() OrderedRepository {
@@ -118,40 +118,40 @@ func (d *dao) NewUnionOrderAndOrderedItemRepository() UnionOrderAndOrderedItemRe
 	return &unionOrderAndOrderedItemRepository{}
 }
 
-func (d *dao) NewBannedDeviceQuery() BannedDeviceQuery {
-	return &bannedDeviceQuery{}
+func (d *dao) NewBannedDeviceRepository() BannedDeviceRepository {
+	return &bannedDeviceRepository{}
 }
 
-func (d *dao) NewDeviceQuery() DeviceRepository {
+func (d *dao) NewDeviceRepository() DeviceRepository {
 	return &deviceRepository{}
 }
 
-func (d *dao) NewRefreshTokenQuery() RefreshTokenQuery {
-	return &refreshTokenQuery{}
+func (d *dao) NewRefreshTokenRepository() RefreshTokenRepository {
+	return &refreshTokenRepository{}
 }
 
 func (d *dao) NewPartnerApplicationRepository() PartnerApplicationRepository {
 	return &partnerApplicationRepository{}
 }
 
-func (d *dao) NewAuthorizationTokenQuery() AuthorizationTokenQuery {
-	return &authorizationTokenQuery{}
+func (d *dao) NewAuthorizationTokenRepository() AuthorizationTokenRepository {
+	return &authorizationTokenRepository{}
 }
 
 func (d *dao) NewBusinessCategoryRepository() BusinessCategoryRepository {
 	return &businessCategoryRepository{}
 }
 
-func (d *dao) NewSessionQuery() SessionQuery {
-	return &sessionQuery{}
+func (d *dao) NewSessionRepository() SessionRepository {
+	return &sessionRepository{}
 }
 
-func (d *dao) NewBusinessQuery() BusinessQuery {
-	return &businessQuery{}
+func (d *dao) NewBusinessRepository() BusinessRepository {
+	return &businessRepository{}
 }
 
-func (d *dao) NewBusinessCollectionQuery() BusinessCollectionQuery {
-	return &businessCollectionQuery{}
+func (d *dao) NewBusinessCollectionRepository() BusinessCollectionRepository {
+	return &businessCollectionRepository{}
 }
 
 func (d *dao) NewUnionBusinessAndMunicipalityRepository() UnionBusinessAndMunicipalityRepository {
@@ -166,8 +166,8 @@ func (d *dao) NewObjectStorageRepository() ObjectStorageRepository {
 	return &objectStorageRepository{}
 }
 
-func (d *dao) NewCartItemRepository() CartItemQuery {
-	return &cartItemQuery{}
+func (d *dao) NewCartItemRepository() CartItemRepository {
+	return &cartItemRepository{}
 }
 
 func (d *dao) NewUserPermissionRepository() UserPermissionRepository {

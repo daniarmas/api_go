@@ -6,16 +6,16 @@ import (
 	"gorm.io/gorm"
 )
 
-type RefreshTokenQuery interface {
+type RefreshTokenRepository interface {
 	GetRefreshToken(tx *gorm.DB, where *models.RefreshToken, fields *[]string) (*models.RefreshToken, error)
 	CreateRefreshToken(tx *gorm.DB, data *models.RefreshToken) (*models.RefreshToken, error)
 	DeleteRefreshToken(tx *gorm.DB, where *models.RefreshToken, ids *[]uuid.UUID) (*[]models.RefreshToken, error)
 	DeleteRefreshTokenDeviceIdNotEqual(tx *gorm.DB, where *models.RefreshToken, ids *[]uuid.UUID) (*[]models.RefreshToken, error)
 }
 
-type refreshTokenQuery struct{}
+type refreshTokenRepository struct{}
 
-func (v *refreshTokenQuery) CreateRefreshToken(tx *gorm.DB, data *models.RefreshToken) (*models.RefreshToken, error) {
+func (v *refreshTokenRepository) CreateRefreshToken(tx *gorm.DB, data *models.RefreshToken) (*models.RefreshToken, error) {
 	res, err := Datasource.NewRefreshTokenDatasource().CreateRefreshToken(tx, data)
 	if err != nil {
 		return nil, err
@@ -23,7 +23,7 @@ func (v *refreshTokenQuery) CreateRefreshToken(tx *gorm.DB, data *models.Refresh
 	return res, nil
 }
 
-func (r *refreshTokenQuery) DeleteRefreshToken(tx *gorm.DB, where *models.RefreshToken, ids *[]uuid.UUID) (*[]models.RefreshToken, error) {
+func (r *refreshTokenRepository) DeleteRefreshToken(tx *gorm.DB, where *models.RefreshToken, ids *[]uuid.UUID) (*[]models.RefreshToken, error) {
 	res, err := Datasource.NewRefreshTokenDatasource().DeleteRefreshToken(tx, where, ids)
 	if err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func (r *refreshTokenQuery) DeleteRefreshToken(tx *gorm.DB, where *models.Refres
 	return res, nil
 }
 
-func (r *refreshTokenQuery) DeleteRefreshTokenDeviceIdNotEqual(tx *gorm.DB, where *models.RefreshToken, ids *[]uuid.UUID) (*[]models.RefreshToken, error) {
+func (r *refreshTokenRepository) DeleteRefreshTokenDeviceIdNotEqual(tx *gorm.DB, where *models.RefreshToken, ids *[]uuid.UUID) (*[]models.RefreshToken, error) {
 	res, err := Datasource.NewRefreshTokenDatasource().DeleteRefreshTokenDeviceIdNotEqual(tx, where, ids)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (r *refreshTokenQuery) DeleteRefreshTokenDeviceIdNotEqual(tx *gorm.DB, wher
 	return res, nil
 }
 
-func (r *refreshTokenQuery) GetRefreshToken(tx *gorm.DB, where *models.RefreshToken, fields *[]string) (*models.RefreshToken, error) {
+func (r *refreshTokenRepository) GetRefreshToken(tx *gorm.DB, where *models.RefreshToken, fields *[]string) (*models.RefreshToken, error) {
 	res, err := Datasource.NewRefreshTokenDatasource().GetRefreshToken(tx, where, fields)
 	if err != nil {
 		return nil, err

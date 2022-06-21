@@ -5,13 +5,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type BannedDeviceQuery interface {
+type BannedDeviceRepository interface {
 	GetBannedDevice(tx *gorm.DB, where *models.BannedDevice, fields *[]string) (*models.BannedDevice, error)
 }
 
-type bannedDeviceQuery struct{}
+type bannedDeviceRepository struct{}
 
-func (i *bannedDeviceQuery) GetBannedDevice(tx *gorm.DB, where *models.BannedDevice, fields *[]string) (*models.BannedDevice, error) {
+func (i *bannedDeviceRepository) GetBannedDevice(tx *gorm.DB, where *models.BannedDevice, fields *[]string) (*models.BannedDevice, error) {
 	res, err := Datasource.NewBannedDeviceDatasource().GetBannedDevice(tx, where, fields)
 	if err != nil {
 		return nil, err

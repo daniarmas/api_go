@@ -59,7 +59,7 @@ func (i *itemService) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest,
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
@@ -182,7 +182,7 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
@@ -271,7 +271,7 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 		if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		} else if authorizationTokenRes == nil {
@@ -301,7 +301,7 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 		} else if tnErr != nil {
 			return tnErr
 		}
-		businessRes, businessErr := i.dao.NewBusinessQuery().GetBusiness(tx, &models.Business{ID: &businessId}, &[]string{"province_id", "municipality_id"})
+		businessRes, businessErr := i.dao.NewBusinessRepository().GetBusiness(tx, &models.Business{ID: &businessId}, &[]string{"province_id", "municipality_id"})
 		if businessErr != nil {
 			return businessErr
 		}
@@ -385,7 +385,7 @@ func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md 
 
 func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *utils.ClientMetadata) (*pb.Item, error) {
 	var res pb.Item
-	var item *models.ItemBusiness
+	var item *models.Item
 	var itemErr error
 	// Collecting analytics
 	if *md.App == "App" {
@@ -417,9 +417,14 @@ func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *u
 		}()
 	}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		item, itemErr = i.dao.NewItemRepository().GetItemWithLocation(tx, req.Id, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)})
+		id := uuid.MustParse(req.Id)
+		item, itemErr = i.dao.NewItemRepository().GetItem(tx, &models.Item{ID: &id}, nil)
 		if itemErr != nil {
 			return itemErr
+		}
+		isInRangeRes, isInRangeErr := i.dao.NewBusinessRepository().BusinessIsInRange(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, item.BusinessId)
+		if isInRangeErr != nil {
+			return isInRangeErr
 		}
 		res = pb.Item{
 			Id:                   item.ID.String(),
@@ -437,6 +442,7 @@ func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *u
 			ThumbnailUrl:         i.config.ItemsBulkName + "/" + item.Thumbnail,
 			BlurHash:             item.BlurHash,
 			Cursor:               item.Cursor,
+			IsInRange:            *isInRangeRes,
 			CreateTime:           timestamppb.New(item.CreateTime),
 			UpdateTime:           timestamppb.New(item.UpdateTime),
 		}
