@@ -66,7 +66,7 @@ func (i *cartItemService) EmptyCartItem(ctx context.Context, md *utils.ClientMet
 		for _, item := range *listCartItemsRes {
 			itemFks = append(itemFks, *item.ItemId)
 		}
-		itemsRes, itemsErr := i.dao.NewItemQuery().ListItemInIds(tx, itemFks, nil)
+		itemsRes, itemsErr := i.dao.NewItemRepository().ListItemInIds(tx, itemFks, nil)
 		if itemsErr != nil {
 			return itemsErr
 		}
@@ -80,7 +80,7 @@ func (i *cartItemService) EmptyCartItem(ctx context.Context, md *utils.ClientMet
 			(*itemsRes)[index].Availability += int64(item.Quantity)
 		}
 		for _, item := range *itemsRes {
-			_, updateItemsErr := i.dao.NewItemQuery().UpdateItem(tx, &models.Item{ID: item.ID}, &item)
+			_, updateItemsErr := i.dao.NewItemRepository().UpdateItem(tx, &models.Item{ID: item.ID}, &item)
 			if updateItemsErr != nil {
 				return updateItemsErr
 			}
@@ -226,7 +226,7 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		item, itemErr := i.dao.NewItemQuery().GetItem(tx, &models.Item{ID: &itemId}, nil)
+		item, itemErr := i.dao.NewItemRepository().GetItem(tx, &models.Item{ID: &itemId}, nil)
 		var itemAvailability int64
 		if itemErr != nil && itemErr.Error() == "record not found" {
 			return errors.New("item not found")
@@ -246,7 +246,7 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 			} else {
 				itemAvailability = item.Availability - int64(req.Quantity)
 			}
-			_, updateItemErr := i.dao.NewItemQuery().UpdateItem(tx, &models.Item{ID: item.ID}, &models.Item{Availability: itemAvailability})
+			_, updateItemErr := i.dao.NewItemRepository().UpdateItem(tx, &models.Item{ID: item.ID}, &models.Item{Availability: itemAvailability})
 			if updateItemErr != nil {
 				return updateItemErr
 			}
@@ -265,7 +265,7 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 			if resultErr != nil {
 				return resultErr
 			}
-			_, updateItemErr := i.dao.NewItemQuery().UpdateItem(tx, &models.Item{ID: item.ID}, &models.Item{Availability: item.Availability - int64(req.Quantity)})
+			_, updateItemErr := i.dao.NewItemRepository().UpdateItem(tx, &models.Item{ID: item.ID}, &models.Item{Availability: item.Availability - int64(req.Quantity)})
 			if updateItemErr != nil {
 				return updateItemErr
 			}
@@ -328,14 +328,14 @@ func (i *cartItemService) DeleteCartItem(ctx context.Context, req *pb.DeleteCart
 		if cartItemErr != nil && cartItemErr.Error() != "record not found" {
 			return errors.New("cartitem not found")
 		}
-		item, itemErr := i.dao.NewItemQuery().GetItemWithLocation(tx, cartItemRes.ItemId.String(), location)
+		item, itemErr := i.dao.NewItemRepository().GetItemWithLocation(tx, cartItemRes.ItemId.String(), location)
 		if itemErr != nil {
 			return itemErr
 		}
 		if item.Availability == -1 {
 			item.Availability += 1
 		}
-		_, updateItemErr := i.dao.NewItemQuery().UpdateItem(tx, &models.Item{ID: item.ID}, &models.Item{Availability: item.Availability + int64(cartItemRes.Quantity)})
+		_, updateItemErr := i.dao.NewItemRepository().UpdateItem(tx, &models.Item{ID: item.ID}, &models.Item{Availability: item.Availability + int64(cartItemRes.Quantity)})
 		if updateItemErr != nil {
 			return updateItemErr
 		}

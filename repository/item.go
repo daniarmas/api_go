@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type ItemQuery interface {
+type ItemRepository interface {
 	GetItem(tx *gorm.DB, where *models.Item, fields *[]string) (*models.Item, error)
 	GetItemWithLocation(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error)
 	ListItem(tx *gorm.DB, where *models.Item, cursor time.Time, fields *[]string) (*[]models.Item, error)
@@ -22,9 +22,9 @@ type ItemQuery interface {
 	DeleteItem(tx *gorm.DB, where *models.Item) error
 }
 
-type itemQuery struct{}
+type itemRepository struct{}
 
-func (v *itemQuery) DeleteItem(tx *gorm.DB, where *models.Item) error {
+func (v *itemRepository) DeleteItem(tx *gorm.DB, where *models.Item) error {
 	err := Datasource.NewItemDatasource().DeleteItem(tx, where)
 	if err != nil {
 		return err
@@ -32,7 +32,7 @@ func (v *itemQuery) DeleteItem(tx *gorm.DB, where *models.Item) error {
 	return nil
 }
 
-func (v *itemQuery) CreateItem(tx *gorm.DB, data *models.Item) (*models.Item, error) {
+func (v *itemRepository) CreateItem(tx *gorm.DB, data *models.Item) (*models.Item, error) {
 	res, err := Datasource.NewItemDatasource().CreateItem(tx, data)
 	if err != nil {
 		return nil, err
@@ -40,7 +40,7 @@ func (v *itemQuery) CreateItem(tx *gorm.DB, data *models.Item) (*models.Item, er
 	return res, nil
 }
 
-func (i *itemQuery) ListItem(tx *gorm.DB, where *models.Item, cursor time.Time, fields *[]string) (*[]models.Item, error) {
+func (i *itemRepository) ListItem(tx *gorm.DB, where *models.Item, cursor time.Time, fields *[]string) (*[]models.Item, error) {
 	result, err := Datasource.NewItemDatasource().ListItem(tx, where, cursor, fields)
 	if err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (i *itemQuery) ListItem(tx *gorm.DB, where *models.Item, cursor time.Time, 
 	return result, nil
 }
 
-func (i *itemQuery) ListItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]models.Item, error) {
+func (i *itemRepository) ListItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]models.Item, error) {
 	result, err := Datasource.NewItemDatasource().ListItemInIds(tx, ids, fields)
 	if err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func (i *itemQuery) ListItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string
 	return result, nil
 }
 
-func (i *itemQuery) GetItem(tx *gorm.DB, where *models.Item, fields *[]string) (*models.Item, error) {
+func (i *itemRepository) GetItem(tx *gorm.DB, where *models.Item, fields *[]string) (*models.Item, error) {
 	result, err := Datasource.NewItemDatasource().GetItem(tx, where, fields)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (i *itemQuery) GetItem(tx *gorm.DB, where *models.Item, fields *[]string) (
 	return result, nil
 }
 
-func (i *itemQuery) GetItemWithLocation(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error) {
+func (i *itemRepository) GetItemWithLocation(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error) {
 	result, err := Datasource.NewItemDatasource().GetItemWithLocation(tx, id, point)
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func (i *itemQuery) GetItemWithLocation(tx *gorm.DB, id string, point ewkb.Point
 	return result, nil
 }
 
-func (i *itemQuery) UpdateItem(tx *gorm.DB, where *models.Item, data *models.Item) (*models.Item, error) {
+func (i *itemRepository) UpdateItem(tx *gorm.DB, where *models.Item, data *models.Item) (*models.Item, error) {
 	result, err := Datasource.NewItemDatasource().UpdateItem(tx, where, data)
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (i *itemQuery) UpdateItem(tx *gorm.DB, where *models.Item, data *models.Ite
 	return result, nil
 }
 
-func (i *itemQuery) UpdateItems(tx *gorm.DB, data *[]models.Item) (*[]models.Item, error) {
+func (i *itemRepository) UpdateItems(tx *gorm.DB, data *[]models.Item) (*[]models.Item, error) {
 	result, err := Datasource.NewItemDatasource().UpdateItems(tx, data)
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func (i *itemQuery) UpdateItems(tx *gorm.DB, data *[]models.Item) (*[]models.Ite
 	return result, nil
 }
 
-func (i *itemQuery) SearchItem(tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64, fields *[]string) (*[]models.Item, error) {
+func (i *itemRepository) SearchItem(tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64, fields *[]string) (*[]models.Item, error) {
 	result, err := Datasource.NewItemDatasource().SearchItem(tx, name, provinceId, municipalityId, cursor, municipalityNotEqual, limit, fields)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (i *itemQuery) SearchItem(tx *gorm.DB, name string, provinceId string, muni
 	return result, nil
 }
 
-func (i *itemQuery) SearchItemByBusiness(tx *gorm.DB, name string, cursor int64, businessId string, fields *[]string) (*[]models.Item, error) {
+func (i *itemRepository) SearchItemByBusiness(tx *gorm.DB, name string, cursor int64, businessId string, fields *[]string) (*[]models.Item, error) {
 	result, err := Datasource.NewItemDatasource().SearchItemByBusiness(tx, name, cursor, businessId, fields)
 	if err != nil {
 		return nil, err

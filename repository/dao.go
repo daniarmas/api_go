@@ -8,7 +8,7 @@ import (
 )
 
 type DAO interface {
-	NewItemQuery() ItemQuery
+	NewItemRepository() ItemRepository
 	NewVerificationCodeQuery() VerificationCodeRepository
 	NewUserQuery() UserQuery
 	NewBannedUserQuery() BannedUserQuery
@@ -54,8 +54,8 @@ func NewDAO(db *gorm.DB, config *utils.Config, datasourceDao datasource.DAO, rdb
 	return &dao{}
 }
 
-func (d *dao) NewItemQuery() ItemQuery {
-	return &itemQuery{}
+func (d *dao) NewItemRepository() ItemRepository {
+	return &itemRepository{}
 }
 
 func (d *dao) NewVerificationCodeQuery() VerificationCodeRepository {
