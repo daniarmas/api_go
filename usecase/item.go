@@ -21,7 +21,7 @@ import (
 )
 
 type ItemService interface {
-	GetItem(ctx context.Context, req *pb.GetItemRequest, md *utils.ClientMetadata) (*pb.GetItemResponse, error)
+	GetItem(ctx context.Context, req *pb.GetItemRequest, md *utils.ClientMetadata) (*pb.Item, error)
 	ListItem(ctx context.Context, req *pb.ListItemRequest, md *utils.ClientMetadata) (*pb.ListItemResponse, error)
 	SearchItem(ctx context.Context, req *pb.SearchItemRequest, md *utils.ClientMetadata) (*pb.SearchItemResponse, error)
 	SearchItemByBusiness(ctx context.Context, req *pb.SearchItemByBusinessRequest, md *utils.ClientMetadata) (*pb.SearchItemByBusinessResponse, error)
@@ -256,7 +256,7 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 	var itemRes *models.Item
 	var itemErr error
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
-		businessId := uuid.MustParse(req.BusinessId)
+		businessId := uuid.MustParse(req.Item.BusinessId)
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -283,19 +283,19 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 		} else if err != nil {
 			return err
 		}
-		_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.HighQualityPhoto)
+		_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.Item.HighQualityPhoto)
 		if hqErr != nil && hqErr.Error() == "ObjectMissing" {
 			return errors.New("HighQualityPhotoObject missing")
 		} else if hqErr != nil {
 			return hqErr
 		}
-		_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.LowQualityPhoto)
+		_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.Item.LowQualityPhoto)
 		if lqErr != nil && lqErr.Error() == "ObjectMissing" {
 			return errors.New("LowQualityPhotoObject missing")
 		} else if lqErr != nil {
 			return lqErr
 		}
-		_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.Thumbnail)
+		_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.Item.Thumbnail)
 		if tnErr != nil && tnErr.Error() == "ObjectMissing" {
 			return errors.New("ThumbnailObject missing")
 		} else if tnErr != nil {
@@ -305,8 +305,8 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 		if businessErr != nil {
 			return businessErr
 		}
-		businessCollectionId := uuid.MustParse(req.BusinessCollectionId)
-		itemRes, itemErr = i.dao.NewItemQuery().CreateItem(tx, &models.Item{Name: req.Name, Description: req.Description, PriceCup: req.PriceCup, Availability: -1, BusinessId: &businessId, BusinessCollectionId: &businessCollectionId, HighQualityPhoto: req.HighQualityPhoto, LowQualityPhoto: req.LowQualityPhoto, Thumbnail: req.Thumbnail, BlurHash: req.BlurHash, Status: "Unavailable", ProvinceId: businessRes.ProvinceId, MunicipalityId: businessRes.MunicipalityId})
+		businessCollectionId := uuid.MustParse(req.Item.BusinessCollectionId)
+		itemRes, itemErr = i.dao.NewItemQuery().CreateItem(tx, &models.Item{Name: req.Item.Name, Description: req.Item.Description, PriceCup: req.Item.PriceCup, Availability: -1, BusinessId: &businessId, BusinessCollectionId: &businessCollectionId, HighQualityPhoto: req.Item.HighQualityPhoto, LowQualityPhoto: req.Item.LowQualityPhoto, Thumbnail: req.Item.Thumbnail, BlurHash: req.Item.BlurHash, Status: "Unavailable", ProvinceId: businessRes.ProvinceId, MunicipalityId: businessRes.MunicipalityId})
 		if itemErr != nil {
 			return itemErr
 		}
@@ -383,8 +383,8 @@ func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md 
 	return &res, nil
 }
 
-func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *utils.ClientMetadata) (*pb.GetItemResponse, error) {
-	var res pb.GetItemResponse
+func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *utils.ClientMetadata) (*pb.Item, error) {
+	var res pb.Item
 	var item *models.ItemBusiness
 	var itemErr error
 	// Collecting analytics
@@ -421,7 +421,7 @@ func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *u
 		if itemErr != nil {
 			return itemErr
 		}
-		res.Item = &pb.Item{
+		res = pb.Item{
 			Id:                   item.ID.String(),
 			Name:                 item.Name,
 			Description:          item.Description,

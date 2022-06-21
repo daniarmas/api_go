@@ -86,7 +86,7 @@ func (m *UserServer) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoR
 	return res, nil
 }
 
-func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.GetUserResponse, error) {
+func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.User, error) {
 	var st *status.Status
 	meta := utils.GetMetadata(ctx)
 	if meta.Authorization == nil {
@@ -486,7 +486,7 @@ func (m *UserServer) UpdateUserAddress(ctx context.Context, req *pb.UpdateUserAd
 	return res, nil
 }
 
-func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
+func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.User, error) {
 	var invalidCode, invalidEmail, invalidId *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status

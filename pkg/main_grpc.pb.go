@@ -362,8 +362,8 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BusinessServiceClient interface {
 	Feed(ctx context.Context, in *FeedRequest, opts ...grpc.CallOption) (*FeedResponse, error)
-	GetBusiness(ctx context.Context, in *GetBusinessRequest, opts ...grpc.CallOption) (*GetBusinessResponse, error)
-	GetBusinessWithDistance(ctx context.Context, in *GetBusinessWithDistanceRequest, opts ...grpc.CallOption) (*GetBusinessWithDistanceResponse, error)
+	GetBusiness(ctx context.Context, in *GetBusinessRequest, opts ...grpc.CallOption) (*Business, error)
+	GetBusinessWithDistance(ctx context.Context, in *GetBusinessWithDistanceRequest, opts ...grpc.CallOption) (*Business, error)
 	CreateBusiness(ctx context.Context, in *CreateBusinessRequest, opts ...grpc.CallOption) (*CreateBusinessResponse, error)
 	// rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
 	UpdateBusiness(ctx context.Context, in *UpdateBusinessRequest, opts ...grpc.CallOption) (*Business, error)
@@ -389,8 +389,8 @@ func (c *businessServiceClient) Feed(ctx context.Context, in *FeedRequest, opts 
 	return out, nil
 }
 
-func (c *businessServiceClient) GetBusiness(ctx context.Context, in *GetBusinessRequest, opts ...grpc.CallOption) (*GetBusinessResponse, error) {
-	out := new(GetBusinessResponse)
+func (c *businessServiceClient) GetBusiness(ctx context.Context, in *GetBusinessRequest, opts ...grpc.CallOption) (*Business, error) {
+	out := new(Business)
 	err := c.cc.Invoke(ctx, "/main.BusinessService/GetBusiness", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -398,8 +398,8 @@ func (c *businessServiceClient) GetBusiness(ctx context.Context, in *GetBusiness
 	return out, nil
 }
 
-func (c *businessServiceClient) GetBusinessWithDistance(ctx context.Context, in *GetBusinessWithDistanceRequest, opts ...grpc.CallOption) (*GetBusinessWithDistanceResponse, error) {
-	out := new(GetBusinessWithDistanceResponse)
+func (c *businessServiceClient) GetBusinessWithDistance(ctx context.Context, in *GetBusinessWithDistanceRequest, opts ...grpc.CallOption) (*Business, error) {
+	out := new(Business)
 	err := c.cc.Invoke(ctx, "/main.BusinessService/GetBusinessWithDistance", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -457,8 +457,8 @@ func (c *businessServiceClient) UpdatePartnerApplication(ctx context.Context, in
 // for forward compatibility
 type BusinessServiceServer interface {
 	Feed(context.Context, *FeedRequest) (*FeedResponse, error)
-	GetBusiness(context.Context, *GetBusinessRequest) (*GetBusinessResponse, error)
-	GetBusinessWithDistance(context.Context, *GetBusinessWithDistanceRequest) (*GetBusinessWithDistanceResponse, error)
+	GetBusiness(context.Context, *GetBusinessRequest) (*Business, error)
+	GetBusinessWithDistance(context.Context, *GetBusinessWithDistanceRequest) (*Business, error)
 	CreateBusiness(context.Context, *CreateBusinessRequest) (*CreateBusinessResponse, error)
 	// rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
 	UpdateBusiness(context.Context, *UpdateBusinessRequest) (*Business, error)
@@ -475,10 +475,10 @@ type UnimplementedBusinessServiceServer struct {
 func (UnimplementedBusinessServiceServer) Feed(context.Context, *FeedRequest) (*FeedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Feed not implemented")
 }
-func (UnimplementedBusinessServiceServer) GetBusiness(context.Context, *GetBusinessRequest) (*GetBusinessResponse, error) {
+func (UnimplementedBusinessServiceServer) GetBusiness(context.Context, *GetBusinessRequest) (*Business, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBusiness not implemented")
 }
-func (UnimplementedBusinessServiceServer) GetBusinessWithDistance(context.Context, *GetBusinessWithDistanceRequest) (*GetBusinessWithDistanceResponse, error) {
+func (UnimplementedBusinessServiceServer) GetBusinessWithDistance(context.Context, *GetBusinessWithDistanceRequest) (*Business, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBusinessWithDistance not implemented")
 }
 func (UnimplementedBusinessServiceServer) CreateBusiness(context.Context, *CreateBusinessRequest) (*CreateBusinessResponse, error) {
@@ -702,7 +702,7 @@ var BusinessService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ItemServiceClient interface {
 	ListItem(ctx context.Context, in *ListItemRequest, opts ...grpc.CallOption) (*ListItemResponse, error)
-	GetItem(ctx context.Context, in *GetItemRequest, opts ...grpc.CallOption) (*GetItemResponse, error)
+	GetItem(ctx context.Context, in *GetItemRequest, opts ...grpc.CallOption) (*Item, error)
 	CreateItem(ctx context.Context, in *CreateItemRequest, opts ...grpc.CallOption) (*Item, error)
 	UpdateItem(ctx context.Context, in *UpdateItemRequest, opts ...grpc.CallOption) (*Item, error)
 	DeleteItem(ctx context.Context, in *DeleteItemRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -727,8 +727,8 @@ func (c *itemServiceClient) ListItem(ctx context.Context, in *ListItemRequest, o
 	return out, nil
 }
 
-func (c *itemServiceClient) GetItem(ctx context.Context, in *GetItemRequest, opts ...grpc.CallOption) (*GetItemResponse, error) {
-	out := new(GetItemResponse)
+func (c *itemServiceClient) GetItem(ctx context.Context, in *GetItemRequest, opts ...grpc.CallOption) (*Item, error) {
+	out := new(Item)
 	err := c.cc.Invoke(ctx, "/main.ItemService/GetItem", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -786,7 +786,7 @@ func (c *itemServiceClient) SearchItemByBusiness(ctx context.Context, in *Search
 // for forward compatibility
 type ItemServiceServer interface {
 	ListItem(context.Context, *ListItemRequest) (*ListItemResponse, error)
-	GetItem(context.Context, *GetItemRequest) (*GetItemResponse, error)
+	GetItem(context.Context, *GetItemRequest) (*Item, error)
 	CreateItem(context.Context, *CreateItemRequest) (*Item, error)
 	UpdateItem(context.Context, *UpdateItemRequest) (*Item, error)
 	DeleteItem(context.Context, *DeleteItemRequest) (*emptypb.Empty, error)
@@ -802,7 +802,7 @@ type UnimplementedItemServiceServer struct {
 func (UnimplementedItemServiceServer) ListItem(context.Context, *ListItemRequest) (*ListItemResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListItem not implemented")
 }
-func (UnimplementedItemServiceServer) GetItem(context.Context, *GetItemRequest) (*GetItemResponse, error) {
+func (UnimplementedItemServiceServer) GetItem(context.Context, *GetItemRequest) (*Item, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetItem not implemented")
 }
 func (UnimplementedItemServiceServer) CreateItem(context.Context, *CreateItemRequest) (*Item, error) {
@@ -1003,8 +1003,8 @@ var ItemService_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
-	GetUser(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetUserResponse, error)
-	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error)
+	GetUser(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*User, error)
+	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*User, error)
 	GetAddressInfo(ctx context.Context, in *GetAddressInfoRequest, opts ...grpc.CallOption) (*GetAddressInfoResponse, error)
 	ListUserAddress(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListUserAddressResponse, error)
 	CreateUserAddress(ctx context.Context, in *CreateUserAddressRequest, opts ...grpc.CallOption) (*UserAddress, error)
@@ -1020,8 +1020,8 @@ func NewUserServiceClient(cc grpc.ClientConnInterface) UserServiceClient {
 	return &userServiceClient{cc}
 }
 
-func (c *userServiceClient) GetUser(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetUserResponse, error) {
-	out := new(GetUserResponse)
+func (c *userServiceClient) GetUser(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*User, error) {
+	out := new(User)
 	err := c.cc.Invoke(ctx, "/main.UserService/GetUser", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -1029,8 +1029,8 @@ func (c *userServiceClient) GetUser(ctx context.Context, in *emptypb.Empty, opts
 	return out, nil
 }
 
-func (c *userServiceClient) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error) {
-	out := new(UpdateUserResponse)
+func (c *userServiceClient) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*User, error) {
+	out := new(User)
 	err := c.cc.Invoke(ctx, "/main.UserService/UpdateUser", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -1087,8 +1087,8 @@ func (c *userServiceClient) DeleteUserAddress(ctx context.Context, in *DeleteUse
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
 type UserServiceServer interface {
-	GetUser(context.Context, *emptypb.Empty) (*GetUserResponse, error)
-	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
+	GetUser(context.Context, *emptypb.Empty) (*User, error)
+	UpdateUser(context.Context, *UpdateUserRequest) (*User, error)
 	GetAddressInfo(context.Context, *GetAddressInfoRequest) (*GetAddressInfoResponse, error)
 	ListUserAddress(context.Context, *emptypb.Empty) (*ListUserAddressResponse, error)
 	CreateUserAddress(context.Context, *CreateUserAddressRequest) (*UserAddress, error)
@@ -1101,10 +1101,10 @@ type UserServiceServer interface {
 type UnimplementedUserServiceServer struct {
 }
 
-func (UnimplementedUserServiceServer) GetUser(context.Context, *emptypb.Empty) (*GetUserResponse, error) {
+func (UnimplementedUserServiceServer) GetUser(context.Context, *emptypb.Empty) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
-func (UnimplementedUserServiceServer) UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error) {
+func (UnimplementedUserServiceServer) UpdateUser(context.Context, *UpdateUserRequest) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
 }
 func (UnimplementedUserServiceServer) GetAddressInfo(context.Context, *GetAddressInfoRequest) (*GetAddressInfoResponse, error) {
@@ -1500,7 +1500,7 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CartItemServiceClient interface {
 	ListCartItem(ctx context.Context, in *ListCartItemRequest, opts ...grpc.CallOption) (*ListCartItemResponse, error)
-	AddCartItem(ctx context.Context, in *AddCartItemRequest, opts ...grpc.CallOption) (*AddCartItemResponse, error)
+	AddCartItem(ctx context.Context, in *AddCartItemRequest, opts ...grpc.CallOption) (*CartItem, error)
 	IsEmptyCartItem(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*IsEmptyCartItemResponse, error)
 	DeleteCartItem(ctx context.Context, in *DeleteCartItemRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	EmptyCartItem(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -1523,8 +1523,8 @@ func (c *cartItemServiceClient) ListCartItem(ctx context.Context, in *ListCartIt
 	return out, nil
 }
 
-func (c *cartItemServiceClient) AddCartItem(ctx context.Context, in *AddCartItemRequest, opts ...grpc.CallOption) (*AddCartItemResponse, error) {
-	out := new(AddCartItemResponse)
+func (c *cartItemServiceClient) AddCartItem(ctx context.Context, in *AddCartItemRequest, opts ...grpc.CallOption) (*CartItem, error) {
+	out := new(CartItem)
 	err := c.cc.Invoke(ctx, "/main.CartItemService/AddCartItem", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -1564,7 +1564,7 @@ func (c *cartItemServiceClient) EmptyCartItem(ctx context.Context, in *emptypb.E
 // for forward compatibility
 type CartItemServiceServer interface {
 	ListCartItem(context.Context, *ListCartItemRequest) (*ListCartItemResponse, error)
-	AddCartItem(context.Context, *AddCartItemRequest) (*AddCartItemResponse, error)
+	AddCartItem(context.Context, *AddCartItemRequest) (*CartItem, error)
 	IsEmptyCartItem(context.Context, *emptypb.Empty) (*IsEmptyCartItemResponse, error)
 	DeleteCartItem(context.Context, *DeleteCartItemRequest) (*emptypb.Empty, error)
 	EmptyCartItem(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
@@ -1578,7 +1578,7 @@ type UnimplementedCartItemServiceServer struct {
 func (UnimplementedCartItemServiceServer) ListCartItem(context.Context, *ListCartItemRequest) (*ListCartItemResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCartItem not implemented")
 }
-func (UnimplementedCartItemServiceServer) AddCartItem(context.Context, *AddCartItemRequest) (*AddCartItemResponse, error) {
+func (UnimplementedCartItemServiceServer) AddCartItem(context.Context, *AddCartItemRequest) (*CartItem, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddCartItem not implemented")
 }
 func (UnimplementedCartItemServiceServer) IsEmptyCartItem(context.Context, *emptypb.Empty) (*IsEmptyCartItemResponse, error) {

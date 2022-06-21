@@ -20,8 +20,8 @@ import (
 )
 
 type UserService interface {
-	GetUser(ctx context.Context, md *utils.ClientMetadata) (*pb.GetUserResponse, error)
-	UpdateUser(ctx context.Context, req *pb.UpdateUserRequest, md *utils.ClientMetadata) (*pb.UpdateUserResponse, error)
+	GetUser(ctx context.Context, md *utils.ClientMetadata) (*pb.User, error)
+	UpdateUser(ctx context.Context, req *pb.UpdateUserRequest, md *utils.ClientMetadata) (*pb.User, error)
 	GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoRequest, md *utils.ClientMetadata) (*pb.GetAddressInfoResponse, error)
 	ListUserAddress(ctx context.Context, req *gp.Empty, md *utils.ClientMetadata) (*pb.ListUserAddressResponse, error)
 	CreateUserAddress(ctx context.Context, req *pb.CreateUserAddressRequest, md *utils.ClientMetadata) (*pb.UserAddress, error)
@@ -281,7 +281,7 @@ func (i *userService) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfo
 	return &res, nil
 }
 
-func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*pb.GetUserResponse, error) {
+func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*pb.User, error) {
 	var userRes *models.User
 	var userErr error
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
@@ -348,7 +348,7 @@ func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*p
 		thumbnailUrl = i.config.UsersBulkName + "/" + userRes.Thumbnail
 
 	}
-	return &pb.GetUserResponse{User: &pb.User{
+	return &pb.User{
 		Id:                  userRes.ID.String(),
 		FullName:            userRes.FullName,
 		Email:               userRes.Email,
@@ -363,10 +363,10 @@ func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*p
 		Permissions:         permissions,
 		CreateTime:          timestamppb.New(userRes.CreateTime),
 		UpdateTime:          timestamppb.New(userRes.UpdateTime),
-	}}, nil
+	}, nil
 }
 
-func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest, md *utils.ClientMetadata) (*pb.UpdateUserResponse, error) {
+func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest, md *utils.ClientMetadata) (*pb.User, error) {
 	var updatedUserRes *models.User
 	var updatedUserErr error
 	var userId uuid.UUID
@@ -499,7 +499,7 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 		thumbnailUrl = i.config.UsersBulkName + "/" + updatedUserRes.Thumbnail
 
 	}
-	return &pb.UpdateUserResponse{User: &pb.User{
+	return &pb.User{
 		Id:                  updatedUserRes.ID.String(),
 		FullName:            updatedUserRes.FullName,
 		Email:               updatedUserRes.Email,
@@ -514,5 +514,5 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 		Permissions:         nil,
 		CreateTime:          timestamppb.New(updatedUserRes.CreateTime),
 		UpdateTime:          timestamppb.New(updatedUserRes.UpdateTime),
-	}}, nil
+	}, nil
 }

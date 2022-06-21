@@ -68,7 +68,7 @@ func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemR
 	return res, nil
 }
 
-func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemRequest) (*pb.AddCartItemResponse, error) {
+func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemRequest) (*pb.CartItem, error) {
 	var invalidItemId, invalidLocation, invalidQuantity *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status

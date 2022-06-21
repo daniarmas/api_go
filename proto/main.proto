@@ -25,8 +25,8 @@ service AuthenticationService {
 
 service BusinessService {
   rpc Feed (FeedRequest) returns (FeedResponse) {}
-  rpc GetBusiness (GetBusinessRequest) returns (GetBusinessResponse) {}
-  rpc GetBusinessWithDistance (GetBusinessWithDistanceRequest) returns (GetBusinessWithDistanceResponse) {}
+  rpc GetBusiness (GetBusinessRequest) returns (Business) {}
+  rpc GetBusinessWithDistance (GetBusinessWithDistanceRequest) returns (Business) {}
   rpc CreateBusiness (CreateBusinessRequest) returns (CreateBusinessResponse) {}
   // rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
   rpc UpdateBusiness (UpdateBusinessRequest) returns (Business) {}
@@ -37,7 +37,7 @@ service BusinessService {
 
 service ItemService {
   rpc ListItem (ListItemRequest) returns (ListItemResponse) {}
-  rpc GetItem (GetItemRequest) returns (GetItemResponse) {}
+  rpc GetItem (GetItemRequest) returns (Item) {}
   rpc CreateItem (CreateItemRequest) returns (Item) {}
   rpc UpdateItem (UpdateItemRequest) returns (Item) {}
   rpc DeleteItem (DeleteItemRequest) returns (google.protobuf.Empty) {}  
@@ -46,8 +46,8 @@ service ItemService {
 }
 
 service UserService {
-  rpc GetUser (google.protobuf.Empty) returns (GetUserResponse) {}
-  rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse) {}
+  rpc GetUser (google.protobuf.Empty) returns (User) {}
+  rpc UpdateUser (UpdateUserRequest) returns (User) {}
   rpc GetAddressInfo (GetAddressInfoRequest) returns (GetAddressInfoResponse) {}
   rpc ListUserAddress (google.protobuf.Empty) returns (ListUserAddressResponse) {}
   rpc CreateUserAddress (CreateUserAddressRequest) returns (UserAddress) {}
@@ -64,7 +64,7 @@ service OrderService {
 
 service CartItemService {
   rpc ListCartItem (ListCartItemRequest) returns (ListCartItemResponse) {}
-  rpc AddCartItem (AddCartItemRequest) returns (AddCartItemResponse) {}
+  rpc AddCartItem (AddCartItemRequest) returns (CartItem) {}
   rpc IsEmptyCartItem (google.protobuf.Empty) returns (IsEmptyCartItemResponse) {}
   rpc DeleteCartItem (DeleteCartItemRequest) returns (google.protobuf.Empty) {}
   rpc EmptyCartItem (google.protobuf.Empty) returns (google.protobuf.Empty) {}
@@ -342,27 +342,11 @@ message UpdateItemRequest {
 	ItemStatusType status = 11;         
 }
 
-message UpdateItemResponse {
-  Item item = 1;
-}
-
 message IsEmptyCartItemResponse {
   bool isEmpty = 1;
 }
 
 message CreateItemRequest {
-  string name = 1;
-  string description = 2;
-  string priceCup = 3;
-  string businessCollectionId = 4;
-  string highQualityPhoto = 5;
-  string lowQualityPhoto = 6;
-  string thumbnail = 7;
-  string blurHash = 8;
-  string businessId = 11;
-}
-
-message CreateItemResponse {
   Item item = 1;
 }
 
@@ -378,14 +362,6 @@ message ListCartItemResponse {
 message UpdateUserRequest {
   User user = 1;
   string code = 2;
-}
-
-message UpdateUserResponse {
-  User user = 1;
-}
-
-message GetUserResponse {
-  User user = 1;
 }
 
 message ListSessionResponse {
@@ -421,10 +397,6 @@ message AddCartItemRequest {
   string itemId = 1;
   Point location = 2;
   int32 quantity = 3;
-}
-
-message AddCartItemResponse {
-  CartItem cartItem = 1;
 }
 
 message SearchItemRequest {
@@ -466,10 +438,6 @@ message ListItemResponse {
 message GetItemRequest {
   string id = 1;
   Point location = 2;
-}
-
-message GetItemResponse {
-  Item item = 1;
 }
 
 message FeedRequest {
@@ -701,8 +669,10 @@ message Business {
   BusinessStatusType status = 25;
   int32 cursor = 26;
   bool isInRange = 27;
-  google.protobuf.Timestamp createTime = 28;
-  google.protobuf.Timestamp updateTime = 29;
+  repeated BusinessCollection businessCollections = 28;
+  string businessCategory = 29;
+  google.protobuf.Timestamp createTime = 30;
+  google.protobuf.Timestamp updateTime = 31;
 }
 
 message Item {

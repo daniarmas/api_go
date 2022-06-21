@@ -21,7 +21,7 @@ import (
 
 type CartItemService interface {
 	ListCartItem(ctx context.Context, req *pb.ListCartItemRequest, md *utils.ClientMetadata) (*pb.ListCartItemResponse, error)
-	AddCartItem(ctx context.Context, req *pb.AddCartItemRequest, md *utils.ClientMetadata) (*pb.AddCartItemResponse, error)
+	AddCartItem(ctx context.Context, req *pb.AddCartItemRequest, md *utils.ClientMetadata) (*pb.CartItem, error)
 	IsEmptyCartItem(ctx context.Context, req *gp.Empty, md *utils.ClientMetadata) (*pb.IsEmptyCartItemResponse, error)
 	DeleteCartItem(ctx context.Context, req *pb.DeleteCartItemRequest, md *utils.ClientMetadata) (*gp.Empty, error)
 	EmptyCartItem(ctx context.Context, md *utils.ClientMetadata) (*gp.Empty, error)
@@ -201,7 +201,7 @@ func (i *cartItemService) ListCartItem(ctx context.Context, req *pb.ListCartItem
 	return &res, nil
 }
 
-func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRequest, md *utils.ClientMetadata) (*pb.AddCartItemResponse, error) {
+func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRequest, md *utils.ClientMetadata) (*pb.CartItem, error) {
 	var result *models.CartItem
 	var resultErr error
 	itemId := uuid.MustParse(req.ItemId)
@@ -275,21 +275,19 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 	if err != nil {
 		return nil, err
 	}
-	return &pb.AddCartItemResponse{
-		CartItem: &pb.CartItem{
-			Id:                   result.ID.String(),
-			Name:                 result.Name,
-			PriceCup:             result.PriceCup,
-			ItemId:               result.ItemId.String(),
-			BusinessId:           result.BusinessId.String(),
-			AuthorizationTokenId: result.AuthorizationTokenId.String(),
-			Quantity:             result.Quantity,
-			CreateTime:           timestamppb.New(result.CreateTime),
-			UpdateTime:           timestamppb.New(result.UpdateTime),
-			Thumbnail:            result.Thumbnail,
-			ThumbnailUrl:         i.config.ItemsBulkName + "/" + result.Thumbnail,
-			BlurHash:             result.BlurHash,
-		},
+	return &pb.CartItem{
+		Id:                   result.ID.String(),
+		Name:                 result.Name,
+		PriceCup:             result.PriceCup,
+		ItemId:               result.ItemId.String(),
+		BusinessId:           result.BusinessId.String(),
+		AuthorizationTokenId: result.AuthorizationTokenId.String(),
+		Quantity:             result.Quantity,
+		CreateTime:           timestamppb.New(result.CreateTime),
+		UpdateTime:           timestamppb.New(result.UpdateTime),
+		Thumbnail:            result.Thumbnail,
+		ThumbnailUrl:         i.config.ItemsBulkName + "/" + result.Thumbnail,
+		BlurHash:             result.BlurHash,
 	}, nil
 }
 

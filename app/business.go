@@ -516,7 +516,7 @@ func (m *BusinessServer) Feed(ctx context.Context, req *pb.FeedRequest) (*pb.Fee
 	return res, nil
 }
 
-func (m *BusinessServer) GetBusiness(ctx context.Context, req *pb.GetBusinessRequest) (*pb.GetBusinessResponse, error) {
+func (m *BusinessServer) GetBusiness(ctx context.Context, req *pb.GetBusinessRequest) (*pb.Business, error) {
 	var invalidId, invalidLocation *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status
@@ -593,7 +593,7 @@ func (m *BusinessServer) GetBusiness(ctx context.Context, req *pb.GetBusinessReq
 	return res, nil
 }
 
-func (m *BusinessServer) GetBusinessWithDistance(ctx context.Context, req *pb.GetBusinessWithDistanceRequest) (*pb.GetBusinessWithDistanceResponse, error) {
+func (m *BusinessServer) GetBusinessWithDistance(ctx context.Context, req *pb.GetBusinessWithDistanceRequest) (*pb.Business, error) {
 	var invalidId, invalidLocation *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status
