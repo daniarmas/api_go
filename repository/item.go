@@ -1,17 +1,19 @@
 package repository
 
 import (
+	"context"
+	"strconv"
 	"time"
 
 	"github.com/daniarmas/api_go/models"
+	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
-	"github.com/twpayne/go-geom/encoding/ewkb"
+	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
 type ItemRepository interface {
 	GetItem(tx *gorm.DB, where *models.Item, fields *[]string) (*models.Item, error)
-	GetItemWithLocation(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error)
 	ListItem(tx *gorm.DB, where *models.Item, cursor time.Time, fields *[]string) (*[]models.Item, error)
 	ListItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]models.Item, error)
 	CreateItem(tx *gorm.DB, data *models.Item) (*models.Item, error)
@@ -28,6 +30,15 @@ func (v *itemRepository) DeleteItem(tx *gorm.DB, where *models.Item) error {
 	err := Datasource.NewItemDatasource().DeleteItem(tx, where)
 	if err != nil {
 		return err
+	} else {
+		go func() {
+			cacheId := "item:" + where.ID.String()
+			ctx := context.Background()
+			cacheRes, cacheErr := Rdb.HDel(ctx, cacheId).Result()
+			if cacheRes == 0 || cacheErr == redis.Nil {
+				log.Error(cacheErr)
+			}
+		}()
 	}
 	return nil
 }
@@ -57,19 +68,86 @@ func (i *itemRepository) ListItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]s
 }
 
 func (i *itemRepository) GetItem(tx *gorm.DB, where *models.Item, fields *[]string) (*models.Item, error) {
-	result, err := Datasource.NewItemDatasource().GetItem(tx, where, fields)
-	if err != nil {
-		return nil, err
+	cacheId := "item:" + where.ID.String()
+	ctx := context.Background()
+	cacheRes, cacheErr := Rdb.HGetAll(ctx, cacheId).Result()
+	// Check if exists in cache
+	if len(cacheRes) == 0 || cacheErr == redis.Nil {
+		dbRes, dbErr := Datasource.NewItemDatasource().GetItem(tx, where, fields)
+		if dbErr != nil {
+			return nil, dbErr
+		}
+		go func() {
+			cacheErr := Rdb.HSet(ctx, cacheId, []string{
+				"id", dbRes.ID.String(),
+				"name", dbRes.Name,
+				"description", dbRes.Description,
+				"thumbnail", dbRes.Thumbnail,
+				"high_quality_photo", dbRes.HighQualityPhoto,
+				"low_quality_photo", dbRes.LowQualityPhoto,
+				"blurhash", dbRes.BlurHash,
+				"price_cup", dbRes.PriceCup,
+				"cost_cup", dbRes.CostCup,
+				"profit_cup", dbRes.ProfitCup,
+				"price_usd", dbRes.PriceUsd,
+				"cost_usd", dbRes.CostUsd,
+				"profit_usd", dbRes.ProfitUsd,
+				"cursor", strconv.Itoa(int(dbRes.Cursor)),
+				"province_id", dbRes.ProvinceId.String(),
+				"municipality_id", dbRes.MunicipalityId.String(),
+				"enabled_flag", strconv.FormatBool(dbRes.EnabledFlag),
+				"available_flag", strconv.FormatBool(dbRes.AvailableFlag),
+				"availability", strconv.Itoa(int(dbRes.Availability)),
+				"business_id", dbRes.BusinessId.String(),
+				"business_collection_id", dbRes.BusinessCollectionId.String(),
+				"create_time", dbRes.CreateTime.Format(time.RFC3339),
+				"update_time", dbRes.UpdateTime.Format(time.RFC3339),
+			}).Err()
+			if cacheErr != nil {
+				log.Error(cacheErr)
+			} else {
+				Rdb.Expire(ctx, cacheId, time.Minute*5)
+			}
+		}()
+		return dbRes, nil
+	} else {
+		id := uuid.MustParse(cacheRes["id"])
+		createTime, _ := time.Parse(time.RFC3339, cacheRes["create_time"])
+		updateTime, _ := time.Parse(time.RFC3339, cacheRes["update_time"])
+		availableFlag, _ := strconv.ParseBool(cacheRes["available_flag"])
+		enabledFlag, _ := strconv.ParseBool(cacheRes["enabled_flag"])
+		availability, _ := strconv.ParseInt(cacheRes["availability"], 0, 64)
+		cursor, _ := strconv.ParseInt(cacheRes["cursor"], 0, 32)
+		businessId := uuid.MustParse(cacheRes["business_id"])
+		businessCollectionId := uuid.MustParse(cacheRes["business_collection_id"])
+		provinceId := uuid.MustParse(cacheRes["province_id"])
+		municipalityId := uuid.MustParse(cacheRes["municipality_id"])
+		return &models.Item{
+			ID:                   &id,
+			Name:                 cacheRes["name"],
+			Description:          cacheRes["description"],
+			PriceCup:             cacheRes["price_cup"],
+			CostCup:              cacheRes["cost_cup"],
+			ProfitCup:            cacheRes["profit_cup"],
+			PriceUsd:             cacheRes["price_usd"],
+			CostUsd:              cacheRes["cost_usd"],
+			ProfitUsd:            cacheRes["profit_usd"],
+			AvailableFlag:        availableFlag,
+			EnabledFlag:          enabledFlag,
+			Availability:         availability,
+			BusinessId:           &businessId,
+			BusinessCollectionId: &businessCollectionId,
+			ProvinceId:           &provinceId,
+			MunicipalityId:       &municipalityId,
+			HighQualityPhoto:     cacheRes["high_quality_photo"],
+			LowQualityPhoto:      cacheRes["low_quality_photo"],
+			Thumbnail:            cacheRes["thumbnail"],
+			BlurHash:             cacheRes["blurhash"],
+			Cursor:               int32(cursor),
+			CreateTime:           createTime,
+			UpdateTime:           updateTime,
+		}, nil
 	}
-	return result, nil
-}
-
-func (i *itemRepository) GetItemWithLocation(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error) {
-	result, err := Datasource.NewItemDatasource().GetItemWithLocation(tx, id, point)
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
 }
 
 func (i *itemRepository) UpdateItem(tx *gorm.DB, where *models.Item, data *models.Item) (*models.Item, error) {

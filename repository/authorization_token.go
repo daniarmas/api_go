@@ -11,16 +11,16 @@ import (
 	"gorm.io/gorm"
 )
 
-type AuthorizationTokenQuery interface {
+type AuthorizationTokenRepository interface {
 	GetAuthorizationToken(ctx context.Context, tx *gorm.DB, where *models.AuthorizationToken, fields *[]string) (*models.AuthorizationToken, error)
 	CreateAuthorizationToken(ctx context.Context, tx *gorm.DB, data *models.AuthorizationToken) (*models.AuthorizationToken, error)
 	DeleteAuthorizationToken(ctx context.Context, tx *gorm.DB, where *models.AuthorizationToken, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error)
 	DeleteAuthorizationTokenByRefreshTokenIds(ctx context.Context, tx *gorm.DB, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error)
 }
 
-type authorizationTokenQuery struct{}
+type authorizationTokenRepository struct{}
 
-func (v *authorizationTokenQuery) CreateAuthorizationToken(ctx context.Context, tx *gorm.DB, data *models.AuthorizationToken) (*models.AuthorizationToken, error) {
+func (v *authorizationTokenRepository) CreateAuthorizationToken(ctx context.Context, tx *gorm.DB, data *models.AuthorizationToken) (*models.AuthorizationToken, error) {
 	// Store in the database
 	dbRes, dbErr := Datasource.NewAuthorizationTokenDatasource().CreateAuthorizationToken(tx, data)
 	if dbErr != nil {
@@ -48,7 +48,7 @@ func (v *authorizationTokenQuery) CreateAuthorizationToken(ctx context.Context, 
 	return dbRes, nil
 }
 
-func (r *authorizationTokenQuery) DeleteAuthorizationToken(ctx context.Context, tx *gorm.DB, where *models.AuthorizationToken, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error) {
+func (r *authorizationTokenRepository) DeleteAuthorizationToken(ctx context.Context, tx *gorm.DB, where *models.AuthorizationToken, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error) {
 	// Delete in cache
 	if where.ID != nil {
 		go func() {
@@ -67,7 +67,7 @@ func (r *authorizationTokenQuery) DeleteAuthorizationToken(ctx context.Context, 
 	return dbRes, nil
 }
 
-func (r *authorizationTokenQuery) DeleteAuthorizationTokenByRefreshTokenIds(ctx context.Context, tx *gorm.DB, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error) {
+func (r *authorizationTokenRepository) DeleteAuthorizationTokenByRefreshTokenIds(ctx context.Context, tx *gorm.DB, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error) {
 	// Delete in cache
 	go func() {
 		for _, i := range *ids {
@@ -86,7 +86,7 @@ func (r *authorizationTokenQuery) DeleteAuthorizationTokenByRefreshTokenIds(ctx 
 	return res, nil
 }
 
-func (v *authorizationTokenQuery) GetAuthorizationToken(ctx context.Context, tx *gorm.DB, where *models.AuthorizationToken, fields *[]string) (*models.AuthorizationToken, error) {
+func (v *authorizationTokenRepository) GetAuthorizationToken(ctx context.Context, tx *gorm.DB, where *models.AuthorizationToken, fields *[]string) (*models.AuthorizationToken, error) {
 	cacheId := "authorization_token:" + where.ID.String()
 	cacheRes, cacheErr := Rdb.HGetAll(ctx, cacheId).Result()
 	// Check if exists in cache
@@ -131,5 +131,4 @@ func (v *authorizationTokenQuery) GetAuthorizationToken(ctx context.Context, tx 
 			UpdateTime:     updateTime,
 		}, nil
 	}
-
 }

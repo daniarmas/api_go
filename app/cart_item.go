@@ -179,7 +179,7 @@ func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemReq
 }
 
 func (m *CartItemServer) DeleteCartItem(ctx context.Context, req *pb.DeleteCartItemRequest) (*gp.Empty, error) {
-	var invalidId, invalidItemId, invalidLocation *epb.BadRequest_FieldViolation
+	var invalidId, invalidItemId *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
@@ -212,34 +212,8 @@ func (m *CartItemServer) DeleteCartItem(ctx context.Context, req *pb.DeleteCartI
 			}
 		}
 	}
-	if req.Location == nil {
-		invalidArgs = true
-		invalidLocation = &epb.BadRequest_FieldViolation{
-			Field:       "Location",
-			Description: "The Location field is required",
-		}
-	} else if req.Location != nil {
-		if req.Location.Latitude == 0 {
-			invalidArgs = true
-			invalidLocation = &epb.BadRequest_FieldViolation{
-				Field:       "Location.Latitude",
-				Description: "The Location.Latitude field is required",
-			}
-		} else if req.Location.Longitude == 0 {
-			invalidArgs = true
-			invalidLocation = &epb.BadRequest_FieldViolation{
-				Field:       "Location.Longitude",
-				Description: "The Location.Longitude field is required",
-			}
-		}
-	}
 	if invalidArgs {
 		st = status.New(codes.InvalidArgument, "Invalid Arguments")
-		if invalidLocation != nil {
-			st, _ = st.WithDetails(
-				invalidLocation,
-			)
-		}
 		if invalidItemId != nil {
 			st, _ = st.WithDetails(
 				invalidItemId,

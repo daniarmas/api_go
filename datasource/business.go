@@ -19,9 +19,27 @@ type BusinessDatasource interface {
 	UpdateBusiness(tx *gorm.DB, data *models.Business, where *models.Business) (*models.Business, error)
 	UpdateBusinessCoordinate(tx *gorm.DB, data *models.Business, where *models.Business) error
 	GetBusinessWithDistance(tx *gorm.DB, where *models.Business) (*models.Business, error)
+	BusinessIsInRange(tx *gorm.DB, coordinates ewkb.Point, businessId *uuid.UUID) (*bool, error)
 }
 
 type businessDatasource struct{}
+
+func (b *businessDatasource) BusinessIsInRange(tx *gorm.DB, coordinates ewkb.Point, businessId *uuid.UUID) (*bool, error) {
+	type IsInRange struct {
+		IsInRange bool `gorm:"column:is_in_range;not null"`
+	}
+	var res *IsInRange
+	p := fmt.Sprintf("ST_Contains(business.polygon, ST_GeomFromText('POINT(%v %v)', 4326)) as is_in_range", coordinates.Point.Coords()[1], coordinates.Point.Coords()[0])
+	result := tx.Model(&models.Business{}).Select(p).Where("id = ?", businessId).Take(&res)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("record not found")
+		} else {
+			return nil, result.Error
+		}
+	}
+	return &res.IsInRange, nil
+}
 
 func (b *businessDatasource) GetBusiness(tx *gorm.DB, where *models.Business, fields *[]string) (*models.Business, error) {
 	var res *models.Business

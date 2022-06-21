@@ -5,13 +5,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type SessionQuery interface {
+type SessionRepository interface {
 	ListSession(tx *gorm.DB, session *models.Session, fields *[]string) (*[]models.Session, error)
 }
 
-type sessionQuery struct{}
+type sessionRepository struct{}
 
-func (v *sessionQuery) ListSession(tx *gorm.DB, session *models.Session, fields *[]string) (*[]models.Session, error) {
+func (v *sessionRepository) ListSession(tx *gorm.DB, session *models.Session, fields *[]string) (*[]models.Session, error) {
 	var sessionResult *[]models.Session
 	var result *gorm.DB
 	if fields != nil {

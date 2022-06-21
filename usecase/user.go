@@ -56,13 +56,13 @@ func (i *userService) UpdateUserAddress(ctx context.Context, req *pb.UpdateUserA
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, err := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("authorization token not found")
 		} else if err != nil && err.Error() != "record not found" {
 			return err
 		}
-		userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserId}, &[]string{"id"})
+		userRes, userErr := i.dao.NewUserRepository().GetUser(tx, &models.User{ID: authorizationTokenRes.UserId}, &[]string{"id"})
 		if userErr != nil {
 			return userErr
 		}
@@ -120,7 +120,7 @@ func (i *userService) DeleteUserAddress(ctx context.Context, req *pb.DeleteUserA
 				return authorizationTokenParseErr
 			}
 		}
-		_, err := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		_, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("authorization token not found")
 		} else if err != nil && err.Error() != "record not found" {
@@ -158,13 +158,13 @@ func (i *userService) CreateUserAddress(ctx context.Context, req *pb.CreateUserA
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, err := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("authorization token not found")
 		} else if err != nil && err.Error() != "record not found" {
 			return err
 		}
-		userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserId}, &[]string{"id"})
+		userRes, userErr := i.dao.NewUserRepository().GetUser(tx, &models.User{ID: authorizationTokenRes.UserId}, &[]string{"id"})
 		if userErr != nil {
 			return userErr
 		}
@@ -220,7 +220,7 @@ func (i *userService) ListUserAddress(ctx context.Context, req *gp.Empty, md *ut
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, err := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("authorization token not found")
 		} else if err != nil && err.Error() != "record not found" {
@@ -299,13 +299,13 @@ func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*p
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, err := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("authorization token not found")
 		} else if err != nil && err.Error() != "record not found" {
 			return err
 		}
-		userRes, userErr = i.dao.NewUserQuery().GetUserWithAddress(tx, &models.User{ID: authorizationTokenRes.UserId}, nil)
+		userRes, userErr = i.dao.NewUserRepository().GetUserWithAddress(tx, &models.User{ID: authorizationTokenRes.UserId}, nil)
 		if userErr != nil {
 			return userErr
 		}
@@ -385,7 +385,7 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenQuery().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if authorizationTokenErr != nil {
@@ -400,7 +400,7 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 				return err
 			}
 		}
-		userRes, userErr := i.dao.NewUserQuery().GetUser(tx, &models.User{ID: authorizationTokenRes.UserId}, &[]string{"id", "high_quality_photo", "low_quality_photo", "thumbnail"})
+		userRes, userErr := i.dao.NewUserRepository().GetUser(tx, &models.User{ID: authorizationTokenRes.UserId}, &[]string{"id", "high_quality_photo", "low_quality_photo", "thumbnail"})
 		if userErr != nil {
 			return userErr
 		}
@@ -413,17 +413,17 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 			if req.Code == "" {
 				return errors.New("missing code")
 			}
-			verificationCode, verificationCodeErr := i.dao.NewVerificationCodeQuery().GetVerificationCode(tx, &models.VerificationCode{Email: userRes.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "ChangeUserEmail"}, &[]string{"id"})
+			verificationCode, verificationCodeErr := i.dao.NewVerificationCodeRepository().GetVerificationCode(tx, &models.VerificationCode{Email: userRes.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "ChangeUserEmail"}, &[]string{"id"})
 			if verificationCodeErr != nil && verificationCodeErr.Error() == "record not found" {
 				return errors.New("verification code not found")
 			} else if verificationCodeErr != nil {
 				return verificationCodeErr
 			}
-			_, err := i.dao.NewVerificationCodeQuery().DeleteVerificationCode(tx, &models.VerificationCode{ID: verificationCode.ID}, nil)
+			_, err := i.dao.NewVerificationCodeRepository().DeleteVerificationCode(tx, &models.VerificationCode{ID: verificationCode.ID}, nil)
 			if err != nil {
 				return err
 			}
-			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: &userId}, &models.User{Email: req.User.Email})
+			updatedUserRes, updatedUserErr = i.dao.NewUserRepository().UpdateUser(tx, &models.User{ID: &userId}, &models.User{Email: req.User.Email})
 			if updatedUserErr != nil {
 				return updatedUserErr
 			}
@@ -477,12 +477,12 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 					return rmThErr
 				}
 			}
-			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: &userId}, &models.User{HighQualityPhoto: req.User.HighQualityPhoto, LowQualityPhoto: req.User.LowQualityPhoto, Thumbnail: req.User.Thumbnail, BlurHash: req.User.BlurHash})
+			updatedUserRes, updatedUserErr = i.dao.NewUserRepository().UpdateUser(tx, &models.User{ID: &userId}, &models.User{HighQualityPhoto: req.User.HighQualityPhoto, LowQualityPhoto: req.User.LowQualityPhoto, Thumbnail: req.User.Thumbnail, BlurHash: req.User.BlurHash})
 			if updatedUserErr != nil {
 				return updatedUserErr
 			}
 		} else if req.User.FullName != "" {
-			updatedUserRes, updatedUserErr = i.dao.NewUserQuery().UpdateUser(tx, &models.User{ID: &userId}, &models.User{FullName: req.User.FullName})
+			updatedUserRes, updatedUserErr = i.dao.NewUserRepository().UpdateUser(tx, &models.User{ID: &userId}, &models.User{FullName: req.User.FullName})
 			if updatedUserErr != nil {
 				return updatedUserErr
 			}

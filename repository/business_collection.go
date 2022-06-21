@@ -5,14 +5,14 @@ import (
 	"gorm.io/gorm"
 )
 
-type BusinessCollectionQuery interface {
+type BusinessCollectionRepository interface {
 	GetBusinessCollection(tx *gorm.DB, where *models.BusinessCollection, fields *[]string) (*models.BusinessCollection, error)
 	ListBusinessCollection(tx *gorm.DB, where *models.BusinessCollection, fields *[]string) (*[]models.BusinessCollection, error)
 }
 
-type businessCollectionQuery struct{}
+type businessCollectionRepository struct{}
 
-func (i *businessCollectionQuery) ListBusinessCollection(tx *gorm.DB, where *models.BusinessCollection, fields *[]string) (*[]models.BusinessCollection, error) {
+func (i *businessCollectionRepository) ListBusinessCollection(tx *gorm.DB, where *models.BusinessCollection, fields *[]string) (*[]models.BusinessCollection, error) {
 	result, err := Datasource.NewBusinessCollectionDatasource().ListBusinessCollection(tx, where, fields)
 	if err != nil {
 		return nil, err
@@ -20,7 +20,7 @@ func (i *businessCollectionQuery) ListBusinessCollection(tx *gorm.DB, where *mod
 	return result, nil
 }
 
-func (i *businessCollectionQuery) GetBusinessCollection(tx *gorm.DB, where *models.BusinessCollection, fields *[]string) (*models.BusinessCollection, error) {
+func (i *businessCollectionRepository) GetBusinessCollection(tx *gorm.DB, where *models.BusinessCollection, fields *[]string) (*models.BusinessCollection, error) {
 	result, err := Datasource.NewBusinessCollectionDatasource().GetBusinessCollection(tx, where, fields)
 	if err != nil {
 		return nil, err

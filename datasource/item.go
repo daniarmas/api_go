@@ -6,14 +6,12 @@ import (
 
 	"github.com/daniarmas/api_go/models"
 	"github.com/google/uuid"
-	"github.com/twpayne/go-geom/encoding/ewkb"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type ItemDatasource interface {
 	GetItem(tx *gorm.DB, where *models.Item, fields *[]string) (*models.Item, error)
-	GetItemWithLocation(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error)
 	ListItem(tx *gorm.DB, where *models.Item, cursor time.Time, fields *[]string) (*[]models.Item, error)
 	ListItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]models.Item, error)
 	CreateItem(tx *gorm.DB, data *models.Item) (*models.Item, error)
@@ -67,20 +65,6 @@ func (i *itemDatasource) ListItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]s
 		return nil, result.Error
 	}
 	return &res, nil
-}
-
-func (i *itemDatasource) GetItemWithLocation(tx *gorm.DB, id string, point ewkb.Point) (*models.ItemBusiness, error) {
-	var res *models.ItemBusiness
-	// p := fmt.Sprintf("'POINT(%v %v)'", point.Point.Coords()[1], point.Point.Coords()[0])
-	result := tx.Model(&models.Item{}).Select("item.id, item.name, item.business_collection_id, item.business_id, item.description, item.price_cup, item.availability, item.business_id, item.high_quality_photo, item.low_quality_photo, item.thumbnail, item.blurhash, item.create_time, item.update_time, item.cursor").Where("item.id = ?", id).Take(&res)
-	if result.Error != nil {
-		if result.Error.Error() == "record not found" {
-			return nil, errors.New("record not found")
-		} else {
-			return nil, result.Error
-		}
-	}
-	return res, nil
 }
 
 func (i *itemDatasource) GetItem(tx *gorm.DB, where *models.Item, fields *[]string) (*models.Item, error) {
