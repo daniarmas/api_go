@@ -54,11 +54,11 @@ func (i *itemService) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest,
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
 			case "Token is expired":
-				return errors.New("authorizationtoken expired")
+				return errors.New("authorization token expired")
 			case "signature is invalid":
-				return errors.New("signature is invalid")
+				return errors.New("authorization token signature is invalid")
 			case "token contains an invalid number of segments":
-				return errors.New("token contains an invalid number of segments")
+				return errors.New("authorization token contains an invalid number of segments")
 			default:
 				return authorizationTokenParseErr
 			}
@@ -181,11 +181,11 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
 			case "Token is expired":
-				return errors.New("authorizationtoken expired")
+				return errors.New("authorization token expired")
 			case "signature is invalid":
-				return errors.New("signature is invalid")
+				return errors.New("authorization token signature is invalid")
 			case "token contains an invalid number of segments":
-				return errors.New("token contains an invalid number of segments")
+				return errors.New("authorization token contains an invalid number of segments")
 			default:
 				return authorizationTokenParseErr
 			}
@@ -274,11 +274,11 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
 			case "Token is expired":
-				return errors.New("authorizationtoken expired")
+				return errors.New("authorization token expired")
 			case "signature is invalid":
-				return errors.New("signature is invalid")
+				return errors.New("authorization token signature is invalid")
 			case "token contains an invalid number of segments":
-				return errors.New("token contains an invalid number of segments")
+				return errors.New("authorization token contains an invalid number of segments")
 			default:
 				return authorizationTokenParseErr
 			}

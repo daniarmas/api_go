@@ -607,11 +607,11 @@ func (v *authenticationService) RefreshToken(ctx context.Context, req *pb.Refres
 		if refreshTokenParseErr != nil {
 			switch refreshTokenParseErr.Error() {
 			case "Token is expired":
-				return errors.New("refreshtoken expired")
+				return errors.New("refresh token expired")
 			case "signature is invalid":
-				return errors.New("signature is invalid")
+				return errors.New("refresh token signature is invalid")
 			case "token contains an invalid number of segments":
-				return errors.New("token contains an invalid number of segments")
+				return errors.New("refrehs token contains an invalid number of segments")
 			default:
 				return refreshTokenParseErr
 			}

@@ -64,16 +64,14 @@ func (m *ObjectStorageServer) GetPresignedPutObject(ctx context.Context, req *pb
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "authorizationtoken not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "unauthenticated":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "permission denied":
 			st = status.New(codes.PermissionDenied, "Permission denied")
 		default:

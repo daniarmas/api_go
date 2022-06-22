@@ -28,16 +28,14 @@ func (m *CartItemServer) EmptyCartItem(ctx context.Context, req *gp.Empty) (*gp.
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "authorizationtoken not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "unauthenticated":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -62,16 +60,14 @@ func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemR
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "authorizationtoken not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "unauthenticated":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -161,8 +157,6 @@ func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemReq
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "authorizationtoken not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "unauthenticated":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "item not found":
@@ -182,12 +176,12 @@ func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemReq
 			st = ds
 		case "the items in the cart can only be from one business":
 			st = status.New(codes.Unauthenticated, "The items in the cart can only be from one business")
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -254,8 +248,6 @@ func (m *CartItemServer) DeleteCartItem(ctx context.Context, req *pb.DeleteCartI
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "authorizationtoken not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "unauthenticated":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "cartitem not found":
@@ -273,12 +265,12 @@ func (m *CartItemServer) DeleteCartItem(ctx context.Context, req *pb.DeleteCartI
 				},
 			)
 			st = ds
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -304,8 +296,6 @@ func (m *CartItemServer) IsEmptyCartItem(ctx context.Context, req *gp.Empty) (*p
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "authorizationtoken not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "unauthenticated":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "cartitem not found":
@@ -323,12 +313,12 @@ func (m *CartItemServer) IsEmptyCartItem(ctx context.Context, req *gp.Empty) (*p
 				},
 			)
 			st = ds
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}

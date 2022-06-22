@@ -365,12 +365,12 @@ func (m *AuthenticationServer) CheckSession(ctx context.Context, req *gp.Empty) 
 			st = status.New(codes.PermissionDenied, "Device banned")
 		case "app banned":
 			st = status.New(codes.PermissionDenied, "App banned")
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -417,12 +417,12 @@ func (m *AuthenticationServer) SignOut(ctx context.Context, req *pb.SignOutReque
 			st = status.New(codes.PermissionDenied, "Permission denied")
 		case "user not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -469,10 +469,12 @@ func (m *AuthenticationServer) RefreshToken(ctx context.Context, req *pb.Refresh
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "refreshtoken expired":
 			st = status.New(codes.Unauthenticated, "RefreshToken expired")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "RefreshToken invalid")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "RefreshToken invalid")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -493,12 +495,12 @@ func (m *AuthenticationServer) ListSession(ctx context.Context, req *gp.Empty) (
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "RefreshToken invalid")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "RefreshToken invalid")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
