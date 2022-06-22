@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	logg "github.com/sirupsen/logrus"
 
 	"github.com/daniarmas/api_go/utils"
@@ -16,6 +17,11 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
+
+type JsonWebTokenMetadata struct {
+	TokenId *uuid.UUID
+	Token   *string
+}
 
 type DAO interface {
 	NewObjectStorageDatasource() ObjectStorageDatasource
@@ -40,7 +46,7 @@ type DAO interface {
 	NewOrderDatasource() OrderDatasource
 	NewOrderedItemDatasource() OrderedItemDatasource
 	NewUnionOrderAndOrderedItemDatasource() UnionOrderAndOrderedItemDatasource
-	NewDeprecatedVersionAppDatasource() DeprecatedVersionAppDatasource
+	NewApplicationDatasource() ApplicationDatasource
 	NewBusinessScheduleDatasource() BusinessScheduleDatasource
 	NewOrderLifecycleDatasource() OrderLifecycleDatasource
 	NewBusinessCategoryDatasource() BusinessCategoryDatasource
@@ -274,8 +280,8 @@ func (d *dao) NewOrderedItemDatasource() OrderedItemDatasource {
 	return &orderedItemDatasource{}
 }
 
-func (d *dao) NewDeprecatedVersionAppDatasource() DeprecatedVersionAppDatasource {
-	return &deprecatedVersionAppDatasource{}
+func (d *dao) NewApplicationDatasource() ApplicationDatasource {
+	return &applicationDatasource{}
 }
 
 func (d *dao) NewUserAddressDatasource() UserAddressDatasource {

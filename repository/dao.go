@@ -29,7 +29,7 @@ type DAO interface {
 	NewOrderedRepository() OrderedRepository
 	NewUnionOrderAndOrderedItemRepository() UnionOrderAndOrderedItemRepository
 	NewBusinessUserRepository() BusinessUserRepository
-	NewDeprecatedVersionAppRepository() DeprecatedVersionAppRepository
+	NewApplicationRepository() ApplicationRepository
 	NewBusinessScheduleRepository() BusinessScheduleRepository
 	NewOrderLifecycleRepository() OrderLifecycleRepository
 	NewBusinessCategoryRepository() BusinessCategoryRepository
@@ -38,6 +38,7 @@ type DAO interface {
 	NewUserAddressRepository() UserAddressRepository
 	NewPartnerApplicationRepository() PartnerApplicationRepository
 	NewBusinessRoleRepository() BusinessRoleRepository
+	NewJwtTokenRepository() JwtTokenRepository
 }
 
 type dao struct {
@@ -54,6 +55,10 @@ func NewDAO(db *gorm.DB, config *utils.Config, datasourceDao datasource.DAO, rdb
 	return &dao{}
 }
 
+func (d *dao) NewJwtTokenRepository() JwtTokenRepository {
+	return &jwtTokenRepository{}
+}
+
 func (d *dao) NewItemRepository() ItemRepository {
 	return &itemRepository{}
 }
@@ -62,8 +67,8 @@ func (d *dao) NewVerificationCodeRepository() VerificationCodeRepository {
 	return &verificationCodeRepository{}
 }
 
-func (d *dao) NewDeprecatedVersionAppRepository() DeprecatedVersionAppRepository {
-	return &deprecatedVersionAppRepository{}
+func (d *dao) NewApplicationRepository() ApplicationRepository {
+	return &applicationRepository{}
 }
 
 func (d *dao) NewUserRepository() UserRepository {

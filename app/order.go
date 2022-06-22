@@ -20,16 +20,20 @@ func (m *OrderServer) ListOrder(ctx context.Context, req *pb.ListOrderRequest) (
 	res, err := m.orderService.ListOrder(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "authorizationtoken not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "unauthenticated":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "permission denied":
 			st = status.New(codes.PermissionDenied, "Permission denied")
 		case "business is open":
@@ -135,16 +139,20 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 	res, createOrderErr := m.orderService.CreateOrder(ctx, req, md)
 	if createOrderErr != nil {
 		switch createOrderErr.Error() {
-		case "authorizationtoken not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "unauthenticated":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "cart items not found":
 			st = status.New(codes.InvalidArgument, "Cart items not found")
 		case "business closed":
@@ -215,16 +223,20 @@ func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReques
 	res, updateOrderErr := m.orderService.UpdateOrder(ctx, req, md)
 	if updateOrderErr != nil {
 		switch updateOrderErr.Error() {
-		case "authorizationtoken not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "unauthenticated":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "invalid status value":
 			st = status.New(codes.InvalidArgument, "Invalid status value")
 		default:
@@ -271,16 +283,20 @@ func (m *OrderServer) ListOrderedItem(ctx context.Context, req *pb.ListOrderedIt
 	res, listOrderedItemErr := m.orderService.ListOrderedItemWithItem(ctx, req, md)
 	if listOrderedItemErr != nil {
 		switch listOrderedItemErr.Error() {
-		case "authorizationtoken not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "unauthenticated":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "invalid status value":
 			st = status.New(codes.InvalidArgument, "Invalid status value")
 		default:

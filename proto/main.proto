@@ -23,6 +23,10 @@ service AuthenticationService {
   rpc ListSession (google.protobuf.Empty) returns (ListSessionResponse) {}
 }
 
+service ApplicationService {
+  rpc CreateApplication (CreateApplicationRequest) returns (Application) {}
+}
+
 service BusinessService {
   rpc Feed (FeedRequest) returns (FeedResponse) {}
   rpc GetBusiness (GetBusinessRequest) returns (Business) {}
@@ -68,6 +72,7 @@ service CartItemService {
   rpc IsEmptyCartItem (google.protobuf.Empty) returns (IsEmptyCartItemResponse) {}
   rpc DeleteCartItem (DeleteCartItemRequest) returns (google.protobuf.Empty) {}
   rpc EmptyCartItem (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc EmptyAndAddCartItem (EmptyAndAddCartItemRequest) returns (CartItem) {}
 }
 
 service BanService {
@@ -84,6 +89,10 @@ service AnalyticsService {
 }
 
 // Request & Response Message
+
+message CreateApplicationRequest {
+  Application application = 1;
+}
 
 message UpdatePartnerApplicationRequest {
   string id = 1;
@@ -398,6 +407,12 @@ message AddCartItemRequest {
   int32 quantity = 3;
 }
 
+message EmptyAndAddCartItemRequest {
+  string itemId = 1;
+  Point location = 2;
+  int32 quantity = 3;
+}
+
 message SearchItemRequest {
   int32 nextPage = 1;
   string name = 2;
@@ -694,6 +709,17 @@ message Item {
   bool isInRange = 18;
   google.protobuf.Timestamp createTime = 19;
   google.protobuf.Timestamp updateTime = 20;
+}
+
+message Application {
+  string id = 1;
+  string name = 2;
+  string version = 3;
+  string description = 4;
+  string access_token = 5;
+  google.protobuf.Timestamp expiration_time = 6;
+  google.protobuf.Timestamp create_time = 7;
+  google.protobuf.Timestamp update_time = 8;
 }
 
 message PartnerApplication {

@@ -9,12 +9,13 @@ import (
 	"github.com/google/uuid"
 )
 
-type JsonWebTokenMetadata struct {
-	TokenId *uuid.UUID
-	Token   *string
-}
+// type JsonWebTokenMetadata struct {
+// 	TokenId *uuid.UUID
+// 	Token   *string
+// }
 
 type JwtTokenDatasource interface {
+	CreateJwtAccessToken(tokenMetadata *JsonWebTokenMetadata) error
 	CreateJwtRefreshToken(tokenMetadata *JsonWebTokenMetadata) error
 	CreateJwtAuthorizationToken(tokenMetadata *JsonWebTokenMetadata) error
 	ParseJwtRefreshToken(tokenMetadata *JsonWebTokenMetadata) error
@@ -22,6 +23,21 @@ type JwtTokenDatasource interface {
 }
 
 type jwtTokenDatasource struct{}
+
+func (v *jwtTokenDatasource) CreateJwtAccessToken(tokenMetadata *JsonWebTokenMetadata) error {
+	hmacSecret := []byte(Config.JwtSecret)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
+		ExpiresAt: time.Now().Add(time.Hour * 8760).Unix(),
+		Subject:   tokenMetadata.TokenId.String(),
+	})
+	// Sign and get the complete encoded token as a string using the secret
+	tokenString, err := token.SignedString(hmacSecret)
+	if err != nil {
+		return err
+	}
+	tokenMetadata.Token = &tokenString
+	return nil
+}
 
 func (v *jwtTokenDatasource) CreateJwtRefreshToken(tokenMetadata *JsonWebTokenMetadata) error {
 	hmacSecret := []byte(Config.JwtSecret)
