@@ -155,6 +155,38 @@ func (i *itemRepository) UpdateItem(tx *gorm.DB, where *models.Item, data *model
 	if err != nil {
 		return nil, err
 	}
+	cacheId := "item:" + where.ID.String()
+	ctx := context.Background()
+	cacheErr := Rdb.HSet(ctx, cacheId, []string{
+		"id", result.ID.String(),
+		"name", result.Name,
+		"description", result.Description,
+		"thumbnail", result.Thumbnail,
+		"high_quality_photo", result.HighQualityPhoto,
+		"low_quality_photo", result.LowQualityPhoto,
+		"blurhash", result.BlurHash,
+		"price_cup", result.PriceCup,
+		"cost_cup", result.CostCup,
+		"profit_cup", result.ProfitCup,
+		"price_usd", result.PriceUsd,
+		"cost_usd", result.CostUsd,
+		"profit_usd", result.ProfitUsd,
+		"cursor", strconv.Itoa(int(result.Cursor)),
+		"province_id", result.ProvinceId.String(),
+		"municipality_id", result.MunicipalityId.String(),
+		"enabled_flag", strconv.FormatBool(result.EnabledFlag),
+		"available_flag", strconv.FormatBool(result.AvailableFlag),
+		"availability", strconv.Itoa(int(result.Availability)),
+		"business_id", result.BusinessId.String(),
+		"business_collection_id", result.BusinessCollectionId.String(),
+		"create_time", result.CreateTime.Format(time.RFC3339),
+		"update_time", result.UpdateTime.Format(time.RFC3339),
+	}).Err()
+	if cacheErr != nil {
+		log.Error(cacheErr)
+	} else {
+		Rdb.Expire(ctx, cacheId, time.Minute*5)
+	}
 	return result, nil
 }
 

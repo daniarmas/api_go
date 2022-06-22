@@ -12,7 +12,7 @@
       },
       {
         "key": "Access-Token",
-        "value": "O8pzXjp4QMk4cAD60dHeoOnxdVsDc9"
+        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTYwMTkyMDIsInN1YiI6IjNmY2E5MmFkLTE4NGEtNGZlOS1hNzMzLTkwNzQ0YmMzMzc0OCJ9.eB_r4Kt0-hOlwcNJJRrjcj6T3ljKZKTCZsjs5jEiSEM"
       },
       {
         "key": "Platform",
@@ -36,7 +36,7 @@
       },
       {
         "key": "Authorization",
-        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTQxMTE4NDcsInN1YiI6ImI3YzE5N2MwLTA1YTEtNDQwNy05NjkyLWRjOTk0YmY4Y2RhMiJ9.lcgasnF-tMEYI1a-co-MjLYml8bJ1_DKsQYCFfDXqs4"
+        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTYwMTkzODcsInN1YiI6IjBiZGFkMDliLTM5NDgtNDBmNy04NTQzLWQ2MjI5N2FiZGE2YyJ9.30Rown6WBuSTYOwdV0Xx8l3Gwo7FwgTYv_z50LmzsgI"
       }
     ]
   },

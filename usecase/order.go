@@ -40,16 +40,20 @@ func (i *orderService) ListOrderedItemWithItem(ctx context.Context, req *pb.List
 	var res pb.ListOrderedItemResponse
 	orderId := uuid.MustParse(req.OrderId)
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
 			case "Token is expired":
-				return errors.New("authorizationtoken expired")
+				return errors.New("authorization token expired")
 			case "signature is invalid":
-				return errors.New("signature is invalid")
+				return errors.New("authorization token signature is invalid")
 			case "token contains an invalid number of segments":
-				return errors.New("token contains an invalid number of segments")
+				return errors.New("authorization token contains an invalid number of segments")
 			default:
 				return authorizationTokenParseErr
 			}
@@ -90,16 +94,20 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 	id := uuid.MustParse(req.Order.Id)
 	var cancelReasons string
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
 			case "Token is expired":
-				return errors.New("authorizationtoken expired")
+				return errors.New("authorization token expired")
 			case "signature is invalid":
-				return errors.New("signature is invalid")
+				return errors.New("authorization token signature is invalid")
 			case "token contains an invalid number of segments":
-				return errors.New("token contains an invalid number of segments")
+				return errors.New("authorization token contains an invalid number of segments")
 			default:
 				return authorizationTokenParseErr
 			}
@@ -196,6 +204,10 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 	var cartItems []uuid.UUID
 	location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
 		createTime := time.Now().UTC()
 		orderTimeWeekday := req.OrderTime.AsTime()
 		orderTimeWeekdayHour, _, _ := orderTimeWeekday.Clock()
@@ -208,11 +220,11 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
 			case "Token is expired":
-				return errors.New("authorizationtoken expired")
+				return errors.New("authorization token expired")
 			case "signature is invalid":
-				return errors.New("signature is invalid")
+				return errors.New("authorization token signature is invalid")
 			case "token contains an invalid number of segments":
-				return errors.New("token contains an invalid number of segments")
+				return errors.New("authorization token contains an invalid number of segments")
 			default:
 				return authorizationTokenParseErr
 			}
@@ -700,16 +712,20 @@ func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, 
 	}
 	var res pb.ListOrderResponse
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
 			case "Token is expired":
-				return errors.New("authorizationtoken expired")
+				return errors.New("authorization token expired")
 			case "signature is invalid":
-				return errors.New("signature is invalid")
+				return errors.New("authorization token signature is invalid")
 			case "token contains an invalid number of segments":
-				return errors.New("token contains an invalid number of segments")
+				return errors.New("authorization token contains an invalid number of segments")
 			default:
 				return authorizationTokenParseErr
 			}

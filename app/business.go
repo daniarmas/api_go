@@ -136,14 +136,20 @@ func (m *BusinessServer) UpdatePartnerApplication(ctx context.Context, req *pb.U
 	res, err := m.businessService.UpdatePartnerApplication(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "authorizationtoken not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "unauthenticated":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "partner application not found":
 			st = status.New(codes.NotFound, "Partner application not found")
 		case "already register as business user":
@@ -152,8 +158,6 @@ func (m *BusinessServer) UpdatePartnerApplication(ctx context.Context, req *pb.U
 			st = status.New(codes.AlreadyExists, "Permission denied")
 		case "already exists a business with that name":
 			st = status.New(codes.AlreadyExists, "Already exists a business with that name")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
 		case "user not found":
 			st = status.New(codes.NotFound, "User not found")
 		default:
@@ -174,18 +178,24 @@ func (m *BusinessServer) ListPartnerApplication(ctx context.Context, req *pb.Lis
 	res, err := m.businessService.ListPartnerApplication(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "authorizationtoken not found":
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
+		case "authorization token not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "unauthenticated":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "authorizationtoken expired":
 			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
 		case "not permission":
 			st = status.New(codes.PermissionDenied, "Permission Denied")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -300,20 +310,24 @@ func (m *BusinessServer) CreatePartnerApplication(ctx context.Context, req *pb.C
 	res, err := m.businessService.CreatePartnerApplication(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "authorizationtoken not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "unauthenticated":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "already register as business user":
 			st = status.New(codes.AlreadyExists, "Already register as business user")
 		case "already exists a business with that name":
 			st = status.New(codes.AlreadyExists, "Already exists a business with that name")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
 		case "user not found":
 			st = status.New(codes.NotFound, "User not found")
 		default:
@@ -334,22 +348,26 @@ func (m *BusinessServer) CreateBusiness(ctx context.Context, req *pb.CreateBusin
 	res, err := m.businessService.CreateBusiness(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "authorizationtoken not found":
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
+		case "authorization token not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "unauthenticated":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
 		case "HighQualityPhotoObject missing":
 			st = status.New(codes.InvalidArgument, "HighQualityPhotoObject missing")
 		case "LowQualityPhotoObject missing":
 			st = status.New(codes.InvalidArgument, "LowQualityPhotoObject missing")
 		case "ThumbnailObject missing":
 			st = status.New(codes.InvalidArgument, "ThumbnailObject missing")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
 		case "user not found":
 			st = status.New(codes.NotFound, "User not found")
 		default:
@@ -370,12 +388,20 @@ func (m *BusinessServer) UpdateBusiness(ctx context.Context, req *pb.UpdateBusin
 	res, err := m.businessService.UpdateBusiness(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "authorizationtoken not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "unauthenticated":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "HighQualityPhotoObject missing":
 			st = status.New(codes.InvalidArgument, "HighQualityPhotoObject missing")
 		case "LowQualityPhotoObject missing":
@@ -386,10 +412,6 @@ func (m *BusinessServer) UpdateBusiness(ctx context.Context, req *pb.UpdateBusin
 			st = status.New(codes.InvalidArgument, "Business is open")
 		case "item in the cart":
 			st = status.New(codes.InvalidArgument, "Item in the cart")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
 		case "user not found":
 			st = status.New(codes.NotFound, "User not found")
 		default:
@@ -490,16 +512,12 @@ func (m *BusinessServer) Feed(ctx context.Context, req *pb.FeedRequest) (*pb.Fee
 	res, err := m.businessService.Feed(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "authorizationtoken not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
-		case "signature is invalid":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
-		case "token contains an invalid number of segments":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken invalid")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "banned user":
 			st = status.New(codes.PermissionDenied, "User banned")
 		case "banned device":
@@ -574,6 +592,12 @@ func (m *BusinessServer) GetBusiness(ctx context.Context, req *pb.GetBusinessReq
 	res, err := m.businessService.GetBusiness(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "banned user":
 			st = status.New(codes.PermissionDenied, "User banned")
 		case "banned device":
@@ -651,6 +675,12 @@ func (m *BusinessServer) GetBusinessWithDistance(ctx context.Context, req *pb.Ge
 	res, err := m.businessService.GetBusinessWithDistance(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "banned user":
 			st = status.New(codes.PermissionDenied, "User banned")
 		case "banned device":
