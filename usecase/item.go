@@ -45,6 +45,10 @@ func (i *itemService) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest,
 	var updateItemErr error
 	id := uuid.MustParse(req.Id)
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -167,6 +171,10 @@ func (i *itemService) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest,
 
 func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest, md *utils.ClientMetadata) error {
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
 		id := uuid.MustParse(req.Id)
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
@@ -256,6 +264,10 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 	var itemRes *models.Item
 	var itemErr error
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
 		businessId := uuid.MustParse(req.Item.BusinessId)
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
@@ -339,6 +351,10 @@ func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md 
 		where.BusinessId = &businessId
 	}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
 		items, itemsErr = i.dao.NewItemRepository().ListItem(tx, &where, nextPage, nil)
 		if itemsErr != nil {
 			return itemsErr
@@ -417,6 +433,10 @@ func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *u
 		}()
 	}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
 		id := uuid.MustParse(req.Id)
 		item, itemErr = i.dao.NewItemRepository().GetItem(tx, &models.Item{ID: &id}, nil)
 		if itemErr != nil {
@@ -459,6 +479,10 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 	var searchItemResponse pb.SearchItemResponse
 	var responseErr error
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
 		if req.SearchMunicipalityType.String() == "More" {
 			response, responseErr = i.dao.NewItemRepository().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), false, 10, &[]string{"id", "name", "price_cup", "thumbnail", "blurhash", "cursor"})
 			if responseErr != nil {
@@ -535,6 +559,10 @@ func (i *itemService) SearchItemByBusiness(ctx context.Context, req *pb.SearchIt
 	var searchItemResponse pb.SearchItemByBusinessResponse
 	var responseErr error
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
 		response, responseErr = i.dao.NewItemRepository().SearchItemByBusiness(tx, req.Name, int64(req.NextPage), req.BusinessId, &[]string{"id", "name", "price", "thumbnail", "thumbnail_blurhash", "cursor"})
 		if responseErr != nil {
 			return responseErr

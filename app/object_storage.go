@@ -58,6 +58,12 @@ func (m *ObjectStorageServer) GetPresignedPutObject(ctx context.Context, req *pb
 	res, err := m.objectStorageService.GetPresignedPutObject(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "authorizationtoken not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "unauthenticated":

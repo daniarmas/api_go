@@ -3,8 +3,10 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"os"
 
 	"github.com/daniarmas/api_go/app"
+	"github.com/daniarmas/api_go/cli"
 	"github.com/daniarmas/api_go/datasource"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
@@ -81,6 +83,8 @@ func serviceRegister(sv *grpc.Server) {
 	datasourceDao := datasource.NewDAO(db, config, objectStorage)
 	// Repository
 	repositoryDao := repository.NewDAO(db, config, datasourceDao, rdb)
+	// Handle the cli
+	cli.HandleCli(os.Args, db, config, repositoryDao)
 	itemService := usecase.NewItemService(repositoryDao, config, stDb)
 	authenticationService := usecase.NewAuthenticationService(repositoryDao, config)
 	businessService := usecase.NewBusinessService(repositoryDao, config, stDb)

@@ -20,6 +20,12 @@ func (m *OrderServer) ListOrder(ctx context.Context, req *pb.ListOrderRequest) (
 	res, err := m.orderService.ListOrder(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "authorizationtoken not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "unauthenticated":
@@ -135,6 +141,12 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 	res, createOrderErr := m.orderService.CreateOrder(ctx, req, md)
 	if createOrderErr != nil {
 		switch createOrderErr.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "authorizationtoken not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "unauthenticated":
@@ -215,6 +227,12 @@ func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReques
 	res, updateOrderErr := m.orderService.UpdateOrder(ctx, req, md)
 	if updateOrderErr != nil {
 		switch updateOrderErr.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "authorizationtoken not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "unauthenticated":
@@ -271,6 +289,12 @@ func (m *OrderServer) ListOrderedItem(ctx context.Context, req *pb.ListOrderedIt
 	res, listOrderedItemErr := m.orderService.ListOrderedItemWithItem(ctx, req, md)
 	if listOrderedItemErr != nil {
 		switch listOrderedItemErr.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "authorizationtoken not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "unauthenticated":

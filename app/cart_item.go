@@ -22,6 +22,12 @@ func (m *CartItemServer) EmptyCartItem(ctx context.Context, req *gp.Empty) (*gp.
 	res, err := m.cartItemService.EmptyCartItem(ctx, md)
 	if err != nil {
 		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "authorizationtoken not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "unauthenticated":
@@ -50,6 +56,12 @@ func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemR
 	res, err := m.cartItemService.ListCartItem(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "authorizationtoken not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "unauthenticated":
@@ -143,6 +155,12 @@ func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemReq
 	if err != nil {
 		errorr := strings.Split(err.Error(), ":")
 		switch errorr[0] {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "authorizationtoken not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "unauthenticated":
@@ -230,6 +248,12 @@ func (m *CartItemServer) DeleteCartItem(ctx context.Context, req *pb.DeleteCartI
 	if err != nil {
 		errorr := strings.Split(err.Error(), ":")
 		switch errorr[0] {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "authorizationtoken not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "unauthenticated":
@@ -274,6 +298,12 @@ func (m *CartItemServer) IsEmptyCartItem(ctx context.Context, req *gp.Empty) (*p
 	if err != nil {
 		errorr := strings.Split(err.Error(), ":")
 		switch errorr[0] {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "authorizationtoken not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "unauthenticated":

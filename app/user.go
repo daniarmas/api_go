@@ -66,6 +66,12 @@ func (m *UserServer) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoR
 	res, err := m.userService.GetAddressInfo(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "authorizationtoken not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "authorizationtoken expired":
@@ -96,6 +102,12 @@ func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.User, erro
 	res, err := m.userService.GetUser(ctx, meta)
 	if err != nil {
 		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "authorization token not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "authorizationtoken expired":
@@ -122,6 +134,12 @@ func (m *UserServer) ListUserAddress(ctx context.Context, req *gp.Empty) (*pb.Li
 	res, err := m.userService.ListUserAddress(ctx, req, meta)
 	if err != nil {
 		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "authorization token not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "authorizationtoken expired":
@@ -174,6 +192,12 @@ func (m *UserServer) DeleteUserAddress(ctx context.Context, req *pb.DeleteUserAd
 	res, err := m.userService.DeleteUserAddress(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "authorization token not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "authorizationtoken expired":
@@ -310,6 +334,12 @@ func (m *UserServer) CreateUserAddress(ctx context.Context, req *pb.CreateUserAd
 	res, err := m.userService.CreateUserAddress(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "authorization token not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "authorizationtoken expired":
@@ -466,6 +496,12 @@ func (m *UserServer) UpdateUserAddress(ctx context.Context, req *pb.UpdateUserAd
 	res, err := m.userService.UpdateUserAddress(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "authorization token not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "authorizationtoken expired":
@@ -545,6 +581,12 @@ func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) 
 	res, err := m.userService.UpdateUser(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "authorization token not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "missing code":

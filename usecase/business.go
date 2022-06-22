@@ -44,6 +44,10 @@ func NewBusinessService(dao repository.DAO, config *utils.Config, stDb *sql.DB) 
 func (i *businessService) UpdatePartnerApplication(ctx context.Context, req *pb.UpdatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error) {
 	var res pb.PartnerApplication
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -121,6 +125,10 @@ func (i *businessService) ListPartnerApplication(ctx context.Context, req *pb.Li
 		nextPage = req.NextPage.AsTime()
 	}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -183,6 +191,10 @@ func (i *businessService) ListPartnerApplication(ctx context.Context, req *pb.Li
 func (i *businessService) CreatePartnerApplication(ctx context.Context, req *pb.CreatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error) {
 	var res pb.PartnerApplication
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -249,6 +261,10 @@ func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusi
 	var businessErr error
 	id := uuid.MustParse(req.Id)
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -383,6 +399,10 @@ func (i *businessService) CreateBusiness(ctx context.Context, req *pb.CreateBusi
 	var businessErr error
 	var response pb.CreateBusinessResponse
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -491,6 +511,10 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 	var businessCategories []*pb.BusinessCategory
 	provinceId := uuid.MustParse(req.ProvinceId)
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := v.dao.NewApplicationRepository().CheckApplication(tx, *meta.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
 		if req.SearchMunicipalityType == pb.SearchMunicipalityType_More {
 			businessRes, businessErr = v.dao.NewBusinessRepository().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, 5, req.ProvinceId, req.MunicipalityId, req.NextPage, false, req.HomeDelivery, req.ToPickUp)
 			if businessErr != nil {
@@ -600,6 +624,10 @@ func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRe
 	var businessErr, businessCollectionErr error
 	var itemsCategoryResponse []*pb.BusinessCollection
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := v.dao.NewApplicationRepository().CheckApplication(tx, *meta.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
 		businessId := uuid.MustParse(req.Id)
 		businessRes, businessErr = v.dao.NewBusinessRepository().GetBusiness(tx, &models.Business{ID: &businessId}, nil)
 		if businessErr != nil && businessErr.Error() == "record not found" {
@@ -680,6 +708,10 @@ func (v *businessService) GetBusinessWithDistance(ctx context.Context, req *pb.G
 		}()
 	}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := v.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
 		businessId := uuid.MustParse(req.Id)
 		businessRes, businessErr = v.dao.NewBusinessRepository().GetBusinessWithDistance(tx, &models.Business{ID: &businessId, Coordinates: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}})
 		if businessErr != nil && businessErr.Error() == "record not found" {

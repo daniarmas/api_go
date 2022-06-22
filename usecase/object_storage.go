@@ -4,9 +4,11 @@ import (
 	"context"
 	"time"
 
+	"github.com/daniarmas/api_go/datasource"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/utils"
+	"gorm.io/gorm"
 )
 
 type ObjectStorageService interface {
@@ -22,6 +24,16 @@ func NewObjectStorageService(dao repository.DAO) ObjectStorageService {
 }
 
 func (i *objectStorageService) GetPresignedPutObject(ctx context.Context, req *pb.GetPresignedPutObjectRequest, md *utils.ClientMetadata) (*pb.GetPresignedPutObjectResponse, error) {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
 	var bucket string
 	var response pb.GetPresignedPutObjectResponse
 	switch req.PhotoType {

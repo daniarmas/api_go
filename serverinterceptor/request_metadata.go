@@ -71,11 +71,6 @@ func UnaryMetadataRequestInterceptor() grpc.UnaryServerInterceptor {
 			invalidAccessToken = &epb.ErrorInfo{
 				Reason: "access-token metadata missing",
 			}
-		} else if md.Get("Access-Token")[0] != "O8pzXjp4QMk4cAD60dHeoOnxdVsDc9" {
-			invalidArgs = true
-			invalidAccessToken = &epb.ErrorInfo{
-				Reason: "access-token is incorrect",
-			}
 		}
 		if len(md.Get("Platform")) == 0 {
 			invalidArgs = true
