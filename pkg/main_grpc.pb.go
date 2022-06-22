@@ -357,6 +357,92 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 	Metadata: "main.proto",
 }
 
+// ApplicationServiceClient is the client API for ApplicationService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type ApplicationServiceClient interface {
+	CreateApplication(ctx context.Context, in *CreateApplicationRequest, opts ...grpc.CallOption) (*Application, error)
+}
+
+type applicationServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewApplicationServiceClient(cc grpc.ClientConnInterface) ApplicationServiceClient {
+	return &applicationServiceClient{cc}
+}
+
+func (c *applicationServiceClient) CreateApplication(ctx context.Context, in *CreateApplicationRequest, opts ...grpc.CallOption) (*Application, error) {
+	out := new(Application)
+	err := c.cc.Invoke(ctx, "/main.ApplicationService/CreateApplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ApplicationServiceServer is the server API for ApplicationService service.
+// All implementations must embed UnimplementedApplicationServiceServer
+// for forward compatibility
+type ApplicationServiceServer interface {
+	CreateApplication(context.Context, *CreateApplicationRequest) (*Application, error)
+	mustEmbedUnimplementedApplicationServiceServer()
+}
+
+// UnimplementedApplicationServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedApplicationServiceServer struct {
+}
+
+func (UnimplementedApplicationServiceServer) CreateApplication(context.Context, *CreateApplicationRequest) (*Application, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateApplication not implemented")
+}
+func (UnimplementedApplicationServiceServer) mustEmbedUnimplementedApplicationServiceServer() {}
+
+// UnsafeApplicationServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ApplicationServiceServer will
+// result in compilation errors.
+type UnsafeApplicationServiceServer interface {
+	mustEmbedUnimplementedApplicationServiceServer()
+}
+
+func RegisterApplicationServiceServer(s grpc.ServiceRegistrar, srv ApplicationServiceServer) {
+	s.RegisterService(&ApplicationService_ServiceDesc, srv)
+}
+
+func _ApplicationService_CreateApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServiceServer).CreateApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.ApplicationService/CreateApplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServiceServer).CreateApplication(ctx, req.(*CreateApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// ApplicationService_ServiceDesc is the grpc.ServiceDesc for ApplicationService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var ApplicationService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "main.ApplicationService",
+	HandlerType: (*ApplicationServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateApplication",
+			Handler:    _ApplicationService_CreateApplication_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "main.proto",
+}
+
 // BusinessServiceClient is the client API for BusinessService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
@@ -1504,6 +1590,7 @@ type CartItemServiceClient interface {
 	IsEmptyCartItem(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*IsEmptyCartItemResponse, error)
 	DeleteCartItem(ctx context.Context, in *DeleteCartItemRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	EmptyCartItem(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	EmptyAndAddCartItem(ctx context.Context, in *EmptyAndAddCartItemRequest, opts ...grpc.CallOption) (*CartItem, error)
 }
 
 type cartItemServiceClient struct {
@@ -1559,6 +1646,15 @@ func (c *cartItemServiceClient) EmptyCartItem(ctx context.Context, in *emptypb.E
 	return out, nil
 }
 
+func (c *cartItemServiceClient) EmptyAndAddCartItem(ctx context.Context, in *EmptyAndAddCartItemRequest, opts ...grpc.CallOption) (*CartItem, error) {
+	out := new(CartItem)
+	err := c.cc.Invoke(ctx, "/main.CartItemService/EmptyAndAddCartItem", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CartItemServiceServer is the server API for CartItemService service.
 // All implementations must embed UnimplementedCartItemServiceServer
 // for forward compatibility
@@ -1568,6 +1664,7 @@ type CartItemServiceServer interface {
 	IsEmptyCartItem(context.Context, *emptypb.Empty) (*IsEmptyCartItemResponse, error)
 	DeleteCartItem(context.Context, *DeleteCartItemRequest) (*emptypb.Empty, error)
 	EmptyCartItem(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
+	EmptyAndAddCartItem(context.Context, *EmptyAndAddCartItemRequest) (*CartItem, error)
 	mustEmbedUnimplementedCartItemServiceServer()
 }
 
@@ -1589,6 +1686,9 @@ func (UnimplementedCartItemServiceServer) DeleteCartItem(context.Context, *Delet
 }
 func (UnimplementedCartItemServiceServer) EmptyCartItem(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EmptyCartItem not implemented")
+}
+func (UnimplementedCartItemServiceServer) EmptyAndAddCartItem(context.Context, *EmptyAndAddCartItemRequest) (*CartItem, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EmptyAndAddCartItem not implemented")
 }
 func (UnimplementedCartItemServiceServer) mustEmbedUnimplementedCartItemServiceServer() {}
 
@@ -1693,6 +1793,24 @@ func _CartItemService_EmptyCartItem_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CartItemService_EmptyAndAddCartItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmptyAndAddCartItemRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CartItemServiceServer).EmptyAndAddCartItem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.CartItemService/EmptyAndAddCartItem",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CartItemServiceServer).EmptyAndAddCartItem(ctx, req.(*EmptyAndAddCartItemRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CartItemService_ServiceDesc is the grpc.ServiceDesc for CartItemService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1719,6 +1837,10 @@ var CartItemService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "EmptyCartItem",
 			Handler:    _CartItemService_EmptyCartItem_Handler,
+		},
+		{
+			MethodName: "EmptyAndAddCartItem",
+			Handler:    _CartItemService_EmptyAndAddCartItem_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

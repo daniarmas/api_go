@@ -3,8 +3,10 @@ package cli
 import (
 	"flag"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"os"
+	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
@@ -59,7 +61,8 @@ func HandleCli(args []string, db *gorm.DB, config *utils.Config, repositoryDao r
 
 func handleCreateApp(getCreateAdmin *flag.FlagSet, repositoryDao repository.DAO, db *gorm.DB) {
 	err := db.Transaction(func(tx *gorm.DB) error {
-		createAppRes, createAppErr := repositoryDao.NewApplicationRepository().CreateApplication(tx, &models.Application{Name: "Initial", Version: "1.0.0"})
+		expTime := time.Now().UTC().AddDate(0, 0, 1)
+		createAppRes, createAppErr := repositoryDao.NewApplicationRepository().CreateApplication(tx, &models.Application{Name: "Initial", Version: "1.0.0", ExpirationTime: expTime})
 		if createAppErr != nil {
 			log.Error(createAppErr)
 			os.Exit(0)

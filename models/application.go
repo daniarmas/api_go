@@ -26,7 +26,6 @@ type Application struct {
 
 func (i *Application) BeforeCreate(tx *gorm.DB) (err error) {
 	timeNow := time.Now().UTC()
-	i.ExpirationTime = timeNow.AddDate(0, 0, 1)
 	i.CreateTime = timeNow
 	i.UpdateTime = timeNow
 	return

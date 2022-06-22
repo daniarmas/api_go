@@ -10,6 +10,11 @@ type ItemServer struct {
 	itemService usecase.ItemService
 }
 
+type ApplicationServer struct {
+	pb.UnimplementedApplicationServiceServer
+	applicationService usecase.ApplicationService
+}
+
 type BanServer struct {
 	pb.UnimplementedBanServiceServer
 	banService usecase.BanService
@@ -55,6 +60,14 @@ func NewOrderServer(
 ) *OrderServer {
 	return &OrderServer{
 		orderService: orderService,
+	}
+}
+
+func NewApplicationServer(
+	applicationService usecase.ApplicationService,
+) *ApplicationServer {
+	return &ApplicationServer{
+		applicationService: applicationService,
 	}
 }
 

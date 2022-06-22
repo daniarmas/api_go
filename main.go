@@ -94,6 +94,7 @@ func serviceRegister(sv *grpc.Server) {
 	banService := usecase.NewBanService(repositoryDao)
 	objectStorageService := usecase.NewObjectStorageService(repositoryDao)
 	analyicsService := usecase.NewAnalyticsService(repositoryDao, stDb)
+	applicationService := usecase.NewApplicationService(repositoryDao)
 	pb.RegisterItemServiceServer(sv, app.NewItemServer(
 		itemService,
 	))
@@ -119,6 +120,7 @@ func serviceRegister(sv *grpc.Server) {
 		objectStorageService,
 	))
 	pb.RegisterAnalyticsServiceServer(sv, app.NewAnalyticsServer(analyicsService))
+	pb.RegisterApplicationServiceServer(sv, app.NewApplicationServer(applicationService))
 }
 
 func addInterceptors(s *utils.GrpcServerBuilder) {
