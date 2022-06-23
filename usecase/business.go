@@ -13,7 +13,6 @@ import (
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
-	log "github.com/sirupsen/logrus"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -667,46 +666,6 @@ func (v *businessService) GetBusinessWithDistance(ctx context.Context, req *pb.G
 	var businessCollectionRes *[]models.BusinessCollection
 	var businessErr, businessCollectionErr error
 	var businessCollectionResponse []*pb.BusinessCollection
-	// Collecting analytics
-	if *md.App == "App" {
-		go func() {
-			// type TransactionPriority struct {
-			// 	Priority string
-			// }
-			// var priority TransactionPriority
-			ctx := context.Background()
-			// Get a Tx for making transaction requests.
-			tx, err := v.stDb.BeginTx(ctx, nil)
-			if err != nil {
-				log.Fatal(err)
-			}
-			// Defer a rollback in case anything fails.
-			defer tx.Rollback()
-
-			// Set transaction priority
-			_, err = tx.ExecContext(ctx, "SET TRANSACTION PRIORITY LOW")
-			if err != nil {
-				log.Fatal(err)
-			}
-			time := time.Now()
-			_, err = tx.Exec(`INSERT INTO "business_analytics" ("type", "business_id", "create_time", "update_time") VALUES ($1, $2, $3, $4)`, "BusinessAnalyticsTypeDetailView", req.Id, time, time)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			// err = tx.RepositoryRow("SHOW transaction_priority").Scan(&priority.Priority)
-			// if err != nil {
-			// 	log.Fatal(err)
-			// }
-
-			// fmt.Println("TRANSACTION PRIORITY: " + priority.Priority)
-
-			// Commit the transaction.
-			if err = tx.Commit(); err != nil {
-				log.Fatal(err)
-			}
-		}()
-	}
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
 		appErr := v.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {

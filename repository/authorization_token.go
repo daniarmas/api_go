@@ -53,7 +53,7 @@ func (r *authorizationTokenRepository) DeleteAuthorizationToken(ctx context.Cont
 	if where.ID != nil {
 		go func() {
 			cacheId := "authorization_token:" + where.ID.String()
-			cacheErr := Rdb.HDel(ctx, cacheId).Err()
+			cacheErr := Rdb.Del(ctx, cacheId).Err()
 			if cacheErr != nil {
 				log.Error(cacheErr)
 			}
@@ -72,7 +72,7 @@ func (r *authorizationTokenRepository) DeleteAuthorizationTokenByRefreshTokenIds
 	go func() {
 		for _, i := range *ids {
 			cacheId := "authorization_token:" + i.String()
-			cacheErr := Rdb.HDel(ctx, cacheId).Err()
+			cacheErr := Rdb.Del(ctx, cacheId).Err()
 			if cacheErr != nil {
 				log.Error(cacheErr)
 			}

@@ -1,15 +1,8 @@
 {
-  "id": "{{ faker.random.uuid }}",
-  "name": "{{ faker.name.last_name }}",
-  "description": "fooBar",
-  "priceCup": "{{ faker.commerce.price }}",
-  "businessCollectionId": "fooBar",
-  "highQualityPhoto": "fooBar",
-  "highQualityPhotoBlurHash": "fooBar",
-  "lowQualityPhoto": "fooBar",
-  "lowQualityPhotoBlurHash": "fooBar",
-  "thumbnail": "fooBar",
-  "thumbnailBlurHash": "fooBar",
-  "availability": "123",
-  "status": "ItemStatusTypeUnspecified"
+  "item": {
+    "id": "0fcfe77c-38dd-4c14-8458-b5e97735bc81",
+    "name": "Cuadros sencillo nuevo",
+    "priceCup": "100",
+    "availability": 106,
+  }
 }
