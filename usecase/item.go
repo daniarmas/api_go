@@ -254,7 +254,6 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 		if appErr != nil {
 			return appErr
 		}
-		businessId := uuid.MustParse(req.Item.BusinessId)
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -270,10 +269,15 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 			}
 		}
 		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
-		if authorizationTokenErr != nil {
-			return authorizationTokenErr
-		} else if authorizationTokenRes == nil {
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		}
+		businessId := uuid.MustParse(req.Item.BusinessId)
+		businessRes, businessErr := i.dao.NewBusinessRepository().GetBusiness(tx, &models.Business{ID: &businessId}, &[]string{"province_id", "municipality_id"})
+		if businessErr != nil {
+			return businessErr
 		}
 		_, err := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{Name: "create_item", UserId: authorizationTokenRes.UserId, BusinessId: &businessId}, &[]string{"id"})
 		if err != nil && err.Error() == "record not found" {
@@ -283,28 +287,24 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 		}
 		_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.Item.HighQualityPhoto)
 		if hqErr != nil && hqErr.Error() == "ObjectMissing" {
-			return errors.New("HighQualityPhotoObject missing")
+			return errors.New("highQualityPhotoObject missing")
 		} else if hqErr != nil {
 			return hqErr
 		}
 		_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.Item.LowQualityPhoto)
 		if lqErr != nil && lqErr.Error() == "ObjectMissing" {
-			return errors.New("LowQualityPhotoObject missing")
+			return errors.New("lowQualityPhotoObject missing")
 		} else if lqErr != nil {
 			return lqErr
 		}
 		_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.Item.Thumbnail)
 		if tnErr != nil && tnErr.Error() == "ObjectMissing" {
-			return errors.New("ThumbnailObject missing")
+			return errors.New("thumbnailObject missing")
 		} else if tnErr != nil {
 			return tnErr
 		}
-		businessRes, businessErr := i.dao.NewBusinessRepository().GetBusiness(tx, &models.Business{ID: &businessId}, &[]string{"province_id", "municipality_id"})
-		if businessErr != nil {
-			return businessErr
-		}
 		businessCollectionId := uuid.MustParse(req.Item.BusinessCollectionId)
-		itemRes, itemErr = i.dao.NewItemRepository().CreateItem(tx, &models.Item{Name: req.Item.Name, Description: req.Item.Description, PriceCup: req.Item.PriceCup, Availability: -1, BusinessId: &businessId, BusinessCollectionId: &businessCollectionId, HighQualityPhoto: req.Item.HighQualityPhoto, LowQualityPhoto: req.Item.LowQualityPhoto, Thumbnail: req.Item.Thumbnail, BlurHash: req.Item.BlurHash, Status: "Unavailable", ProvinceId: businessRes.ProvinceId, MunicipalityId: businessRes.MunicipalityId})
+		itemRes, itemErr = i.dao.NewItemRepository().CreateItem(tx, &models.Item{Name: req.Item.Name, Description: req.Item.Description, PriceCup: req.Item.PriceCup, CostCup: req.Item.CostCup, ProfitCup: req.Item.ProfitCup, PriceUsd: req.Item.PriceUsd, ProfitUsd: req.Item.ProfitUsd, CostUsd: req.Item.CostUsd, Availability: int64(req.Item.Availability), BusinessId: &businessId, BusinessCollectionId: &businessCollectionId, HighQualityPhoto: req.Item.HighQualityPhoto, LowQualityPhoto: req.Item.LowQualityPhoto, Thumbnail: req.Item.Thumbnail, BlurHash: req.Item.BlurHash, ProvinceId: businessRes.ProvinceId, MunicipalityId: businessRes.MunicipalityId, AvailableFlag: req.Item.AvailableFlag, EnabledFlag: req.Item.EnabledFlag})
 		if itemErr != nil {
 			return itemErr
 		}
@@ -313,7 +313,7 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 	if err != nil {
 		return nil, err
 	}
-	return &pb.Item{Id: itemRes.ID.String(), Name: itemRes.Name, Description: itemRes.Description, PriceCup: itemRes.PriceCup, Availability: int32(itemRes.Availability), BusinessId: itemRes.BusinessId.String(), BusinessCollectionId: itemRes.BusinessCollectionId.String(), HighQualityPhoto: itemRes.HighQualityPhoto, LowQualityPhoto: itemRes.LowQualityPhoto, Thumbnail: itemRes.Thumbnail, BlurHash: itemRes.BlurHash, CreateTime: timestamppb.New(itemRes.CreateTime), UpdateTime: timestamppb.New(itemRes.UpdateTime)}, nil
+	return &pb.Item{Id: itemRes.ID.String(), Name: itemRes.Name, Description: itemRes.Description, PriceCup: itemRes.PriceCup, CostCup: itemRes.CostCup, ProfitCup: itemRes.ProfitCup, PriceUsd: itemRes.PriceUsd, CostUsd: itemRes.CostUsd, ProfitUsd: itemRes.ProfitUsd, EnabledFlag: itemRes.EnabledFlag, AvailableFlag: itemRes.AvailableFlag, Availability: int32(itemRes.Availability), BusinessId: itemRes.BusinessId.String(), BusinessCollectionId: itemRes.BusinessCollectionId.String(), HighQualityPhoto: itemRes.HighQualityPhoto, LowQualityPhoto: itemRes.LowQualityPhoto, Thumbnail: itemRes.Thumbnail, BlurHash: itemRes.BlurHash, ProvinceId: itemRes.ProvinceId.String(), MunicipalityId: itemRes.MunicipalityId.String(), ThumbnailUrl: i.config.ItemsBulkName + "/" + itemRes.Thumbnail, HighQualityPhotoUrl: i.config.ItemsBulkName + "/" + itemRes.HighQualityPhoto, LowQualityPhotoUrl: i.config.ItemsBulkName + "/" + itemRes.LowQualityPhoto, CreateTime: timestamppb.New(itemRes.CreateTime), UpdateTime: timestamppb.New(itemRes.UpdateTime)}, nil
 }
 
 func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md *utils.ClientMetadata) (*pb.ListItemResponse, error) {
@@ -503,7 +503,6 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 				BlurHash:     e.BlurHash,
 				PriceCup:     e.PriceCup,
 				Cursor:       int32(e.Cursor),
-				Status:       *utils.ParseItemStatusType(&e.Status),
 			})
 		}
 		searchItemResponse.Items = itemsResponse
@@ -547,7 +546,6 @@ func (i *itemService) SearchItemByBusiness(ctx context.Context, req *pb.SearchIt
 				BlurHash:     e.BlurHash,
 				PriceCup:     e.PriceCup,
 				Cursor:       int32(e.Cursor),
-				Status:       *utils.ParseItemStatusType(&e.Status),
 			})
 		}
 		searchItemResponse.Items = itemsResponse

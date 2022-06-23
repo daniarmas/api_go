@@ -36,7 +36,6 @@ type Item struct {
 	Thumbnail            string         `gorm:"column:thumbnail;not null"`
 	BlurHash             string         `gorm:"column:blurhash;not null"`
 	Cursor               int32          `gorm:"column:cursor"`
-	Status               string         `gorm:"column:status;not null"`
 	CreateTime           time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime           time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime           gorm.DeletedAt `gorm:"index;column:delete_time"`
@@ -63,7 +62,6 @@ type ItemBusiness struct {
 	Thumbnail            string         `gorm:"column:thumbnail;not null"`
 	BlurHash             string         `gorm:"column:blurhash;not null"`
 	Cursor               int32          `gorm:"column:cursor"`
-	Status               string         `gorm:"column:status;not null"`
 	CreateTime           time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime           time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime           gorm.DeletedAt `gorm:"index;column:delete_time"`
