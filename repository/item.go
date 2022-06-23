@@ -31,20 +31,55 @@ func (v *itemRepository) DeleteItem(tx *gorm.DB, where *models.Item) error {
 	if err != nil {
 		return err
 	} else {
-		go func() {
-			cacheId := "item:" + where.ID.String()
-			ctx := context.Background()
-			cacheRes, cacheErr := Rdb.HDel(ctx, cacheId).Result()
-			if cacheRes == 0 || cacheErr == redis.Nil {
-				log.Error(cacheErr)
-			}
-		}()
+		cacheId := "item:" + where.ID.String()
+		ctx := context.Background()
+		cacheRes, cacheErr := Rdb.HDel(ctx, cacheId).Result()
+		if cacheRes == 0 || cacheErr == redis.Nil {
+			log.Error(cacheErr)
+		}
 	}
 	return nil
 }
 
 func (v *itemRepository) CreateItem(tx *gorm.DB, data *models.Item) (*models.Item, error) {
 	res, err := Datasource.NewItemDatasource().CreateItem(tx, data)
+	if err != nil {
+		return nil, err
+	}
+	cacheId := "item:" + res.ID.String()
+	ctx := context.Background()
+	rdbPipe := Rdb.Pipeline()
+	cacheErr := rdbPipe.HSet(ctx, cacheId, []string{
+		"id", res.ID.String(),
+		"name", res.Name,
+		"description", res.Description,
+		"thumbnail", res.Thumbnail,
+		"high_quality_photo", res.HighQualityPhoto,
+		"low_quality_photo", res.LowQualityPhoto,
+		"blurhash", res.BlurHash,
+		"price_cup", res.PriceCup,
+		"cost_cup", res.CostCup,
+		"profit_cup", res.ProfitCup,
+		"price_usd", res.PriceUsd,
+		"cost_usd", res.CostUsd,
+		"profit_usd", res.ProfitUsd,
+		"cursor", strconv.Itoa(int(res.Cursor)),
+		"province_id", res.ProvinceId.String(),
+		"municipality_id", res.MunicipalityId.String(),
+		"enabled_flag", strconv.FormatBool(res.EnabledFlag),
+		"available_flag", strconv.FormatBool(res.AvailableFlag),
+		"availability", strconv.Itoa(int(res.Availability)),
+		"business_id", res.BusinessId.String(),
+		"business_collection_id", res.BusinessCollectionId.String(),
+		"create_time", res.CreateTime.Format(time.RFC3339),
+		"update_time", res.UpdateTime.Format(time.RFC3339),
+	}).Err()
+	if cacheErr != nil {
+		log.Error(cacheErr)
+	} else {
+		rdbPipe.Expire(ctx, cacheId, time.Minute*5)
+	}
+	_, err = rdbPipe.Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -77,38 +112,42 @@ func (i *itemRepository) GetItem(tx *gorm.DB, where *models.Item, fields *[]stri
 		if dbErr != nil {
 			return nil, dbErr
 		}
-		go func() {
-			cacheErr := Rdb.HSet(ctx, cacheId, []string{
-				"id", dbRes.ID.String(),
-				"name", dbRes.Name,
-				"description", dbRes.Description,
-				"thumbnail", dbRes.Thumbnail,
-				"high_quality_photo", dbRes.HighQualityPhoto,
-				"low_quality_photo", dbRes.LowQualityPhoto,
-				"blurhash", dbRes.BlurHash,
-				"price_cup", dbRes.PriceCup,
-				"cost_cup", dbRes.CostCup,
-				"profit_cup", dbRes.ProfitCup,
-				"price_usd", dbRes.PriceUsd,
-				"cost_usd", dbRes.CostUsd,
-				"profit_usd", dbRes.ProfitUsd,
-				"cursor", strconv.Itoa(int(dbRes.Cursor)),
-				"province_id", dbRes.ProvinceId.String(),
-				"municipality_id", dbRes.MunicipalityId.String(),
-				"enabled_flag", strconv.FormatBool(dbRes.EnabledFlag),
-				"available_flag", strconv.FormatBool(dbRes.AvailableFlag),
-				"availability", strconv.Itoa(int(dbRes.Availability)),
-				"business_id", dbRes.BusinessId.String(),
-				"business_collection_id", dbRes.BusinessCollectionId.String(),
-				"create_time", dbRes.CreateTime.Format(time.RFC3339),
-				"update_time", dbRes.UpdateTime.Format(time.RFC3339),
-			}).Err()
-			if cacheErr != nil {
-				log.Error(cacheErr)
-			} else {
-				Rdb.Expire(ctx, cacheId, time.Minute*5)
-			}
-		}()
+		ctx := context.Background()
+		rdbPipe := Rdb.Pipeline()
+		cacheErr := rdbPipe.HSet(ctx, cacheId, []string{
+			"id", dbRes.ID.String(),
+			"name", dbRes.Name,
+			"description", dbRes.Description,
+			"thumbnail", dbRes.Thumbnail,
+			"high_quality_photo", dbRes.HighQualityPhoto,
+			"low_quality_photo", dbRes.LowQualityPhoto,
+			"blurhash", dbRes.BlurHash,
+			"price_cup", dbRes.PriceCup,
+			"cost_cup", dbRes.CostCup,
+			"profit_cup", dbRes.ProfitCup,
+			"price_usd", dbRes.PriceUsd,
+			"cost_usd", dbRes.CostUsd,
+			"profit_usd", dbRes.ProfitUsd,
+			"cursor", strconv.Itoa(int(dbRes.Cursor)),
+			"province_id", dbRes.ProvinceId.String(),
+			"municipality_id", dbRes.MunicipalityId.String(),
+			"enabled_flag", strconv.FormatBool(dbRes.EnabledFlag),
+			"available_flag", strconv.FormatBool(dbRes.AvailableFlag),
+			"availability", strconv.Itoa(int(dbRes.Availability)),
+			"business_id", dbRes.BusinessId.String(),
+			"business_collection_id", dbRes.BusinessCollectionId.String(),
+			"create_time", dbRes.CreateTime.Format(time.RFC3339),
+			"update_time", dbRes.UpdateTime.Format(time.RFC3339),
+		}).Err()
+		if cacheErr != nil {
+			log.Error(cacheErr)
+		} else {
+			rdbPipe.Expire(ctx, cacheId, time.Minute*5)
+		}
+		_, err := rdbPipe.Exec(ctx)
+		if err != nil {
+			return nil, err
+		}
 		return dbRes, nil
 	} else {
 		id := uuid.MustParse(cacheRes["id"])
@@ -157,7 +196,8 @@ func (i *itemRepository) UpdateItem(tx *gorm.DB, where *models.Item, data *model
 	}
 	cacheId := "item:" + where.ID.String()
 	ctx := context.Background()
-	cacheErr := Rdb.HSet(ctx, cacheId, []string{
+	rdbPipe := Rdb.Pipeline()
+	cacheErr := rdbPipe.HSet(ctx, cacheId, []string{
 		"id", result.ID.String(),
 		"name", result.Name,
 		"description", result.Description,
@@ -185,13 +225,56 @@ func (i *itemRepository) UpdateItem(tx *gorm.DB, where *models.Item, data *model
 	if cacheErr != nil {
 		log.Error(cacheErr)
 	} else {
-		Rdb.Expire(ctx, cacheId, time.Minute*5)
+		rdbPipe.Expire(ctx, cacheId, time.Minute*5)
+	}
+	_, err = rdbPipe.Exec(ctx)
+	if err != nil {
+		return nil, err
 	}
 	return result, nil
 }
 
 func (i *itemRepository) UpdateItems(tx *gorm.DB, data *[]models.Item) (*[]models.Item, error) {
 	result, err := Datasource.NewItemDatasource().UpdateItems(tx, data)
+	if err != nil {
+		return nil, err
+	}
+	ctx := context.Background()
+	rdbPipe := Rdb.Pipeline()
+	for _, i := range *result {
+		cacheId := "item:" + i.ID.String()
+		cacheErr := rdbPipe.HSet(ctx, cacheId, []string{
+			"id", i.ID.String(),
+			"name", i.Name,
+			"description", i.Description,
+			"thumbnail", i.Thumbnail,
+			"high_quality_photo", i.HighQualityPhoto,
+			"low_quality_photo", i.LowQualityPhoto,
+			"blurhash", i.BlurHash,
+			"price_cup", i.PriceCup,
+			"cost_cup", i.CostCup,
+			"profit_cup", i.ProfitCup,
+			"price_usd", i.PriceUsd,
+			"cost_usd", i.CostUsd,
+			"profit_usd", i.ProfitUsd,
+			"cursor", strconv.Itoa(int(i.Cursor)),
+			"province_id", i.ProvinceId.String(),
+			"municipality_id", i.MunicipalityId.String(),
+			"enabled_flag", strconv.FormatBool(i.EnabledFlag),
+			"available_flag", strconv.FormatBool(i.AvailableFlag),
+			"availability", strconv.Itoa(int(i.Availability)),
+			"business_id", i.BusinessId.String(),
+			"business_collection_id", i.BusinessCollectionId.String(),
+			"create_time", i.CreateTime.Format(time.RFC3339),
+			"update_time", i.UpdateTime.Format(time.RFC3339),
+		}).Err()
+		if cacheErr != nil {
+			log.Error(cacheErr)
+		} else {
+			rdbPipe.Expire(ctx, cacheId, time.Minute*5)
+		}
+	}
+	_, err = rdbPipe.Exec(ctx)
 	if err != nil {
 		return nil, err
 	}

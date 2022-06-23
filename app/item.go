@@ -20,8 +20,8 @@ func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb
 		if !utils.IsValidUUID(&req.BusinessId) {
 			invalidArgs = true
 			invalidBusinessId = &epb.BadRequest_FieldViolation{
-				Field:       "BusinessId",
-				Description: "The BusinessId field is not a valid uuid v4",
+				Field:       "businessId",
+				Description: "The businessId field is not a valid uuid v4",
 			}
 		}
 	}
@@ -29,8 +29,8 @@ func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb
 		if !utils.IsValidUUID(&req.BusinessCollectionId) {
 			invalidArgs = true
 			invalidBusinessCollectionId = &epb.BadRequest_FieldViolation{
-				Field:       "BusinessCollectionId",
-				Description: "The BusinessCollectionId field is not a valid uuid v4",
+				Field:       "businessCollectionId",
+				Description: "The businessCollectionId field is not a valid uuid v4",
 			}
 		}
 	}
@@ -73,36 +73,36 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.I
 	if req.Id == "" {
 		invalidArgs = true
 		invalidId = &epb.BadRequest_FieldViolation{
-			Field:       "Id",
-			Description: "The Id field is required",
+			Field:       "id",
+			Description: "The id field is required",
 		}
 	} else if req.Id != "" {
 		if !utils.IsValidUUID(&req.Id) {
 			invalidArgs = true
 			invalidId = &epb.BadRequest_FieldViolation{
-				Field:       "Id",
-				Description: "The Id field is not a valid uuid v4",
+				Field:       "id",
+				Description: "The id field is not a valid uuid v4",
 			}
 		}
 	}
 	if req.Location == nil {
 		invalidArgs = true
 		invalidLocation = &epb.BadRequest_FieldViolation{
-			Field:       "Location",
-			Description: "The Location field is required",
+			Field:       "location",
+			Description: "The location field is required",
 		}
 	} else if req.Location != nil {
 		if req.Location.Latitude == 0 {
 			invalidArgs = true
 			invalidLocation = &epb.BadRequest_FieldViolation{
-				Field:       "Location.Latitude",
-				Description: "The Location.Latitude field is required",
+				Field:       "location.latitude",
+				Description: "The location.latitude field is required",
 			}
 		} else if req.Location.Longitude == 0 {
 			invalidArgs = true
 			invalidLocation = &epb.BadRequest_FieldViolation{
-				Field:       "Location.Longitude",
-				Description: "The Location.Longitude field is required",
+				Field:       "location.longitude",
+				Description: "The location.longitude field is required",
 			}
 		}
 	}
@@ -140,10 +140,110 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.I
 }
 
 func (m *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) (*pb.Item, error) {
+	var invalidMunicipalityId, invalidThumbnail, invalidHighQualityPhoto, invalidLowQualityPhoto, invalidProvinceId, invalidBusinessCollectionId, invalidBusinessId *epb.BadRequest_FieldViolation
+	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
 		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
+	if req.Item.Thumbnail != "" || req.Item.HighQualityPhoto != "" || req.Item.LowQualityPhoto != "" {
+		if req.Item.Thumbnail == "" {
+			invalidArgs = true
+			invalidThumbnail = &epb.BadRequest_FieldViolation{
+				Field:       "item.thumbnail",
+				Description: "The item.thumbnail field is required for update the item photo",
+			}
+		}
+		if req.Item.HighQualityPhoto == "" {
+			invalidArgs = true
+			invalidHighQualityPhoto = &epb.BadRequest_FieldViolation{
+				Field:       "item.highQualityPhoto",
+				Description: "The item.highQualityPhoto field is required for update the item photo",
+			}
+		}
+		if req.Item.LowQualityPhoto == "" {
+			invalidArgs = true
+			invalidLowQualityPhoto = &epb.BadRequest_FieldViolation{
+				Field:       "item.lowQualityPhoto",
+				Description: "The item.lowQualityPhoto field is required for update the item photo",
+			}
+		}
+	}
+	if req.Item.ProvinceId != "" {
+		if !utils.IsValidUUID(&req.Item.ProvinceId) {
+			invalidArgs = true
+			invalidProvinceId = &epb.BadRequest_FieldViolation{
+				Field:       "item.provinceId",
+				Description: "The item.provinceId field is not a valid uuid v4",
+			}
+		}
+	}
+	if req.Item.MunicipalityId != "" {
+		if !utils.IsValidUUID(&req.Item.MunicipalityId) {
+			invalidArgs = true
+			invalidMunicipalityId = &epb.BadRequest_FieldViolation{
+				Field:       "item.municipalityId",
+				Description: "The item.municipalityId field is not a valid uuid v4",
+			}
+		}
+	}
+	if req.Item.BusinessId != "" {
+		if !utils.IsValidUUID(&req.Item.BusinessId) {
+			invalidArgs = true
+			invalidBusinessId = &epb.BadRequest_FieldViolation{
+				Field:       "item.businessId",
+				Description: "The item.businessId field is not a valid uuid v4",
+			}
+		}
+	}
+	if req.Item.BusinessCollectionId != "" {
+		if !utils.IsValidUUID(&req.Item.BusinessCollectionId) {
+			invalidArgs = true
+			invalidBusinessCollectionId = &epb.BadRequest_FieldViolation{
+				Field:       "item.businessCollectionId",
+				Description: "The item.businessCollectionId field is not a valid uuid v4",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidMunicipalityId != nil {
+			st, _ = st.WithDetails(
+				invalidMunicipalityId,
+			)
+		}
+		if invalidProvinceId != nil {
+			st, _ = st.WithDetails(
+				invalidProvinceId,
+			)
+		}
+		if invalidBusinessCollectionId != nil {
+			st, _ = st.WithDetails(
+				invalidBusinessCollectionId,
+			)
+		}
+		if invalidBusinessId != nil {
+			st, _ = st.WithDetails(
+				invalidBusinessId,
+			)
+		}
+		if invalidLowQualityPhoto != nil {
+			st, _ = st.WithDetails(
+				invalidLowQualityPhoto,
+			)
+		}
+		if invalidHighQualityPhoto != nil {
+			st, _ = st.WithDetails(
+				invalidHighQualityPhoto,
+			)
+		}
+		if invalidThumbnail != nil {
+			st, _ = st.WithDetails(
+				invalidThumbnail,
+			)
+		}
 		return nil, st.Err()
 	}
 	res, err := m.itemService.UpdateItem(ctx, req, md)
@@ -191,44 +291,44 @@ func (m *ItemServer) SearchItem(ctx context.Context, req *pb.SearchItemRequest) 
 	if req.SearchMunicipalityType == pb.SearchMunicipalityType_SearchMunicipalityTypeUnspecified {
 		invalidArgs = true
 		invalidSearchMunicipalityType = &epb.BadRequest_FieldViolation{
-			Field:       "SearchMunicipalityType",
-			Description: "The SearchMunicipalityType field is required",
+			Field:       "searchMunicipalityType",
+			Description: "The searchMunicipalityType field is required",
 		}
 	}
 	if req.Name == "" {
 		invalidArgs = true
 		invalidName = &epb.BadRequest_FieldViolation{
-			Field:       "Name",
-			Description: "The Name field is required",
+			Field:       "name",
+			Description: "The name field is required",
 		}
 	}
 	if req.ProvinceId == "" {
 		invalidArgs = true
 		invalidProvinceId = &epb.BadRequest_FieldViolation{
-			Field:       "ProvinceId",
-			Description: "The ProvinceId field is required",
+			Field:       "provinceId",
+			Description: "The provinceId field is required",
 		}
 	} else if req.ProvinceId != "" {
 		if !utils.IsValidUUID(&req.ProvinceId) {
 			invalidArgs = true
 			invalidProvinceId = &epb.BadRequest_FieldViolation{
-				Field:       "ProvinceId",
-				Description: "The ProvinceId field is not a valid uuid v4",
+				Field:       "provinceId",
+				Description: "The provinceId field is not a valid uuid v4",
 			}
 		}
 	}
 	if req.MunicipalityId == "" {
 		invalidArgs = true
 		invalidMunicipalityId = &epb.BadRequest_FieldViolation{
-			Field:       "MunicipalityId",
-			Description: "The MunicipalityId field is required",
+			Field:       "municipalityId",
+			Description: "The municipalityId field is required",
 		}
 	} else if req.MunicipalityId != "" {
 		if !utils.IsValidUUID(&req.MunicipalityId) {
 			invalidArgs = true
 			invalidMunicipalityId = &epb.BadRequest_FieldViolation{
-				Field:       "MunicipalityId",
-				Description: "The MunicipalityId field is not a valid uuid v4",
+				Field:       "municipalityId",
+				Description: "The municipalityId field is not a valid uuid v4",
 			}
 		}
 	}
@@ -281,22 +381,22 @@ func (m *ItemServer) SearchItemByBusiness(ctx context.Context, req *pb.SearchIte
 	if req.Name == "" {
 		invalidArgs = true
 		invalidName = &epb.BadRequest_FieldViolation{
-			Field:       "Name",
-			Description: "The Name field is required",
+			Field:       "name",
+			Description: "The name field is required",
 		}
 	}
 	if req.BusinessId == "" {
 		invalidArgs = true
 		invalidBusinessId = &epb.BadRequest_FieldViolation{
-			Field:       "BusinessId",
-			Description: "The BusinessId field is required",
+			Field:       "businessId",
+			Description: "The businessId field is required",
 		}
 	} else if req.BusinessId != "" {
 		if !utils.IsValidUUID(&req.BusinessId) {
 			invalidArgs = true
 			invalidBusinessId = &epb.BadRequest_FieldViolation{
-				Field:       "BusinessId",
-				Description: "The BusinessId field is not a valid uuid v4",
+				Field:       "businessId",
+				Description: "The businessId field is not a valid uuid v4",
 			}
 		}
 	}
