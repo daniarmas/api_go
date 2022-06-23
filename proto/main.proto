@@ -338,17 +338,7 @@ message ListOrderedItemResponse {
 // }
 
 message UpdateItemRequest {
-  string id = 1;
-  string name = 2;
-  string description = 3;
-  string priceCup = 4;
-  string businessCollectionId = 5;
-  string highQualityPhoto = 6;
-  string lowQualityPhoto = 7;
-  string thumbnail = 8;
-  string blurHash = 9;
-	int64 availability = 10;       
-	ItemStatusType status = 11;         
+  Item item = 1;         
 }
 
 message IsEmptyCartItemResponse {
@@ -693,22 +683,30 @@ message Item {
   string id = 1;
   string name = 2;
   string description = 3;
-  string priceCup = 4;
-  ItemStatusType status = 5;
-  int32 availability = 6;
-  string businessId = 7;
-  string businessCollectionId = 8;
-  string highQualityPhoto = 9;
-  string highQualityPhotoUrl = 10;
-  string lowQualityPhoto = 11;
-  string lowQualityPhotoUrl = 12;
-  string thumbnail = 14;
-  string thumbnailUrl = 15;
-  string blurHash = 16;
+  string thumbnail = 4;
+  string thumbnailUrl = 5;
+  string highQualityPhoto = 6;
+  string highQualityPhotoUrl = 7;
+  string lowQualityPhoto = 8;
+  string lowQualityPhotoUrl = 9;
+  string blurHash = 10;
+  string priceCup = 11;
+  string costCup = 12;
+  string profitCup = 13;
+  string priceUsd = 14;
+  string costUsd = 15;
+  string profitUsd = 16;
   int32 cursor = 17;
-  bool isInRange = 18;
-  google.protobuf.Timestamp createTime = 19;
-  google.protobuf.Timestamp updateTime = 20;
+  bool enabledFlag = 18;
+  bool availableFlag = 19;
+  int32 availability = 20;
+  string provinceId = 21;
+  string municipalityId = 22;
+  string businessId = 23;
+  string businessCollectionId = 24;
+  bool isInRange = 25;
+  google.protobuf.Timestamp createTime = 26;
+  google.protobuf.Timestamp updateTime = 27;
 }
 
 message Application {
