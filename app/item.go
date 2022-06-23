@@ -140,7 +140,7 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.I
 }
 
 func (m *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) (*pb.Item, error) {
-	var invalidMunicipalityId, invalidThumbnail, invalidHighQualityPhoto, invalidLowQualityPhoto, invalidProvinceId, invalidBusinessCollectionId, invalidBusinessId *epb.BadRequest_FieldViolation
+	var invalidMunicipalityId, invalidThumbnail, invalidBlurhash, invalidHighQualityPhoto, invalidLowQualityPhoto, invalidProvinceId, invalidBusinessCollectionId, invalidBusinessId *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
@@ -168,6 +168,13 @@ func (m *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) 
 			invalidLowQualityPhoto = &epb.BadRequest_FieldViolation{
 				Field:       "item.lowQualityPhoto",
 				Description: "The item.lowQualityPhoto field is required for update the item photo",
+			}
+		}
+		if req.Item.BlurHash == "" {
+			invalidArgs = true
+			invalidBlurhash = &epb.BadRequest_FieldViolation{
+				Field:       "item.blurHash",
+				Description: "The item.blurHash field is required for update the item photo",
 			}
 		}
 	}
@@ -227,6 +234,11 @@ func (m *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) 
 		if invalidBusinessId != nil {
 			st, _ = st.WithDetails(
 				invalidBusinessId,
+			)
+		}
+		if invalidBlurhash != nil {
+			st, _ = st.WithDetails(
+				invalidBlurhash,
 			)
 		}
 		if invalidLowQualityPhoto != nil {
@@ -507,10 +519,217 @@ func (m *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) 
 }
 
 func (m *ItemServer) CreateItem(ctx context.Context, req *pb.CreateItemRequest) (*pb.Item, error) {
+	var invalidAvailability, invalidName, invalidPriceCup, invalidCostCup, invalidProfitCup, invalidPriceUsd, invalidCostUsd, invalidProfitUsd, invalidThumbnail, invalidHighQualityPhoto, invalidLowQualityPhoto, invalidBlurhash, invalidBusinessCollectionId, invalidBusinessId *epb.BadRequest_FieldViolation
+	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
 		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
+	if req.Item.Availability < -1 {
+		invalidArgs = true
+		invalidAvailability = &epb.BadRequest_FieldViolation{
+			Field:       "item.availability",
+			Description: "The item.availability field must be equal or greater than -1",
+		}
+	}
+	if req.Item.Name == "" {
+		invalidArgs = true
+		invalidName = &epb.BadRequest_FieldViolation{
+			Field:       "item.name",
+			Description: "The item.name field is required",
+		}
+	}
+	if req.Item.PriceCup == "" {
+		invalidArgs = true
+		invalidThumbnail = &epb.BadRequest_FieldViolation{
+			Field:       "item.priceCup",
+			Description: "The item.priceCup field is required",
+		}
+	} else if req.Item.PriceCup != "" {
+		if !utils.RegexpIsNumber(&req.Item.PriceCup) {
+			invalidArgs = true
+			invalidPriceCup = &epb.BadRequest_FieldViolation{
+				Field:       "item.priceCup",
+				Description: "The item.priceCup field is not a number",
+			}
+		}
+	}
+	if req.Item.CostCup != "" {
+		if !utils.RegexpIsNumber(&req.Item.CostCup) {
+			invalidArgs = true
+			invalidCostCup = &epb.BadRequest_FieldViolation{
+				Field:       "item.costCup",
+				Description: "The item.costCup field is not a number",
+			}
+		}
+	}
+	if req.Item.ProfitCup != "" {
+		if !utils.RegexpIsNumber(&req.Item.ProfitCup) {
+			invalidArgs = true
+			invalidProfitCup = &epb.BadRequest_FieldViolation{
+				Field:       "item.profitCup",
+				Description: "The item.profitCup field is not a number",
+			}
+		}
+	}
+	if req.Item.PriceUsd != "" {
+		if !utils.RegexpIsNumber(&req.Item.PriceUsd) {
+			invalidArgs = true
+			invalidPriceUsd = &epb.BadRequest_FieldViolation{
+				Field:       "item.priceUsd",
+				Description: "The item.priceUsd field is not a number",
+			}
+		}
+	}
+	if req.Item.CostUsd != "" {
+		if !utils.RegexpIsNumber(&req.Item.CostUsd) {
+			invalidArgs = true
+			invalidCostUsd = &epb.BadRequest_FieldViolation{
+				Field:       "item.costUsd",
+				Description: "The item.costUsd field is not a number",
+			}
+		}
+	}
+	if req.Item.ProfitUsd != "" {
+		if !utils.RegexpIsNumber(&req.Item.ProfitUsd) {
+			invalidArgs = true
+			invalidProfitUsd = &epb.BadRequest_FieldViolation{
+				Field:       "item.profitUsd",
+				Description: "The item.profitUsd field is not a number",
+			}
+		}
+	}
+	if req.Item.Thumbnail == "" {
+		invalidArgs = true
+		invalidThumbnail = &epb.BadRequest_FieldViolation{
+			Field:       "item.thumbnail",
+			Description: "The item.thumbnail field is required",
+		}
+	}
+	if req.Item.BlurHash == "" {
+		invalidArgs = true
+		invalidBlurhash = &epb.BadRequest_FieldViolation{
+			Field:       "item.blurhash",
+			Description: "The item.blurhash field is required",
+		}
+	}
+	if req.Item.HighQualityPhoto == "" {
+		invalidArgs = true
+		invalidHighQualityPhoto = &epb.BadRequest_FieldViolation{
+			Field:       "item.highQualityPhoto",
+			Description: "The item.highQualityPhoto field is required",
+		}
+	}
+	if req.Item.LowQualityPhoto == "" {
+		invalidArgs = true
+		invalidLowQualityPhoto = &epb.BadRequest_FieldViolation{
+			Field:       "item.lowQualityPhoto",
+			Description: "The item.lowQualityPhoto field is required",
+		}
+	}
+	if req.Item.BusinessId == "" {
+		invalidArgs = true
+		invalidBusinessId = &epb.BadRequest_FieldViolation{
+			Field:       "item.businessId",
+			Description: "The item.businessId field is required",
+		}
+	} else if req.Item.BusinessId != "" {
+		if !utils.IsValidUUID(&req.Item.BusinessId) {
+			invalidArgs = true
+			invalidBusinessId = &epb.BadRequest_FieldViolation{
+				Field:       "item.businessId",
+				Description: "The item.businessId field is not a valid uuid v4",
+			}
+		}
+	}
+	if req.Item.BusinessCollectionId != "" {
+		if !utils.IsValidUUID(&req.Item.BusinessCollectionId) {
+			invalidArgs = true
+			invalidBusinessCollectionId = &epb.BadRequest_FieldViolation{
+				Field:       "item.businessCollectionId",
+				Description: "The item.businessCollectionId field is not a valid uuid v4",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidPriceCup != nil {
+			st, _ = st.WithDetails(
+				invalidPriceCup,
+			)
+		}
+		if invalidName != nil {
+			st, _ = st.WithDetails(
+				invalidName,
+			)
+		}
+		if invalidCostCup != nil {
+			st, _ = st.WithDetails(
+				invalidCostCup,
+			)
+		}
+		if invalidPriceCup != nil {
+			st, _ = st.WithDetails(
+				invalidPriceCup,
+			)
+		}
+		if invalidAvailability != nil {
+			st, _ = st.WithDetails(
+				invalidAvailability,
+			)
+		}
+		if invalidProfitCup != nil {
+			st, _ = st.WithDetails(
+				invalidProfitCup,
+			)
+		}
+		if invalidCostUsd != nil {
+			st, _ = st.WithDetails(
+				invalidCostUsd,
+			)
+		}
+		if invalidPriceUsd != nil {
+			st, _ = st.WithDetails(
+				invalidPriceUsd,
+			)
+		}
+		if invalidProfitUsd != nil {
+			st, _ = st.WithDetails(
+				invalidProfitUsd,
+			)
+		}
+		if invalidBusinessCollectionId != nil {
+			st, _ = st.WithDetails(
+				invalidBusinessCollectionId,
+			)
+		}
+		if invalidBusinessId != nil {
+			st, _ = st.WithDetails(
+				invalidBusinessId,
+			)
+		}
+		if invalidLowQualityPhoto != nil {
+			st, _ = st.WithDetails(
+				invalidLowQualityPhoto,
+			)
+		}
+		if invalidHighQualityPhoto != nil {
+			st, _ = st.WithDetails(
+				invalidHighQualityPhoto,
+			)
+		}
+		if invalidThumbnail != nil {
+			st, _ = st.WithDetails(
+				invalidThumbnail,
+			)
+		}
+		if invalidBlurhash != nil {
+			st, _ = st.WithDetails(
+				invalidBlurhash,
+			)
+		}
 		return nil, st.Err()
 	}
 	res, err := m.itemService.CreateItem(ctx, req, md)
@@ -532,11 +751,11 @@ func (m *ItemServer) CreateItem(ctx context.Context, req *pb.CreateItemRequest) 
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "permission denied":
 			st = status.New(codes.PermissionDenied, "Permission denied")
-		case "HighQualityPhotoObject missing":
+		case "highQualityPhotoObject missing":
 			st = status.New(codes.InvalidArgument, "HighQualityPhotoObject missing")
-		case "LowQualityPhotoObject missing":
+		case "lowQualityPhotoObject missing":
 			st = status.New(codes.InvalidArgument, "LowQualityPhotoObject missing")
-		case "ThumbnailObject missing":
+		case "thumbnailObject missing":
 			st = status.New(codes.InvalidArgument, "ThumbnailObject missing")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
