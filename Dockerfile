@@ -4,6 +4,8 @@
 ## Build
 ##
 FROM golang:1.17-buster AS build
+ENV CGO_ENABLED 0
+ENV GOOS linux
 WORKDIR /app
 
 COPY go.mod ./
@@ -13,12 +15,13 @@ RUN go mod download
 # COPY *.go ./
 COPY . .
 
-RUN go build -o /api_go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /api_go
 
 ##
 ## Deploy
 ##
 FROM gcr.io/distroless/base-debian10
+# FROM gcr.io/distroless/static-debian10:nonroot
 
 WORKDIR /app
 

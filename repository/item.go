@@ -8,7 +8,6 @@ import (
 	"github.com/daniarmas/api_go/models"
 	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
-	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -33,9 +32,9 @@ func (v *itemRepository) DeleteItem(tx *gorm.DB, where *models.Item) error {
 	} else {
 		cacheId := "item:" + where.ID.String()
 		ctx := context.Background()
-		cacheRes, cacheErr := Rdb.HDel(ctx, cacheId).Result()
+		cacheRes, cacheErr := Rdb.Del(ctx, cacheId).Result()
 		if cacheRes == 0 || cacheErr == redis.Nil {
-			log.Error(cacheErr)
+			return cacheErr
 		}
 	}
 	return nil
@@ -75,7 +74,7 @@ func (v *itemRepository) CreateItem(tx *gorm.DB, data *models.Item) (*models.Ite
 		"update_time", res.UpdateTime.Format(time.RFC3339),
 	}).Err()
 	if cacheErr != nil {
-		log.Error(cacheErr)
+		return nil, cacheErr
 	} else {
 		rdbPipe.Expire(ctx, cacheId, time.Minute*5)
 	}
@@ -140,7 +139,7 @@ func (i *itemRepository) GetItem(tx *gorm.DB, where *models.Item, fields *[]stri
 			"update_time", dbRes.UpdateTime.Format(time.RFC3339),
 		}).Err()
 		if cacheErr != nil {
-			log.Error(cacheErr)
+			return nil, cacheErr
 		} else {
 			rdbPipe.Expire(ctx, cacheId, time.Minute*5)
 		}
@@ -223,7 +222,7 @@ func (i *itemRepository) UpdateItem(tx *gorm.DB, where *models.Item, data *model
 		"update_time", result.UpdateTime.Format(time.RFC3339),
 	}).Err()
 	if cacheErr != nil {
-		log.Error(cacheErr)
+		return nil, cacheErr
 	} else {
 		rdbPipe.Expire(ctx, cacheId, time.Minute*5)
 	}
@@ -269,7 +268,7 @@ func (i *itemRepository) UpdateItems(tx *gorm.DB, data *[]models.Item) (*[]model
 			"update_time", i.UpdateTime.Format(time.RFC3339),
 		}).Err()
 		if cacheErr != nil {
-			log.Error(cacheErr)
+			return nil, cacheErr
 		} else {
 			rdbPipe.Expire(ctx, cacheId, time.Minute*5)
 		}

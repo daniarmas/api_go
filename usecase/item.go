@@ -159,7 +159,6 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 		if appErr != nil {
 			return appErr
 		}
-		id := uuid.MustParse(req.Id)
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -175,13 +174,16 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 			}
 		}
 		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
-		if authorizationTokenErr != nil {
-			return authorizationTokenErr
-		} else if authorizationTokenRes == nil {
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
 		}
-		getItemRes, getItemErr := i.dao.NewItemRepository().GetItem(tx, &models.Item{ID: &id}, &[]string{})
-		if getItemErr != nil {
+		id := uuid.MustParse(req.Id)
+		getItemRes, getItemErr := i.dao.NewItemRepository().GetItem(tx, &models.Item{ID: &id}, nil)
+		if getItemErr != nil && getItemErr.Error() == "record not found" {
+			return errors.New("item not found")
+		} else if getItemErr != nil {
 			return getItemErr
 		}
 		_, err := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{Name: "delete_item", UserId: authorizationTokenRes.UserId, BusinessId: getItemRes.BusinessId}, &[]string{"id"})
@@ -191,13 +193,13 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 			return err
 		}
 		businessRes, businessErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessId: getItemRes.BusinessId}, "OrderTypePickUp")
-		if businessErr != nil {
+		if businessErr != nil && businessErr.Error() != "business closed" {
 			return businessErr
 		} else if businessRes {
 			return errors.New("business is open")
 		}
 		businessHomeDeliveryRes, businessHomeDeliveryErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &models.BusinessSchedule{BusinessId: getItemRes.BusinessId}, "OrderTypeHomeDelivery")
-		if businessHomeDeliveryErr != nil {
+		if businessHomeDeliveryErr != nil && businessHomeDeliveryErr.Error() != "business closed" {
 			return businessHomeDeliveryErr
 		} else if businessHomeDeliveryRes {
 			return errors.New("business is open")

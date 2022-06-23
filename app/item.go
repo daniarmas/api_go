@@ -433,10 +433,36 @@ func (m *ItemServer) SearchItemByBusiness(ctx context.Context, req *pb.SearchIte
 }
 
 func (m *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) (*gp.Empty, error) {
+	var invalidId *epb.BadRequest_FieldViolation
+	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
 		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
+	if req.Id == "" {
+		invalidArgs = true
+		invalidId = &epb.BadRequest_FieldViolation{
+			Field:       "id",
+			Description: "The id field is required",
+		}
+	} else if req.Id != "" {
+		if !utils.IsValidUUID(&req.Id) {
+			invalidArgs = true
+			invalidId = &epb.BadRequest_FieldViolation{
+				Field:       "id",
+				Description: "The id field is not a valid uuid v4",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidId != nil {
+			st, _ = st.WithDetails(
+				invalidId,
+			)
+		}
 		return nil, st.Err()
 	}
 	err := m.itemService.DeleteItem(ctx, req, md)
@@ -468,6 +494,8 @@ func (m *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) 
 			st = status.New(codes.InvalidArgument, "ThumbnailObject missing")
 		case "item in the cart":
 			st = status.New(codes.InvalidArgument, "Item in the cart")
+		case "item not found":
+			st = status.New(codes.NotFound, "Item not found")
 		case "cartitem not found":
 			st = status.New(codes.NotFound, "CartItem not found")
 		default:
