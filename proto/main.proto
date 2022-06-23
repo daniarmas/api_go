@@ -771,11 +771,10 @@ message SearchItem {
   string id = 1;
   string name = 2;
   string priceCup = 3;
-  ItemStatusType status = 4;
-  string thumbnail = 5;
-  string thumbnailUrl = 6;
-  string blurHash = 7;
-  int32 cursor = 8;
+  string thumbnail = 4;
+  string thumbnailUrl = 5;
+  string blurHash = 6;
+  int32 cursor = 7;
 }
 
 message ItemPhoto {
