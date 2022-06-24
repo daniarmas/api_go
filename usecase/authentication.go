@@ -114,6 +114,20 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		jwtAuthorizationToken *datasource.JsonWebTokenMetadata
 	)
 	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		deviceRes, deviceErr = v.dao.NewDeviceRepository().GetDevice(tx, &models.Device{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
+		if deviceErr != nil && deviceErr.Error() != "record not found" {
+			return deviceErr
+		} else if deviceRes == nil {
+			deviceRes, deviceErr = v.dao.NewDeviceRepository().CreateDevice(tx, &models.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+			if deviceErr != nil {
+				return deviceErr
+			}
+		} else {
+			_, deviceErr := v.dao.NewDeviceRepository().UpdateDevice(tx, &models.Device{DeviceIdentifier: *md.DeviceIdentifier}, &models.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+			if deviceErr != nil {
+				return deviceErr
+			}
+		}
 		appErr := v.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -148,20 +162,6 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		_, err := v.dao.NewVerificationCodeRepository().DeleteVerificationCode(tx, &models.VerificationCode{Email: req.Email, Type: "SignIn", DeviceIdentifier: *md.DeviceIdentifier}, nil)
 		if err != nil {
 			return err
-		}
-		deviceRes, deviceErr = v.dao.NewDeviceRepository().GetDevice(tx, &models.Device{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
-		if deviceErr != nil && deviceErr.Error() != "record not found" {
-			return deviceErr
-		} else if deviceRes == nil {
-			deviceRes, deviceErr = v.dao.NewDeviceRepository().CreateDevice(tx, &models.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
-			if deviceErr != nil {
-				return deviceErr
-			}
-		} else {
-			_, deviceErr := v.dao.NewDeviceRepository().UpdateDevice(tx, &models.Device{DeviceIdentifier: *md.DeviceIdentifier}, &models.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
-			if deviceErr != nil {
-				return deviceErr
-			}
 		}
 		deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenRepository().DeleteRefreshToken(tx, &models.RefreshToken{UserId: userRes.ID, DeviceId: deviceRes.ID}, nil)
 		if deleteRefreshTokenErr != nil && deleteRefreshTokenErr.Error() != "record not found" {
@@ -602,7 +602,7 @@ func (v *authenticationService) RefreshToken(ctx context.Context, req *pb.Refres
 				return deviceErr
 			}
 		}
-		jwtRefreshToken := &datasource.JsonWebTokenMetadata{Token: &req.RefreshToken}
+		jwtRefreshToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		refreshTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtRefreshToken(jwtRefreshToken)
 		if refreshTokenParseErr != nil {
 			switch refreshTokenParseErr.Error() {
@@ -611,16 +611,16 @@ func (v *authenticationService) RefreshToken(ctx context.Context, req *pb.Refres
 			case "signature is invalid":
 				return errors.New("refresh token signature is invalid")
 			case "token contains an invalid number of segments":
-				return errors.New("refrehs token contains an invalid number of segments")
+				return errors.New("refresh token contains an invalid number of segments")
 			default:
 				return refreshTokenParseErr
 			}
 		}
-		refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenRepository().GetRefreshToken(tx, &models.RefreshToken{ID: jwtRefreshToken.TokenId}, &[]string{"id"})
-		if refreshTokenErr != nil {
+		refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenRepository().GetRefreshToken(tx, &models.RefreshToken{ID: jwtRefreshToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if refreshTokenErr != nil && refreshTokenErr.Error() == "record not found" {
+			return errors.New("refresh token not found")
+		} else if refreshTokenErr != nil {
 			return refreshTokenErr
-		} else if refreshTokenRes == nil {
-			return errors.New("unauthenticated")
 		}
 		userRes, userErr := v.dao.NewUserRepository().GetUser(tx, &models.User{ID: refreshTokenRes.UserId}, &[]string{"id"})
 		if userErr != nil {

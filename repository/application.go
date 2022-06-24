@@ -8,6 +8,7 @@ import (
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
 	"github.com/go-redis/redis/v9"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -17,6 +18,7 @@ type ApplicationRepository interface {
 	GetApplication(tx *gorm.DB, where *models.Application, fields *[]string) (*models.Application, error)
 	ListApplication(tx *gorm.DB, where *models.Application, cursor *time.Time, fields *[]string) (*[]models.Application, error)
 	CheckApplication(tx *gorm.DB, accessToken string) error
+	DeleteApplication(tx *gorm.DB, where *models.Application, ids *[]uuid.UUID) (*[]models.Application, error)
 }
 
 type applicationRepository struct{}
@@ -31,6 +33,14 @@ func (i *applicationRepository) GetApplication(tx *gorm.DB, where *models.Applic
 
 func (i *applicationRepository) CreateApplication(tx *gorm.DB, data *models.Application) (*models.Application, error) {
 	res, err := Datasource.NewApplicationDatasource().CreateApplication(tx, data)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (i *applicationRepository) DeleteApplication(tx *gorm.DB, where *models.Application, ids *[]uuid.UUID) (*[]models.Application, error) {
+	res, err := Datasource.NewApplicationDatasource().DeleteApplication(tx, where, ids)
 	if err != nil {
 		return nil, err
 	}

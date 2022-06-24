@@ -1,10 +1,10 @@
 {
   "details": {
-    "methodFqn": "main.AuthenticationService.CreateVerificationCode",
+    "methodFqn": "main.ApplicationService.DeleteApplication",
     "metadata": [
       {
         "key": "Device-Id",
-        "value": "10"
+        "value": "1"
       },
       {
         "key": "App-Version",
@@ -33,13 +33,16 @@
       {
         "key": "Firebase-Cloud-Messaging-Id",
         "value": "1"
+      },
+      {
+        "key": "Authorization",
+        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTYxODIwMzYsInN1YiI6Ijg5NDBmMmEyLWUxN2ItNDBjZi1iNmE3LWYyZDRlNzY0OTdmYSJ9.KlW9gQQs8pjevlzU-Hh0U5xC3WfxBaRVJfuwVFqTJ6c"
       }
-    ],
-    "disableServerCertificateValidation": true
+    ]
   },
   "requests": [
     {
-      "location": "CreateVerificationCode-request.json"
+      "location": "DeleteApplication-request.json"
     }
   ],
   "operationType": "unary",

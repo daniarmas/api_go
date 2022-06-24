@@ -25,6 +25,8 @@ service AuthenticationService {
 
 service ApplicationService {
   rpc CreateApplication (CreateApplicationRequest) returns (Application) {}
+  rpc ListApplication (ListApplicationRequest) returns (ListApplicationResponse) {}
+  rpc DeleteApplication (DeleteApplicationRequest) returns (google.protobuf.Empty) {}
 }
 
 service BusinessService {
@@ -89,6 +91,19 @@ service AnalyticsService {
 }
 
 // Request & Response Message
+
+message ListApplicationRequest {
+  google.protobuf.Timestamp nextPage = 1;
+}
+
+message ListApplicationResponse {
+  repeated Application applications = 1;
+  google.protobuf.Timestamp nextPage = 2;
+}
+
+message DeleteApplicationRequest {
+  string id = 1;
+}
 
 message CreateApplicationRequest {
   Application application = 1;
