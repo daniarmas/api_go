@@ -467,14 +467,12 @@ func (m *AuthenticationServer) RefreshToken(ctx context.Context, req *pb.Refresh
 			st = status.New(codes.PermissionDenied, "Permission denied")
 		case "user not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "refreshtoken expired":
-			st = status.New(codes.Unauthenticated, "RefreshToken expired")
-		case "authorization token not found":
+		case "refresh token not found":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorization token expired":
-			st = status.New(codes.Unauthenticated, "Authorization token expired")
-		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
-			st = status.New(codes.Unauthenticated, "Authorization token invalid")
+		case "refresh token expired":
+			st = status.New(codes.Unauthenticated, "Refresh token expired")
+		case "refresh token contains an invalid number of segments", "refresh token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Refresh token invalid")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
