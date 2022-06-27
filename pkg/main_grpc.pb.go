@@ -528,6 +528,8 @@ type BusinessServiceClient interface {
 	CreatePartnerApplication(ctx context.Context, in *CreatePartnerApplicationRequest, opts ...grpc.CallOption) (*PartnerApplication, error)
 	ListPartnerApplication(ctx context.Context, in *ListPartnerApplicationRequest, opts ...grpc.CallOption) (*ListPartnerApplicationResponse, error)
 	UpdatePartnerApplication(ctx context.Context, in *UpdatePartnerApplicationRequest, opts ...grpc.CallOption) (*PartnerApplication, error)
+	CreateBusinessRole(ctx context.Context, in *CreateBusinessRoleRequest, opts ...grpc.CallOption) (*BusinessRole, error)
+	ListBusinessRole(ctx context.Context, in *ListBusinessRoleRequest, opts ...grpc.CallOption) (*ListBusinessRoleResponse, error)
 }
 
 type businessServiceClient struct {
@@ -610,6 +612,24 @@ func (c *businessServiceClient) UpdatePartnerApplication(ctx context.Context, in
 	return out, nil
 }
 
+func (c *businessServiceClient) CreateBusinessRole(ctx context.Context, in *CreateBusinessRoleRequest, opts ...grpc.CallOption) (*BusinessRole, error) {
+	out := new(BusinessRole)
+	err := c.cc.Invoke(ctx, "/main.BusinessService/CreateBusinessRole", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *businessServiceClient) ListBusinessRole(ctx context.Context, in *ListBusinessRoleRequest, opts ...grpc.CallOption) (*ListBusinessRoleResponse, error) {
+	out := new(ListBusinessRoleResponse)
+	err := c.cc.Invoke(ctx, "/main.BusinessService/ListBusinessRole", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BusinessServiceServer is the server API for BusinessService service.
 // All implementations must embed UnimplementedBusinessServiceServer
 // for forward compatibility
@@ -623,6 +643,8 @@ type BusinessServiceServer interface {
 	CreatePartnerApplication(context.Context, *CreatePartnerApplicationRequest) (*PartnerApplication, error)
 	ListPartnerApplication(context.Context, *ListPartnerApplicationRequest) (*ListPartnerApplicationResponse, error)
 	UpdatePartnerApplication(context.Context, *UpdatePartnerApplicationRequest) (*PartnerApplication, error)
+	CreateBusinessRole(context.Context, *CreateBusinessRoleRequest) (*BusinessRole, error)
+	ListBusinessRole(context.Context, *ListBusinessRoleRequest) (*ListBusinessRoleResponse, error)
 	mustEmbedUnimplementedBusinessServiceServer()
 }
 
@@ -653,6 +675,12 @@ func (UnimplementedBusinessServiceServer) ListPartnerApplication(context.Context
 }
 func (UnimplementedBusinessServiceServer) UpdatePartnerApplication(context.Context, *UpdatePartnerApplicationRequest) (*PartnerApplication, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdatePartnerApplication not implemented")
+}
+func (UnimplementedBusinessServiceServer) CreateBusinessRole(context.Context, *CreateBusinessRoleRequest) (*BusinessRole, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateBusinessRole not implemented")
+}
+func (UnimplementedBusinessServiceServer) ListBusinessRole(context.Context, *ListBusinessRoleRequest) (*ListBusinessRoleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListBusinessRole not implemented")
 }
 func (UnimplementedBusinessServiceServer) mustEmbedUnimplementedBusinessServiceServer() {}
 
@@ -811,6 +839,42 @@ func _BusinessService_UpdatePartnerApplication_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BusinessService_CreateBusinessRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateBusinessRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusinessServiceServer).CreateBusinessRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.BusinessService/CreateBusinessRole",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusinessServiceServer).CreateBusinessRole(ctx, req.(*CreateBusinessRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BusinessService_ListBusinessRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBusinessRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusinessServiceServer).ListBusinessRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.BusinessService/ListBusinessRole",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusinessServiceServer).ListBusinessRole(ctx, req.(*ListBusinessRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BusinessService_ServiceDesc is the grpc.ServiceDesc for BusinessService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -849,6 +913,14 @@ var BusinessService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdatePartnerApplication",
 			Handler:    _BusinessService_UpdatePartnerApplication_Handler,
+		},
+		{
+			MethodName: "CreateBusinessRole",
+			Handler:    _BusinessService_CreateBusinessRole_Handler,
+		},
+		{
+			MethodName: "ListBusinessRole",
+			Handler:    _BusinessService_ListBusinessRole_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

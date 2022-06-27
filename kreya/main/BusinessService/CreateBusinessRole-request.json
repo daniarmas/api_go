@@ -1,0 +1,23 @@
+{
+  "businessRole": {
+    "id": "{{ faker.random.uuid }}",
+    "name": "{{ faker.name.last_name }}",
+    "businessId": "fooBar",
+    "permissions": [
+      {
+        "id": "{{ faker.random.uuid }}",
+        "businessRoleId": "fooBar",
+        "permissionId": "fooBar",
+        "createTime": "1970-01-01T00:02:03.000000123Z",
+        "updateTime": "1970-01-01T00:02:03.000000123Z"
+      },
+      {
+        "id": "{{ faker.random.uuid }}",
+        "businessRoleId": "fooBar",
+        "permissionId": "fooBar",
+        "createTime": "1970-01-01T00:02:03.000000123Z",
+        "updateTime": "1970-01-01T00:02:03.000000123Z"
+      }
+    ]
+  }
+}

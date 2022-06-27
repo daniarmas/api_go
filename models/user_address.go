@@ -16,6 +16,7 @@ func (UserAddress) TableName() string {
 
 type UserAddress struct {
 	ID             *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
+	Selected       bool           `gorm:"column:selected"`
 	Tag            string         `gorm:"column:tag;not null"`
 	UserId         *uuid.UUID     `gorm:"column:user_id;not null"`
 	User           User           `gorm:"foreignKey:UserId"`

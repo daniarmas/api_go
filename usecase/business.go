@@ -28,6 +28,7 @@ type BusinessService interface {
 	CreatePartnerApplication(ctx context.Context, req *pb.CreatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error)
 	ListPartnerApplication(ctx context.Context, req *pb.ListPartnerApplicationRequest, md *utils.ClientMetadata) (*pb.ListPartnerApplicationResponse, error)
 	UpdatePartnerApplication(ctx context.Context, req *pb.UpdatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error)
+	ListBusinessRole(ctx context.Context, req *pb.ListBusinessRoleRequest, md *utils.ClientMetadata) (*pb.ListBusinessRoleResponse, error)
 }
 
 type businessService struct {
@@ -38,6 +39,74 @@ type businessService struct {
 
 func NewBusinessService(dao repository.DAO, config *utils.Config, stDb *sql.DB) BusinessService {
 	return &businessService{dao: dao, config: config, stDb: stDb}
+}
+
+func (i *businessService) ListBusinessRole(ctx context.Context, req *pb.ListBusinessRoleRequest, md *utils.ClientMetadata) (*pb.ListBusinessRoleResponse, error) {
+	var res pb.ListBusinessRoleResponse
+	var nextPage time.Time
+	if req.NextPage == nil {
+		nextPage = time.Now()
+	} else {
+		nextPage = req.NextPage.AsTime()
+	}
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorization token expired")
+			case "signature is invalid":
+				return errors.New("authorization token signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("authorization token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
+			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		}
+		businessId := uuid.MustParse(req.BusinessId)
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_role", BusinessId: &businessId}, &[]string{"id"})
+		if permissionErr != nil && permissionErr.Error() == "record not found" {
+			return errors.New("permission denied")
+		}
+		businessRolesRes, err := i.dao.NewBusinessRoleRepository().ListBusinessRole(tx, &models.BusinessRole{}, &nextPage, nil)
+		if err != nil {
+			return err
+		} else if len(*businessRolesRes) > 10 {
+			*businessRolesRes = (*businessRolesRes)[:len(*businessRolesRes)-1]
+			res.NextPage = timestamppb.New((*businessRolesRes)[len(*businessRolesRes)-1].CreateTime)
+		} else if len(*businessRolesRes) == 0 {
+			res.NextPage = timestamppb.New(nextPage)
+		} else {
+			res.NextPage = timestamppb.New((*businessRolesRes)[len(*businessRolesRes)-1].CreateTime)
+		}
+		businessRoles := make([]*pb.BusinessRole, 0, len(*businessRolesRes))
+		for _, i := range *businessRolesRes {
+			businessRoles = append(businessRoles, &pb.BusinessRole{
+				Id:         i.ID.String(),
+				Name:       i.Name,
+				BusinessId: i.BusinessId.String(),
+				CreateTime: timestamppb.New(i.CreateTime),
+				UpdateTime: timestamppb.New(i.UpdateTime),
+			})
+		}
+		res.BusinessRoles = businessRoles
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
 }
 
 func (i *businessService) UpdatePartnerApplication(ctx context.Context, req *pb.UpdatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error) {

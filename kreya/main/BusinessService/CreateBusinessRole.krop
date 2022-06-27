@@ -1,0 +1,12 @@
+{
+  "details": {
+    "methodFqn": "main.BusinessService.CreateBusinessRole"
+  },
+  "requests": [
+    {
+      "location": "CreateBusinessRole-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

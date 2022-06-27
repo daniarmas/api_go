@@ -23,7 +23,7 @@ type userAddressDatasource struct{}
 
 func (i *userAddressDatasource) ListUserAddress(tx *gorm.DB, where *models.UserAddress, fields *[]string) (*[]models.UserAddress, error) {
 	var res []models.UserAddress
-	selectFields := &[]string{"id", "tag", "address", "number", "ST_AsEWKB(coordinates) AS coordinates", "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time"}
+	selectFields := &[]string{"id", "selected", "tag", "address", "number", "ST_AsEWKB(coordinates) AS coordinates", "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time"}
 	if fields != nil {
 		selectFields = fields
 	}
