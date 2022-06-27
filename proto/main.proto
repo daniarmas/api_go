@@ -646,7 +646,7 @@ message User {
   string thumbnailUrl = 9;
   string blurHash = 10;
   repeated UserAddress userAddress = 11;
-  repeated Permission permissions = 12;
+  repeated UserPermission permissions = 12;
   google.protobuf.Timestamp createTime = 13;
   google.protobuf.Timestamp updateTime = 14;
 }
@@ -855,8 +855,9 @@ message BusinessRole {
   string id = 1;
   string name = 2;
   string businessId = 3;
-  google.protobuf.Timestamp createTime = 4;
-  google.protobuf.Timestamp updateTime = 5;
+  repeated Permission permissions = 4;
+  google.protobuf.Timestamp createTime = 5;
+  google.protobuf.Timestamp updateTime = 6;
 }
 
 // message Device {
@@ -893,13 +894,20 @@ message BusinessRolePermission {
   google.protobuf.Timestamp updateTime = 5;
 }
 
-message Permission {
+message UserPermission {
   string id = 1;
   string name = 2;
   string userId = 4;
   string businessId = 5;
   google.protobuf.Timestamp createTime = 6;
   google.protobuf.Timestamp updateTime = 7;
+}
+
+message Permission {
+  string id = 1;
+  string name = 2;
+  google.protobuf.Timestamp createTime = 3;
+  google.protobuf.Timestamp updateTime = 4;
 }
 
 message Polygon {

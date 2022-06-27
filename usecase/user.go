@@ -78,22 +78,48 @@ func (i *userService) UpdateUserAddress(ctx context.Context, req *pb.UpdateUserA
 			return errors.New("only can have 10 user_address")
 		}
 		id := uuid.MustParse(req.Id)
-		provinceId := uuid.MustParse(req.UserAddress.ProvinceId)
-		municipalityId := uuid.MustParse(req.UserAddress.MunicipalityId)
-		location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.UserAddress.Coordinates.Latitude, req.UserAddress.Coordinates.Longitude}).SetSRID(4326)}
 		if req.UserAddress.Selected {
-			_, updateUserAddressErr := i.dao.NewUserAddressRepository().UpdateUserAddress(tx, &models.UserAddress{UserId: authorizationTokenRes.UserId}, &models.UserAddress{Selected: false})
-			if updateUserAddressErr != nil && updateUserAddressErr.Error() == "record not found" {
+			_, err := i.dao.NewUserAddressRepository().UpdateUserAddressByUserId(tx, &models.UserAddress{UserId: authorizationTokenRes.UserId}, &models.UserAddress{Selected: false})
+			if err != nil && err.Error() == "record not found" {
 				return errors.New("user address not found")
-			} else if updateUserAddressErr != nil {
-				return updateUserAddressErr
+			} else if err != nil {
+				return err
 			}
 		}
-		updateUserAddressRes, updateUserAddressErr := i.dao.NewUserAddressRepository().UpdateUserAddress(tx, &models.UserAddress{ID: &id}, &models.UserAddress{Name: req.UserAddress.Name, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, UserId: userRes.ID, ProvinceId: &provinceId, MunicipalityId: &municipalityId, Coordinates: location})
-		if updateUserAddressErr != nil && updateUserAddressErr.Error() == "record not found" {
-			return errors.New("user address not found")
-		} else if updateUserAddressErr != nil {
-			return updateUserAddressErr
+		where := models.UserAddress{
+			Name:         req.UserAddress.Name,
+			Address:      req.UserAddress.Address,
+			UserId:       userRes.ID,
+			Instructions: req.UserAddress.Instructions,
+			Number:       req.UserAddress.Number,
+			Selected:     req.UserAddress.Selected,
+		}
+		if req.UserAddress.ProvinceId != "" {
+			value := uuid.MustParse(req.UserAddress.ProvinceId)
+			where.ProvinceId = &value
+		}
+		if req.UserAddress.MunicipalityId != "" {
+			value := uuid.MustParse(req.UserAddress.MunicipalityId)
+			where.MunicipalityId = &value
+		}
+		if req.UserAddress.Coordinates != nil {
+			where.Coordinates = ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.UserAddress.Coordinates.Latitude, req.UserAddress.Coordinates.Longitude}).SetSRID(4326)}
+		}
+		var updateUserAddressRes *models.UserAddress
+		if req.UserAddress.Selected {
+			updateUserAddressRes, err = i.dao.NewUserAddressRepository().UpdateUserAddressSelected(tx, &models.UserAddress{ID: &id}, &where)
+			if err != nil && err.Error() == "record not found" {
+				return errors.New("user address not found")
+			} else if err != nil {
+				return err
+			}
+		} else {
+			updateUserAddressRes, err = i.dao.NewUserAddressRepository().UpdateUserAddress(tx, &models.UserAddress{ID: &id}, &where)
+			if err != nil && err.Error() == "record not found" {
+				return errors.New("user address not found")
+			} else if err != nil {
+				return err
+			}
 		}
 		res = pb.UserAddress{
 			Id:             updateUserAddressRes.ID.String(),
@@ -350,9 +376,9 @@ func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*p
 		return nil, err
 	}
 	userAddress := make([]*pb.UserAddress, 0, len(userRes.UserAddress))
-	permissions := make([]*pb.Permission, 0, len(userRes.UserPermissions))
+	permissions := make([]*pb.UserPermission, 0, len(userRes.UserPermissions))
 	for _, item := range userRes.UserPermissions {
-		permissions = append(permissions, &pb.Permission{
+		permissions = append(permissions, &pb.UserPermission{
 			Id:         item.ID.String(),
 			Name:       item.Name,
 			UserId:     item.UserId.String(),

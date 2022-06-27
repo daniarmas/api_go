@@ -29,6 +29,7 @@ type BusinessService interface {
 	ListPartnerApplication(ctx context.Context, req *pb.ListPartnerApplicationRequest, md *utils.ClientMetadata) (*pb.ListPartnerApplicationResponse, error)
 	UpdatePartnerApplication(ctx context.Context, req *pb.UpdatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error)
 	ListBusinessRole(ctx context.Context, req *pb.ListBusinessRoleRequest, md *utils.ClientMetadata) (*pb.ListBusinessRoleResponse, error)
+	CreateBusinessRole(ctx context.Context, req *pb.CreateBusinessRoleRequest, md *utils.ClientMetadata) (*pb.BusinessRole, error)
 }
 
 type businessService struct {
@@ -39,6 +40,69 @@ type businessService struct {
 
 func NewBusinessService(dao repository.DAO, config *utils.Config, stDb *sql.DB) BusinessService {
 	return &businessService{dao: dao, config: config, stDb: stDb}
+}
+
+func (i *businessService) CreateBusinessRole(ctx context.Context, req *pb.CreateBusinessRoleRequest, md *utils.ClientMetadata) (*pb.BusinessRole, error) {
+	var res pb.BusinessRole
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorization token expired")
+			case "signature is invalid":
+				return errors.New("authorization token signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("authorization token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
+			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		}
+		businessId := uuid.MustParse(req.BusinessRole.BusinessId)
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_role", BusinessId: &businessId}, &[]string{"id"})
+		if permissionErr != nil && permissionErr.Error() == "record not found" {
+			return errors.New("permission denied")
+		}
+		businessRolesRes, err := i.dao.NewBusinessRoleRepository().CreateBusinessRole(tx, &models.BusinessRole{Name: req.BusinessRole.Name, BusinessId: &businessId})
+		if err != nil {
+			return err
+		}
+		businessRolePermissions := make([]models.UnionBusinessRoleAndPermission, 0, len(req.BusinessRole.Permissions))
+		for _, i := range req.BusinessRole.Permissions {
+			permissionId := uuid.MustParse(i.Id)
+			businessRolePermissions = append(businessRolePermissions, models.UnionBusinessRoleAndPermission{
+				PermissionId:   &permissionId,
+				BusinessRoleId: businessRolesRes.ID,
+			})
+		}
+		_, err = i.dao.NewUnionBusinessRoleAndPermissionRepository().CreateUnionBusinessRoleAndPermission(tx, &businessRolePermissions)
+		if err != nil {
+			return err
+		}
+		res = pb.BusinessRole{
+			Id:         businessRolesRes.ID.String(),
+			Name:       businessRolesRes.Name,
+			BusinessId: businessRolesRes.BusinessId.String(),
+			CreateTime: timestamppb.New(businessRolesRes.CreateTime),
+			UpdateTime: timestamppb.New(businessRolesRes.UpdateTime),
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
 }
 
 func (i *businessService) ListBusinessRole(ctx context.Context, req *pb.ListBusinessRoleRequest, md *utils.ClientMetadata) (*pb.ListBusinessRoleResponse, error) {

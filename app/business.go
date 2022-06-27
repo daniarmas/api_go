@@ -10,6 +10,108 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+func (m *BusinessServer) CreateBusinessRole(ctx context.Context, req *pb.CreateBusinessRoleRequest) (*pb.BusinessRole, error) {
+	var invalidBusinessId, invalidName, invalidBusinessRolePermissionIds *epb.BadRequest_FieldViolation
+	var invalidArgs bool
+	var st *status.Status
+	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
+	for _, i := range req.BusinessRole.Permissions {
+		if i.Id == "" {
+			invalidArgs = true
+			invalidBusinessRolePermissionIds = &epb.BadRequest_FieldViolation{
+				Field:       "businessRole.permissions.id",
+				Description: "The businessRole.permissions.id field is required",
+			}
+		} else if i.Id != "" {
+			if !utils.IsValidUUID(&i.Id) {
+				invalidArgs = true
+				invalidBusinessRolePermissionIds = &epb.BadRequest_FieldViolation{
+					Field:       "businessRole.permissions.id",
+					Description: "The businessRole.permissions.id field is not a valid uuid v4",
+				}
+			}
+		}
+	}
+	if req.BusinessRole.Name == "" {
+		invalidArgs = true
+		invalidName = &epb.BadRequest_FieldViolation{
+			Field:       "businessRole.name",
+			Description: "The businessRole.name field is required",
+		}
+	}
+	if req.BusinessRole.BusinessId == "" {
+		invalidArgs = true
+		invalidBusinessId = &epb.BadRequest_FieldViolation{
+			Field:       "businessRole.businessId",
+			Description: "The businessRole.businessId field is required",
+		}
+	} else if req.BusinessRole.BusinessId != "" {
+		if !utils.IsValidUUID(&req.BusinessRole.BusinessId) {
+			invalidArgs = true
+			invalidBusinessId = &epb.BadRequest_FieldViolation{
+				Field:       "businessRole.businessId",
+				Description: "The businessRole.businessId field is not a valid uuid v4",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidBusinessId != nil {
+			st, _ = st.WithDetails(
+				invalidBusinessId,
+			)
+		}
+		if invalidName != nil {
+			st, _ = st.WithDetails(
+				invalidName,
+			)
+		}
+		if invalidBusinessRolePermissionIds != nil {
+			st, _ = st.WithDetails(
+				invalidBusinessRolePermissionIds,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.businessService.CreateBusinessRole(ctx, req, md)
+	if err != nil {
+		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
+		case "unauthenticated":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
+		case "partner application not found":
+			st = status.New(codes.NotFound, "Partner application not found")
+		case "already register as business user":
+			st = status.New(codes.AlreadyExists, "Already register as business user")
+		case "permission denied":
+			st = status.New(codes.AlreadyExists, "Permission denied")
+		case "already exists a business with that name":
+			st = status.New(codes.AlreadyExists, "Already exists a business with that name")
+		case "user not found":
+			st = status.New(codes.NotFound, "User not found")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return res, nil
+}
+
 func (m *BusinessServer) ListBusinessRole(ctx context.Context, req *pb.ListBusinessRoleRequest) (*pb.ListBusinessRoleResponse, error) {
 	var invalidBusinessId *epb.BadRequest_FieldViolation
 	var invalidArgs bool

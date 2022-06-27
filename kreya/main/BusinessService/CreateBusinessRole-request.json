@@ -1,22 +1,19 @@
 {
   "businessRole": {
-    "id": "{{ faker.random.uuid }}",
-    "name": "{{ faker.name.last_name }}",
-    "businessId": "fooBar",
+    "name": "administrador",
+    "businessId": "4569277d-ec74-42b7-954b-11fa26dd07d3",
     "permissions": [
       {
-        "id": "{{ faker.random.uuid }}",
-        "businessRoleId": "fooBar",
-        "permissionId": "fooBar",
-        "createTime": "1970-01-01T00:02:03.000000123Z",
-        "updateTime": "1970-01-01T00:02:03.000000123Z"
+        "id": "a2780590-5c40-48fe-9b7b-fa034d8073dd"
       },
       {
-        "id": "{{ faker.random.uuid }}",
-        "businessRoleId": "fooBar",
-        "permissionId": "fooBar",
-        "createTime": "1970-01-01T00:02:03.000000123Z",
-        "updateTime": "1970-01-01T00:02:03.000000123Z"
+        "id": "6a1648db-3765-4180-8a28-247869786919"
+      },
+      {
+        "id": "3cbc3c41-0e4e-4b3f-805e-2414a4219915"
+      },
+      {
+        "id": "55de8866-f650-4f6f-ba54-e301debf88d5"
       }
     ]
   }

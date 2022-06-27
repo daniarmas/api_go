@@ -13,7 +13,7 @@ import (
 type UnionBusinessRoleAndPermissionDatasource interface {
 	ListUnionBusinessRoleAndPermission(tx *gorm.DB, where *models.UnionBusinessRoleAndPermission, cursor *time.Time, fields *[]string) (*[]models.UnionBusinessRoleAndPermission, error)
 	ListUnionBusinessRoleAndPermissionInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]models.UnionBusinessRoleAndPermission, error)
-	CreateUnionBusinessRoleAndPermission(tx *gorm.DB, where *models.UnionBusinessRoleAndPermission) (*models.UnionBusinessRoleAndPermission, error)
+	CreateUnionBusinessRoleAndPermission(tx *gorm.DB, where *[]models.UnionBusinessRoleAndPermission) (*[]models.UnionBusinessRoleAndPermission, error)
 	DeleteUnionBusinessRoleAndPermission(tx *gorm.DB, where *models.UnionBusinessRoleAndPermission, ids *[]uuid.UUID) (*[]models.UnionBusinessRoleAndPermission, error)
 }
 
@@ -45,7 +45,7 @@ func (i *unionBusinessRoleAndPermissionDatasource) ListUnionBusinessRoleAndPermi
 	return &res, nil
 }
 
-func (i *unionBusinessRoleAndPermissionDatasource) CreateUnionBusinessRoleAndPermission(tx *gorm.DB, data *models.UnionBusinessRoleAndPermission) (*models.UnionBusinessRoleAndPermission, error) {
+func (i *unionBusinessRoleAndPermissionDatasource) CreateUnionBusinessRoleAndPermission(tx *gorm.DB, data *[]models.UnionBusinessRoleAndPermission) (*[]models.UnionBusinessRoleAndPermission, error) {
 	result := tx.Create(&data)
 	if result.Error != nil {
 		return nil, result.Error
