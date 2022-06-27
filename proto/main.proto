@@ -872,7 +872,7 @@ message BusinessRole {
 
 message UserAddress {
   string id = 1;
-  string tag = 2;
+  string name = 2;
   bool selected = 3;
   string number = 4;
   string address = 5;

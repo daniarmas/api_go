@@ -30,7 +30,7 @@ func (u *userDatasource) GetUserWithAddress(tx *gorm.DB, where *models.User, fie
 			return nil, result.Error
 		}
 	}
-	query := fmt.Sprintf("SELECT id, selected, tag, address, instructions, number, user_id, province_id, municipality_id, create_time, update_time, ST_AsEWKB(coordinates) AS coordinates FROM user_address WHERE user_address.user_id = '%v';", res.ID)
+	query := fmt.Sprintf("SELECT id, selected, name, address, instructions, number, user_id, province_id, municipality_id, create_time, update_time, ST_AsEWKB(coordinates) AS coordinates FROM user_address WHERE user_address.user_id = '%v';", res.ID)
 	userAddressErr = tx.Raw(query).Scan(&userAddressResult).Error
 	if userAddressErr != nil {
 		return nil, userAddressErr

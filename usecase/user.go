@@ -81,7 +81,15 @@ func (i *userService) UpdateUserAddress(ctx context.Context, req *pb.UpdateUserA
 		provinceId := uuid.MustParse(req.UserAddress.ProvinceId)
 		municipalityId := uuid.MustParse(req.UserAddress.MunicipalityId)
 		location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.UserAddress.Coordinates.Latitude, req.UserAddress.Coordinates.Longitude}).SetSRID(4326)}
-		updateUserAddressRes, updateUserAddressErr := i.dao.NewUserAddressRepository().UpdateUserAddress(tx, &models.UserAddress{ID: &id}, &models.UserAddress{Tag: req.UserAddress.Tag, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, UserId: userRes.ID, ProvinceId: &provinceId, MunicipalityId: &municipalityId, Coordinates: location})
+		if req.UserAddress.Selected {
+			_, updateUserAddressErr := i.dao.NewUserAddressRepository().UpdateUserAddress(tx, &models.UserAddress{UserId: authorizationTokenRes.UserId}, &models.UserAddress{Selected: false})
+			if updateUserAddressErr != nil && updateUserAddressErr.Error() == "record not found" {
+				return errors.New("user address not found")
+			} else if updateUserAddressErr != nil {
+				return updateUserAddressErr
+			}
+		}
+		updateUserAddressRes, updateUserAddressErr := i.dao.NewUserAddressRepository().UpdateUserAddress(tx, &models.UserAddress{ID: &id}, &models.UserAddress{Name: req.UserAddress.Name, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, UserId: userRes.ID, ProvinceId: &provinceId, MunicipalityId: &municipalityId, Coordinates: location})
 		if updateUserAddressErr != nil && updateUserAddressErr.Error() == "record not found" {
 			return errors.New("user address not found")
 		} else if updateUserAddressErr != nil {
@@ -89,7 +97,7 @@ func (i *userService) UpdateUserAddress(ctx context.Context, req *pb.UpdateUserA
 		}
 		res = pb.UserAddress{
 			Id:             updateUserAddressRes.ID.String(),
-			Tag:            updateUserAddressRes.Tag,
+			Name:           updateUserAddressRes.Name,
 			Number:         updateUserAddressRes.Number,
 			Instructions:   updateUserAddressRes.Instructions,
 			Address:        updateUserAddressRes.Address,
@@ -191,13 +199,13 @@ func (i *userService) CreateUserAddress(ctx context.Context, req *pb.CreateUserA
 		provinceId := uuid.MustParse(req.UserAddress.ProvinceId)
 		municipalityId := uuid.MustParse(req.UserAddress.MunicipalityId)
 		location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.UserAddress.Coordinates.Latitude, req.UserAddress.Coordinates.Longitude}).SetSRID(4326)}
-		createUserAddressRes, createUserAddressErr := i.dao.NewUserAddressRepository().CreateUserAddress(tx, &models.UserAddress{Tag: req.UserAddress.Tag, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, UserId: userRes.ID, ProvinceId: &provinceId, MunicipalityId: &municipalityId, Coordinates: location})
+		createUserAddressRes, createUserAddressErr := i.dao.NewUserAddressRepository().CreateUserAddress(tx, &models.UserAddress{Name: req.UserAddress.Name, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, UserId: userRes.ID, ProvinceId: &provinceId, MunicipalityId: &municipalityId, Coordinates: location})
 		if createUserAddressErr != nil {
 			return createUserAddressErr
 		}
 		res = pb.UserAddress{
 			Id:             createUserAddressRes.ID.String(),
-			Tag:            createUserAddressRes.Tag,
+			Name:           createUserAddressRes.Name,
 			Number:         createUserAddressRes.Number,
 			Instructions:   createUserAddressRes.Instructions,
 			Address:        createUserAddressRes.Address,
@@ -253,7 +261,7 @@ func (i *userService) ListUserAddress(ctx context.Context, req *gp.Empty, md *ut
 		for _, i := range *listUserAddressRes {
 			userAddress = append(userAddress, &pb.UserAddress{
 				Id:             i.ID.String(),
-				Tag:            i.Tag,
+				Name:           i.Name,
 				UserId:         i.UserId.String(),
 				Coordinates:    &pb.Point{Latitude: i.Coordinates.FlatCoords()[0], Longitude: i.Coordinates.FlatCoords()[1]},
 				Address:        i.Address,
@@ -356,7 +364,7 @@ func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*p
 	for _, item := range userRes.UserAddress {
 		userAddress = append(userAddress, &pb.UserAddress{
 			Id:             item.ID.String(),
-			Tag:            item.Tag,
+			Name:           item.Name,
 			Number:         item.Number,
 			Address:        item.Address,
 			Instructions:   item.Instructions,

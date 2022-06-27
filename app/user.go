@@ -209,7 +209,7 @@ func (m *UserServer) DeleteUserAddress(ctx context.Context, req *pb.DeleteUserAd
 }
 
 func (m *UserServer) CreateUserAddress(ctx context.Context, req *pb.CreateUserAddressRequest) (*pb.UserAddress, error) {
-	var invalidCoordinates, invalidNumber, invalidAddress, invalidTag, invalidProvinceId, invalidMunicipalityId *epb.BadRequest_FieldViolation
+	var invalidCoordinates, invalidNumber, invalidAddress, invalidName, invalidProvinceId, invalidMunicipalityId *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
@@ -247,11 +247,11 @@ func (m *UserServer) CreateUserAddress(ctx context.Context, req *pb.CreateUserAd
 			}
 		}
 	}
-	if req.UserAddress.Tag == "" {
+	if req.UserAddress.Name == "" {
 		invalidArgs = true
-		invalidTag = &epb.BadRequest_FieldViolation{
-			Field:       "UserAddress.Tag",
-			Description: "The UserAddress.Tag field is required",
+		invalidName = &epb.BadRequest_FieldViolation{
+			Field:       "UserAddress.Name",
+			Description: "The UserAddress.Name field is required",
 		}
 	}
 	if req.UserAddress.Coordinates == nil {
@@ -311,9 +311,9 @@ func (m *UserServer) CreateUserAddress(ctx context.Context, req *pb.CreateUserAd
 				invalidProvinceId,
 			)
 		}
-		if invalidTag != nil {
+		if invalidName != nil {
 			st, _ = st.WithDetails(
-				invalidTag,
+				invalidName,
 			)
 		}
 		if invalidNumber != nil {
@@ -349,7 +349,7 @@ func (m *UserServer) CreateUserAddress(ctx context.Context, req *pb.CreateUserAd
 }
 
 func (m *UserServer) UpdateUserAddress(ctx context.Context, req *pb.UpdateUserAddressRequest) (*pb.UserAddress, error) {
-	var invalidId, invalidCoordinates, invalidNumber, invalidAddress, invalidTag, invalidProvinceId, invalidMunicipalityId *epb.BadRequest_FieldViolation
+	var invalidId, invalidCoordinates, invalidNumber, invalidAddress, invalidName, invalidProvinceId, invalidMunicipalityId *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
@@ -402,11 +402,11 @@ func (m *UserServer) UpdateUserAddress(ctx context.Context, req *pb.UpdateUserAd
 			}
 		}
 	}
-	if req.UserAddress.Tag == "" {
+	if req.UserAddress.Name == "" {
 		invalidArgs = true
-		invalidTag = &epb.BadRequest_FieldViolation{
-			Field:       "UserAddress.Tag",
-			Description: "The UserAddress.Tag field is required",
+		invalidName = &epb.BadRequest_FieldViolation{
+			Field:       "UserAddress.Name",
+			Description: "The UserAddress.Name field is required",
 		}
 	}
 	if req.UserAddress.Coordinates == nil {
@@ -471,9 +471,9 @@ func (m *UserServer) UpdateUserAddress(ctx context.Context, req *pb.UpdateUserAd
 				invalidProvinceId,
 			)
 		}
-		if invalidTag != nil {
+		if invalidName != nil {
 			st, _ = st.WithDetails(
-				invalidTag,
+				invalidName,
 			)
 		}
 		if invalidNumber != nil {
