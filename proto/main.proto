@@ -42,7 +42,10 @@ service BusinessService {
   rpc UpdatePartnerApplication (UpdatePartnerApplicationRequest) returns (PartnerApplication) {}
 
   rpc CreateBusinessRole (CreateBusinessRoleRequest) returns (BusinessRole) {}
+  rpc UpdateBusinessRole (UpdateBusinessRoleRequest) returns (BusinessRole) {}
+  rpc ModifyBusinessRolePermission (ModifyBusinessRolePermissionRequest) returns (google.protobuf.Empty) {}
   rpc ListBusinessRole (ListBusinessRoleRequest) returns (ListBusinessRoleResponse) {}
+  rpc DeleteBusinessRole (DeleteBusinessRoleRequest) returns (google.protobuf.Empty) {}
 }
 
 service ItemService {
@@ -59,7 +62,9 @@ service UserService {
   rpc GetUser (google.protobuf.Empty) returns (User) {}
   rpc UpdateUser (UpdateUserRequest) returns (User) {}
   rpc GetAddressInfo (GetAddressInfoRequest) returns (GetAddressInfoResponse) {}
+
   rpc ListUserAddress (google.protobuf.Empty) returns (ListUserAddressResponse) {}
+  rpc GetUserAddress (GetUserAddressRequest) returns (UserAddress) {}
   rpc CreateUserAddress (CreateUserAddressRequest) returns (UserAddress) {}
   rpc UpdateUserAddress (UpdateUserAddressRequest) returns (UserAddress) {}
   rpc DeleteUserAddress (DeleteUserAddressRequest) returns (google.protobuf.Empty) {}
@@ -95,6 +100,24 @@ service AnalyticsService {
 }
 
 // Request & Response Message
+
+message ModifyBusinessRolePermissionRequest {
+  string businessRoleId = 1;
+  repeated string permissionIds = 2;
+}
+
+message UpdateBusinessRoleRequest {
+  string id = 1;
+  BusinessRole businessRole = 2;
+}
+
+message DeleteBusinessRoleRequest {
+  string id = 1;
+}
+
+message GetUserAddressRequest {
+  string id = 1;
+}
 
 message ListBusinessRoleRequest {
   string businessId = 1;

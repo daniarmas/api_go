@@ -698,6 +698,210 @@ func (PhotoType) EnumDescriptor() ([]byte, []int) {
 	return file_main_proto_rawDescGZIP(), []int{12}
 }
 
+type ModifyBusinessRolePermissionRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	BusinessRoleId string   `protobuf:"bytes,1,opt,name=businessRoleId,proto3" json:"businessRoleId,omitempty"`
+	PermissionIds  []string `protobuf:"bytes,2,rep,name=permissionIds,proto3" json:"permissionIds,omitempty"`
+}
+
+func (x *ModifyBusinessRolePermissionRequest) Reset() {
+	*x = ModifyBusinessRolePermissionRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_main_proto_msgTypes[0]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ModifyBusinessRolePermissionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ModifyBusinessRolePermissionRequest) ProtoMessage() {}
+
+func (x *ModifyBusinessRolePermissionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_main_proto_msgTypes[0]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ModifyBusinessRolePermissionRequest.ProtoReflect.Descriptor instead.
+func (*ModifyBusinessRolePermissionRequest) Descriptor() ([]byte, []int) {
+	return file_main_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *ModifyBusinessRolePermissionRequest) GetBusinessRoleId() string {
+	if x != nil {
+		return x.BusinessRoleId
+	}
+	return ""
+}
+
+func (x *ModifyBusinessRolePermissionRequest) GetPermissionIds() []string {
+	if x != nil {
+		return x.PermissionIds
+	}
+	return nil
+}
+
+type UpdateBusinessRoleRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id           string        `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	BusinessRole *BusinessRole `protobuf:"bytes,2,opt,name=businessRole,proto3" json:"businessRole,omitempty"`
+}
+
+func (x *UpdateBusinessRoleRequest) Reset() {
+	*x = UpdateBusinessRoleRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_main_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UpdateBusinessRoleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateBusinessRoleRequest) ProtoMessage() {}
+
+func (x *UpdateBusinessRoleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_main_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateBusinessRoleRequest.ProtoReflect.Descriptor instead.
+func (*UpdateBusinessRoleRequest) Descriptor() ([]byte, []int) {
+	return file_main_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *UpdateBusinessRoleRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateBusinessRoleRequest) GetBusinessRole() *BusinessRole {
+	if x != nil {
+		return x.BusinessRole
+	}
+	return nil
+}
+
+type DeleteBusinessRoleRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *DeleteBusinessRoleRequest) Reset() {
+	*x = DeleteBusinessRoleRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_main_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteBusinessRoleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteBusinessRoleRequest) ProtoMessage() {}
+
+func (x *DeleteBusinessRoleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_main_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteBusinessRoleRequest.ProtoReflect.Descriptor instead.
+func (*DeleteBusinessRoleRequest) Descriptor() ([]byte, []int) {
+	return file_main_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *DeleteBusinessRoleRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type GetUserAddressRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *GetUserAddressRequest) Reset() {
+	*x = GetUserAddressRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_main_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetUserAddressRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserAddressRequest) ProtoMessage() {}
+
+func (x *GetUserAddressRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_main_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserAddressRequest.ProtoReflect.Descriptor instead.
+func (*GetUserAddressRequest) Descriptor() ([]byte, []int) {
+	return file_main_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetUserAddressRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
 type ListBusinessRoleRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -710,7 +914,7 @@ type ListBusinessRoleRequest struct {
 func (x *ListBusinessRoleRequest) Reset() {
 	*x = ListBusinessRoleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[0]
+		mi := &file_main_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -723,7 +927,7 @@ func (x *ListBusinessRoleRequest) String() string {
 func (*ListBusinessRoleRequest) ProtoMessage() {}
 
 func (x *ListBusinessRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[0]
+	mi := &file_main_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -736,7 +940,7 @@ func (x *ListBusinessRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBusinessRoleRequest.ProtoReflect.Descriptor instead.
 func (*ListBusinessRoleRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{0}
+	return file_main_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ListBusinessRoleRequest) GetBusinessId() string {
@@ -765,7 +969,7 @@ type ListBusinessRoleResponse struct {
 func (x *ListBusinessRoleResponse) Reset() {
 	*x = ListBusinessRoleResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[1]
+		mi := &file_main_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -778,7 +982,7 @@ func (x *ListBusinessRoleResponse) String() string {
 func (*ListBusinessRoleResponse) ProtoMessage() {}
 
 func (x *ListBusinessRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[1]
+	mi := &file_main_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -791,7 +995,7 @@ func (x *ListBusinessRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBusinessRoleResponse.ProtoReflect.Descriptor instead.
 func (*ListBusinessRoleResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{1}
+	return file_main_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ListBusinessRoleResponse) GetBusinessRoles() []*BusinessRole {
@@ -819,7 +1023,7 @@ type CreateBusinessRoleRequest struct {
 func (x *CreateBusinessRoleRequest) Reset() {
 	*x = CreateBusinessRoleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[2]
+		mi := &file_main_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -832,7 +1036,7 @@ func (x *CreateBusinessRoleRequest) String() string {
 func (*CreateBusinessRoleRequest) ProtoMessage() {}
 
 func (x *CreateBusinessRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[2]
+	mi := &file_main_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -845,7 +1049,7 @@ func (x *CreateBusinessRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBusinessRoleRequest.ProtoReflect.Descriptor instead.
 func (*CreateBusinessRoleRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{2}
+	return file_main_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *CreateBusinessRoleRequest) GetBusinessRole() *BusinessRole {
@@ -866,7 +1070,7 @@ type ListApplicationRequest struct {
 func (x *ListApplicationRequest) Reset() {
 	*x = ListApplicationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[3]
+		mi := &file_main_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -879,7 +1083,7 @@ func (x *ListApplicationRequest) String() string {
 func (*ListApplicationRequest) ProtoMessage() {}
 
 func (x *ListApplicationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[3]
+	mi := &file_main_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -892,7 +1096,7 @@ func (x *ListApplicationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListApplicationRequest.ProtoReflect.Descriptor instead.
 func (*ListApplicationRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{3}
+	return file_main_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ListApplicationRequest) GetNextPage() *timestamppb.Timestamp {
@@ -914,7 +1118,7 @@ type ListApplicationResponse struct {
 func (x *ListApplicationResponse) Reset() {
 	*x = ListApplicationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[4]
+		mi := &file_main_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -927,7 +1131,7 @@ func (x *ListApplicationResponse) String() string {
 func (*ListApplicationResponse) ProtoMessage() {}
 
 func (x *ListApplicationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[4]
+	mi := &file_main_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -940,7 +1144,7 @@ func (x *ListApplicationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListApplicationResponse.ProtoReflect.Descriptor instead.
 func (*ListApplicationResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{4}
+	return file_main_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ListApplicationResponse) GetApplications() []*Application {
@@ -968,7 +1172,7 @@ type DeleteApplicationRequest struct {
 func (x *DeleteApplicationRequest) Reset() {
 	*x = DeleteApplicationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[5]
+		mi := &file_main_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -981,7 +1185,7 @@ func (x *DeleteApplicationRequest) String() string {
 func (*DeleteApplicationRequest) ProtoMessage() {}
 
 func (x *DeleteApplicationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[5]
+	mi := &file_main_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -994,7 +1198,7 @@ func (x *DeleteApplicationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteApplicationRequest.ProtoReflect.Descriptor instead.
 func (*DeleteApplicationRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{5}
+	return file_main_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DeleteApplicationRequest) GetId() string {
@@ -1015,7 +1219,7 @@ type CreateApplicationRequest struct {
 func (x *CreateApplicationRequest) Reset() {
 	*x = CreateApplicationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[6]
+		mi := &file_main_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1028,7 +1232,7 @@ func (x *CreateApplicationRequest) String() string {
 func (*CreateApplicationRequest) ProtoMessage() {}
 
 func (x *CreateApplicationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[6]
+	mi := &file_main_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1041,7 +1245,7 @@ func (x *CreateApplicationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateApplicationRequest.ProtoReflect.Descriptor instead.
 func (*CreateApplicationRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{6}
+	return file_main_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *CreateApplicationRequest) GetApplication() *Application {
@@ -1063,7 +1267,7 @@ type UpdatePartnerApplicationRequest struct {
 func (x *UpdatePartnerApplicationRequest) Reset() {
 	*x = UpdatePartnerApplicationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[7]
+		mi := &file_main_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1076,7 +1280,7 @@ func (x *UpdatePartnerApplicationRequest) String() string {
 func (*UpdatePartnerApplicationRequest) ProtoMessage() {}
 
 func (x *UpdatePartnerApplicationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[7]
+	mi := &file_main_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1089,7 +1293,7 @@ func (x *UpdatePartnerApplicationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePartnerApplicationRequest.ProtoReflect.Descriptor instead.
 func (*UpdatePartnerApplicationRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{7}
+	return file_main_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *UpdatePartnerApplicationRequest) GetId() string {
@@ -1117,7 +1321,7 @@ type ListPartnerApplicationRequest struct {
 func (x *ListPartnerApplicationRequest) Reset() {
 	*x = ListPartnerApplicationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[8]
+		mi := &file_main_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1130,7 +1334,7 @@ func (x *ListPartnerApplicationRequest) String() string {
 func (*ListPartnerApplicationRequest) ProtoMessage() {}
 
 func (x *ListPartnerApplicationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[8]
+	mi := &file_main_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1143,7 +1347,7 @@ func (x *ListPartnerApplicationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPartnerApplicationRequest.ProtoReflect.Descriptor instead.
 func (*ListPartnerApplicationRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{8}
+	return file_main_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListPartnerApplicationRequest) GetNextPage() *timestamppb.Timestamp {
@@ -1165,7 +1369,7 @@ type ListPartnerApplicationResponse struct {
 func (x *ListPartnerApplicationResponse) Reset() {
 	*x = ListPartnerApplicationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[9]
+		mi := &file_main_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1178,7 +1382,7 @@ func (x *ListPartnerApplicationResponse) String() string {
 func (*ListPartnerApplicationResponse) ProtoMessage() {}
 
 func (x *ListPartnerApplicationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[9]
+	mi := &file_main_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1191,7 +1395,7 @@ func (x *ListPartnerApplicationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPartnerApplicationResponse.ProtoReflect.Descriptor instead.
 func (*ListPartnerApplicationResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{9}
+	return file_main_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ListPartnerApplicationResponse) GetPartnerApplications() []*PartnerApplication {
@@ -1219,7 +1423,7 @@ type CreatePartnerApplicationRequest struct {
 func (x *CreatePartnerApplicationRequest) Reset() {
 	*x = CreatePartnerApplicationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[10]
+		mi := &file_main_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1232,7 +1436,7 @@ func (x *CreatePartnerApplicationRequest) String() string {
 func (*CreatePartnerApplicationRequest) ProtoMessage() {}
 
 func (x *CreatePartnerApplicationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[10]
+	mi := &file_main_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1245,7 +1449,7 @@ func (x *CreatePartnerApplicationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePartnerApplicationRequest.ProtoReflect.Descriptor instead.
 func (*CreatePartnerApplicationRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{10}
+	return file_main_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CreatePartnerApplicationRequest) GetPartnerApplication() *PartnerApplication {
@@ -1266,7 +1470,7 @@ type DeleteUserAddressRequest struct {
 func (x *DeleteUserAddressRequest) Reset() {
 	*x = DeleteUserAddressRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[11]
+		mi := &file_main_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1279,7 +1483,7 @@ func (x *DeleteUserAddressRequest) String() string {
 func (*DeleteUserAddressRequest) ProtoMessage() {}
 
 func (x *DeleteUserAddressRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[11]
+	mi := &file_main_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1292,7 +1496,7 @@ func (x *DeleteUserAddressRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserAddressRequest.ProtoReflect.Descriptor instead.
 func (*DeleteUserAddressRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{11}
+	return file_main_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *DeleteUserAddressRequest) GetId() string {
@@ -1313,7 +1517,7 @@ type CreateUserAddressRequest struct {
 func (x *CreateUserAddressRequest) Reset() {
 	*x = CreateUserAddressRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[12]
+		mi := &file_main_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1326,7 +1530,7 @@ func (x *CreateUserAddressRequest) String() string {
 func (*CreateUserAddressRequest) ProtoMessage() {}
 
 func (x *CreateUserAddressRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[12]
+	mi := &file_main_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1339,7 +1543,7 @@ func (x *CreateUserAddressRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserAddressRequest.ProtoReflect.Descriptor instead.
 func (*CreateUserAddressRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{12}
+	return file_main_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CreateUserAddressRequest) GetUserAddress() *UserAddress {
@@ -1361,7 +1565,7 @@ type UpdateUserAddressRequest struct {
 func (x *UpdateUserAddressRequest) Reset() {
 	*x = UpdateUserAddressRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[13]
+		mi := &file_main_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1374,7 +1578,7 @@ func (x *UpdateUserAddressRequest) String() string {
 func (*UpdateUserAddressRequest) ProtoMessage() {}
 
 func (x *UpdateUserAddressRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[13]
+	mi := &file_main_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1387,7 +1591,7 @@ func (x *UpdateUserAddressRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserAddressRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserAddressRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{13}
+	return file_main_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *UpdateUserAddressRequest) GetId() string {
@@ -1415,7 +1619,7 @@ type ListUserAddressResponse struct {
 func (x *ListUserAddressResponse) Reset() {
 	*x = ListUserAddressResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[14]
+		mi := &file_main_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1428,7 +1632,7 @@ func (x *ListUserAddressResponse) String() string {
 func (*ListUserAddressResponse) ProtoMessage() {}
 
 func (x *ListUserAddressResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[14]
+	mi := &file_main_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1441,7 +1645,7 @@ func (x *ListUserAddressResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserAddressResponse.ProtoReflect.Descriptor instead.
 func (*ListUserAddressResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{14}
+	return file_main_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ListUserAddressResponse) GetUserAddress() []*UserAddress {
@@ -1463,7 +1667,7 @@ type CollectAnalyticsRequest struct {
 func (x *CollectAnalyticsRequest) Reset() {
 	*x = CollectAnalyticsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[15]
+		mi := &file_main_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1476,7 +1680,7 @@ func (x *CollectAnalyticsRequest) String() string {
 func (*CollectAnalyticsRequest) ProtoMessage() {}
 
 func (x *CollectAnalyticsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[15]
+	mi := &file_main_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1489,7 +1693,7 @@ func (x *CollectAnalyticsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CollectAnalyticsRequest.ProtoReflect.Descriptor instead.
 func (*CollectAnalyticsRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{15}
+	return file_main_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *CollectAnalyticsRequest) GetBusinessAnalytics() []*BusinessAnalytics {
@@ -1520,7 +1724,7 @@ type GetPresignedPutObjectRequest struct {
 func (x *GetPresignedPutObjectRequest) Reset() {
 	*x = GetPresignedPutObjectRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[16]
+		mi := &file_main_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1533,7 +1737,7 @@ func (x *GetPresignedPutObjectRequest) String() string {
 func (*GetPresignedPutObjectRequest) ProtoMessage() {}
 
 func (x *GetPresignedPutObjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[16]
+	mi := &file_main_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1546,7 +1750,7 @@ func (x *GetPresignedPutObjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPresignedPutObjectRequest.ProtoReflect.Descriptor instead.
 func (*GetPresignedPutObjectRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{16}
+	return file_main_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GetPresignedPutObjectRequest) GetLowQualityPhoto() string {
@@ -1590,7 +1794,7 @@ type GetPresignedPutObjectResponse struct {
 func (x *GetPresignedPutObjectResponse) Reset() {
 	*x = GetPresignedPutObjectResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[17]
+		mi := &file_main_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1603,7 +1807,7 @@ func (x *GetPresignedPutObjectResponse) String() string {
 func (*GetPresignedPutObjectResponse) ProtoMessage() {}
 
 func (x *GetPresignedPutObjectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[17]
+	mi := &file_main_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1616,7 +1820,7 @@ func (x *GetPresignedPutObjectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPresignedPutObjectResponse.ProtoReflect.Descriptor instead.
 func (*GetPresignedPutObjectResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{17}
+	return file_main_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *GetPresignedPutObjectResponse) GetLowQualityPhotoPresignedPutUrl() string {
@@ -1670,7 +1874,7 @@ type UpdateBusinessRequest struct {
 func (x *UpdateBusinessRequest) Reset() {
 	*x = UpdateBusinessRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[18]
+		mi := &file_main_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1683,7 +1887,7 @@ func (x *UpdateBusinessRequest) String() string {
 func (*UpdateBusinessRequest) ProtoMessage() {}
 
 func (x *UpdateBusinessRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[18]
+	mi := &file_main_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1696,7 +1900,7 @@ func (x *UpdateBusinessRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateBusinessRequest.ProtoReflect.Descriptor instead.
 func (*UpdateBusinessRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{18}
+	return file_main_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *UpdateBusinessRequest) GetId() string {
@@ -1850,7 +2054,7 @@ type UpdateBusinessResponse struct {
 func (x *UpdateBusinessResponse) Reset() {
 	*x = UpdateBusinessResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[19]
+		mi := &file_main_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1863,7 +2067,7 @@ func (x *UpdateBusinessResponse) String() string {
 func (*UpdateBusinessResponse) ProtoMessage() {}
 
 func (x *UpdateBusinessResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[19]
+	mi := &file_main_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1876,7 +2080,7 @@ func (x *UpdateBusinessResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateBusinessResponse.ProtoReflect.Descriptor instead.
 func (*UpdateBusinessResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{19}
+	return file_main_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *UpdateBusinessResponse) GetBusiness() *Business {
@@ -1917,7 +2121,7 @@ type CreateBusinessRequest struct {
 func (x *CreateBusinessRequest) Reset() {
 	*x = CreateBusinessRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[20]
+		mi := &file_main_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1930,7 +2134,7 @@ func (x *CreateBusinessRequest) String() string {
 func (*CreateBusinessRequest) ProtoMessage() {}
 
 func (x *CreateBusinessRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[20]
+	mi := &file_main_proto_msgTypes[24]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1943,7 +2147,7 @@ func (x *CreateBusinessRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBusinessRequest.ProtoReflect.Descriptor instead.
 func (*CreateBusinessRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{20}
+	return file_main_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *CreateBusinessRequest) GetName() string {
@@ -2105,7 +2309,7 @@ type CreateBusinessResponse struct {
 func (x *CreateBusinessResponse) Reset() {
 	*x = CreateBusinessResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[21]
+		mi := &file_main_proto_msgTypes[25]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2118,7 +2322,7 @@ func (x *CreateBusinessResponse) String() string {
 func (*CreateBusinessResponse) ProtoMessage() {}
 
 func (x *CreateBusinessResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[21]
+	mi := &file_main_proto_msgTypes[25]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2131,7 +2335,7 @@ func (x *CreateBusinessResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBusinessResponse.ProtoReflect.Descriptor instead.
 func (*CreateBusinessResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{21}
+	return file_main_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *CreateBusinessResponse) GetBusiness() *Business {
@@ -2159,7 +2363,7 @@ type GetAddressInfoRequest struct {
 func (x *GetAddressInfoRequest) Reset() {
 	*x = GetAddressInfoRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[22]
+		mi := &file_main_proto_msgTypes[26]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2172,7 +2376,7 @@ func (x *GetAddressInfoRequest) String() string {
 func (*GetAddressInfoRequest) ProtoMessage() {}
 
 func (x *GetAddressInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[22]
+	mi := &file_main_proto_msgTypes[26]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2185,7 +2389,7 @@ func (x *GetAddressInfoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAddressInfoRequest.ProtoReflect.Descriptor instead.
 func (*GetAddressInfoRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{22}
+	return file_main_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *GetAddressInfoRequest) GetLocation() *Point {
@@ -2210,7 +2414,7 @@ type GetAddressInfoResponse struct {
 func (x *GetAddressInfoResponse) Reset() {
 	*x = GetAddressInfoResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[23]
+		mi := &file_main_proto_msgTypes[27]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2223,7 +2427,7 @@ func (x *GetAddressInfoResponse) String() string {
 func (*GetAddressInfoResponse) ProtoMessage() {}
 
 func (x *GetAddressInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[23]
+	mi := &file_main_proto_msgTypes[27]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2236,7 +2440,7 @@ func (x *GetAddressInfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAddressInfoResponse.ProtoReflect.Descriptor instead.
 func (*GetAddressInfoResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{23}
+	return file_main_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *GetAddressInfoResponse) GetProvinceId() string {
@@ -2286,7 +2490,7 @@ type GetBannedDeviceResponse struct {
 func (x *GetBannedDeviceResponse) Reset() {
 	*x = GetBannedDeviceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[24]
+		mi := &file_main_proto_msgTypes[28]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2299,7 +2503,7 @@ func (x *GetBannedDeviceResponse) String() string {
 func (*GetBannedDeviceResponse) ProtoMessage() {}
 
 func (x *GetBannedDeviceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[24]
+	mi := &file_main_proto_msgTypes[28]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2312,7 +2516,7 @@ func (x *GetBannedDeviceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBannedDeviceResponse.ProtoReflect.Descriptor instead.
 func (*GetBannedDeviceResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{24}
+	return file_main_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetBannedDeviceResponse) GetBanExpirationTime() *timestamppb.Timestamp {
@@ -2341,7 +2545,7 @@ type GetBannedUserResponse struct {
 func (x *GetBannedUserResponse) Reset() {
 	*x = GetBannedUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[25]
+		mi := &file_main_proto_msgTypes[29]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2354,7 +2558,7 @@ func (x *GetBannedUserResponse) String() string {
 func (*GetBannedUserResponse) ProtoMessage() {}
 
 func (x *GetBannedUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[25]
+	mi := &file_main_proto_msgTypes[29]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2367,7 +2571,7 @@ func (x *GetBannedUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBannedUserResponse.ProtoReflect.Descriptor instead.
 func (*GetBannedUserResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{25}
+	return file_main_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *GetBannedUserResponse) GetBanExpirationTime() *timestamppb.Timestamp {
@@ -2395,7 +2599,7 @@ type UpdateOrderRequest struct {
 func (x *UpdateOrderRequest) Reset() {
 	*x = UpdateOrderRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[26]
+		mi := &file_main_proto_msgTypes[30]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2408,7 +2612,7 @@ func (x *UpdateOrderRequest) String() string {
 func (*UpdateOrderRequest) ProtoMessage() {}
 
 func (x *UpdateOrderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[26]
+	mi := &file_main_proto_msgTypes[30]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2421,7 +2625,7 @@ func (x *UpdateOrderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOrderRequest.ProtoReflect.Descriptor instead.
 func (*UpdateOrderRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{26}
+	return file_main_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *UpdateOrderRequest) GetOrder() *Order {
@@ -2447,7 +2651,7 @@ type CreateOrderRequest struct {
 func (x *CreateOrderRequest) Reset() {
 	*x = CreateOrderRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[27]
+		mi := &file_main_proto_msgTypes[31]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2460,7 +2664,7 @@ func (x *CreateOrderRequest) String() string {
 func (*CreateOrderRequest) ProtoMessage() {}
 
 func (x *CreateOrderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[27]
+	mi := &file_main_proto_msgTypes[31]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2473,7 +2677,7 @@ func (x *CreateOrderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrderRequest.ProtoReflect.Descriptor instead.
 func (*CreateOrderRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{27}
+	return file_main_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *CreateOrderRequest) GetOrderType() OrderType {
@@ -2529,7 +2733,7 @@ type ListOrderRequest struct {
 func (x *ListOrderRequest) Reset() {
 	*x = ListOrderRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[28]
+		mi := &file_main_proto_msgTypes[32]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2542,7 +2746,7 @@ func (x *ListOrderRequest) String() string {
 func (*ListOrderRequest) ProtoMessage() {}
 
 func (x *ListOrderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[28]
+	mi := &file_main_proto_msgTypes[32]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2555,7 +2759,7 @@ func (x *ListOrderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrderRequest.ProtoReflect.Descriptor instead.
 func (*ListOrderRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{28}
+	return file_main_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *ListOrderRequest) GetNextPage() *timestamppb.Timestamp {
@@ -2577,7 +2781,7 @@ type ListOrderResponse struct {
 func (x *ListOrderResponse) Reset() {
 	*x = ListOrderResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[29]
+		mi := &file_main_proto_msgTypes[33]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2590,7 +2794,7 @@ func (x *ListOrderResponse) String() string {
 func (*ListOrderResponse) ProtoMessage() {}
 
 func (x *ListOrderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[29]
+	mi := &file_main_proto_msgTypes[33]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2603,7 +2807,7 @@ func (x *ListOrderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrderResponse.ProtoReflect.Descriptor instead.
 func (*ListOrderResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{29}
+	return file_main_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ListOrderResponse) GetOrders() []*Order {
@@ -2631,7 +2835,7 @@ type ListOrderedItemRequest struct {
 func (x *ListOrderedItemRequest) Reset() {
 	*x = ListOrderedItemRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[30]
+		mi := &file_main_proto_msgTypes[34]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2644,7 +2848,7 @@ func (x *ListOrderedItemRequest) String() string {
 func (*ListOrderedItemRequest) ProtoMessage() {}
 
 func (x *ListOrderedItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[30]
+	mi := &file_main_proto_msgTypes[34]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2657,7 +2861,7 @@ func (x *ListOrderedItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrderedItemRequest.ProtoReflect.Descriptor instead.
 func (*ListOrderedItemRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{30}
+	return file_main_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ListOrderedItemRequest) GetOrderId() string {
@@ -2679,7 +2883,7 @@ type ListOrderedItemResponse struct {
 func (x *ListOrderedItemResponse) Reset() {
 	*x = ListOrderedItemResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[31]
+		mi := &file_main_proto_msgTypes[35]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2692,7 +2896,7 @@ func (x *ListOrderedItemResponse) String() string {
 func (*ListOrderedItemResponse) ProtoMessage() {}
 
 func (x *ListOrderedItemResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[31]
+	mi := &file_main_proto_msgTypes[35]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2705,7 +2909,7 @@ func (x *ListOrderedItemResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrderedItemResponse.ProtoReflect.Descriptor instead.
 func (*ListOrderedItemResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{31}
+	return file_main_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *ListOrderedItemResponse) GetOrderedItems() []*OrderedItem {
@@ -2733,7 +2937,7 @@ type UpdateItemRequest struct {
 func (x *UpdateItemRequest) Reset() {
 	*x = UpdateItemRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[32]
+		mi := &file_main_proto_msgTypes[36]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2746,7 +2950,7 @@ func (x *UpdateItemRequest) String() string {
 func (*UpdateItemRequest) ProtoMessage() {}
 
 func (x *UpdateItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[32]
+	mi := &file_main_proto_msgTypes[36]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2759,7 +2963,7 @@ func (x *UpdateItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateItemRequest.ProtoReflect.Descriptor instead.
 func (*UpdateItemRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{32}
+	return file_main_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *UpdateItemRequest) GetItem() *Item {
@@ -2780,7 +2984,7 @@ type IsEmptyCartItemResponse struct {
 func (x *IsEmptyCartItemResponse) Reset() {
 	*x = IsEmptyCartItemResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[33]
+		mi := &file_main_proto_msgTypes[37]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2793,7 +2997,7 @@ func (x *IsEmptyCartItemResponse) String() string {
 func (*IsEmptyCartItemResponse) ProtoMessage() {}
 
 func (x *IsEmptyCartItemResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[33]
+	mi := &file_main_proto_msgTypes[37]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2806,7 +3010,7 @@ func (x *IsEmptyCartItemResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IsEmptyCartItemResponse.ProtoReflect.Descriptor instead.
 func (*IsEmptyCartItemResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{33}
+	return file_main_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *IsEmptyCartItemResponse) GetIsEmpty() bool {
@@ -2827,7 +3031,7 @@ type CreateItemRequest struct {
 func (x *CreateItemRequest) Reset() {
 	*x = CreateItemRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[34]
+		mi := &file_main_proto_msgTypes[38]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2840,7 +3044,7 @@ func (x *CreateItemRequest) String() string {
 func (*CreateItemRequest) ProtoMessage() {}
 
 func (x *CreateItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[34]
+	mi := &file_main_proto_msgTypes[38]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2853,7 +3057,7 @@ func (x *CreateItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateItemRequest.ProtoReflect.Descriptor instead.
 func (*CreateItemRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{34}
+	return file_main_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *CreateItemRequest) GetItem() *Item {
@@ -2874,7 +3078,7 @@ type ListCartItemRequest struct {
 func (x *ListCartItemRequest) Reset() {
 	*x = ListCartItemRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[35]
+		mi := &file_main_proto_msgTypes[39]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2887,7 +3091,7 @@ func (x *ListCartItemRequest) String() string {
 func (*ListCartItemRequest) ProtoMessage() {}
 
 func (x *ListCartItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[35]
+	mi := &file_main_proto_msgTypes[39]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2900,7 +3104,7 @@ func (x *ListCartItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCartItemRequest.ProtoReflect.Descriptor instead.
 func (*ListCartItemRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{35}
+	return file_main_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *ListCartItemRequest) GetNextPage() *timestamppb.Timestamp {
@@ -2922,7 +3126,7 @@ type ListCartItemResponse struct {
 func (x *ListCartItemResponse) Reset() {
 	*x = ListCartItemResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[36]
+		mi := &file_main_proto_msgTypes[40]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2935,7 +3139,7 @@ func (x *ListCartItemResponse) String() string {
 func (*ListCartItemResponse) ProtoMessage() {}
 
 func (x *ListCartItemResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[36]
+	mi := &file_main_proto_msgTypes[40]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2948,7 +3152,7 @@ func (x *ListCartItemResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCartItemResponse.ProtoReflect.Descriptor instead.
 func (*ListCartItemResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{36}
+	return file_main_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *ListCartItemResponse) GetCartItems() []*CartItem {
@@ -2977,7 +3181,7 @@ type UpdateUserRequest struct {
 func (x *UpdateUserRequest) Reset() {
 	*x = UpdateUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[37]
+		mi := &file_main_proto_msgTypes[41]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2990,7 +3194,7 @@ func (x *UpdateUserRequest) String() string {
 func (*UpdateUserRequest) ProtoMessage() {}
 
 func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[37]
+	mi := &file_main_proto_msgTypes[41]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3003,7 +3207,7 @@ func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{37}
+	return file_main_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *UpdateUserRequest) GetUser() *User {
@@ -3032,7 +3236,7 @@ type ListSessionResponse struct {
 func (x *ListSessionResponse) Reset() {
 	*x = ListSessionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[38]
+		mi := &file_main_proto_msgTypes[42]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3045,7 +3249,7 @@ func (x *ListSessionResponse) String() string {
 func (*ListSessionResponse) ProtoMessage() {}
 
 func (x *ListSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[38]
+	mi := &file_main_proto_msgTypes[42]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3058,7 +3262,7 @@ func (x *ListSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionResponse.ProtoReflect.Descriptor instead.
 func (*ListSessionResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{38}
+	return file_main_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *ListSessionResponse) GetActualSession() *Session {
@@ -3087,7 +3291,7 @@ type SignOutRequest struct {
 func (x *SignOutRequest) Reset() {
 	*x = SignOutRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[39]
+		mi := &file_main_proto_msgTypes[43]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3100,7 +3304,7 @@ func (x *SignOutRequest) String() string {
 func (*SignOutRequest) ProtoMessage() {}
 
 func (x *SignOutRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[39]
+	mi := &file_main_proto_msgTypes[43]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3113,7 +3317,7 @@ func (x *SignOutRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignOutRequest.ProtoReflect.Descriptor instead.
 func (*SignOutRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{39}
+	return file_main_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *SignOutRequest) GetAll() bool {
@@ -3141,7 +3345,7 @@ type RefreshTokenRequest struct {
 func (x *RefreshTokenRequest) Reset() {
 	*x = RefreshTokenRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[40]
+		mi := &file_main_proto_msgTypes[44]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3154,7 +3358,7 @@ func (x *RefreshTokenRequest) String() string {
 func (*RefreshTokenRequest) ProtoMessage() {}
 
 func (x *RefreshTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[40]
+	mi := &file_main_proto_msgTypes[44]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3167,7 +3371,7 @@ func (x *RefreshTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshTokenRequest.ProtoReflect.Descriptor instead.
 func (*RefreshTokenRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{40}
+	return file_main_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *RefreshTokenRequest) GetRefreshToken() string {
@@ -3189,7 +3393,7 @@ type RefreshTokenResponse struct {
 func (x *RefreshTokenResponse) Reset() {
 	*x = RefreshTokenResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[41]
+		mi := &file_main_proto_msgTypes[45]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3202,7 +3406,7 @@ func (x *RefreshTokenResponse) String() string {
 func (*RefreshTokenResponse) ProtoMessage() {}
 
 func (x *RefreshTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[41]
+	mi := &file_main_proto_msgTypes[45]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3215,7 +3419,7 @@ func (x *RefreshTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshTokenResponse.ProtoReflect.Descriptor instead.
 func (*RefreshTokenResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{41}
+	return file_main_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *RefreshTokenResponse) GetRefreshToken() string {
@@ -3243,7 +3447,7 @@ type DeleteItemRequest struct {
 func (x *DeleteItemRequest) Reset() {
 	*x = DeleteItemRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[42]
+		mi := &file_main_proto_msgTypes[46]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3256,7 +3460,7 @@ func (x *DeleteItemRequest) String() string {
 func (*DeleteItemRequest) ProtoMessage() {}
 
 func (x *DeleteItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[42]
+	mi := &file_main_proto_msgTypes[46]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3269,7 +3473,7 @@ func (x *DeleteItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteItemRequest.ProtoReflect.Descriptor instead.
 func (*DeleteItemRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{42}
+	return file_main_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *DeleteItemRequest) GetId() string {
@@ -3291,7 +3495,7 @@ type DeleteCartItemRequest struct {
 func (x *DeleteCartItemRequest) Reset() {
 	*x = DeleteCartItemRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[43]
+		mi := &file_main_proto_msgTypes[47]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3304,7 +3508,7 @@ func (x *DeleteCartItemRequest) String() string {
 func (*DeleteCartItemRequest) ProtoMessage() {}
 
 func (x *DeleteCartItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[43]
+	mi := &file_main_proto_msgTypes[47]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3317,7 +3521,7 @@ func (x *DeleteCartItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteCartItemRequest.ProtoReflect.Descriptor instead.
 func (*DeleteCartItemRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{43}
+	return file_main_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *DeleteCartItemRequest) GetId() string {
@@ -3347,7 +3551,7 @@ type AddCartItemRequest struct {
 func (x *AddCartItemRequest) Reset() {
 	*x = AddCartItemRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[44]
+		mi := &file_main_proto_msgTypes[48]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3360,7 +3564,7 @@ func (x *AddCartItemRequest) String() string {
 func (*AddCartItemRequest) ProtoMessage() {}
 
 func (x *AddCartItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[44]
+	mi := &file_main_proto_msgTypes[48]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3373,7 +3577,7 @@ func (x *AddCartItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddCartItemRequest.ProtoReflect.Descriptor instead.
 func (*AddCartItemRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{44}
+	return file_main_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *AddCartItemRequest) GetItemId() string {
@@ -3410,7 +3614,7 @@ type EmptyAndAddCartItemRequest struct {
 func (x *EmptyAndAddCartItemRequest) Reset() {
 	*x = EmptyAndAddCartItemRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[45]
+		mi := &file_main_proto_msgTypes[49]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3423,7 +3627,7 @@ func (x *EmptyAndAddCartItemRequest) String() string {
 func (*EmptyAndAddCartItemRequest) ProtoMessage() {}
 
 func (x *EmptyAndAddCartItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[45]
+	mi := &file_main_proto_msgTypes[49]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3436,7 +3640,7 @@ func (x *EmptyAndAddCartItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmptyAndAddCartItemRequest.ProtoReflect.Descriptor instead.
 func (*EmptyAndAddCartItemRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{45}
+	return file_main_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *EmptyAndAddCartItemRequest) GetItemId() string {
@@ -3475,7 +3679,7 @@ type SearchItemRequest struct {
 func (x *SearchItemRequest) Reset() {
 	*x = SearchItemRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[46]
+		mi := &file_main_proto_msgTypes[50]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3488,7 +3692,7 @@ func (x *SearchItemRequest) String() string {
 func (*SearchItemRequest) ProtoMessage() {}
 
 func (x *SearchItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[46]
+	mi := &file_main_proto_msgTypes[50]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3501,7 +3705,7 @@ func (x *SearchItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchItemRequest.ProtoReflect.Descriptor instead.
 func (*SearchItemRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{46}
+	return file_main_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *SearchItemRequest) GetNextPage() int32 {
@@ -3552,7 +3756,7 @@ type SearchItemByBusinessRequest struct {
 func (x *SearchItemByBusinessRequest) Reset() {
 	*x = SearchItemByBusinessRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[47]
+		mi := &file_main_proto_msgTypes[51]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3565,7 +3769,7 @@ func (x *SearchItemByBusinessRequest) String() string {
 func (*SearchItemByBusinessRequest) ProtoMessage() {}
 
 func (x *SearchItemByBusinessRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[47]
+	mi := &file_main_proto_msgTypes[51]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3578,7 +3782,7 @@ func (x *SearchItemByBusinessRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchItemByBusinessRequest.ProtoReflect.Descriptor instead.
 func (*SearchItemByBusinessRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{47}
+	return file_main_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *SearchItemByBusinessRequest) GetNextPage() int32 {
@@ -3615,7 +3819,7 @@ type SearchItemResponse struct {
 func (x *SearchItemResponse) Reset() {
 	*x = SearchItemResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[48]
+		mi := &file_main_proto_msgTypes[52]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3628,7 +3832,7 @@ func (x *SearchItemResponse) String() string {
 func (*SearchItemResponse) ProtoMessage() {}
 
 func (x *SearchItemResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[48]
+	mi := &file_main_proto_msgTypes[52]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3641,7 +3845,7 @@ func (x *SearchItemResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchItemResponse.ProtoReflect.Descriptor instead.
 func (*SearchItemResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{48}
+	return file_main_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *SearchItemResponse) GetItems() []*SearchItem {
@@ -3677,7 +3881,7 @@ type SearchItemByBusinessResponse struct {
 func (x *SearchItemByBusinessResponse) Reset() {
 	*x = SearchItemByBusinessResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[49]
+		mi := &file_main_proto_msgTypes[53]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3690,7 +3894,7 @@ func (x *SearchItemByBusinessResponse) String() string {
 func (*SearchItemByBusinessResponse) ProtoMessage() {}
 
 func (x *SearchItemByBusinessResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[49]
+	mi := &file_main_proto_msgTypes[53]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3703,7 +3907,7 @@ func (x *SearchItemByBusinessResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchItemByBusinessResponse.ProtoReflect.Descriptor instead.
 func (*SearchItemByBusinessResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{49}
+	return file_main_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *SearchItemByBusinessResponse) GetItems() []*SearchItem {
@@ -3733,7 +3937,7 @@ type ListItemRequest struct {
 func (x *ListItemRequest) Reset() {
 	*x = ListItemRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[50]
+		mi := &file_main_proto_msgTypes[54]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3746,7 +3950,7 @@ func (x *ListItemRequest) String() string {
 func (*ListItemRequest) ProtoMessage() {}
 
 func (x *ListItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[50]
+	mi := &file_main_proto_msgTypes[54]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3759,7 +3963,7 @@ func (x *ListItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListItemRequest.ProtoReflect.Descriptor instead.
 func (*ListItemRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{50}
+	return file_main_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *ListItemRequest) GetNextPage() *timestamppb.Timestamp {
@@ -3795,7 +3999,7 @@ type ListItemResponse struct {
 func (x *ListItemResponse) Reset() {
 	*x = ListItemResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[51]
+		mi := &file_main_proto_msgTypes[55]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3808,7 +4012,7 @@ func (x *ListItemResponse) String() string {
 func (*ListItemResponse) ProtoMessage() {}
 
 func (x *ListItemResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[51]
+	mi := &file_main_proto_msgTypes[55]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3821,7 +4025,7 @@ func (x *ListItemResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListItemResponse.ProtoReflect.Descriptor instead.
 func (*ListItemResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{51}
+	return file_main_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *ListItemResponse) GetItems() []*Item {
@@ -3850,7 +4054,7 @@ type GetItemRequest struct {
 func (x *GetItemRequest) Reset() {
 	*x = GetItemRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[52]
+		mi := &file_main_proto_msgTypes[56]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3863,7 +4067,7 @@ func (x *GetItemRequest) String() string {
 func (*GetItemRequest) ProtoMessage() {}
 
 func (x *GetItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[52]
+	mi := &file_main_proto_msgTypes[56]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3876,7 +4080,7 @@ func (x *GetItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetItemRequest.ProtoReflect.Descriptor instead.
 func (*GetItemRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{52}
+	return file_main_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *GetItemRequest) GetId() string {
@@ -3911,7 +4115,7 @@ type FeedRequest struct {
 func (x *FeedRequest) Reset() {
 	*x = FeedRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[53]
+		mi := &file_main_proto_msgTypes[57]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3924,7 +4128,7 @@ func (x *FeedRequest) String() string {
 func (*FeedRequest) ProtoMessage() {}
 
 func (x *FeedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[53]
+	mi := &file_main_proto_msgTypes[57]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3937,7 +4141,7 @@ func (x *FeedRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedRequest.ProtoReflect.Descriptor instead.
 func (*FeedRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{53}
+	return file_main_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *FeedRequest) GetLocation() *Point {
@@ -4010,7 +4214,7 @@ type FeedResponse struct {
 func (x *FeedResponse) Reset() {
 	*x = FeedResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[54]
+		mi := &file_main_proto_msgTypes[58]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4023,7 +4227,7 @@ func (x *FeedResponse) String() string {
 func (*FeedResponse) ProtoMessage() {}
 
 func (x *FeedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[54]
+	mi := &file_main_proto_msgTypes[58]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4036,7 +4240,7 @@ func (x *FeedResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedResponse.ProtoReflect.Descriptor instead.
 func (*FeedResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{54}
+	return file_main_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *FeedResponse) GetBusinesses() []*Business {
@@ -4079,7 +4283,7 @@ type GetBusinessRequest struct {
 func (x *GetBusinessRequest) Reset() {
 	*x = GetBusinessRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[55]
+		mi := &file_main_proto_msgTypes[59]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4092,7 +4296,7 @@ func (x *GetBusinessRequest) String() string {
 func (*GetBusinessRequest) ProtoMessage() {}
 
 func (x *GetBusinessRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[55]
+	mi := &file_main_proto_msgTypes[59]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4105,7 +4309,7 @@ func (x *GetBusinessRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBusinessRequest.ProtoReflect.Descriptor instead.
 func (*GetBusinessRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{55}
+	return file_main_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *GetBusinessRequest) GetId() string {
@@ -4134,7 +4338,7 @@ type GetBusinessWithDistanceRequest struct {
 func (x *GetBusinessWithDistanceRequest) Reset() {
 	*x = GetBusinessWithDistanceRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[56]
+		mi := &file_main_proto_msgTypes[60]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4147,7 +4351,7 @@ func (x *GetBusinessWithDistanceRequest) String() string {
 func (*GetBusinessWithDistanceRequest) ProtoMessage() {}
 
 func (x *GetBusinessWithDistanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[56]
+	mi := &file_main_proto_msgTypes[60]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4160,7 +4364,7 @@ func (x *GetBusinessWithDistanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBusinessWithDistanceRequest.ProtoReflect.Descriptor instead.
 func (*GetBusinessWithDistanceRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{56}
+	return file_main_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *GetBusinessWithDistanceRequest) GetId() string {
@@ -4189,7 +4393,7 @@ type GetBusinessResponse struct {
 func (x *GetBusinessResponse) Reset() {
 	*x = GetBusinessResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[57]
+		mi := &file_main_proto_msgTypes[61]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4202,7 +4406,7 @@ func (x *GetBusinessResponse) String() string {
 func (*GetBusinessResponse) ProtoMessage() {}
 
 func (x *GetBusinessResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[57]
+	mi := &file_main_proto_msgTypes[61]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4215,7 +4419,7 @@ func (x *GetBusinessResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBusinessResponse.ProtoReflect.Descriptor instead.
 func (*GetBusinessResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{57}
+	return file_main_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *GetBusinessResponse) GetBusiness() *Business {
@@ -4245,7 +4449,7 @@ type GetBusinessWithDistanceResponse struct {
 func (x *GetBusinessWithDistanceResponse) Reset() {
 	*x = GetBusinessWithDistanceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[58]
+		mi := &file_main_proto_msgTypes[62]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4258,7 +4462,7 @@ func (x *GetBusinessWithDistanceResponse) String() string {
 func (*GetBusinessWithDistanceResponse) ProtoMessage() {}
 
 func (x *GetBusinessWithDistanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[58]
+	mi := &file_main_proto_msgTypes[62]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4271,7 +4475,7 @@ func (x *GetBusinessWithDistanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBusinessWithDistanceResponse.ProtoReflect.Descriptor instead.
 func (*GetBusinessWithDistanceResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{58}
+	return file_main_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *GetBusinessWithDistanceResponse) GetBusiness() *Business {
@@ -4309,7 +4513,7 @@ type SignUpRequest struct {
 func (x *SignUpRequest) Reset() {
 	*x = SignUpRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[59]
+		mi := &file_main_proto_msgTypes[63]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4322,7 +4526,7 @@ func (x *SignUpRequest) String() string {
 func (*SignUpRequest) ProtoMessage() {}
 
 func (x *SignUpRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[59]
+	mi := &file_main_proto_msgTypes[63]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4335,7 +4539,7 @@ func (x *SignUpRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignUpRequest.ProtoReflect.Descriptor instead.
 func (*SignUpRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{59}
+	return file_main_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *SignUpRequest) GetEmail() string {
@@ -4379,7 +4583,7 @@ type SignUpResponse struct {
 func (x *SignUpResponse) Reset() {
 	*x = SignUpResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[60]
+		mi := &file_main_proto_msgTypes[64]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4392,7 +4596,7 @@ func (x *SignUpResponse) String() string {
 func (*SignUpResponse) ProtoMessage() {}
 
 func (x *SignUpResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[60]
+	mi := &file_main_proto_msgTypes[64]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4405,7 +4609,7 @@ func (x *SignUpResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignUpResponse.ProtoReflect.Descriptor instead.
 func (*SignUpResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{60}
+	return file_main_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *SignUpResponse) GetRefreshToken() string {
@@ -4440,7 +4644,7 @@ type UserExistsRequest struct {
 func (x *UserExistsRequest) Reset() {
 	*x = UserExistsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[61]
+		mi := &file_main_proto_msgTypes[65]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4453,7 +4657,7 @@ func (x *UserExistsRequest) String() string {
 func (*UserExistsRequest) ProtoMessage() {}
 
 func (x *UserExistsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[61]
+	mi := &file_main_proto_msgTypes[65]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4466,7 +4670,7 @@ func (x *UserExistsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserExistsRequest.ProtoReflect.Descriptor instead.
 func (*UserExistsRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{61}
+	return file_main_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *UserExistsRequest) GetAlias() string {
@@ -4487,7 +4691,7 @@ type CheckSessionResponse struct {
 func (x *CheckSessionResponse) Reset() {
 	*x = CheckSessionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[62]
+		mi := &file_main_proto_msgTypes[66]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4500,7 +4704,7 @@ func (x *CheckSessionResponse) String() string {
 func (*CheckSessionResponse) ProtoMessage() {}
 
 func (x *CheckSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[62]
+	mi := &file_main_proto_msgTypes[66]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4513,7 +4717,7 @@ func (x *CheckSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckSessionResponse.ProtoReflect.Descriptor instead.
 func (*CheckSessionResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{62}
+	return file_main_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *CheckSessionResponse) GetIpAddresses() []string {
@@ -4535,7 +4739,7 @@ type CreateVerificationCodeRequest struct {
 func (x *CreateVerificationCodeRequest) Reset() {
 	*x = CreateVerificationCodeRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[63]
+		mi := &file_main_proto_msgTypes[67]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4548,7 +4752,7 @@ func (x *CreateVerificationCodeRequest) String() string {
 func (*CreateVerificationCodeRequest) ProtoMessage() {}
 
 func (x *CreateVerificationCodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[63]
+	mi := &file_main_proto_msgTypes[67]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4561,7 +4765,7 @@ func (x *CreateVerificationCodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateVerificationCodeRequest.ProtoReflect.Descriptor instead.
 func (*CreateVerificationCodeRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{63}
+	return file_main_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *CreateVerificationCodeRequest) GetEmail() string {
@@ -4591,7 +4795,7 @@ type GetVerificationCodeRequest struct {
 func (x *GetVerificationCodeRequest) Reset() {
 	*x = GetVerificationCodeRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[64]
+		mi := &file_main_proto_msgTypes[68]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4604,7 +4808,7 @@ func (x *GetVerificationCodeRequest) String() string {
 func (*GetVerificationCodeRequest) ProtoMessage() {}
 
 func (x *GetVerificationCodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[64]
+	mi := &file_main_proto_msgTypes[68]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4617,7 +4821,7 @@ func (x *GetVerificationCodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetVerificationCodeRequest.ProtoReflect.Descriptor instead.
 func (*GetVerificationCodeRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{64}
+	return file_main_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *GetVerificationCodeRequest) GetCode() string {
@@ -4653,7 +4857,7 @@ type SignInRequest struct {
 func (x *SignInRequest) Reset() {
 	*x = SignInRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[65]
+		mi := &file_main_proto_msgTypes[69]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4666,7 +4870,7 @@ func (x *SignInRequest) String() string {
 func (*SignInRequest) ProtoMessage() {}
 
 func (x *SignInRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[65]
+	mi := &file_main_proto_msgTypes[69]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4679,7 +4883,7 @@ func (x *SignInRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignInRequest.ProtoReflect.Descriptor instead.
 func (*SignInRequest) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{65}
+	return file_main_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *SignInRequest) GetEmail() string {
@@ -4709,7 +4913,7 @@ type SignInResponse struct {
 func (x *SignInResponse) Reset() {
 	*x = SignInResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[66]
+		mi := &file_main_proto_msgTypes[70]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4722,7 +4926,7 @@ func (x *SignInResponse) String() string {
 func (*SignInResponse) ProtoMessage() {}
 
 func (x *SignInResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[66]
+	mi := &file_main_proto_msgTypes[70]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4735,7 +4939,7 @@ func (x *SignInResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignInResponse.ProtoReflect.Descriptor instead.
 func (*SignInResponse) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{66}
+	return file_main_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *SignInResponse) GetRefreshToken() string {
@@ -4778,7 +4982,7 @@ type OrderedItem struct {
 func (x *OrderedItem) Reset() {
 	*x = OrderedItem{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[67]
+		mi := &file_main_proto_msgTypes[71]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4791,7 +4995,7 @@ func (x *OrderedItem) String() string {
 func (*OrderedItem) ProtoMessage() {}
 
 func (x *OrderedItem) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[67]
+	mi := &file_main_proto_msgTypes[71]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4804,7 +5008,7 @@ func (x *OrderedItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderedItem.ProtoReflect.Descriptor instead.
 func (*OrderedItem) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{67}
+	return file_main_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *OrderedItem) GetId() string {
@@ -4897,7 +5101,7 @@ type Order struct {
 func (x *Order) Reset() {
 	*x = Order{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[68]
+		mi := &file_main_proto_msgTypes[72]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4910,7 +5114,7 @@ func (x *Order) String() string {
 func (*Order) ProtoMessage() {}
 
 func (x *Order) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[68]
+	mi := &file_main_proto_msgTypes[72]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4923,7 +5127,7 @@ func (x *Order) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Order.ProtoReflect.Descriptor instead.
 func (*Order) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{68}
+	return file_main_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *Order) GetId() string {
@@ -5069,7 +5273,7 @@ type User struct {
 func (x *User) Reset() {
 	*x = User{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[69]
+		mi := &file_main_proto_msgTypes[73]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5082,7 +5286,7 @@ func (x *User) String() string {
 func (*User) ProtoMessage() {}
 
 func (x *User) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[69]
+	mi := &file_main_proto_msgTypes[73]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5095,7 +5299,7 @@ func (x *User) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use User.ProtoReflect.Descriptor instead.
 func (*User) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{69}
+	return file_main_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *User) GetId() string {
@@ -5208,7 +5412,7 @@ type Municipality struct {
 func (x *Municipality) Reset() {
 	*x = Municipality{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[70]
+		mi := &file_main_proto_msgTypes[74]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5221,7 +5425,7 @@ func (x *Municipality) String() string {
 func (*Municipality) ProtoMessage() {}
 
 func (x *Municipality) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[70]
+	mi := &file_main_proto_msgTypes[74]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5234,7 +5438,7 @@ func (x *Municipality) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Municipality.ProtoReflect.Descriptor instead.
 func (*Municipality) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{70}
+	return file_main_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *Municipality) GetId() string {
@@ -5264,7 +5468,7 @@ type UnionBusinessAndMunicipality struct {
 func (x *UnionBusinessAndMunicipality) Reset() {
 	*x = UnionBusinessAndMunicipality{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[71]
+		mi := &file_main_proto_msgTypes[75]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5277,7 +5481,7 @@ func (x *UnionBusinessAndMunicipality) String() string {
 func (*UnionBusinessAndMunicipality) ProtoMessage() {}
 
 func (x *UnionBusinessAndMunicipality) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[71]
+	mi := &file_main_proto_msgTypes[75]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5290,7 +5494,7 @@ func (x *UnionBusinessAndMunicipality) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnionBusinessAndMunicipality.ProtoReflect.Descriptor instead.
 func (*UnionBusinessAndMunicipality) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{71}
+	return file_main_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *UnionBusinessAndMunicipality) GetId() string {
@@ -5329,7 +5533,7 @@ type BusinessAnalytics struct {
 func (x *BusinessAnalytics) Reset() {
 	*x = BusinessAnalytics{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[72]
+		mi := &file_main_proto_msgTypes[76]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5342,7 +5546,7 @@ func (x *BusinessAnalytics) String() string {
 func (*BusinessAnalytics) ProtoMessage() {}
 
 func (x *BusinessAnalytics) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[72]
+	mi := &file_main_proto_msgTypes[76]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5355,7 +5559,7 @@ func (x *BusinessAnalytics) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BusinessAnalytics.ProtoReflect.Descriptor instead.
 func (*BusinessAnalytics) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{72}
+	return file_main_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *BusinessAnalytics) GetId() string {
@@ -5408,7 +5612,7 @@ type ItemAnalytics struct {
 func (x *ItemAnalytics) Reset() {
 	*x = ItemAnalytics{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[73]
+		mi := &file_main_proto_msgTypes[77]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5421,7 +5625,7 @@ func (x *ItemAnalytics) String() string {
 func (*ItemAnalytics) ProtoMessage() {}
 
 func (x *ItemAnalytics) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[73]
+	mi := &file_main_proto_msgTypes[77]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5434,7 +5638,7 @@ func (x *ItemAnalytics) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ItemAnalytics.ProtoReflect.Descriptor instead.
 func (*ItemAnalytics) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{73}
+	return file_main_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *ItemAnalytics) GetId() string {
@@ -5513,7 +5717,7 @@ type Business struct {
 func (x *Business) Reset() {
 	*x = Business{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[74]
+		mi := &file_main_proto_msgTypes[78]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5526,7 +5730,7 @@ func (x *Business) String() string {
 func (*Business) ProtoMessage() {}
 
 func (x *Business) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[74]
+	mi := &file_main_proto_msgTypes[78]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5539,7 +5743,7 @@ func (x *Business) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Business.ProtoReflect.Descriptor instead.
 func (*Business) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{74}
+	return file_main_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *Business) GetId() string {
@@ -5796,7 +6000,7 @@ type Item struct {
 func (x *Item) Reset() {
 	*x = Item{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[75]
+		mi := &file_main_proto_msgTypes[79]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5809,7 +6013,7 @@ func (x *Item) String() string {
 func (*Item) ProtoMessage() {}
 
 func (x *Item) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[75]
+	mi := &file_main_proto_msgTypes[79]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5822,7 +6026,7 @@ func (x *Item) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Item.ProtoReflect.Descriptor instead.
 func (*Item) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{75}
+	return file_main_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *Item) GetId() string {
@@ -6032,7 +6236,7 @@ type Application struct {
 func (x *Application) Reset() {
 	*x = Application{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[76]
+		mi := &file_main_proto_msgTypes[80]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6045,7 +6249,7 @@ func (x *Application) String() string {
 func (*Application) ProtoMessage() {}
 
 func (x *Application) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[76]
+	mi := &file_main_proto_msgTypes[80]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6058,7 +6262,7 @@ func (x *Application) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Application.ProtoReflect.Descriptor instead.
 func (*Application) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{76}
+	return file_main_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *Application) GetId() string {
@@ -6137,7 +6341,7 @@ type PartnerApplication struct {
 func (x *PartnerApplication) Reset() {
 	*x = PartnerApplication{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[77]
+		mi := &file_main_proto_msgTypes[81]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6150,7 +6354,7 @@ func (x *PartnerApplication) String() string {
 func (*PartnerApplication) ProtoMessage() {}
 
 func (x *PartnerApplication) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[77]
+	mi := &file_main_proto_msgTypes[81]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6163,7 +6367,7 @@ func (x *PartnerApplication) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PartnerApplication.ProtoReflect.Descriptor instead.
 func (*PartnerApplication) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{77}
+	return file_main_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *PartnerApplication) GetId() string {
@@ -6258,7 +6462,7 @@ type CartItem struct {
 func (x *CartItem) Reset() {
 	*x = CartItem{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[78]
+		mi := &file_main_proto_msgTypes[82]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6271,7 +6475,7 @@ func (x *CartItem) String() string {
 func (*CartItem) ProtoMessage() {}
 
 func (x *CartItem) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[78]
+	mi := &file_main_proto_msgTypes[82]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6284,7 +6488,7 @@ func (x *CartItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CartItem.ProtoReflect.Descriptor instead.
 func (*CartItem) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{78}
+	return file_main_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *CartItem) GetId() string {
@@ -6387,7 +6591,7 @@ type BusinessCollection struct {
 func (x *BusinessCollection) Reset() {
 	*x = BusinessCollection{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[79]
+		mi := &file_main_proto_msgTypes[83]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6400,7 +6604,7 @@ func (x *BusinessCollection) String() string {
 func (*BusinessCollection) ProtoMessage() {}
 
 func (x *BusinessCollection) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[79]
+	mi := &file_main_proto_msgTypes[83]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6413,7 +6617,7 @@ func (x *BusinessCollection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BusinessCollection.ProtoReflect.Descriptor instead.
 func (*BusinessCollection) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{79}
+	return file_main_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *BusinessCollection) GetId() string {
@@ -6474,7 +6678,7 @@ type BusinessCategory struct {
 func (x *BusinessCategory) Reset() {
 	*x = BusinessCategory{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[80]
+		mi := &file_main_proto_msgTypes[84]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6487,7 +6691,7 @@ func (x *BusinessCategory) String() string {
 func (*BusinessCategory) ProtoMessage() {}
 
 func (x *BusinessCategory) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[80]
+	mi := &file_main_proto_msgTypes[84]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6500,7 +6704,7 @@ func (x *BusinessCategory) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BusinessCategory.ProtoReflect.Descriptor instead.
 func (*BusinessCategory) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{80}
+	return file_main_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *BusinessCategory) GetId() string {
@@ -6562,7 +6766,7 @@ type SearchItem struct {
 func (x *SearchItem) Reset() {
 	*x = SearchItem{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[81]
+		mi := &file_main_proto_msgTypes[85]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6575,7 +6779,7 @@ func (x *SearchItem) String() string {
 func (*SearchItem) ProtoMessage() {}
 
 func (x *SearchItem) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[81]
+	mi := &file_main_proto_msgTypes[85]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6588,7 +6792,7 @@ func (x *SearchItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchItem.ProtoReflect.Descriptor instead.
 func (*SearchItem) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{81}
+	return file_main_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *SearchItem) GetId() string {
@@ -6658,7 +6862,7 @@ type ItemPhoto struct {
 func (x *ItemPhoto) Reset() {
 	*x = ItemPhoto{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[82]
+		mi := &file_main_proto_msgTypes[86]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6671,7 +6875,7 @@ func (x *ItemPhoto) String() string {
 func (*ItemPhoto) ProtoMessage() {}
 
 func (x *ItemPhoto) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[82]
+	mi := &file_main_proto_msgTypes[86]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6684,7 +6888,7 @@ func (x *ItemPhoto) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ItemPhoto.ProtoReflect.Descriptor instead.
 func (*ItemPhoto) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{82}
+	return file_main_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *ItemPhoto) GetId() string {
@@ -6760,7 +6964,7 @@ type Session struct {
 func (x *Session) Reset() {
 	*x = Session{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[83]
+		mi := &file_main_proto_msgTypes[87]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6773,7 +6977,7 @@ func (x *Session) String() string {
 func (*Session) ProtoMessage() {}
 
 func (x *Session) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[83]
+	mi := &file_main_proto_msgTypes[87]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6786,7 +6990,7 @@ func (x *Session) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Session.ProtoReflect.Descriptor instead.
 func (*Session) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{83}
+	return file_main_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *Session) GetId() string {
@@ -6854,7 +7058,7 @@ type BusinessRole struct {
 func (x *BusinessRole) Reset() {
 	*x = BusinessRole{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[84]
+		mi := &file_main_proto_msgTypes[88]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6867,7 +7071,7 @@ func (x *BusinessRole) String() string {
 func (*BusinessRole) ProtoMessage() {}
 
 func (x *BusinessRole) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[84]
+	mi := &file_main_proto_msgTypes[88]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6880,7 +7084,7 @@ func (x *BusinessRole) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BusinessRole.ProtoReflect.Descriptor instead.
 func (*BusinessRole) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{84}
+	return file_main_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *BusinessRole) GetId() string {
@@ -6947,7 +7151,7 @@ type UserAddress struct {
 func (x *UserAddress) Reset() {
 	*x = UserAddress{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[85]
+		mi := &file_main_proto_msgTypes[89]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6960,7 +7164,7 @@ func (x *UserAddress) String() string {
 func (*UserAddress) ProtoMessage() {}
 
 func (x *UserAddress) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[85]
+	mi := &file_main_proto_msgTypes[89]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6973,7 +7177,7 @@ func (x *UserAddress) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserAddress.ProtoReflect.Descriptor instead.
 func (*UserAddress) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{85}
+	return file_main_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *UserAddress) GetId() string {
@@ -7075,7 +7279,7 @@ type BusinessRolePermission struct {
 func (x *BusinessRolePermission) Reset() {
 	*x = BusinessRolePermission{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[86]
+		mi := &file_main_proto_msgTypes[90]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7088,7 +7292,7 @@ func (x *BusinessRolePermission) String() string {
 func (*BusinessRolePermission) ProtoMessage() {}
 
 func (x *BusinessRolePermission) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[86]
+	mi := &file_main_proto_msgTypes[90]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7101,7 +7305,7 @@ func (x *BusinessRolePermission) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BusinessRolePermission.ProtoReflect.Descriptor instead.
 func (*BusinessRolePermission) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{86}
+	return file_main_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *BusinessRolePermission) GetId() string {
@@ -7155,7 +7359,7 @@ type UserPermission struct {
 func (x *UserPermission) Reset() {
 	*x = UserPermission{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[87]
+		mi := &file_main_proto_msgTypes[91]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7168,7 +7372,7 @@ func (x *UserPermission) String() string {
 func (*UserPermission) ProtoMessage() {}
 
 func (x *UserPermission) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[87]
+	mi := &file_main_proto_msgTypes[91]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7181,7 +7385,7 @@ func (x *UserPermission) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserPermission.ProtoReflect.Descriptor instead.
 func (*UserPermission) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{87}
+	return file_main_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *UserPermission) GetId() string {
@@ -7240,7 +7444,7 @@ type Permission struct {
 func (x *Permission) Reset() {
 	*x = Permission{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[88]
+		mi := &file_main_proto_msgTypes[92]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7253,7 +7457,7 @@ func (x *Permission) String() string {
 func (*Permission) ProtoMessage() {}
 
 func (x *Permission) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[88]
+	mi := &file_main_proto_msgTypes[92]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7266,7 +7470,7 @@ func (x *Permission) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Permission.ProtoReflect.Descriptor instead.
 func (*Permission) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{88}
+	return file_main_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *Permission) GetId() string {
@@ -7308,7 +7512,7 @@ type Polygon struct {
 func (x *Polygon) Reset() {
 	*x = Polygon{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[89]
+		mi := &file_main_proto_msgTypes[93]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7321,7 +7525,7 @@ func (x *Polygon) String() string {
 func (*Polygon) ProtoMessage() {}
 
 func (x *Polygon) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[89]
+	mi := &file_main_proto_msgTypes[93]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7334,7 +7538,7 @@ func (x *Polygon) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Polygon.ProtoReflect.Descriptor instead.
 func (*Polygon) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{89}
+	return file_main_proto_rawDescGZIP(), []int{93}
 }
 
 func (x *Polygon) GetCoordinates() []float64 {
@@ -7356,7 +7560,7 @@ type ErrorDetail struct {
 func (x *ErrorDetail) Reset() {
 	*x = ErrorDetail{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[90]
+		mi := &file_main_proto_msgTypes[94]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7369,7 +7573,7 @@ func (x *ErrorDetail) String() string {
 func (*ErrorDetail) ProtoMessage() {}
 
 func (x *ErrorDetail) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[90]
+	mi := &file_main_proto_msgTypes[94]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7382,7 +7586,7 @@ func (x *ErrorDetail) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ErrorDetail.ProtoReflect.Descriptor instead.
 func (*ErrorDetail) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{90}
+	return file_main_proto_rawDescGZIP(), []int{94}
 }
 
 func (x *ErrorDetail) GetSubject() string {
@@ -7411,7 +7615,7 @@ type Point struct {
 func (x *Point) Reset() {
 	*x = Point{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_main_proto_msgTypes[91]
+		mi := &file_main_proto_msgTypes[95]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7424,7 +7628,7 @@ func (x *Point) String() string {
 func (*Point) ProtoMessage() {}
 
 func (x *Point) ProtoReflect() protoreflect.Message {
-	mi := &file_main_proto_msgTypes[91]
+	mi := &file_main_proto_msgTypes[95]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7437,7 +7641,7 @@ func (x *Point) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Point.ProtoReflect.Descriptor instead.
 func (*Point) Descriptor() ([]byte, []int) {
-	return file_main_proto_rawDescGZIP(), []int{91}
+	return file_main_proto_rawDescGZIP(), []int{95}
 }
 
 func (x *Point) GetLatitude() float64 {
@@ -7462,6 +7666,25 @@ var file_main_proto_rawDesc = []byte{
 	0x62, 0x75, 0x66, 0x2f, 0x65, 0x6d, 0x70, 0x74, 0x79, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a,
 	0x1f, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
 	0x2f, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x22, 0x73, 0x0a, 0x23, 0x4d, 0x6f, 0x64, 0x69, 0x66, 0x79, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65,
+	0x73, 0x73, 0x52, 0x6f, 0x6c, 0x65, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x26, 0x0a, 0x0e, 0x62, 0x75, 0x73, 0x69, 0x6e,
+	0x65, 0x73, 0x73, 0x52, 0x6f, 0x6c, 0x65, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x0e, 0x62, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x6f, 0x6c, 0x65, 0x49, 0x64, 0x12,
+	0x24, 0x0a, 0x0d, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x73,
+	0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x0d, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69,
+	0x6f, 0x6e, 0x49, 0x64, 0x73, 0x22, 0x63, 0x0a, 0x19, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42,
+	0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x6f, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02,
+	0x69, 0x64, 0x12, 0x36, 0x0a, 0x0c, 0x62, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x6f,
+	0x6c, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e,
+	0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x6f, 0x6c, 0x65, 0x52, 0x0c, 0x62, 0x75,
+	0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x6f, 0x6c, 0x65, 0x22, 0x2b, 0x0a, 0x19, 0x44, 0x65,
+	0x6c, 0x65, 0x74, 0x65, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x6f, 0x6c, 0x65,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0x27, 0x0a, 0x15, 0x47, 0x65, 0x74, 0x55, 0x73,
+	0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64,
 	0x22, 0x71, 0x0a, 0x17, 0x4c, 0x69, 0x73, 0x74, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73,
 	0x52, 0x6f, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1e, 0x0a, 0x0a, 0x62,
 	0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
@@ -8705,7 +8928,7 @@ var file_main_proto_rawDesc = []byte{
 	0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69,
 	0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
 	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74,
-	0x79, 0x22, 0x00, 0x32, 0xa7, 0x06, 0x0a, 0x0f, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73,
+	0x79, 0x22, 0x00, 0x32, 0xaa, 0x08, 0x0a, 0x0f, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73,
 	0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x2f, 0x0a, 0x04, 0x46, 0x65, 0x65, 0x64, 0x12,
 	0x11, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65,
 	0x73, 0x74, 0x1a, 0x12, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x46, 0x65, 0x65, 0x64, 0x52, 0x65,
@@ -8750,142 +8973,163 @@ var file_main_proto_rawDesc = []byte{
 	0x65, 0x12, 0x1f, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x42,
 	0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x6f, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65,
 	0x73, 0x74, 0x1a, 0x12, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65,
-	0x73, 0x73, 0x52, 0x6f, 0x6c, 0x65, 0x22, 0x00, 0x12, 0x53, 0x0a, 0x10, 0x4c, 0x69, 0x73, 0x74,
-	0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x6f, 0x6c, 0x65, 0x12, 0x1d, 0x2e, 0x6d,
-	0x61, 0x69, 0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73,
-	0x52, 0x6f, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1e, 0x2e, 0x6d, 0x61,
-	0x69, 0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x52,
-	0x6f, 0x6c, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x32, 0xc8, 0x03,
-	0x0a, 0x0b, 0x49, 0x74, 0x65, 0x6d, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x3b, 0x0a,
-	0x08, 0x4c, 0x69, 0x73, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x15, 0x2e, 0x6d, 0x61, 0x69, 0x6e,
-	0x2e, 0x4c, 0x69, 0x73, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x16, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x49, 0x74, 0x65, 0x6d,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x2d, 0x0a, 0x07, 0x47, 0x65,
-	0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x14, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x47, 0x65, 0x74,
-	0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0a, 0x2e, 0x6d, 0x61,
-	0x69, 0x6e, 0x2e, 0x49, 0x74, 0x65, 0x6d, 0x22, 0x00, 0x12, 0x33, 0x0a, 0x0a, 0x43, 0x72, 0x65,
-	0x61, 0x74, 0x65, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x17, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x43,
-	0x72, 0x65, 0x61, 0x74, 0x65, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x0a, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x49, 0x74, 0x65, 0x6d, 0x22, 0x00, 0x12, 0x33,
-	0x0a, 0x0a, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x17, 0x2e, 0x6d,
-	0x61, 0x69, 0x6e, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0a, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x49, 0x74, 0x65,
-	0x6d, 0x22, 0x00, 0x12, 0x3f, 0x0a, 0x0a, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x49, 0x74, 0x65,
-	0x6d, 0x12, 0x17, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x49,
-	0x74, 0x65, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f,
-	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70,
-	0x74, 0x79, 0x22, 0x00, 0x12, 0x41, 0x0a, 0x0a, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x49, 0x74,
-	0x65, 0x6d, 0x12, 0x17, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68,
-	0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x6d, 0x61,
-	0x69, 0x6e, 0x2e, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x5f, 0x0a, 0x14, 0x53, 0x65, 0x61, 0x72, 0x63,
-	0x68, 0x49, 0x74, 0x65, 0x6d, 0x42, 0x79, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x12,
-	0x21, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x49, 0x74, 0x65,
-	0x6d, 0x42, 0x79, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x1a, 0x22, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68,
-	0x49, 0x74, 0x65, 0x6d, 0x42, 0x79, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x32, 0xf1, 0x03, 0x0a, 0x0b, 0x55, 0x73, 0x65,
-	0x72, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x2f, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x55,
-	0x73, 0x65, 0x72, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x0a, 0x2e, 0x6d, 0x61,
-	0x69, 0x6e, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x22, 0x00, 0x12, 0x33, 0x0a, 0x0a, 0x55, 0x70, 0x64,
-	0x61, 0x74, 0x65, 0x55, 0x73, 0x65, 0x72, 0x12, 0x17, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x55,
-	0x70, 0x64, 0x61, 0x74, 0x65, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x0a, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x22, 0x00, 0x12, 0x4d,
-	0x0a, 0x0e, 0x47, 0x65, 0x74, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x49, 0x6e, 0x66, 0x6f,
-	0x12, 0x1b, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x47, 0x65, 0x74, 0x41, 0x64, 0x64, 0x72, 0x65,
-	0x73, 0x73, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e,
-	0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x47, 0x65, 0x74, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x49,
-	0x6e, 0x66, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4a, 0x0a,
-	0x0f, 0x4c, 0x69, 0x73, 0x74, 0x55, 0x73, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73,
-	0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
-	0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1d, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e,
-	0x4c, 0x69, 0x73, 0x74, 0x55, 0x73, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x48, 0x0a, 0x11, 0x43, 0x72, 0x65,
-	0x61, 0x74, 0x65, 0x55, 0x73, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x1e,
-	0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x55, 0x73, 0x65, 0x72,
-	0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x11,
-	0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73,
-	0x73, 0x22, 0x00, 0x12, 0x48, 0x0a, 0x11, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x55, 0x73, 0x65,
-	0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x1e, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e,
-	0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x55, 0x73, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73,
-	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x11, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e,
-	0x55, 0x73, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x22, 0x00, 0x12, 0x4d, 0x0a,
-	0x11, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x55, 0x73, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65,
-	0x73, 0x73, 0x12, 0x1e, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65,
-	0x55, 0x73, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x00, 0x32, 0x90, 0x02, 0x0a,
-	0x0c, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x3e, 0x0a,
-	0x09, 0x4c, 0x69, 0x73, 0x74, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x12, 0x16, 0x2e, 0x6d, 0x61, 0x69,
-	0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x1a, 0x17, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x4f, 0x72,
-	0x64, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x36, 0x0a,
-	0x0b, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x12, 0x18, 0x2e, 0x6d,
-	0x61, 0x69, 0x6e, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0b, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x4f, 0x72,
-	0x64, 0x65, 0x72, 0x22, 0x00, 0x12, 0x36, 0x0a, 0x0b, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4f,
-	0x72, 0x64, 0x65, 0x72, 0x12, 0x18, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x55, 0x70, 0x64, 0x61,
-	0x74, 0x65, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0b,
-	0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x22, 0x00, 0x12, 0x50, 0x0a,
-	0x0f, 0x4c, 0x69, 0x73, 0x74, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x65, 0x64, 0x49, 0x74, 0x65, 0x6d,
-	0x12, 0x1c, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x4f, 0x72, 0x64, 0x65,
-	0x72, 0x65, 0x64, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d,
-	0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x65,
-	0x64, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x32,
-	0xb8, 0x03, 0x0a, 0x0f, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x53, 0x65, 0x72, 0x76,
-	0x69, 0x63, 0x65, 0x12, 0x47, 0x0a, 0x0c, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x61, 0x72, 0x74, 0x49,
-	0x74, 0x65, 0x6d, 0x12, 0x19, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x43,
-	0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1a,
-	0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74,
-	0x65, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x39, 0x0a, 0x0b,
-	0x41, 0x64, 0x64, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x18, 0x2e, 0x6d, 0x61,
-	0x69, 0x6e, 0x2e, 0x41, 0x64, 0x64, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0e, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x43, 0x61, 0x72,
-	0x74, 0x49, 0x74, 0x65, 0x6d, 0x22, 0x00, 0x12, 0x4a, 0x0a, 0x0f, 0x49, 0x73, 0x45, 0x6d, 0x70,
-	0x74, 0x79, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f,
-	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70,
-	0x74, 0x79, 0x1a, 0x1d, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x49, 0x73, 0x45, 0x6d, 0x70, 0x74,
-	0x79, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x22, 0x00, 0x12, 0x47, 0x0a, 0x0e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x61, 0x72,
-	0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x1b, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x44, 0x65, 0x6c,
-	0x65, 0x74, 0x65, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x00, 0x12, 0x41, 0x0a, 0x0d,
-	0x45, 0x6d, 0x70, 0x74, 0x79, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x16, 0x2e,
-	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
-	0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x00, 0x12,
-	0x49, 0x0a, 0x13, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x41, 0x6e, 0x64, 0x41, 0x64, 0x64, 0x43, 0x61,
-	0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x20, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x45, 0x6d,
-	0x70, 0x74, 0x79, 0x41, 0x6e, 0x64, 0x41, 0x64, 0x64, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65,
-	0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0e, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e,
-	0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x22, 0x00, 0x32, 0xa0, 0x01, 0x0a, 0x0a, 0x42,
-	0x61, 0x6e, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x4a, 0x0a, 0x0f, 0x47, 0x65, 0x74,
-	0x42, 0x61, 0x6e, 0x6e, 0x65, 0x64, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x12, 0x16, 0x2e, 0x67,
-	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45,
-	0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1d, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x47, 0x65, 0x74, 0x42,
-	0x61, 0x6e, 0x6e, 0x65, 0x64, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x46, 0x0a, 0x0d, 0x47, 0x65, 0x74, 0x42, 0x61, 0x6e, 0x6e,
-	0x65, 0x64, 0x55, 0x73, 0x65, 0x72, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1b,
-	0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x47, 0x65, 0x74, 0x42, 0x61, 0x6e, 0x6e, 0x65, 0x64, 0x55,
-	0x73, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x32, 0x7a, 0x0a,
-	0x14, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x53, 0x65,
-	0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x62, 0x0a, 0x15, 0x47, 0x65, 0x74, 0x50, 0x72, 0x65, 0x73,
-	0x69, 0x67, 0x6e, 0x65, 0x64, 0x50, 0x75, 0x74, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x12, 0x22,
-	0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x47, 0x65, 0x74, 0x50, 0x72, 0x65, 0x73, 0x69, 0x67, 0x6e,
-	0x65, 0x64, 0x50, 0x75, 0x74, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x1a, 0x23, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x47, 0x65, 0x74, 0x50, 0x72, 0x65,
-	0x73, 0x69, 0x67, 0x6e, 0x65, 0x64, 0x50, 0x75, 0x74, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x32, 0x5f, 0x0a, 0x10, 0x41, 0x6e, 0x61,
-	0x6c, 0x79, 0x74, 0x69, 0x63, 0x73, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x4b, 0x0a,
-	0x10, 0x43, 0x6f, 0x6c, 0x6c, 0x65, 0x63, 0x74, 0x41, 0x6e, 0x61, 0x6c, 0x79, 0x74, 0x69, 0x63,
-	0x73, 0x12, 0x1d, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x43, 0x6f, 0x6c, 0x6c, 0x65, 0x63, 0x74,
-	0x41, 0x6e, 0x61, 0x6c, 0x79, 0x74, 0x69, 0x63, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x73, 0x73, 0x52, 0x6f, 0x6c, 0x65, 0x22, 0x00, 0x12, 0x4b, 0x0a, 0x12, 0x55, 0x70, 0x64, 0x61,
+	0x74, 0x65, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x6f, 0x6c, 0x65, 0x12, 0x1f,
+	0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x75, 0x73, 0x69,
+	0x6e, 0x65, 0x73, 0x73, 0x52, 0x6f, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x12, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x52,
+	0x6f, 0x6c, 0x65, 0x22, 0x00, 0x12, 0x63, 0x0a, 0x1c, 0x4d, 0x6f, 0x64, 0x69, 0x66, 0x79, 0x42,
+	0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x6f, 0x6c, 0x65, 0x50, 0x65, 0x72, 0x6d, 0x69,
+	0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x29, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x4d, 0x6f, 0x64,
+	0x69, 0x66, 0x79, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x6f, 0x6c, 0x65, 0x50,
+	0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
 	0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
-	0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x00, 0x42, 0x06, 0x5a, 0x04, 0x2f, 0x70,
-	0x6b, 0x67, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x00, 0x12, 0x53, 0x0a, 0x10, 0x4c, 0x69,
+	0x73, 0x74, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x6f, 0x6c, 0x65, 0x12, 0x1d,
+	0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65,
+	0x73, 0x73, 0x52, 0x6f, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1e, 0x2e,
+	0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73,
+	0x73, 0x52, 0x6f, 0x6c, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12,
+	0x4f, 0x0a, 0x12, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73,
+	0x73, 0x52, 0x6f, 0x6c, 0x65, 0x12, 0x1f, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x44, 0x65, 0x6c,
+	0x65, 0x74, 0x65, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x6f, 0x6c, 0x65, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x00,
+	0x32, 0xc8, 0x03, 0x0a, 0x0b, 0x49, 0x74, 0x65, 0x6d, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
+	0x12, 0x3b, 0x0a, 0x08, 0x4c, 0x69, 0x73, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x15, 0x2e, 0x6d,
+	0x61, 0x69, 0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x49,
+	0x74, 0x65, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x2d, 0x0a,
+	0x07, 0x47, 0x65, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x14, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e,
+	0x47, 0x65, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0a,
+	0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x49, 0x74, 0x65, 0x6d, 0x22, 0x00, 0x12, 0x33, 0x0a, 0x0a,
+	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x17, 0x2e, 0x6d, 0x61, 0x69,
+	0x6e, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x0a, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x49, 0x74, 0x65, 0x6d, 0x22,
+	0x00, 0x12, 0x33, 0x0a, 0x0a, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x49, 0x74, 0x65, 0x6d, 0x12,
+	0x17, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x49, 0x74, 0x65,
+	0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0a, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e,
+	0x49, 0x74, 0x65, 0x6d, 0x22, 0x00, 0x12, 0x3f, 0x0a, 0x0a, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65,
+	0x49, 0x74, 0x65, 0x6d, 0x12, 0x17, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x44, 0x65, 0x6c, 0x65,
+	0x74, 0x65, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e,
+	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
+	0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x00, 0x12, 0x41, 0x0a, 0x0a, 0x53, 0x65, 0x61, 0x72, 0x63,
+	0x68, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x17, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x53, 0x65, 0x61,
+	0x72, 0x63, 0x68, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18,
+	0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x49, 0x74, 0x65, 0x6d,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x5f, 0x0a, 0x14, 0x53, 0x65,
+	0x61, 0x72, 0x63, 0x68, 0x49, 0x74, 0x65, 0x6d, 0x42, 0x79, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65,
+	0x73, 0x73, 0x12, 0x21, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68,
+	0x49, 0x74, 0x65, 0x6d, 0x42, 0x79, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x53, 0x65, 0x61,
+	0x72, 0x63, 0x68, 0x49, 0x74, 0x65, 0x6d, 0x42, 0x79, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73,
+	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x32, 0xb5, 0x04, 0x0a, 0x0b,
+	0x55, 0x73, 0x65, 0x72, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x2f, 0x0a, 0x07, 0x47,
+	0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x0a,
+	0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x22, 0x00, 0x12, 0x33, 0x0a, 0x0a,
+	0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x55, 0x73, 0x65, 0x72, 0x12, 0x17, 0x2e, 0x6d, 0x61, 0x69,
+	0x6e, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x0a, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x22,
+	0x00, 0x12, 0x4d, 0x0a, 0x0e, 0x47, 0x65, 0x74, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x49,
+	0x6e, 0x66, 0x6f, 0x12, 0x1b, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x47, 0x65, 0x74, 0x41, 0x64,
+	0x64, 0x72, 0x65, 0x73, 0x73, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x1c, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x47, 0x65, 0x74, 0x41, 0x64, 0x64, 0x72, 0x65,
+	0x73, 0x73, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x12, 0x4a, 0x0a, 0x0f, 0x4c, 0x69, 0x73, 0x74, 0x55, 0x73, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72,
+	0x65, 0x73, 0x73, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1d, 0x2e, 0x6d, 0x61,
+	0x69, 0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x55, 0x73, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65,
+	0x73, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x42, 0x0a, 0x0e,
+	0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x1b,
+	0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x41, 0x64, 0x64,
+	0x72, 0x65, 0x73, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x11, 0x2e, 0x6d, 0x61,
+	0x69, 0x6e, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x22, 0x00,
+	0x12, 0x48, 0x0a, 0x11, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x55, 0x73, 0x65, 0x72, 0x41, 0x64,
+	0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x1e, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x43, 0x72, 0x65,
+	0x61, 0x74, 0x65, 0x55, 0x73, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x11, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x55, 0x73, 0x65,
+	0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x22, 0x00, 0x12, 0x48, 0x0a, 0x11, 0x55, 0x70,
+	0x64, 0x61, 0x74, 0x65, 0x55, 0x73, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12,
+	0x1e, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x55, 0x73, 0x65,
+	0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x11, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65,
+	0x73, 0x73, 0x22, 0x00, 0x12, 0x4d, 0x0a, 0x11, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x55, 0x73,
+	0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x1e, 0x2e, 0x6d, 0x61, 0x69, 0x6e,
+	0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x55, 0x73, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65,
+	0x73, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
+	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74,
+	0x79, 0x22, 0x00, 0x32, 0x90, 0x02, 0x0a, 0x0c, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x53, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x65, 0x12, 0x3e, 0x0a, 0x09, 0x4c, 0x69, 0x73, 0x74, 0x4f, 0x72, 0x64, 0x65,
+	0x72, 0x12, 0x16, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x4f, 0x72, 0x64,
+	0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x17, 0x2e, 0x6d, 0x61, 0x69, 0x6e,
+	0x2e, 0x4c, 0x69, 0x73, 0x74, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x00, 0x12, 0x36, 0x0a, 0x0b, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x4f, 0x72,
+	0x64, 0x65, 0x72, 0x12, 0x18, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74,
+	0x65, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0b, 0x2e,
+	0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x22, 0x00, 0x12, 0x36, 0x0a, 0x0b,
+	0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x12, 0x18, 0x2e, 0x6d, 0x61,
+	0x69, 0x6e, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0b, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x4f, 0x72, 0x64,
+	0x65, 0x72, 0x22, 0x00, 0x12, 0x50, 0x0a, 0x0f, 0x4c, 0x69, 0x73, 0x74, 0x4f, 0x72, 0x64, 0x65,
+	0x72, 0x65, 0x64, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x1c, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x4c,
+	0x69, 0x73, 0x74, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x65, 0x64, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x4c, 0x69, 0x73,
+	0x74, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x65, 0x64, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x32, 0xb8, 0x03, 0x0a, 0x0f, 0x43, 0x61, 0x72, 0x74, 0x49,
+	0x74, 0x65, 0x6d, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x47, 0x0a, 0x0c, 0x4c, 0x69,
+	0x73, 0x74, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x19, 0x2e, 0x6d, 0x61, 0x69,
+	0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1a, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x4c, 0x69, 0x73,
+	0x74, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x12, 0x39, 0x0a, 0x0b, 0x41, 0x64, 0x64, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74,
+	0x65, 0x6d, 0x12, 0x18, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x41, 0x64, 0x64, 0x43, 0x61, 0x72,
+	0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0e, 0x2e, 0x6d,
+	0x61, 0x69, 0x6e, 0x2e, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x22, 0x00, 0x12, 0x4a,
+	0x0a, 0x0f, 0x49, 0x73, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65,
+	0x6d, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1d, 0x2e, 0x6d, 0x61, 0x69, 0x6e,
+	0x2e, 0x49, 0x73, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x47, 0x0a, 0x0e, 0x44, 0x65,
+	0x6c, 0x65, 0x74, 0x65, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x1b, 0x2e, 0x6d,
+	0x61, 0x69, 0x6e, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74,
+	0x65, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
+	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74,
+	0x79, 0x22, 0x00, 0x12, 0x41, 0x0a, 0x0d, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x43, 0x61, 0x72, 0x74,
+	0x49, 0x74, 0x65, 0x6d, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x16, 0x2e, 0x67,
+	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45,
+	0x6d, 0x70, 0x74, 0x79, 0x22, 0x00, 0x12, 0x49, 0x0a, 0x13, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x41,
+	0x6e, 0x64, 0x41, 0x64, 0x64, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x20, 0x2e,
+	0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x41, 0x6e, 0x64, 0x41, 0x64, 0x64,
+	0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x0e, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x22,
+	0x00, 0x32, 0xa0, 0x01, 0x0a, 0x0a, 0x42, 0x61, 0x6e, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
+	0x12, 0x4a, 0x0a, 0x0f, 0x47, 0x65, 0x74, 0x42, 0x61, 0x6e, 0x6e, 0x65, 0x64, 0x44, 0x65, 0x76,
+	0x69, 0x63, 0x65, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1d, 0x2e, 0x6d, 0x61,
+	0x69, 0x6e, 0x2e, 0x47, 0x65, 0x74, 0x42, 0x61, 0x6e, 0x6e, 0x65, 0x64, 0x44, 0x65, 0x76, 0x69,
+	0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x46, 0x0a, 0x0d,
+	0x47, 0x65, 0x74, 0x42, 0x61, 0x6e, 0x6e, 0x65, 0x64, 0x55, 0x73, 0x65, 0x72, 0x12, 0x16, 0x2e,
+	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
+	0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1b, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x47, 0x65, 0x74,
+	0x42, 0x61, 0x6e, 0x6e, 0x65, 0x64, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x00, 0x32, 0x7a, 0x0a, 0x14, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x53, 0x74,
+	0x6f, 0x72, 0x61, 0x67, 0x65, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x62, 0x0a, 0x15,
+	0x47, 0x65, 0x74, 0x50, 0x72, 0x65, 0x73, 0x69, 0x67, 0x6e, 0x65, 0x64, 0x50, 0x75, 0x74, 0x4f,
+	0x62, 0x6a, 0x65, 0x63, 0x74, 0x12, 0x22, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e, 0x47, 0x65, 0x74,
+	0x50, 0x72, 0x65, 0x73, 0x69, 0x67, 0x6e, 0x65, 0x64, 0x50, 0x75, 0x74, 0x4f, 0x62, 0x6a, 0x65,
+	0x63, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x23, 0x2e, 0x6d, 0x61, 0x69, 0x6e,
+	0x2e, 0x47, 0x65, 0x74, 0x50, 0x72, 0x65, 0x73, 0x69, 0x67, 0x6e, 0x65, 0x64, 0x50, 0x75, 0x74,
+	0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x32, 0x5f, 0x0a, 0x10, 0x41, 0x6e, 0x61, 0x6c, 0x79, 0x74, 0x69, 0x63, 0x73, 0x53, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x65, 0x12, 0x4b, 0x0a, 0x10, 0x43, 0x6f, 0x6c, 0x6c, 0x65, 0x63, 0x74, 0x41,
+	0x6e, 0x61, 0x6c, 0x79, 0x74, 0x69, 0x63, 0x73, 0x12, 0x1d, 0x2e, 0x6d, 0x61, 0x69, 0x6e, 0x2e,
+	0x43, 0x6f, 0x6c, 0x6c, 0x65, 0x63, 0x74, 0x41, 0x6e, 0x61, 0x6c, 0x79, 0x74, 0x69, 0x63, 0x73,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22,
+	0x00, 0x42, 0x06, 0x5a, 0x04, 0x2f, 0x70, 0x6b, 0x67, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x33,
 }
 
 var (
@@ -8901,345 +9145,358 @@ func file_main_proto_rawDescGZIP() []byte {
 }
 
 var file_main_proto_enumTypes = make([]protoimpl.EnumInfo, 13)
-var file_main_proto_msgTypes = make([]protoimpl.MessageInfo, 92)
+var file_main_proto_msgTypes = make([]protoimpl.MessageInfo, 96)
 var file_main_proto_goTypes = []interface{}{
-	(SearchMunicipalityType)(0),             // 0: main.SearchMunicipalityType
-	(VerificationCodeType)(0),               // 1: main.VerificationCodeType
-	(ItemStatusType)(0),                     // 2: main.ItemStatusType
-	(BusinessStatusType)(0),                 // 3: main.BusinessStatusType
-	(PlatformType)(0),                       // 4: main.PlatformType
-	(AppType)(0),                            // 5: main.AppType
-	(OrderStatusType)(0),                    // 6: main.OrderStatusType
-	(PartnerApplicationStatus)(0),           // 7: main.PartnerApplicationStatus
-	(OrderType)(0),                          // 8: main.OrderType
-	(BusinessAnalyticsType)(0),              // 9: main.BusinessAnalyticsType
-	(ItemAnalyticsType)(0),                  // 10: main.ItemAnalyticsType
-	(SignUpType)(0),                         // 11: main.SignUpType
-	(PhotoType)(0),                          // 12: main.PhotoType
-	(*ListBusinessRoleRequest)(nil),         // 13: main.ListBusinessRoleRequest
-	(*ListBusinessRoleResponse)(nil),        // 14: main.ListBusinessRoleResponse
-	(*CreateBusinessRoleRequest)(nil),       // 15: main.CreateBusinessRoleRequest
-	(*ListApplicationRequest)(nil),          // 16: main.ListApplicationRequest
-	(*ListApplicationResponse)(nil),         // 17: main.ListApplicationResponse
-	(*DeleteApplicationRequest)(nil),        // 18: main.DeleteApplicationRequest
-	(*CreateApplicationRequest)(nil),        // 19: main.CreateApplicationRequest
-	(*UpdatePartnerApplicationRequest)(nil), // 20: main.UpdatePartnerApplicationRequest
-	(*ListPartnerApplicationRequest)(nil),   // 21: main.ListPartnerApplicationRequest
-	(*ListPartnerApplicationResponse)(nil),  // 22: main.ListPartnerApplicationResponse
-	(*CreatePartnerApplicationRequest)(nil), // 23: main.CreatePartnerApplicationRequest
-	(*DeleteUserAddressRequest)(nil),        // 24: main.DeleteUserAddressRequest
-	(*CreateUserAddressRequest)(nil),        // 25: main.CreateUserAddressRequest
-	(*UpdateUserAddressRequest)(nil),        // 26: main.UpdateUserAddressRequest
-	(*ListUserAddressResponse)(nil),         // 27: main.ListUserAddressResponse
-	(*CollectAnalyticsRequest)(nil),         // 28: main.CollectAnalyticsRequest
-	(*GetPresignedPutObjectRequest)(nil),    // 29: main.GetPresignedPutObjectRequest
-	(*GetPresignedPutObjectResponse)(nil),   // 30: main.GetPresignedPutObjectResponse
-	(*UpdateBusinessRequest)(nil),           // 31: main.UpdateBusinessRequest
-	(*UpdateBusinessResponse)(nil),          // 32: main.UpdateBusinessResponse
-	(*CreateBusinessRequest)(nil),           // 33: main.CreateBusinessRequest
-	(*CreateBusinessResponse)(nil),          // 34: main.CreateBusinessResponse
-	(*GetAddressInfoRequest)(nil),           // 35: main.GetAddressInfoRequest
-	(*GetAddressInfoResponse)(nil),          // 36: main.GetAddressInfoResponse
-	(*GetBannedDeviceResponse)(nil),         // 37: main.GetBannedDeviceResponse
-	(*GetBannedUserResponse)(nil),           // 38: main.GetBannedUserResponse
-	(*UpdateOrderRequest)(nil),              // 39: main.UpdateOrderRequest
-	(*CreateOrderRequest)(nil),              // 40: main.CreateOrderRequest
-	(*ListOrderRequest)(nil),                // 41: main.ListOrderRequest
-	(*ListOrderResponse)(nil),               // 42: main.ListOrderResponse
-	(*ListOrderedItemRequest)(nil),          // 43: main.ListOrderedItemRequest
-	(*ListOrderedItemResponse)(nil),         // 44: main.ListOrderedItemResponse
-	(*UpdateItemRequest)(nil),               // 45: main.UpdateItemRequest
-	(*IsEmptyCartItemResponse)(nil),         // 46: main.IsEmptyCartItemResponse
-	(*CreateItemRequest)(nil),               // 47: main.CreateItemRequest
-	(*ListCartItemRequest)(nil),             // 48: main.ListCartItemRequest
-	(*ListCartItemResponse)(nil),            // 49: main.ListCartItemResponse
-	(*UpdateUserRequest)(nil),               // 50: main.UpdateUserRequest
-	(*ListSessionResponse)(nil),             // 51: main.ListSessionResponse
-	(*SignOutRequest)(nil),                  // 52: main.SignOutRequest
-	(*RefreshTokenRequest)(nil),             // 53: main.RefreshTokenRequest
-	(*RefreshTokenResponse)(nil),            // 54: main.RefreshTokenResponse
-	(*DeleteItemRequest)(nil),               // 55: main.DeleteItemRequest
-	(*DeleteCartItemRequest)(nil),           // 56: main.DeleteCartItemRequest
-	(*AddCartItemRequest)(nil),              // 57: main.AddCartItemRequest
-	(*EmptyAndAddCartItemRequest)(nil),      // 58: main.EmptyAndAddCartItemRequest
-	(*SearchItemRequest)(nil),               // 59: main.SearchItemRequest
-	(*SearchItemByBusinessRequest)(nil),     // 60: main.SearchItemByBusinessRequest
-	(*SearchItemResponse)(nil),              // 61: main.SearchItemResponse
-	(*SearchItemByBusinessResponse)(nil),    // 62: main.SearchItemByBusinessResponse
-	(*ListItemRequest)(nil),                 // 63: main.ListItemRequest
-	(*ListItemResponse)(nil),                // 64: main.ListItemResponse
-	(*GetItemRequest)(nil),                  // 65: main.GetItemRequest
-	(*FeedRequest)(nil),                     // 66: main.FeedRequest
-	(*FeedResponse)(nil),                    // 67: main.FeedResponse
-	(*GetBusinessRequest)(nil),              // 68: main.GetBusinessRequest
-	(*GetBusinessWithDistanceRequest)(nil),  // 69: main.GetBusinessWithDistanceRequest
-	(*GetBusinessResponse)(nil),             // 70: main.GetBusinessResponse
-	(*GetBusinessWithDistanceResponse)(nil), // 71: main.GetBusinessWithDistanceResponse
-	(*SignUpRequest)(nil),                   // 72: main.SignUpRequest
-	(*SignUpResponse)(nil),                  // 73: main.SignUpResponse
-	(*UserExistsRequest)(nil),               // 74: main.UserExistsRequest
-	(*CheckSessionResponse)(nil),            // 75: main.CheckSessionResponse
-	(*CreateVerificationCodeRequest)(nil),   // 76: main.CreateVerificationCodeRequest
-	(*GetVerificationCodeRequest)(nil),      // 77: main.GetVerificationCodeRequest
-	(*SignInRequest)(nil),                   // 78: main.SignInRequest
-	(*SignInResponse)(nil),                  // 79: main.SignInResponse
-	(*OrderedItem)(nil),                     // 80: main.OrderedItem
-	(*Order)(nil),                           // 81: main.Order
-	(*User)(nil),                            // 82: main.User
-	(*Municipality)(nil),                    // 83: main.Municipality
-	(*UnionBusinessAndMunicipality)(nil),    // 84: main.UnionBusinessAndMunicipality
-	(*BusinessAnalytics)(nil),               // 85: main.BusinessAnalytics
-	(*ItemAnalytics)(nil),                   // 86: main.ItemAnalytics
-	(*Business)(nil),                        // 87: main.Business
-	(*Item)(nil),                            // 88: main.Item
-	(*Application)(nil),                     // 89: main.Application
-	(*PartnerApplication)(nil),              // 90: main.PartnerApplication
-	(*CartItem)(nil),                        // 91: main.CartItem
-	(*BusinessCollection)(nil),              // 92: main.BusinessCollection
-	(*BusinessCategory)(nil),                // 93: main.BusinessCategory
-	(*SearchItem)(nil),                      // 94: main.SearchItem
-	(*ItemPhoto)(nil),                       // 95: main.ItemPhoto
-	(*Session)(nil),                         // 96: main.Session
-	(*BusinessRole)(nil),                    // 97: main.BusinessRole
-	(*UserAddress)(nil),                     // 98: main.UserAddress
-	(*BusinessRolePermission)(nil),          // 99: main.BusinessRolePermission
-	(*UserPermission)(nil),                  // 100: main.UserPermission
-	(*Permission)(nil),                      // 101: main.Permission
-	(*Polygon)(nil),                         // 102: main.Polygon
-	(*ErrorDetail)(nil),                     // 103: main.ErrorDetail
-	(*Point)(nil),                           // 104: main.Point
-	(*timestamppb.Timestamp)(nil),           // 105: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),                   // 106: google.protobuf.Empty
+	(SearchMunicipalityType)(0),                 // 0: main.SearchMunicipalityType
+	(VerificationCodeType)(0),                   // 1: main.VerificationCodeType
+	(ItemStatusType)(0),                         // 2: main.ItemStatusType
+	(BusinessStatusType)(0),                     // 3: main.BusinessStatusType
+	(PlatformType)(0),                           // 4: main.PlatformType
+	(AppType)(0),                                // 5: main.AppType
+	(OrderStatusType)(0),                        // 6: main.OrderStatusType
+	(PartnerApplicationStatus)(0),               // 7: main.PartnerApplicationStatus
+	(OrderType)(0),                              // 8: main.OrderType
+	(BusinessAnalyticsType)(0),                  // 9: main.BusinessAnalyticsType
+	(ItemAnalyticsType)(0),                      // 10: main.ItemAnalyticsType
+	(SignUpType)(0),                             // 11: main.SignUpType
+	(PhotoType)(0),                              // 12: main.PhotoType
+	(*ModifyBusinessRolePermissionRequest)(nil), // 13: main.ModifyBusinessRolePermissionRequest
+	(*UpdateBusinessRoleRequest)(nil),           // 14: main.UpdateBusinessRoleRequest
+	(*DeleteBusinessRoleRequest)(nil),           // 15: main.DeleteBusinessRoleRequest
+	(*GetUserAddressRequest)(nil),               // 16: main.GetUserAddressRequest
+	(*ListBusinessRoleRequest)(nil),             // 17: main.ListBusinessRoleRequest
+	(*ListBusinessRoleResponse)(nil),            // 18: main.ListBusinessRoleResponse
+	(*CreateBusinessRoleRequest)(nil),           // 19: main.CreateBusinessRoleRequest
+	(*ListApplicationRequest)(nil),              // 20: main.ListApplicationRequest
+	(*ListApplicationResponse)(nil),             // 21: main.ListApplicationResponse
+	(*DeleteApplicationRequest)(nil),            // 22: main.DeleteApplicationRequest
+	(*CreateApplicationRequest)(nil),            // 23: main.CreateApplicationRequest
+	(*UpdatePartnerApplicationRequest)(nil),     // 24: main.UpdatePartnerApplicationRequest
+	(*ListPartnerApplicationRequest)(nil),       // 25: main.ListPartnerApplicationRequest
+	(*ListPartnerApplicationResponse)(nil),      // 26: main.ListPartnerApplicationResponse
+	(*CreatePartnerApplicationRequest)(nil),     // 27: main.CreatePartnerApplicationRequest
+	(*DeleteUserAddressRequest)(nil),            // 28: main.DeleteUserAddressRequest
+	(*CreateUserAddressRequest)(nil),            // 29: main.CreateUserAddressRequest
+	(*UpdateUserAddressRequest)(nil),            // 30: main.UpdateUserAddressRequest
+	(*ListUserAddressResponse)(nil),             // 31: main.ListUserAddressResponse
+	(*CollectAnalyticsRequest)(nil),             // 32: main.CollectAnalyticsRequest
+	(*GetPresignedPutObjectRequest)(nil),        // 33: main.GetPresignedPutObjectRequest
+	(*GetPresignedPutObjectResponse)(nil),       // 34: main.GetPresignedPutObjectResponse
+	(*UpdateBusinessRequest)(nil),               // 35: main.UpdateBusinessRequest
+	(*UpdateBusinessResponse)(nil),              // 36: main.UpdateBusinessResponse
+	(*CreateBusinessRequest)(nil),               // 37: main.CreateBusinessRequest
+	(*CreateBusinessResponse)(nil),              // 38: main.CreateBusinessResponse
+	(*GetAddressInfoRequest)(nil),               // 39: main.GetAddressInfoRequest
+	(*GetAddressInfoResponse)(nil),              // 40: main.GetAddressInfoResponse
+	(*GetBannedDeviceResponse)(nil),             // 41: main.GetBannedDeviceResponse
+	(*GetBannedUserResponse)(nil),               // 42: main.GetBannedUserResponse
+	(*UpdateOrderRequest)(nil),                  // 43: main.UpdateOrderRequest
+	(*CreateOrderRequest)(nil),                  // 44: main.CreateOrderRequest
+	(*ListOrderRequest)(nil),                    // 45: main.ListOrderRequest
+	(*ListOrderResponse)(nil),                   // 46: main.ListOrderResponse
+	(*ListOrderedItemRequest)(nil),              // 47: main.ListOrderedItemRequest
+	(*ListOrderedItemResponse)(nil),             // 48: main.ListOrderedItemResponse
+	(*UpdateItemRequest)(nil),                   // 49: main.UpdateItemRequest
+	(*IsEmptyCartItemResponse)(nil),             // 50: main.IsEmptyCartItemResponse
+	(*CreateItemRequest)(nil),                   // 51: main.CreateItemRequest
+	(*ListCartItemRequest)(nil),                 // 52: main.ListCartItemRequest
+	(*ListCartItemResponse)(nil),                // 53: main.ListCartItemResponse
+	(*UpdateUserRequest)(nil),                   // 54: main.UpdateUserRequest
+	(*ListSessionResponse)(nil),                 // 55: main.ListSessionResponse
+	(*SignOutRequest)(nil),                      // 56: main.SignOutRequest
+	(*RefreshTokenRequest)(nil),                 // 57: main.RefreshTokenRequest
+	(*RefreshTokenResponse)(nil),                // 58: main.RefreshTokenResponse
+	(*DeleteItemRequest)(nil),                   // 59: main.DeleteItemRequest
+	(*DeleteCartItemRequest)(nil),               // 60: main.DeleteCartItemRequest
+	(*AddCartItemRequest)(nil),                  // 61: main.AddCartItemRequest
+	(*EmptyAndAddCartItemRequest)(nil),          // 62: main.EmptyAndAddCartItemRequest
+	(*SearchItemRequest)(nil),                   // 63: main.SearchItemRequest
+	(*SearchItemByBusinessRequest)(nil),         // 64: main.SearchItemByBusinessRequest
+	(*SearchItemResponse)(nil),                  // 65: main.SearchItemResponse
+	(*SearchItemByBusinessResponse)(nil),        // 66: main.SearchItemByBusinessResponse
+	(*ListItemRequest)(nil),                     // 67: main.ListItemRequest
+	(*ListItemResponse)(nil),                    // 68: main.ListItemResponse
+	(*GetItemRequest)(nil),                      // 69: main.GetItemRequest
+	(*FeedRequest)(nil),                         // 70: main.FeedRequest
+	(*FeedResponse)(nil),                        // 71: main.FeedResponse
+	(*GetBusinessRequest)(nil),                  // 72: main.GetBusinessRequest
+	(*GetBusinessWithDistanceRequest)(nil),      // 73: main.GetBusinessWithDistanceRequest
+	(*GetBusinessResponse)(nil),                 // 74: main.GetBusinessResponse
+	(*GetBusinessWithDistanceResponse)(nil),     // 75: main.GetBusinessWithDistanceResponse
+	(*SignUpRequest)(nil),                       // 76: main.SignUpRequest
+	(*SignUpResponse)(nil),                      // 77: main.SignUpResponse
+	(*UserExistsRequest)(nil),                   // 78: main.UserExistsRequest
+	(*CheckSessionResponse)(nil),                // 79: main.CheckSessionResponse
+	(*CreateVerificationCodeRequest)(nil),       // 80: main.CreateVerificationCodeRequest
+	(*GetVerificationCodeRequest)(nil),          // 81: main.GetVerificationCodeRequest
+	(*SignInRequest)(nil),                       // 82: main.SignInRequest
+	(*SignInResponse)(nil),                      // 83: main.SignInResponse
+	(*OrderedItem)(nil),                         // 84: main.OrderedItem
+	(*Order)(nil),                               // 85: main.Order
+	(*User)(nil),                                // 86: main.User
+	(*Municipality)(nil),                        // 87: main.Municipality
+	(*UnionBusinessAndMunicipality)(nil),        // 88: main.UnionBusinessAndMunicipality
+	(*BusinessAnalytics)(nil),                   // 89: main.BusinessAnalytics
+	(*ItemAnalytics)(nil),                       // 90: main.ItemAnalytics
+	(*Business)(nil),                            // 91: main.Business
+	(*Item)(nil),                                // 92: main.Item
+	(*Application)(nil),                         // 93: main.Application
+	(*PartnerApplication)(nil),                  // 94: main.PartnerApplication
+	(*CartItem)(nil),                            // 95: main.CartItem
+	(*BusinessCollection)(nil),                  // 96: main.BusinessCollection
+	(*BusinessCategory)(nil),                    // 97: main.BusinessCategory
+	(*SearchItem)(nil),                          // 98: main.SearchItem
+	(*ItemPhoto)(nil),                           // 99: main.ItemPhoto
+	(*Session)(nil),                             // 100: main.Session
+	(*BusinessRole)(nil),                        // 101: main.BusinessRole
+	(*UserAddress)(nil),                         // 102: main.UserAddress
+	(*BusinessRolePermission)(nil),              // 103: main.BusinessRolePermission
+	(*UserPermission)(nil),                      // 104: main.UserPermission
+	(*Permission)(nil),                          // 105: main.Permission
+	(*Polygon)(nil),                             // 106: main.Polygon
+	(*ErrorDetail)(nil),                         // 107: main.ErrorDetail
+	(*Point)(nil),                               // 108: main.Point
+	(*timestamppb.Timestamp)(nil),               // 109: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),                       // 110: google.protobuf.Empty
 }
 var file_main_proto_depIdxs = []int32{
-	105, // 0: main.ListBusinessRoleRequest.nextPage:type_name -> google.protobuf.Timestamp
-	97,  // 1: main.ListBusinessRoleResponse.businessRoles:type_name -> main.BusinessRole
-	105, // 2: main.ListBusinessRoleResponse.nextPage:type_name -> google.protobuf.Timestamp
-	97,  // 3: main.CreateBusinessRoleRequest.businessRole:type_name -> main.BusinessRole
-	105, // 4: main.ListApplicationRequest.nextPage:type_name -> google.protobuf.Timestamp
-	89,  // 5: main.ListApplicationResponse.applications:type_name -> main.Application
-	105, // 6: main.ListApplicationResponse.nextPage:type_name -> google.protobuf.Timestamp
-	89,  // 7: main.CreateApplicationRequest.application:type_name -> main.Application
-	90,  // 8: main.UpdatePartnerApplicationRequest.partnerApplication:type_name -> main.PartnerApplication
-	105, // 9: main.ListPartnerApplicationRequest.nextPage:type_name -> google.protobuf.Timestamp
-	90,  // 10: main.ListPartnerApplicationResponse.partnerApplications:type_name -> main.PartnerApplication
-	105, // 11: main.ListPartnerApplicationResponse.nextPage:type_name -> google.protobuf.Timestamp
-	90,  // 12: main.CreatePartnerApplicationRequest.partnerApplication:type_name -> main.PartnerApplication
-	98,  // 13: main.CreateUserAddressRequest.userAddress:type_name -> main.UserAddress
-	98,  // 14: main.UpdateUserAddressRequest.userAddress:type_name -> main.UserAddress
-	98,  // 15: main.ListUserAddressResponse.userAddress:type_name -> main.UserAddress
-	85,  // 16: main.CollectAnalyticsRequest.businessAnalytics:type_name -> main.BusinessAnalytics
-	86,  // 17: main.CollectAnalyticsRequest.itemAnalytics:type_name -> main.ItemAnalytics
-	12,  // 18: main.GetPresignedPutObjectRequest.PhotoType:type_name -> main.PhotoType
-	87,  // 19: main.UpdateBusinessResponse.business:type_name -> main.Business
-	104, // 20: main.CreateBusinessRequest.coordinates:type_name -> main.Point
-	87,  // 21: main.CreateBusinessResponse.business:type_name -> main.Business
-	84,  // 22: main.CreateBusinessResponse.municipalities:type_name -> main.UnionBusinessAndMunicipality
-	104, // 23: main.GetAddressInfoRequest.location:type_name -> main.Point
-	105, // 24: main.GetBannedDeviceResponse.banExpirationTime:type_name -> google.protobuf.Timestamp
-	105, // 25: main.GetBannedDeviceResponse.createTime:type_name -> google.protobuf.Timestamp
-	105, // 26: main.GetBannedUserResponse.banExpirationTime:type_name -> google.protobuf.Timestamp
-	105, // 27: main.GetBannedUserResponse.createTime:type_name -> google.protobuf.Timestamp
-	81,  // 28: main.UpdateOrderRequest.order:type_name -> main.Order
-	8,   // 29: main.CreateOrderRequest.orderType:type_name -> main.OrderType
-	104, // 30: main.CreateOrderRequest.location:type_name -> main.Point
-	105, // 31: main.CreateOrderRequest.orderTime:type_name -> google.protobuf.Timestamp
-	105, // 32: main.ListOrderRequest.nextPage:type_name -> google.protobuf.Timestamp
-	81,  // 33: main.ListOrderResponse.orders:type_name -> main.Order
-	105, // 34: main.ListOrderResponse.nextPage:type_name -> google.protobuf.Timestamp
-	80,  // 35: main.ListOrderedItemResponse.orderedItems:type_name -> main.OrderedItem
-	105, // 36: main.ListOrderedItemResponse.nextPage:type_name -> google.protobuf.Timestamp
-	88,  // 37: main.UpdateItemRequest.item:type_name -> main.Item
-	88,  // 38: main.CreateItemRequest.item:type_name -> main.Item
-	105, // 39: main.ListCartItemRequest.nextPage:type_name -> google.protobuf.Timestamp
-	91,  // 40: main.ListCartItemResponse.cartItems:type_name -> main.CartItem
-	105, // 41: main.ListCartItemResponse.nextPage:type_name -> google.protobuf.Timestamp
-	82,  // 42: main.UpdateUserRequest.user:type_name -> main.User
-	96,  // 43: main.ListSessionResponse.actualSession:type_name -> main.Session
-	96,  // 44: main.ListSessionResponse.otherSessions:type_name -> main.Session
-	104, // 45: main.AddCartItemRequest.location:type_name -> main.Point
-	104, // 46: main.EmptyAndAddCartItemRequest.location:type_name -> main.Point
-	0,   // 47: main.SearchItemRequest.searchMunicipalityType:type_name -> main.SearchMunicipalityType
-	94,  // 48: main.SearchItemResponse.items:type_name -> main.SearchItem
-	0,   // 49: main.SearchItemResponse.searchMunicipalityType:type_name -> main.SearchMunicipalityType
-	94,  // 50: main.SearchItemByBusinessResponse.items:type_name -> main.SearchItem
-	105, // 51: main.ListItemRequest.nextPage:type_name -> google.protobuf.Timestamp
-	88,  // 52: main.ListItemResponse.items:type_name -> main.Item
-	105, // 53: main.ListItemResponse.nextPage:type_name -> google.protobuf.Timestamp
-	104, // 54: main.GetItemRequest.location:type_name -> main.Point
-	104, // 55: main.FeedRequest.location:type_name -> main.Point
-	0,   // 56: main.FeedRequest.searchMunicipalityType:type_name -> main.SearchMunicipalityType
-	87,  // 57: main.FeedResponse.businesses:type_name -> main.Business
-	0,   // 58: main.FeedResponse.searchMunicipalityType:type_name -> main.SearchMunicipalityType
-	93,  // 59: main.FeedResponse.categories:type_name -> main.BusinessCategory
-	104, // 60: main.GetBusinessRequest.location:type_name -> main.Point
-	104, // 61: main.GetBusinessWithDistanceRequest.location:type_name -> main.Point
-	87,  // 62: main.GetBusinessResponse.business:type_name -> main.Business
-	92,  // 63: main.GetBusinessResponse.businessCollections:type_name -> main.BusinessCollection
-	87,  // 64: main.GetBusinessWithDistanceResponse.business:type_name -> main.Business
-	92,  // 65: main.GetBusinessWithDistanceResponse.businessCollections:type_name -> main.BusinessCollection
-	11,  // 66: main.SignUpRequest.signUpType:type_name -> main.SignUpType
-	82,  // 67: main.SignUpResponse.user:type_name -> main.User
-	1,   // 68: main.CreateVerificationCodeRequest.type:type_name -> main.VerificationCodeType
-	1,   // 69: main.GetVerificationCodeRequest.type:type_name -> main.VerificationCodeType
-	82,  // 70: main.SignInResponse.user:type_name -> main.User
-	105, // 71: main.OrderedItem.createTime:type_name -> google.protobuf.Timestamp
-	105, // 72: main.OrderedItem.updateTime:type_name -> google.protobuf.Timestamp
-	6,   // 73: main.Order.status:type_name -> main.OrderStatusType
-	8,   // 74: main.Order.orderType:type_name -> main.OrderType
-	104, // 75: main.Order.coordinates:type_name -> main.Point
-	105, // 76: main.Order.orderTime:type_name -> google.protobuf.Timestamp
-	105, // 77: main.Order.createTime:type_name -> google.protobuf.Timestamp
-	105, // 78: main.Order.updateTime:type_name -> google.protobuf.Timestamp
-	98,  // 79: main.User.userAddress:type_name -> main.UserAddress
-	100, // 80: main.User.permissions:type_name -> main.UserPermission
-	105, // 81: main.User.createTime:type_name -> google.protobuf.Timestamp
-	105, // 82: main.User.updateTime:type_name -> google.protobuf.Timestamp
-	9,   // 83: main.BusinessAnalytics.type:type_name -> main.BusinessAnalyticsType
-	105, // 84: main.BusinessAnalytics.createTime:type_name -> google.protobuf.Timestamp
-	105, // 85: main.BusinessAnalytics.updateTime:type_name -> google.protobuf.Timestamp
-	10,  // 86: main.ItemAnalytics.type:type_name -> main.ItemAnalyticsType
-	105, // 87: main.ItemAnalytics.createTime:type_name -> google.protobuf.Timestamp
-	105, // 88: main.ItemAnalytics.updateTime:type_name -> google.protobuf.Timestamp
-	104, // 89: main.Business.coordinates:type_name -> main.Point
-	3,   // 90: main.Business.status:type_name -> main.BusinessStatusType
-	92,  // 91: main.Business.businessCollections:type_name -> main.BusinessCollection
-	105, // 92: main.Business.createTime:type_name -> google.protobuf.Timestamp
-	105, // 93: main.Business.updateTime:type_name -> google.protobuf.Timestamp
-	105, // 94: main.Item.createTime:type_name -> google.protobuf.Timestamp
-	105, // 95: main.Item.updateTime:type_name -> google.protobuf.Timestamp
-	105, // 96: main.Application.expiration_time:type_name -> google.protobuf.Timestamp
-	105, // 97: main.Application.create_time:type_name -> google.protobuf.Timestamp
-	105, // 98: main.Application.update_time:type_name -> google.protobuf.Timestamp
-	104, // 99: main.PartnerApplication.coordinates:type_name -> main.Point
-	7,   // 100: main.PartnerApplication.status:type_name -> main.PartnerApplicationStatus
-	105, // 101: main.PartnerApplication.createTime:type_name -> google.protobuf.Timestamp
-	105, // 102: main.PartnerApplication.updateTime:type_name -> google.protobuf.Timestamp
-	105, // 103: main.CartItem.createTime:type_name -> google.protobuf.Timestamp
-	105, // 104: main.CartItem.updateTime:type_name -> google.protobuf.Timestamp
-	105, // 105: main.BusinessCollection.createTime:type_name -> google.protobuf.Timestamp
-	105, // 106: main.BusinessCollection.updateTime:type_name -> google.protobuf.Timestamp
-	105, // 107: main.BusinessCategory.createTime:type_name -> google.protobuf.Timestamp
-	105, // 108: main.BusinessCategory.updateTime:type_name -> google.protobuf.Timestamp
-	105, // 109: main.ItemPhoto.createTime:type_name -> google.protobuf.Timestamp
-	105, // 110: main.ItemPhoto.updateTime:type_name -> google.protobuf.Timestamp
-	4,   // 111: main.Session.platform:type_name -> main.PlatformType
-	5,   // 112: main.Session.app:type_name -> main.AppType
-	101, // 113: main.BusinessRole.permissions:type_name -> main.Permission
-	105, // 114: main.BusinessRole.createTime:type_name -> google.protobuf.Timestamp
-	105, // 115: main.BusinessRole.updateTime:type_name -> google.protobuf.Timestamp
-	104, // 116: main.UserAddress.coordinates:type_name -> main.Point
-	105, // 117: main.UserAddress.createTime:type_name -> google.protobuf.Timestamp
-	105, // 118: main.UserAddress.updateTime:type_name -> google.protobuf.Timestamp
-	105, // 119: main.BusinessRolePermission.createTime:type_name -> google.protobuf.Timestamp
-	105, // 120: main.BusinessRolePermission.updateTime:type_name -> google.protobuf.Timestamp
-	105, // 121: main.UserPermission.createTime:type_name -> google.protobuf.Timestamp
-	105, // 122: main.UserPermission.updateTime:type_name -> google.protobuf.Timestamp
-	105, // 123: main.Permission.createTime:type_name -> google.protobuf.Timestamp
-	105, // 124: main.Permission.updateTime:type_name -> google.protobuf.Timestamp
-	76,  // 125: main.AuthenticationService.CreateVerificationCode:input_type -> main.CreateVerificationCodeRequest
-	77,  // 126: main.AuthenticationService.GetVerificationCode:input_type -> main.GetVerificationCodeRequest
-	78,  // 127: main.AuthenticationService.SignIn:input_type -> main.SignInRequest
-	72,  // 128: main.AuthenticationService.SignUp:input_type -> main.SignUpRequest
-	52,  // 129: main.AuthenticationService.SignOut:input_type -> main.SignOutRequest
-	106, // 130: main.AuthenticationService.CheckSession:input_type -> google.protobuf.Empty
-	53,  // 131: main.AuthenticationService.RefreshToken:input_type -> main.RefreshTokenRequest
-	106, // 132: main.AuthenticationService.ListSession:input_type -> google.protobuf.Empty
-	19,  // 133: main.ApplicationService.CreateApplication:input_type -> main.CreateApplicationRequest
-	16,  // 134: main.ApplicationService.ListApplication:input_type -> main.ListApplicationRequest
-	18,  // 135: main.ApplicationService.DeleteApplication:input_type -> main.DeleteApplicationRequest
-	66,  // 136: main.BusinessService.Feed:input_type -> main.FeedRequest
-	68,  // 137: main.BusinessService.GetBusiness:input_type -> main.GetBusinessRequest
-	69,  // 138: main.BusinessService.GetBusinessWithDistance:input_type -> main.GetBusinessWithDistanceRequest
-	33,  // 139: main.BusinessService.CreateBusiness:input_type -> main.CreateBusinessRequest
-	31,  // 140: main.BusinessService.UpdateBusiness:input_type -> main.UpdateBusinessRequest
-	23,  // 141: main.BusinessService.CreatePartnerApplication:input_type -> main.CreatePartnerApplicationRequest
-	21,  // 142: main.BusinessService.ListPartnerApplication:input_type -> main.ListPartnerApplicationRequest
-	20,  // 143: main.BusinessService.UpdatePartnerApplication:input_type -> main.UpdatePartnerApplicationRequest
-	15,  // 144: main.BusinessService.CreateBusinessRole:input_type -> main.CreateBusinessRoleRequest
-	13,  // 145: main.BusinessService.ListBusinessRole:input_type -> main.ListBusinessRoleRequest
-	63,  // 146: main.ItemService.ListItem:input_type -> main.ListItemRequest
-	65,  // 147: main.ItemService.GetItem:input_type -> main.GetItemRequest
-	47,  // 148: main.ItemService.CreateItem:input_type -> main.CreateItemRequest
-	45,  // 149: main.ItemService.UpdateItem:input_type -> main.UpdateItemRequest
-	55,  // 150: main.ItemService.DeleteItem:input_type -> main.DeleteItemRequest
-	59,  // 151: main.ItemService.SearchItem:input_type -> main.SearchItemRequest
-	60,  // 152: main.ItemService.SearchItemByBusiness:input_type -> main.SearchItemByBusinessRequest
-	106, // 153: main.UserService.GetUser:input_type -> google.protobuf.Empty
-	50,  // 154: main.UserService.UpdateUser:input_type -> main.UpdateUserRequest
-	35,  // 155: main.UserService.GetAddressInfo:input_type -> main.GetAddressInfoRequest
-	106, // 156: main.UserService.ListUserAddress:input_type -> google.protobuf.Empty
-	25,  // 157: main.UserService.CreateUserAddress:input_type -> main.CreateUserAddressRequest
-	26,  // 158: main.UserService.UpdateUserAddress:input_type -> main.UpdateUserAddressRequest
-	24,  // 159: main.UserService.DeleteUserAddress:input_type -> main.DeleteUserAddressRequest
-	41,  // 160: main.OrderService.ListOrder:input_type -> main.ListOrderRequest
-	40,  // 161: main.OrderService.CreateOrder:input_type -> main.CreateOrderRequest
-	39,  // 162: main.OrderService.UpdateOrder:input_type -> main.UpdateOrderRequest
-	43,  // 163: main.OrderService.ListOrderedItem:input_type -> main.ListOrderedItemRequest
-	48,  // 164: main.CartItemService.ListCartItem:input_type -> main.ListCartItemRequest
-	57,  // 165: main.CartItemService.AddCartItem:input_type -> main.AddCartItemRequest
-	106, // 166: main.CartItemService.IsEmptyCartItem:input_type -> google.protobuf.Empty
-	56,  // 167: main.CartItemService.DeleteCartItem:input_type -> main.DeleteCartItemRequest
-	106, // 168: main.CartItemService.EmptyCartItem:input_type -> google.protobuf.Empty
-	58,  // 169: main.CartItemService.EmptyAndAddCartItem:input_type -> main.EmptyAndAddCartItemRequest
-	106, // 170: main.BanService.GetBannedDevice:input_type -> google.protobuf.Empty
-	106, // 171: main.BanService.GetBannedUser:input_type -> google.protobuf.Empty
-	29,  // 172: main.ObjectStorageService.GetPresignedPutObject:input_type -> main.GetPresignedPutObjectRequest
-	28,  // 173: main.AnalyticsService.CollectAnalytics:input_type -> main.CollectAnalyticsRequest
-	106, // 174: main.AuthenticationService.CreateVerificationCode:output_type -> google.protobuf.Empty
-	106, // 175: main.AuthenticationService.GetVerificationCode:output_type -> google.protobuf.Empty
-	79,  // 176: main.AuthenticationService.SignIn:output_type -> main.SignInResponse
-	73,  // 177: main.AuthenticationService.SignUp:output_type -> main.SignUpResponse
-	106, // 178: main.AuthenticationService.SignOut:output_type -> google.protobuf.Empty
-	75,  // 179: main.AuthenticationService.CheckSession:output_type -> main.CheckSessionResponse
-	54,  // 180: main.AuthenticationService.RefreshToken:output_type -> main.RefreshTokenResponse
-	51,  // 181: main.AuthenticationService.ListSession:output_type -> main.ListSessionResponse
-	89,  // 182: main.ApplicationService.CreateApplication:output_type -> main.Application
-	17,  // 183: main.ApplicationService.ListApplication:output_type -> main.ListApplicationResponse
-	106, // 184: main.ApplicationService.DeleteApplication:output_type -> google.protobuf.Empty
-	67,  // 185: main.BusinessService.Feed:output_type -> main.FeedResponse
-	87,  // 186: main.BusinessService.GetBusiness:output_type -> main.Business
-	87,  // 187: main.BusinessService.GetBusinessWithDistance:output_type -> main.Business
-	34,  // 188: main.BusinessService.CreateBusiness:output_type -> main.CreateBusinessResponse
-	87,  // 189: main.BusinessService.UpdateBusiness:output_type -> main.Business
-	90,  // 190: main.BusinessService.CreatePartnerApplication:output_type -> main.PartnerApplication
-	22,  // 191: main.BusinessService.ListPartnerApplication:output_type -> main.ListPartnerApplicationResponse
-	90,  // 192: main.BusinessService.UpdatePartnerApplication:output_type -> main.PartnerApplication
-	97,  // 193: main.BusinessService.CreateBusinessRole:output_type -> main.BusinessRole
-	14,  // 194: main.BusinessService.ListBusinessRole:output_type -> main.ListBusinessRoleResponse
-	64,  // 195: main.ItemService.ListItem:output_type -> main.ListItemResponse
-	88,  // 196: main.ItemService.GetItem:output_type -> main.Item
-	88,  // 197: main.ItemService.CreateItem:output_type -> main.Item
-	88,  // 198: main.ItemService.UpdateItem:output_type -> main.Item
-	106, // 199: main.ItemService.DeleteItem:output_type -> google.protobuf.Empty
-	61,  // 200: main.ItemService.SearchItem:output_type -> main.SearchItemResponse
-	62,  // 201: main.ItemService.SearchItemByBusiness:output_type -> main.SearchItemByBusinessResponse
-	82,  // 202: main.UserService.GetUser:output_type -> main.User
-	82,  // 203: main.UserService.UpdateUser:output_type -> main.User
-	36,  // 204: main.UserService.GetAddressInfo:output_type -> main.GetAddressInfoResponse
-	27,  // 205: main.UserService.ListUserAddress:output_type -> main.ListUserAddressResponse
-	98,  // 206: main.UserService.CreateUserAddress:output_type -> main.UserAddress
-	98,  // 207: main.UserService.UpdateUserAddress:output_type -> main.UserAddress
-	106, // 208: main.UserService.DeleteUserAddress:output_type -> google.protobuf.Empty
-	42,  // 209: main.OrderService.ListOrder:output_type -> main.ListOrderResponse
-	81,  // 210: main.OrderService.CreateOrder:output_type -> main.Order
-	81,  // 211: main.OrderService.UpdateOrder:output_type -> main.Order
-	44,  // 212: main.OrderService.ListOrderedItem:output_type -> main.ListOrderedItemResponse
-	49,  // 213: main.CartItemService.ListCartItem:output_type -> main.ListCartItemResponse
-	91,  // 214: main.CartItemService.AddCartItem:output_type -> main.CartItem
-	46,  // 215: main.CartItemService.IsEmptyCartItem:output_type -> main.IsEmptyCartItemResponse
-	106, // 216: main.CartItemService.DeleteCartItem:output_type -> google.protobuf.Empty
-	106, // 217: main.CartItemService.EmptyCartItem:output_type -> google.protobuf.Empty
-	91,  // 218: main.CartItemService.EmptyAndAddCartItem:output_type -> main.CartItem
-	37,  // 219: main.BanService.GetBannedDevice:output_type -> main.GetBannedDeviceResponse
-	38,  // 220: main.BanService.GetBannedUser:output_type -> main.GetBannedUserResponse
-	30,  // 221: main.ObjectStorageService.GetPresignedPutObject:output_type -> main.GetPresignedPutObjectResponse
-	106, // 222: main.AnalyticsService.CollectAnalytics:output_type -> google.protobuf.Empty
-	174, // [174:223] is the sub-list for method output_type
-	125, // [125:174] is the sub-list for method input_type
-	125, // [125:125] is the sub-list for extension type_name
-	125, // [125:125] is the sub-list for extension extendee
-	0,   // [0:125] is the sub-list for field type_name
+	101, // 0: main.UpdateBusinessRoleRequest.businessRole:type_name -> main.BusinessRole
+	109, // 1: main.ListBusinessRoleRequest.nextPage:type_name -> google.protobuf.Timestamp
+	101, // 2: main.ListBusinessRoleResponse.businessRoles:type_name -> main.BusinessRole
+	109, // 3: main.ListBusinessRoleResponse.nextPage:type_name -> google.protobuf.Timestamp
+	101, // 4: main.CreateBusinessRoleRequest.businessRole:type_name -> main.BusinessRole
+	109, // 5: main.ListApplicationRequest.nextPage:type_name -> google.protobuf.Timestamp
+	93,  // 6: main.ListApplicationResponse.applications:type_name -> main.Application
+	109, // 7: main.ListApplicationResponse.nextPage:type_name -> google.protobuf.Timestamp
+	93,  // 8: main.CreateApplicationRequest.application:type_name -> main.Application
+	94,  // 9: main.UpdatePartnerApplicationRequest.partnerApplication:type_name -> main.PartnerApplication
+	109, // 10: main.ListPartnerApplicationRequest.nextPage:type_name -> google.protobuf.Timestamp
+	94,  // 11: main.ListPartnerApplicationResponse.partnerApplications:type_name -> main.PartnerApplication
+	109, // 12: main.ListPartnerApplicationResponse.nextPage:type_name -> google.protobuf.Timestamp
+	94,  // 13: main.CreatePartnerApplicationRequest.partnerApplication:type_name -> main.PartnerApplication
+	102, // 14: main.CreateUserAddressRequest.userAddress:type_name -> main.UserAddress
+	102, // 15: main.UpdateUserAddressRequest.userAddress:type_name -> main.UserAddress
+	102, // 16: main.ListUserAddressResponse.userAddress:type_name -> main.UserAddress
+	89,  // 17: main.CollectAnalyticsRequest.businessAnalytics:type_name -> main.BusinessAnalytics
+	90,  // 18: main.CollectAnalyticsRequest.itemAnalytics:type_name -> main.ItemAnalytics
+	12,  // 19: main.GetPresignedPutObjectRequest.PhotoType:type_name -> main.PhotoType
+	91,  // 20: main.UpdateBusinessResponse.business:type_name -> main.Business
+	108, // 21: main.CreateBusinessRequest.coordinates:type_name -> main.Point
+	91,  // 22: main.CreateBusinessResponse.business:type_name -> main.Business
+	88,  // 23: main.CreateBusinessResponse.municipalities:type_name -> main.UnionBusinessAndMunicipality
+	108, // 24: main.GetAddressInfoRequest.location:type_name -> main.Point
+	109, // 25: main.GetBannedDeviceResponse.banExpirationTime:type_name -> google.protobuf.Timestamp
+	109, // 26: main.GetBannedDeviceResponse.createTime:type_name -> google.protobuf.Timestamp
+	109, // 27: main.GetBannedUserResponse.banExpirationTime:type_name -> google.protobuf.Timestamp
+	109, // 28: main.GetBannedUserResponse.createTime:type_name -> google.protobuf.Timestamp
+	85,  // 29: main.UpdateOrderRequest.order:type_name -> main.Order
+	8,   // 30: main.CreateOrderRequest.orderType:type_name -> main.OrderType
+	108, // 31: main.CreateOrderRequest.location:type_name -> main.Point
+	109, // 32: main.CreateOrderRequest.orderTime:type_name -> google.protobuf.Timestamp
+	109, // 33: main.ListOrderRequest.nextPage:type_name -> google.protobuf.Timestamp
+	85,  // 34: main.ListOrderResponse.orders:type_name -> main.Order
+	109, // 35: main.ListOrderResponse.nextPage:type_name -> google.protobuf.Timestamp
+	84,  // 36: main.ListOrderedItemResponse.orderedItems:type_name -> main.OrderedItem
+	109, // 37: main.ListOrderedItemResponse.nextPage:type_name -> google.protobuf.Timestamp
+	92,  // 38: main.UpdateItemRequest.item:type_name -> main.Item
+	92,  // 39: main.CreateItemRequest.item:type_name -> main.Item
+	109, // 40: main.ListCartItemRequest.nextPage:type_name -> google.protobuf.Timestamp
+	95,  // 41: main.ListCartItemResponse.cartItems:type_name -> main.CartItem
+	109, // 42: main.ListCartItemResponse.nextPage:type_name -> google.protobuf.Timestamp
+	86,  // 43: main.UpdateUserRequest.user:type_name -> main.User
+	100, // 44: main.ListSessionResponse.actualSession:type_name -> main.Session
+	100, // 45: main.ListSessionResponse.otherSessions:type_name -> main.Session
+	108, // 46: main.AddCartItemRequest.location:type_name -> main.Point
+	108, // 47: main.EmptyAndAddCartItemRequest.location:type_name -> main.Point
+	0,   // 48: main.SearchItemRequest.searchMunicipalityType:type_name -> main.SearchMunicipalityType
+	98,  // 49: main.SearchItemResponse.items:type_name -> main.SearchItem
+	0,   // 50: main.SearchItemResponse.searchMunicipalityType:type_name -> main.SearchMunicipalityType
+	98,  // 51: main.SearchItemByBusinessResponse.items:type_name -> main.SearchItem
+	109, // 52: main.ListItemRequest.nextPage:type_name -> google.protobuf.Timestamp
+	92,  // 53: main.ListItemResponse.items:type_name -> main.Item
+	109, // 54: main.ListItemResponse.nextPage:type_name -> google.protobuf.Timestamp
+	108, // 55: main.GetItemRequest.location:type_name -> main.Point
+	108, // 56: main.FeedRequest.location:type_name -> main.Point
+	0,   // 57: main.FeedRequest.searchMunicipalityType:type_name -> main.SearchMunicipalityType
+	91,  // 58: main.FeedResponse.businesses:type_name -> main.Business
+	0,   // 59: main.FeedResponse.searchMunicipalityType:type_name -> main.SearchMunicipalityType
+	97,  // 60: main.FeedResponse.categories:type_name -> main.BusinessCategory
+	108, // 61: main.GetBusinessRequest.location:type_name -> main.Point
+	108, // 62: main.GetBusinessWithDistanceRequest.location:type_name -> main.Point
+	91,  // 63: main.GetBusinessResponse.business:type_name -> main.Business
+	96,  // 64: main.GetBusinessResponse.businessCollections:type_name -> main.BusinessCollection
+	91,  // 65: main.GetBusinessWithDistanceResponse.business:type_name -> main.Business
+	96,  // 66: main.GetBusinessWithDistanceResponse.businessCollections:type_name -> main.BusinessCollection
+	11,  // 67: main.SignUpRequest.signUpType:type_name -> main.SignUpType
+	86,  // 68: main.SignUpResponse.user:type_name -> main.User
+	1,   // 69: main.CreateVerificationCodeRequest.type:type_name -> main.VerificationCodeType
+	1,   // 70: main.GetVerificationCodeRequest.type:type_name -> main.VerificationCodeType
+	86,  // 71: main.SignInResponse.user:type_name -> main.User
+	109, // 72: main.OrderedItem.createTime:type_name -> google.protobuf.Timestamp
+	109, // 73: main.OrderedItem.updateTime:type_name -> google.protobuf.Timestamp
+	6,   // 74: main.Order.status:type_name -> main.OrderStatusType
+	8,   // 75: main.Order.orderType:type_name -> main.OrderType
+	108, // 76: main.Order.coordinates:type_name -> main.Point
+	109, // 77: main.Order.orderTime:type_name -> google.protobuf.Timestamp
+	109, // 78: main.Order.createTime:type_name -> google.protobuf.Timestamp
+	109, // 79: main.Order.updateTime:type_name -> google.protobuf.Timestamp
+	102, // 80: main.User.userAddress:type_name -> main.UserAddress
+	104, // 81: main.User.permissions:type_name -> main.UserPermission
+	109, // 82: main.User.createTime:type_name -> google.protobuf.Timestamp
+	109, // 83: main.User.updateTime:type_name -> google.protobuf.Timestamp
+	9,   // 84: main.BusinessAnalytics.type:type_name -> main.BusinessAnalyticsType
+	109, // 85: main.BusinessAnalytics.createTime:type_name -> google.protobuf.Timestamp
+	109, // 86: main.BusinessAnalytics.updateTime:type_name -> google.protobuf.Timestamp
+	10,  // 87: main.ItemAnalytics.type:type_name -> main.ItemAnalyticsType
+	109, // 88: main.ItemAnalytics.createTime:type_name -> google.protobuf.Timestamp
+	109, // 89: main.ItemAnalytics.updateTime:type_name -> google.protobuf.Timestamp
+	108, // 90: main.Business.coordinates:type_name -> main.Point
+	3,   // 91: main.Business.status:type_name -> main.BusinessStatusType
+	96,  // 92: main.Business.businessCollections:type_name -> main.BusinessCollection
+	109, // 93: main.Business.createTime:type_name -> google.protobuf.Timestamp
+	109, // 94: main.Business.updateTime:type_name -> google.protobuf.Timestamp
+	109, // 95: main.Item.createTime:type_name -> google.protobuf.Timestamp
+	109, // 96: main.Item.updateTime:type_name -> google.protobuf.Timestamp
+	109, // 97: main.Application.expiration_time:type_name -> google.protobuf.Timestamp
+	109, // 98: main.Application.create_time:type_name -> google.protobuf.Timestamp
+	109, // 99: main.Application.update_time:type_name -> google.protobuf.Timestamp
+	108, // 100: main.PartnerApplication.coordinates:type_name -> main.Point
+	7,   // 101: main.PartnerApplication.status:type_name -> main.PartnerApplicationStatus
+	109, // 102: main.PartnerApplication.createTime:type_name -> google.protobuf.Timestamp
+	109, // 103: main.PartnerApplication.updateTime:type_name -> google.protobuf.Timestamp
+	109, // 104: main.CartItem.createTime:type_name -> google.protobuf.Timestamp
+	109, // 105: main.CartItem.updateTime:type_name -> google.protobuf.Timestamp
+	109, // 106: main.BusinessCollection.createTime:type_name -> google.protobuf.Timestamp
+	109, // 107: main.BusinessCollection.updateTime:type_name -> google.protobuf.Timestamp
+	109, // 108: main.BusinessCategory.createTime:type_name -> google.protobuf.Timestamp
+	109, // 109: main.BusinessCategory.updateTime:type_name -> google.protobuf.Timestamp
+	109, // 110: main.ItemPhoto.createTime:type_name -> google.protobuf.Timestamp
+	109, // 111: main.ItemPhoto.updateTime:type_name -> google.protobuf.Timestamp
+	4,   // 112: main.Session.platform:type_name -> main.PlatformType
+	5,   // 113: main.Session.app:type_name -> main.AppType
+	105, // 114: main.BusinessRole.permissions:type_name -> main.Permission
+	109, // 115: main.BusinessRole.createTime:type_name -> google.protobuf.Timestamp
+	109, // 116: main.BusinessRole.updateTime:type_name -> google.protobuf.Timestamp
+	108, // 117: main.UserAddress.coordinates:type_name -> main.Point
+	109, // 118: main.UserAddress.createTime:type_name -> google.protobuf.Timestamp
+	109, // 119: main.UserAddress.updateTime:type_name -> google.protobuf.Timestamp
+	109, // 120: main.BusinessRolePermission.createTime:type_name -> google.protobuf.Timestamp
+	109, // 121: main.BusinessRolePermission.updateTime:type_name -> google.protobuf.Timestamp
+	109, // 122: main.UserPermission.createTime:type_name -> google.protobuf.Timestamp
+	109, // 123: main.UserPermission.updateTime:type_name -> google.protobuf.Timestamp
+	109, // 124: main.Permission.createTime:type_name -> google.protobuf.Timestamp
+	109, // 125: main.Permission.updateTime:type_name -> google.protobuf.Timestamp
+	80,  // 126: main.AuthenticationService.CreateVerificationCode:input_type -> main.CreateVerificationCodeRequest
+	81,  // 127: main.AuthenticationService.GetVerificationCode:input_type -> main.GetVerificationCodeRequest
+	82,  // 128: main.AuthenticationService.SignIn:input_type -> main.SignInRequest
+	76,  // 129: main.AuthenticationService.SignUp:input_type -> main.SignUpRequest
+	56,  // 130: main.AuthenticationService.SignOut:input_type -> main.SignOutRequest
+	110, // 131: main.AuthenticationService.CheckSession:input_type -> google.protobuf.Empty
+	57,  // 132: main.AuthenticationService.RefreshToken:input_type -> main.RefreshTokenRequest
+	110, // 133: main.AuthenticationService.ListSession:input_type -> google.protobuf.Empty
+	23,  // 134: main.ApplicationService.CreateApplication:input_type -> main.CreateApplicationRequest
+	20,  // 135: main.ApplicationService.ListApplication:input_type -> main.ListApplicationRequest
+	22,  // 136: main.ApplicationService.DeleteApplication:input_type -> main.DeleteApplicationRequest
+	70,  // 137: main.BusinessService.Feed:input_type -> main.FeedRequest
+	72,  // 138: main.BusinessService.GetBusiness:input_type -> main.GetBusinessRequest
+	73,  // 139: main.BusinessService.GetBusinessWithDistance:input_type -> main.GetBusinessWithDistanceRequest
+	37,  // 140: main.BusinessService.CreateBusiness:input_type -> main.CreateBusinessRequest
+	35,  // 141: main.BusinessService.UpdateBusiness:input_type -> main.UpdateBusinessRequest
+	27,  // 142: main.BusinessService.CreatePartnerApplication:input_type -> main.CreatePartnerApplicationRequest
+	25,  // 143: main.BusinessService.ListPartnerApplication:input_type -> main.ListPartnerApplicationRequest
+	24,  // 144: main.BusinessService.UpdatePartnerApplication:input_type -> main.UpdatePartnerApplicationRequest
+	19,  // 145: main.BusinessService.CreateBusinessRole:input_type -> main.CreateBusinessRoleRequest
+	14,  // 146: main.BusinessService.UpdateBusinessRole:input_type -> main.UpdateBusinessRoleRequest
+	13,  // 147: main.BusinessService.ModifyBusinessRolePermission:input_type -> main.ModifyBusinessRolePermissionRequest
+	17,  // 148: main.BusinessService.ListBusinessRole:input_type -> main.ListBusinessRoleRequest
+	15,  // 149: main.BusinessService.DeleteBusinessRole:input_type -> main.DeleteBusinessRoleRequest
+	67,  // 150: main.ItemService.ListItem:input_type -> main.ListItemRequest
+	69,  // 151: main.ItemService.GetItem:input_type -> main.GetItemRequest
+	51,  // 152: main.ItemService.CreateItem:input_type -> main.CreateItemRequest
+	49,  // 153: main.ItemService.UpdateItem:input_type -> main.UpdateItemRequest
+	59,  // 154: main.ItemService.DeleteItem:input_type -> main.DeleteItemRequest
+	63,  // 155: main.ItemService.SearchItem:input_type -> main.SearchItemRequest
+	64,  // 156: main.ItemService.SearchItemByBusiness:input_type -> main.SearchItemByBusinessRequest
+	110, // 157: main.UserService.GetUser:input_type -> google.protobuf.Empty
+	54,  // 158: main.UserService.UpdateUser:input_type -> main.UpdateUserRequest
+	39,  // 159: main.UserService.GetAddressInfo:input_type -> main.GetAddressInfoRequest
+	110, // 160: main.UserService.ListUserAddress:input_type -> google.protobuf.Empty
+	16,  // 161: main.UserService.GetUserAddress:input_type -> main.GetUserAddressRequest
+	29,  // 162: main.UserService.CreateUserAddress:input_type -> main.CreateUserAddressRequest
+	30,  // 163: main.UserService.UpdateUserAddress:input_type -> main.UpdateUserAddressRequest
+	28,  // 164: main.UserService.DeleteUserAddress:input_type -> main.DeleteUserAddressRequest
+	45,  // 165: main.OrderService.ListOrder:input_type -> main.ListOrderRequest
+	44,  // 166: main.OrderService.CreateOrder:input_type -> main.CreateOrderRequest
+	43,  // 167: main.OrderService.UpdateOrder:input_type -> main.UpdateOrderRequest
+	47,  // 168: main.OrderService.ListOrderedItem:input_type -> main.ListOrderedItemRequest
+	52,  // 169: main.CartItemService.ListCartItem:input_type -> main.ListCartItemRequest
+	61,  // 170: main.CartItemService.AddCartItem:input_type -> main.AddCartItemRequest
+	110, // 171: main.CartItemService.IsEmptyCartItem:input_type -> google.protobuf.Empty
+	60,  // 172: main.CartItemService.DeleteCartItem:input_type -> main.DeleteCartItemRequest
+	110, // 173: main.CartItemService.EmptyCartItem:input_type -> google.protobuf.Empty
+	62,  // 174: main.CartItemService.EmptyAndAddCartItem:input_type -> main.EmptyAndAddCartItemRequest
+	110, // 175: main.BanService.GetBannedDevice:input_type -> google.protobuf.Empty
+	110, // 176: main.BanService.GetBannedUser:input_type -> google.protobuf.Empty
+	33,  // 177: main.ObjectStorageService.GetPresignedPutObject:input_type -> main.GetPresignedPutObjectRequest
+	32,  // 178: main.AnalyticsService.CollectAnalytics:input_type -> main.CollectAnalyticsRequest
+	110, // 179: main.AuthenticationService.CreateVerificationCode:output_type -> google.protobuf.Empty
+	110, // 180: main.AuthenticationService.GetVerificationCode:output_type -> google.protobuf.Empty
+	83,  // 181: main.AuthenticationService.SignIn:output_type -> main.SignInResponse
+	77,  // 182: main.AuthenticationService.SignUp:output_type -> main.SignUpResponse
+	110, // 183: main.AuthenticationService.SignOut:output_type -> google.protobuf.Empty
+	79,  // 184: main.AuthenticationService.CheckSession:output_type -> main.CheckSessionResponse
+	58,  // 185: main.AuthenticationService.RefreshToken:output_type -> main.RefreshTokenResponse
+	55,  // 186: main.AuthenticationService.ListSession:output_type -> main.ListSessionResponse
+	93,  // 187: main.ApplicationService.CreateApplication:output_type -> main.Application
+	21,  // 188: main.ApplicationService.ListApplication:output_type -> main.ListApplicationResponse
+	110, // 189: main.ApplicationService.DeleteApplication:output_type -> google.protobuf.Empty
+	71,  // 190: main.BusinessService.Feed:output_type -> main.FeedResponse
+	91,  // 191: main.BusinessService.GetBusiness:output_type -> main.Business
+	91,  // 192: main.BusinessService.GetBusinessWithDistance:output_type -> main.Business
+	38,  // 193: main.BusinessService.CreateBusiness:output_type -> main.CreateBusinessResponse
+	91,  // 194: main.BusinessService.UpdateBusiness:output_type -> main.Business
+	94,  // 195: main.BusinessService.CreatePartnerApplication:output_type -> main.PartnerApplication
+	26,  // 196: main.BusinessService.ListPartnerApplication:output_type -> main.ListPartnerApplicationResponse
+	94,  // 197: main.BusinessService.UpdatePartnerApplication:output_type -> main.PartnerApplication
+	101, // 198: main.BusinessService.CreateBusinessRole:output_type -> main.BusinessRole
+	101, // 199: main.BusinessService.UpdateBusinessRole:output_type -> main.BusinessRole
+	110, // 200: main.BusinessService.ModifyBusinessRolePermission:output_type -> google.protobuf.Empty
+	18,  // 201: main.BusinessService.ListBusinessRole:output_type -> main.ListBusinessRoleResponse
+	110, // 202: main.BusinessService.DeleteBusinessRole:output_type -> google.protobuf.Empty
+	68,  // 203: main.ItemService.ListItem:output_type -> main.ListItemResponse
+	92,  // 204: main.ItemService.GetItem:output_type -> main.Item
+	92,  // 205: main.ItemService.CreateItem:output_type -> main.Item
+	92,  // 206: main.ItemService.UpdateItem:output_type -> main.Item
+	110, // 207: main.ItemService.DeleteItem:output_type -> google.protobuf.Empty
+	65,  // 208: main.ItemService.SearchItem:output_type -> main.SearchItemResponse
+	66,  // 209: main.ItemService.SearchItemByBusiness:output_type -> main.SearchItemByBusinessResponse
+	86,  // 210: main.UserService.GetUser:output_type -> main.User
+	86,  // 211: main.UserService.UpdateUser:output_type -> main.User
+	40,  // 212: main.UserService.GetAddressInfo:output_type -> main.GetAddressInfoResponse
+	31,  // 213: main.UserService.ListUserAddress:output_type -> main.ListUserAddressResponse
+	102, // 214: main.UserService.GetUserAddress:output_type -> main.UserAddress
+	102, // 215: main.UserService.CreateUserAddress:output_type -> main.UserAddress
+	102, // 216: main.UserService.UpdateUserAddress:output_type -> main.UserAddress
+	110, // 217: main.UserService.DeleteUserAddress:output_type -> google.protobuf.Empty
+	46,  // 218: main.OrderService.ListOrder:output_type -> main.ListOrderResponse
+	85,  // 219: main.OrderService.CreateOrder:output_type -> main.Order
+	85,  // 220: main.OrderService.UpdateOrder:output_type -> main.Order
+	48,  // 221: main.OrderService.ListOrderedItem:output_type -> main.ListOrderedItemResponse
+	53,  // 222: main.CartItemService.ListCartItem:output_type -> main.ListCartItemResponse
+	95,  // 223: main.CartItemService.AddCartItem:output_type -> main.CartItem
+	50,  // 224: main.CartItemService.IsEmptyCartItem:output_type -> main.IsEmptyCartItemResponse
+	110, // 225: main.CartItemService.DeleteCartItem:output_type -> google.protobuf.Empty
+	110, // 226: main.CartItemService.EmptyCartItem:output_type -> google.protobuf.Empty
+	95,  // 227: main.CartItemService.EmptyAndAddCartItem:output_type -> main.CartItem
+	41,  // 228: main.BanService.GetBannedDevice:output_type -> main.GetBannedDeviceResponse
+	42,  // 229: main.BanService.GetBannedUser:output_type -> main.GetBannedUserResponse
+	34,  // 230: main.ObjectStorageService.GetPresignedPutObject:output_type -> main.GetPresignedPutObjectResponse
+	110, // 231: main.AnalyticsService.CollectAnalytics:output_type -> google.protobuf.Empty
+	179, // [179:232] is the sub-list for method output_type
+	126, // [126:179] is the sub-list for method input_type
+	126, // [126:126] is the sub-list for extension type_name
+	126, // [126:126] is the sub-list for extension extendee
+	0,   // [0:126] is the sub-list for field type_name
 }
 
 func init() { file_main_proto_init() }
@@ -9249,7 +9506,7 @@ func file_main_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_main_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListBusinessRoleRequest); i {
+			switch v := v.(*ModifyBusinessRolePermissionRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9261,7 +9518,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListBusinessRoleResponse); i {
+			switch v := v.(*UpdateBusinessRoleRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9273,7 +9530,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateBusinessRoleRequest); i {
+			switch v := v.(*DeleteBusinessRoleRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9285,7 +9542,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListApplicationRequest); i {
+			switch v := v.(*GetUserAddressRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9297,7 +9554,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListApplicationResponse); i {
+			switch v := v.(*ListBusinessRoleRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9309,7 +9566,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteApplicationRequest); i {
+			switch v := v.(*ListBusinessRoleResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9321,7 +9578,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateApplicationRequest); i {
+			switch v := v.(*CreateBusinessRoleRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9333,7 +9590,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdatePartnerApplicationRequest); i {
+			switch v := v.(*ListApplicationRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9345,7 +9602,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListPartnerApplicationRequest); i {
+			switch v := v.(*ListApplicationResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9357,7 +9614,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListPartnerApplicationResponse); i {
+			switch v := v.(*DeleteApplicationRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9369,7 +9626,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreatePartnerApplicationRequest); i {
+			switch v := v.(*CreateApplicationRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9381,7 +9638,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteUserAddressRequest); i {
+			switch v := v.(*UpdatePartnerApplicationRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9393,7 +9650,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateUserAddressRequest); i {
+			switch v := v.(*ListPartnerApplicationRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9405,7 +9662,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateUserAddressRequest); i {
+			switch v := v.(*ListPartnerApplicationResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9417,7 +9674,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListUserAddressResponse); i {
+			switch v := v.(*CreatePartnerApplicationRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9429,7 +9686,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CollectAnalyticsRequest); i {
+			switch v := v.(*DeleteUserAddressRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9441,7 +9698,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetPresignedPutObjectRequest); i {
+			switch v := v.(*CreateUserAddressRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9453,7 +9710,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetPresignedPutObjectResponse); i {
+			switch v := v.(*UpdateUserAddressRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9465,7 +9722,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateBusinessRequest); i {
+			switch v := v.(*ListUserAddressResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9477,7 +9734,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateBusinessResponse); i {
+			switch v := v.(*CollectAnalyticsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9489,7 +9746,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateBusinessRequest); i {
+			switch v := v.(*GetPresignedPutObjectRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9501,7 +9758,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateBusinessResponse); i {
+			switch v := v.(*GetPresignedPutObjectResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9513,7 +9770,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetAddressInfoRequest); i {
+			switch v := v.(*UpdateBusinessRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9525,7 +9782,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetAddressInfoResponse); i {
+			switch v := v.(*UpdateBusinessResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9537,7 +9794,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetBannedDeviceResponse); i {
+			switch v := v.(*CreateBusinessRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9549,7 +9806,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetBannedUserResponse); i {
+			switch v := v.(*CreateBusinessResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9561,7 +9818,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateOrderRequest); i {
+			switch v := v.(*GetAddressInfoRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9573,7 +9830,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateOrderRequest); i {
+			switch v := v.(*GetAddressInfoResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9585,7 +9842,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListOrderRequest); i {
+			switch v := v.(*GetBannedDeviceResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9597,7 +9854,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListOrderResponse); i {
+			switch v := v.(*GetBannedUserResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9609,7 +9866,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListOrderedItemRequest); i {
+			switch v := v.(*UpdateOrderRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9621,7 +9878,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListOrderedItemResponse); i {
+			switch v := v.(*CreateOrderRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9633,7 +9890,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateItemRequest); i {
+			switch v := v.(*ListOrderRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9645,7 +9902,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*IsEmptyCartItemResponse); i {
+			switch v := v.(*ListOrderResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9657,7 +9914,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateItemRequest); i {
+			switch v := v.(*ListOrderedItemRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9669,7 +9926,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[35].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListCartItemRequest); i {
+			switch v := v.(*ListOrderedItemResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9681,7 +9938,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListCartItemResponse); i {
+			switch v := v.(*UpdateItemRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9693,7 +9950,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateUserRequest); i {
+			switch v := v.(*IsEmptyCartItemResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9705,7 +9962,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListSessionResponse); i {
+			switch v := v.(*CreateItemRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9717,7 +9974,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SignOutRequest); i {
+			switch v := v.(*ListCartItemRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9729,7 +9986,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RefreshTokenRequest); i {
+			switch v := v.(*ListCartItemResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9741,7 +9998,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RefreshTokenResponse); i {
+			switch v := v.(*UpdateUserRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9753,7 +10010,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteItemRequest); i {
+			switch v := v.(*ListSessionResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9765,7 +10022,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteCartItemRequest); i {
+			switch v := v.(*SignOutRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9777,7 +10034,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AddCartItemRequest); i {
+			switch v := v.(*RefreshTokenRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9789,7 +10046,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[45].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*EmptyAndAddCartItemRequest); i {
+			switch v := v.(*RefreshTokenResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9801,7 +10058,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[46].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SearchItemRequest); i {
+			switch v := v.(*DeleteItemRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9813,7 +10070,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SearchItemByBusinessRequest); i {
+			switch v := v.(*DeleteCartItemRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9825,7 +10082,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[48].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SearchItemResponse); i {
+			switch v := v.(*AddCartItemRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9837,7 +10094,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[49].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SearchItemByBusinessResponse); i {
+			switch v := v.(*EmptyAndAddCartItemRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9849,7 +10106,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[50].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListItemRequest); i {
+			switch v := v.(*SearchItemRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9861,7 +10118,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[51].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListItemResponse); i {
+			switch v := v.(*SearchItemByBusinessRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9873,7 +10130,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetItemRequest); i {
+			switch v := v.(*SearchItemResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9885,7 +10142,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FeedRequest); i {
+			switch v := v.(*SearchItemByBusinessResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9897,7 +10154,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[54].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FeedResponse); i {
+			switch v := v.(*ListItemRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9909,7 +10166,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[55].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetBusinessRequest); i {
+			switch v := v.(*ListItemResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9921,7 +10178,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[56].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetBusinessWithDistanceRequest); i {
+			switch v := v.(*GetItemRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9933,7 +10190,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[57].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetBusinessResponse); i {
+			switch v := v.(*FeedRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9945,7 +10202,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[58].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetBusinessWithDistanceResponse); i {
+			switch v := v.(*FeedResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9957,7 +10214,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[59].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SignUpRequest); i {
+			switch v := v.(*GetBusinessRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9969,7 +10226,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[60].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SignUpResponse); i {
+			switch v := v.(*GetBusinessWithDistanceRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9981,7 +10238,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[61].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UserExistsRequest); i {
+			switch v := v.(*GetBusinessResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9993,7 +10250,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[62].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CheckSessionResponse); i {
+			switch v := v.(*GetBusinessWithDistanceResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10005,7 +10262,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[63].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateVerificationCodeRequest); i {
+			switch v := v.(*SignUpRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10017,7 +10274,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[64].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetVerificationCodeRequest); i {
+			switch v := v.(*SignUpResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10029,7 +10286,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[65].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SignInRequest); i {
+			switch v := v.(*UserExistsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10041,7 +10298,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[66].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SignInResponse); i {
+			switch v := v.(*CheckSessionResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10053,7 +10310,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[67].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*OrderedItem); i {
+			switch v := v.(*CreateVerificationCodeRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10065,7 +10322,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[68].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Order); i {
+			switch v := v.(*GetVerificationCodeRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10077,7 +10334,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[69].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*User); i {
+			switch v := v.(*SignInRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10089,7 +10346,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[70].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Municipality); i {
+			switch v := v.(*SignInResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10101,7 +10358,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[71].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UnionBusinessAndMunicipality); i {
+			switch v := v.(*OrderedItem); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10113,7 +10370,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[72].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BusinessAnalytics); i {
+			switch v := v.(*Order); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10125,7 +10382,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[73].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ItemAnalytics); i {
+			switch v := v.(*User); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10137,7 +10394,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[74].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Business); i {
+			switch v := v.(*Municipality); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10149,7 +10406,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[75].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Item); i {
+			switch v := v.(*UnionBusinessAndMunicipality); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10161,7 +10418,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[76].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Application); i {
+			switch v := v.(*BusinessAnalytics); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10173,7 +10430,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[77].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PartnerApplication); i {
+			switch v := v.(*ItemAnalytics); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10185,7 +10442,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[78].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CartItem); i {
+			switch v := v.(*Business); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10197,7 +10454,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[79].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BusinessCollection); i {
+			switch v := v.(*Item); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10209,7 +10466,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[80].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BusinessCategory); i {
+			switch v := v.(*Application); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10221,7 +10478,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[81].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SearchItem); i {
+			switch v := v.(*PartnerApplication); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10233,7 +10490,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[82].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ItemPhoto); i {
+			switch v := v.(*CartItem); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10245,7 +10502,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[83].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Session); i {
+			switch v := v.(*BusinessCollection); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10257,7 +10514,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[84].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BusinessRole); i {
+			switch v := v.(*BusinessCategory); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10269,7 +10526,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[85].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UserAddress); i {
+			switch v := v.(*SearchItem); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10281,7 +10538,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[86].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BusinessRolePermission); i {
+			switch v := v.(*ItemPhoto); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10293,7 +10550,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[87].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UserPermission); i {
+			switch v := v.(*Session); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10305,7 +10562,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[88].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Permission); i {
+			switch v := v.(*BusinessRole); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10317,7 +10574,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[89].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Polygon); i {
+			switch v := v.(*UserAddress); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10329,7 +10586,7 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[90].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ErrorDetail); i {
+			switch v := v.(*BusinessRolePermission); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10341,6 +10598,54 @@ func file_main_proto_init() {
 			}
 		}
 		file_main_proto_msgTypes[91].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UserPermission); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_main_proto_msgTypes[92].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Permission); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_main_proto_msgTypes[93].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Polygon); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_main_proto_msgTypes[94].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ErrorDetail); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_main_proto_msgTypes[95].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Point); i {
 			case 0:
 				return &v.state
@@ -10359,7 +10664,7 @@ func file_main_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_main_proto_rawDesc,
 			NumEnums:      13,
-			NumMessages:   92,
+			NumMessages:   96,
 			NumExtensions: 0,
 			NumServices:   10,
 		},

@@ -8,7 +8,226 @@ import (
 	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	gp "google.golang.org/protobuf/types/known/emptypb"
 )
+
+func (m *BusinessServer) ModifyBusinessRolePermission(ctx context.Context, req *pb.ModifyBusinessRolePermissionRequest) (*gp.Empty, error) {
+	var invalidBusinessRoleId, invalidPermissionId *epb.BadRequest_FieldViolation
+	var invalidArgs bool
+	var st *status.Status
+	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
+	if req.BusinessRoleId == "" {
+		invalidArgs = true
+		invalidBusinessRoleId = &epb.BadRequest_FieldViolation{
+			Field:       "id",
+			Description: "The id field is required",
+		}
+	} else if req.BusinessRoleId != "" {
+		if !utils.IsValidUUID(&req.BusinessRoleId) {
+			invalidArgs = true
+			invalidBusinessRoleId = &epb.BadRequest_FieldViolation{
+				Field:       "businessRoleId",
+				Description: "The businessRoleId field is not a valid uuid v4",
+			}
+		}
+	}
+	for _, i := range req.PermissionIds {
+		if !utils.IsValidUUID(&i) {
+			invalidArgs = true
+			invalidPermissionId = &epb.BadRequest_FieldViolation{
+				Field:       "permissionIds",
+				Description: "The permissionIds field is not a valid uuid v4",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidBusinessRoleId != nil {
+			st, _ = st.WithDetails(
+				invalidBusinessRoleId,
+			)
+		}
+		if invalidPermissionId != nil {
+			st, _ = st.WithDetails(
+				invalidPermissionId,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.businessService.ModifyBusinessRolePermission(ctx, req, md)
+	if err != nil {
+		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
+		case "unauthenticated":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
+		case "partner application not found":
+			st = status.New(codes.NotFound, "Partner application not found")
+		case "already register as business user":
+			st = status.New(codes.AlreadyExists, "Already register as business user")
+		case "permission denied":
+			st = status.New(codes.AlreadyExists, "Permission denied")
+		case "business role not found":
+			st = status.New(codes.AlreadyExists, "Business role not found")
+		case "user not found":
+			st = status.New(codes.NotFound, "User not found")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return res, nil
+}
+
+func (m *BusinessServer) UpdateBusinessRole(ctx context.Context, req *pb.UpdateBusinessRoleRequest) (*pb.BusinessRole, error) {
+	var invalidId *epb.BadRequest_FieldViolation
+	var invalidArgs bool
+	var st *status.Status
+	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
+	if req.Id == "" {
+		invalidArgs = true
+		invalidId = &epb.BadRequest_FieldViolation{
+			Field:       "id",
+			Description: "The id field is required",
+		}
+	} else if req.Id != "" {
+		if !utils.IsValidUUID(&req.Id) {
+			invalidArgs = true
+			invalidId = &epb.BadRequest_FieldViolation{
+				Field:       "id",
+				Description: "The id field is not a valid uuid v4",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidId != nil {
+			st, _ = st.WithDetails(
+				invalidId,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.businessService.UpdateBusinessRole(ctx, req, md)
+	if err != nil {
+		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
+		case "unauthenticated":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
+		case "partner application not found":
+			st = status.New(codes.NotFound, "Partner application not found")
+		case "already register as business user":
+			st = status.New(codes.AlreadyExists, "Already register as business user")
+		case "permission denied":
+			st = status.New(codes.AlreadyExists, "Permission denied")
+		case "business role not found":
+			st = status.New(codes.AlreadyExists, "Business role not found")
+		case "user not found":
+			st = status.New(codes.NotFound, "User not found")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return res, nil
+}
+
+func (m *BusinessServer) DeleteBusinessRole(ctx context.Context, req *pb.DeleteBusinessRoleRequest) (*gp.Empty, error) {
+	var invalidId *epb.BadRequest_FieldViolation
+	var invalidArgs bool
+	var st *status.Status
+	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
+	if req.Id == "" {
+		invalidArgs = true
+		invalidId = &epb.BadRequest_FieldViolation{
+			Field:       "businessRole.businessId",
+			Description: "The businessRole.businessId field is required",
+		}
+	} else if req.Id != "" {
+		if !utils.IsValidUUID(&req.Id) {
+			invalidArgs = true
+			invalidId = &epb.BadRequest_FieldViolation{
+				Field:       "businessRole.businessId",
+				Description: "The businessRole.businessId field is not a valid uuid v4",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidId != nil {
+			st, _ = st.WithDetails(
+				invalidId,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.businessService.DeleteBusinessRole(ctx, req, md)
+	if err != nil {
+		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
+		case "unauthenticated":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
+		case "partner application not found":
+			st = status.New(codes.NotFound, "Partner application not found")
+		case "already register as business user":
+			st = status.New(codes.AlreadyExists, "Already register as business user")
+		case "permission denied":
+			st = status.New(codes.AlreadyExists, "Permission denied")
+		case "already exists a business with that name":
+			st = status.New(codes.AlreadyExists, "Already exists a business with that name")
+		case "user not found":
+			st = status.New(codes.NotFound, "User not found")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return res, nil
+}
 
 func (m *BusinessServer) CreateBusinessRole(ctx context.Context, req *pb.CreateBusinessRoleRequest) (*pb.BusinessRole, error) {
 	var invalidBusinessId, invalidName, invalidBusinessRolePermissionIds *epb.BadRequest_FieldViolation

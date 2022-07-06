@@ -90,6 +90,64 @@ func (m *UserServer) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoR
 	return res, nil
 }
 
+func (m *UserServer) GetUserAddress(ctx context.Context, req *pb.GetUserAddressRequest) (*pb.UserAddress, error) {
+	var st *status.Status
+	meta := utils.GetMetadata(ctx)
+	if meta.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
+	var invalidId *epb.BadRequest_FieldViolation
+	var invalidArgs bool
+	if req.Id == "" {
+		invalidArgs = true
+		invalidId = &epb.BadRequest_FieldViolation{
+			Field:       "id",
+			Description: "The id field is required",
+		}
+	} else if req.Id != "" {
+		if !utils.IsValidUUID(&req.Id) {
+			invalidArgs = true
+			invalidId = &epb.BadRequest_FieldViolation{
+				Field:       "id",
+				Description: "The id field is not a valid uuid v4",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidId != nil {
+			st, _ = st.WithDetails(
+				invalidId,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.userService.GetUserAddress(ctx, req, meta)
+	if err != nil {
+		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
+		case "user address not found":
+			st = status.New(codes.Unauthenticated, "User address not found")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return res, nil
+}
+
 func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.User, error) {
 	var st *status.Status
 	meta := utils.GetMetadata(ctx)
