@@ -11,7 +11,9 @@ require (
 require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
+	github.com/go-ini/ini v1.66.6 // indirect
 	github.com/go-redis/redis/v9 v9.0.0-beta.1 // indirect
+	github.com/minio/minio-go v6.0.14+incompatible // indirect
 )
 
 require (
