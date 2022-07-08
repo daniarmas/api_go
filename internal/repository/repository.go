@@ -2,7 +2,7 @@ package repository
 
 import (
 	"github.com/daniarmas/api_go/config"
-	"github.com/daniarmas/api_go/datasource"
+	"github.com/daniarmas/api_go/internal/datasource"
 	"github.com/go-redis/redis/v9"
 	"gorm.io/gorm"
 )

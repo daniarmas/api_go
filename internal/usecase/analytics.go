@@ -6,7 +6,7 @@ import (
 
 	"github.com/daniarmas/api_go/internal/entity"
 	pb "github.com/daniarmas/api_go/pkg"
-	"github.com/daniarmas/api_go/repository"
+	"github.com/daniarmas/api_go/internal/repository"
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"

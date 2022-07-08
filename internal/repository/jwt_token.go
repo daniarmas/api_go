@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/daniarmas/api_go/datasource"
+	"github.com/daniarmas/api_go/internal/datasource"
 )
 
 type JwtTokenRepository interface {

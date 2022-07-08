@@ -7,7 +7,7 @@ import (
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/internal/entity"
 	"github.com/daniarmas/api_go/pkg/sqldb"
-	"github.com/daniarmas/api_go/repository"
+	"github.com/daniarmas/api_go/internal/repository"
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
 )
