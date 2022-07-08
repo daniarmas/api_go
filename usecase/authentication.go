@@ -7,6 +7,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/daniarmas/api_go/config"
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
@@ -32,10 +33,10 @@ type AuthenticationService interface {
 
 type authenticationService struct {
 	dao    repository.DAO
-	config *utils.Config
+	config *config.Config
 }
 
-func NewAuthenticationService(dao repository.DAO, config *utils.Config) AuthenticationService {
+func NewAuthenticationService(dao repository.DAO, config *config.Config) AuthenticationService {
 	return &authenticationService{dao: dao, config: config}
 }
 

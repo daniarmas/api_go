@@ -1,4 +1,4 @@
-package utils
+package config
 
 import "github.com/spf13/viper"
 
@@ -35,8 +35,8 @@ type Config struct {
 	RedisDb                            int    `mapstructure:"REDIS_DB"`
 }
 
-func LoadConfig(path string) (config Config, err error) {
-	viper.AddConfigPath(path)
+func LoadConfig() (config Config, err error) {
+	viper.AddConfigPath(".")
 	viper.SetConfigName("app")
 	viper.SetConfigType("env")
 	viper.AutomaticEnv()

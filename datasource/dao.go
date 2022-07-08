@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	logg "github.com/sirupsen/logrus"
 
-	"github.com/daniarmas/api_go/utils"
+	"github.com/daniarmas/api_go/config"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"gorm.io/driver/postgres"
@@ -62,17 +62,17 @@ type DAO interface {
 type dao struct{}
 
 var Connection *gorm.DB
-var Config *utils.Config
+var Config *config.Config
 var MinioClient *minio.Client
 
-func NewDAO(db *gorm.DB, config *utils.Config, minio *minio.Client) DAO {
+func NewDAO(db *gorm.DB, config *config.Config, minio *minio.Client) DAO {
 	Connection = db
 	Config = config
 	MinioClient = minio
 	return &dao{}
 }
 
-func NewMinioClient(config *utils.Config) (*minio.Client, error) {
+func NewMinioClient(config *config.Config) (*minio.Client, error) {
 	var secure bool
 	if config.ObjectStorageServerUseSsl == "true" {
 		secure = true
@@ -207,8 +207,8 @@ func NewMinioClient(config *utils.Config) (*minio.Client, error) {
 	return minioClient, nil
 }
 
-func NewConfig() (*utils.Config, error) {
-	Config, err := utils.LoadConfig(".")
+func NewConfig() (*config.Config, error) {
+	Config, err := config.LoadConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +225,7 @@ func CloseDB() error {
 	return nil
 }
 
-func NewDB(config *utils.Config) (*gorm.DB, error) {
+func NewDB(config *config.Config) (*gorm.DB, error) {
 	host := config.DBHost
 	port := config.DBPort
 	user := config.DBUser

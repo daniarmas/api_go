@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/daniarmas/api_go/config"
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
@@ -31,11 +32,11 @@ type ItemService interface {
 
 type itemService struct {
 	dao    repository.DAO
-	config *utils.Config
+	config *config.Config
 	stDb   *sql.DB
 }
 
-func NewItemService(dao repository.DAO, config *utils.Config, stDb *sql.DB) ItemService {
+func NewItemService(dao repository.DAO, config *config.Config, stDb *sql.DB) ItemService {
 	return &itemService{dao: dao, config: config, stDb: stDb}
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/daniarmas/api_go/config"
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
@@ -32,11 +33,11 @@ type UserService interface {
 
 type userService struct {
 	dao    repository.DAO
-	config *utils.Config
+	config *config.Config
 	rdb    *redis.Client
 }
 
-func NewUserService(dao repository.DAO, config *utils.Config, rdb *redis.Client) UserService {
+func NewUserService(dao repository.DAO, config *config.Config, rdb *redis.Client) UserService {
 	return &userService{dao: dao, config: config, rdb: rdb}
 }
 

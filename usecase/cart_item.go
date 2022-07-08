@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/daniarmas/api_go/config"
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
@@ -28,10 +29,10 @@ type CartItemService interface {
 
 type cartItemService struct {
 	dao    repository.DAO
-	config *utils.Config
+	config *config.Config
 }
 
-func NewCartItemService(dao repository.DAO, config *utils.Config) CartItemService {
+func NewCartItemService(dao repository.DAO, config *config.Config) CartItemService {
 	return &cartItemService{dao: dao, config: config}
 }
 

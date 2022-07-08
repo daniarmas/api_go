@@ -1,8 +1,8 @@
 package repository
 
 import (
+	"github.com/daniarmas/api_go/config"
 	"github.com/daniarmas/api_go/datasource"
-	"github.com/daniarmas/api_go/utils"
 	"github.com/go-redis/redis/v9"
 	"gorm.io/gorm"
 )
@@ -47,11 +47,11 @@ type DAO interface {
 type dao struct {
 }
 
-var Config *utils.Config
+var Config *config.Config
 var Datasource datasource.DAO
 var Rdb *redis.Client
 
-func NewDAO(db *gorm.DB, config *utils.Config, datasourceDao datasource.DAO, rdb *redis.Client) DAO {
+func NewDAO(db *gorm.DB, config *config.Config, datasourceDao datasource.DAO, rdb *redis.Client) DAO {
 	Rdb = rdb
 	Config = config
 	Datasource = datasourceDao

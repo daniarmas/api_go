@@ -8,10 +8,10 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/daniarmas/api_go/config"
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
 	"github.com/daniarmas/api_go/repository"
-	"github.com/daniarmas/api_go/utils"
 	"gorm.io/gorm"
 )
 
@@ -35,7 +35,7 @@ Use "./main help <command>" for more information about a command.
 	createApp = "createapp"
 )
 
-func HandleCli(args []string, db *gorm.DB, config *utils.Config, repositoryDao repository.DAO) {
+func HandleCli(args []string, db *gorm.DB, config *config.Config, repositoryDao repository.DAO) {
 	if len(args) != 1 {
 		createAppCmd := flag.NewFlagSet("createapp", flag.ExitOnError)
 		flag.NewFlagSet("--config", flag.ExitOnError)

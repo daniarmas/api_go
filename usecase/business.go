@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/daniarmas/api_go/config"
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
@@ -37,12 +38,12 @@ type BusinessService interface {
 }
 
 type businessService struct {
-	config *utils.Config
+	config *config.Config
 	dao    repository.DAO
 	stDb   *sql.DB
 }
 
-func NewBusinessService(dao repository.DAO, config *utils.Config, stDb *sql.DB) BusinessService {
+func NewBusinessService(dao repository.DAO, config *config.Config, stDb *sql.DB) BusinessService {
 	return &businessService{dao: dao, config: config, stDb: stDb}
 }
 
