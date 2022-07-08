@@ -39,6 +39,9 @@ type DAO interface {
 	NewPartnerApplicationRepository() PartnerApplicationRepository
 	NewBusinessRoleRepository() BusinessRoleRepository
 	NewJwtTokenRepository() JwtTokenRepository
+	NewUnionBusinessRoleAndPermissionRepository() UnionBusinessRoleAndPermissionRepository
+	NewUnionBusinessRoleAndUserRepository() UnionBusinessRoleAndUserRepository
+	NewPermissionRepository() PermissionRepository
 }
 
 type dao struct {
@@ -89,6 +92,17 @@ func (d *dao) NewOrderLifecycleRepository() OrderLifecycleRepository {
 
 func (d *dao) NewProvinceRepository() ProvinceRepository {
 	return &provinceRepository{}
+}
+
+func (d *dao) NewUnionBusinessRoleAndPermissionRepository() UnionBusinessRoleAndPermissionRepository {
+	return &unionBusinessRoleAndPermissionRepository{}
+}
+func (d *dao) NewUnionBusinessRoleAndUserRepository() UnionBusinessRoleAndUserRepository {
+	return &unionBusinessRoleAndUserRepository{}
+}
+
+func (d *dao) NewPermissionRepository() PermissionRepository {
+	return &permissionRepository{}
 }
 
 func (d *dao) NewBusinessAnalyticsRepository() BusinessAnalyticsRepository {

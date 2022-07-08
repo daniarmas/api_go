@@ -55,6 +55,8 @@ type DAO interface {
 	NewUserAddressDatasource() UserAddressDatasource
 	NewPartnerApplicationDatasource() PartnerApplicationDatasource
 	NewBusinessRoleDatasource() BusinessRoleDatasource
+	NewUnionBusinessRoleAndPermissionDatasource() UnionBusinessRoleAndPermissionDatasource
+	NewUnionBusinessRoleAndUserDatasource() UnionBusinessRoleAndUserDatasource
 }
 
 type dao struct{}
@@ -300,8 +302,16 @@ func (d *dao) NewUnionOrderAndOrderedItemDatasource() UnionOrderAndOrderedItemDa
 	return &unionOrderAndOrderedItemDatasource{}
 }
 
+func (d *dao) NewUnionBusinessRoleAndUserDatasource() UnionBusinessRoleAndUserDatasource {
+	return &unionBusinessRoleAndUserDatasource{}
+}
+
 func (d *dao) NewJwtTokenDatasource() JwtTokenDatasource {
 	return &jwtTokenDatasource{}
+}
+
+func (d *dao) NewUnionBusinessRoleAndPermissionDatasource() UnionBusinessRoleAndPermissionDatasource {
+	return &unionBusinessRoleAndPermissionDatasource{}
 }
 
 func (d *dao) NewBusinessAnalyticsDatasource() BusinessAnalyticsDatasource {

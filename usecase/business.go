@@ -15,6 +15,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
+	gp "google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 )
@@ -28,6 +29,11 @@ type BusinessService interface {
 	CreatePartnerApplication(ctx context.Context, req *pb.CreatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error)
 	ListPartnerApplication(ctx context.Context, req *pb.ListPartnerApplicationRequest, md *utils.ClientMetadata) (*pb.ListPartnerApplicationResponse, error)
 	UpdatePartnerApplication(ctx context.Context, req *pb.UpdatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error)
+	ListBusinessRole(ctx context.Context, req *pb.ListBusinessRoleRequest, md *utils.ClientMetadata) (*pb.ListBusinessRoleResponse, error)
+	CreateBusinessRole(ctx context.Context, req *pb.CreateBusinessRoleRequest, md *utils.ClientMetadata) (*pb.BusinessRole, error)
+	UpdateBusinessRole(ctx context.Context, req *pb.UpdateBusinessRoleRequest, md *utils.ClientMetadata) (*pb.BusinessRole, error)
+	DeleteBusinessRole(ctx context.Context, req *pb.DeleteBusinessRoleRequest, md *utils.ClientMetadata) (*gp.Empty, error)
+	ModifyBusinessRolePermission(ctx context.Context, req *pb.ModifyBusinessRolePermissionRequest, md *utils.ClientMetadata) (*gp.Empty, error)
 }
 
 type businessService struct {
@@ -38,6 +44,341 @@ type businessService struct {
 
 func NewBusinessService(dao repository.DAO, config *utils.Config, stDb *sql.DB) BusinessService {
 	return &businessService{dao: dao, config: config, stDb: stDb}
+}
+
+func (i *businessService) ModifyBusinessRolePermission(ctx context.Context, req *pb.ModifyBusinessRolePermissionRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
+	var res gp.Empty
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		err := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
+			case "Token is expired":
+				return errors.New("authorization token expired")
+			case "signature is invalid":
+				return errors.New("authorization token signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("authorization token contains an invalid number of segments")
+			default:
+				return err
+			}
+		}
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated")
+		} else if err != nil {
+			return err
+		}
+		businessRoleId := uuid.MustParse(req.BusinessRoleId)
+		businessRoleRes, err := i.dao.NewBusinessRoleRepository().GetBusinessRole(tx, &models.BusinessRole{ID: &businessRoleId}, nil)
+		if err != nil {
+			return err
+		}
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_role", BusinessId: businessRoleRes.BusinessId}, &[]string{"id"})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("permission denied")
+		}
+		unionBusinessRoleAndPermission := make([]models.UnionBusinessRoleAndPermission, 0, len(req.PermissionIds))
+		permissionIds := make([]uuid.UUID, 0, len(req.PermissionIds))
+		for _, i := range req.PermissionIds {
+			permissionId := uuid.MustParse(i)
+			unionBusinessRoleAndPermission = append(unionBusinessRoleAndPermission, models.UnionBusinessRoleAndPermission{
+				BusinessRoleId: &businessRoleId,
+				PermissionId:   &permissionId,
+			})
+			permissionIds = append(permissionIds, permissionId)
+		}
+		permissionsRes, err := i.dao.NewPermissionRepository().ListPermissionByIdAll(tx, &models.Permission{}, &permissionIds)
+		if err != nil {
+			return err
+		}
+		unionBusinessRoleAndUser, err := i.dao.NewUnionBusinessRoleAndUserRepository().ListUnionBusinessRoleAndUserAll(tx, &models.UnionBusinessRoleAndUser{BusinessRoleId: &businessRoleId})
+		if err != nil {
+			return err
+		}
+		userPermissions := make([]models.UserPermission, 0, len(req.PermissionIds))
+		for _, c := range *unionBusinessRoleAndUser {
+			for _, i := range permissionIds {
+				for _, y := range *permissionsRes {
+					if *y.ID == i {
+						userPermissions = append(userPermissions, models.UserPermission{
+							Name:           y.Name,
+							UserId:         c.UserId,
+							BusinessId:     businessRoleRes.BusinessId,
+							BusinessRoleId: businessRoleRes.ID,
+							PermissionId:   y.ID,
+						})
+					}
+				}
+			}
+		}
+		_, err = i.dao.NewUnionBusinessRoleAndPermissionRepository().DeleteUnionBusinessRoleAndPermission(tx, &models.UnionBusinessRoleAndPermission{BusinessRoleId: &businessRoleId}, nil)
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("business role not found")
+		} else if err != nil {
+			return err
+		}
+		_, err = i.dao.NewUserPermissionRepository().DeleteUserPermissionByBusinessRoleId(tx, &models.UserPermission{BusinessRoleId: &businessRoleId})
+		if err != nil {
+			return err
+		}
+		_, err = i.dao.NewUnionBusinessRoleAndPermissionRepository().CreateUnionBusinessRoleAndPermission(tx, &unionBusinessRoleAndPermission)
+		if err != nil {
+			return err
+		}
+		_, err = i.dao.NewUserPermissionRepository().CreateUserPermission(tx, &userPermissions)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (i *businessService) UpdateBusinessRole(ctx context.Context, req *pb.UpdateBusinessRoleRequest, md *utils.ClientMetadata) (*pb.BusinessRole, error) {
+	var res pb.BusinessRole
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		err := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
+			case "Token is expired":
+				return errors.New("authorization token expired")
+			case "signature is invalid":
+				return errors.New("authorization token signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("authorization token contains an invalid number of segments")
+			default:
+				return err
+			}
+		}
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated")
+		} else if err != nil {
+			return err
+		}
+		id := uuid.MustParse(req.Id)
+		businessRolesRes, err := i.dao.NewBusinessRoleRepository().UpdateBusinessRole(tx, &models.BusinessRole{ID: &id}, &models.BusinessRole{Name: req.BusinessRole.Name})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("business role not found")
+		} else if err != nil {
+			return err
+		}
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_role", BusinessId: businessRolesRes.BusinessId}, &[]string{"id"})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("permission denied")
+		}
+		res = pb.BusinessRole{
+			Id:         businessRolesRes.ID.String(),
+			Name:       businessRolesRes.Name,
+			BusinessId: businessRolesRes.BusinessId.String(),
+			CreateTime: timestamppb.New(businessRolesRes.CreateTime),
+			UpdateTime: timestamppb.New(businessRolesRes.UpdateTime),
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (i *businessService) DeleteBusinessRole(ctx context.Context, req *pb.DeleteBusinessRoleRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorization token expired")
+			case "signature is invalid":
+				return errors.New("authorization token signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("authorization token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
+			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		}
+		id := uuid.MustParse(req.Id)
+		businessRolesRes, err := i.dao.NewBusinessRoleRepository().DeleteBusinessRole(tx, &models.BusinessRole{ID: &id}, nil)
+		if err != nil {
+			return err
+		}
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{UserId: authorizationTokenRes.UserId, Name: "delete_role", BusinessId: (*businessRolesRes)[0].BusinessId}, &[]string{"id"})
+		if permissionErr != nil && permissionErr.Error() == "record not found" {
+			return errors.New("permission denied")
+		}
+		unionBusinessRoleAndPermRes, err := i.dao.NewUnionBusinessRoleAndPermissionRepository().DeleteUnionBusinessRoleAndPermission(tx, &models.UnionBusinessRoleAndPermission{BusinessRoleId: (*businessRolesRes)[0].ID}, nil)
+		if err != nil {
+			return err
+		}
+		userPermissionIds := make([]uuid.UUID, 0, len(*unionBusinessRoleAndPermRes))
+		for _, i := range *unionBusinessRoleAndPermRes {
+			userPermissionIds = append(userPermissionIds, *i.PermissionId)
+		}
+		_, err = i.dao.NewUserPermissionRepository().DeleteUserPermissionByPermissionId(tx, &userPermissionIds)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &gp.Empty{}, nil
+}
+
+func (i *businessService) CreateBusinessRole(ctx context.Context, req *pb.CreateBusinessRoleRequest, md *utils.ClientMetadata) (*pb.BusinessRole, error) {
+	var res pb.BusinessRole
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorization token expired")
+			case "signature is invalid":
+				return errors.New("authorization token signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("authorization token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
+			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		}
+		businessId := uuid.MustParse(req.BusinessRole.BusinessId)
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_role", BusinessId: &businessId}, &[]string{"id"})
+		if permissionErr != nil && permissionErr.Error() == "record not found" {
+			return errors.New("permission denied")
+		}
+		businessRolesRes, err := i.dao.NewBusinessRoleRepository().CreateBusinessRole(tx, &models.BusinessRole{Name: req.BusinessRole.Name, BusinessId: &businessId})
+		if err != nil {
+			return err
+		}
+		businessRolePermissions := make([]models.UnionBusinessRoleAndPermission, 0, len(req.BusinessRole.Permissions))
+		for _, i := range req.BusinessRole.Permissions {
+			permissionId := uuid.MustParse(i.Id)
+			businessRolePermissions = append(businessRolePermissions, models.UnionBusinessRoleAndPermission{
+				PermissionId:   &permissionId,
+				BusinessRoleId: businessRolesRes.ID,
+			})
+		}
+		_, err = i.dao.NewUnionBusinessRoleAndPermissionRepository().CreateUnionBusinessRoleAndPermission(tx, &businessRolePermissions)
+		if err != nil {
+			return err
+		}
+		res = pb.BusinessRole{
+			Id:         businessRolesRes.ID.String(),
+			Name:       businessRolesRes.Name,
+			BusinessId: businessRolesRes.BusinessId.String(),
+			CreateTime: timestamppb.New(businessRolesRes.CreateTime),
+			UpdateTime: timestamppb.New(businessRolesRes.UpdateTime),
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (i *businessService) ListBusinessRole(ctx context.Context, req *pb.ListBusinessRoleRequest, md *utils.ClientMetadata) (*pb.ListBusinessRoleResponse, error) {
+	var res pb.ListBusinessRoleResponse
+	var nextPage time.Time
+	if req.NextPage == nil {
+		nextPage = time.Now()
+	} else {
+		nextPage = req.NextPage.AsTime()
+	}
+	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorization token expired")
+			case "signature is invalid":
+				return errors.New("authorization token signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("authorization token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
+			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		}
+		businessId := uuid.MustParse(req.BusinessId)
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_role", BusinessId: &businessId}, &[]string{"id"})
+		if permissionErr != nil && permissionErr.Error() == "record not found" {
+			return errors.New("permission denied")
+		}
+		businessRolesRes, err := i.dao.NewBusinessRoleRepository().ListBusinessRole(tx, &models.BusinessRole{}, &nextPage, nil)
+		if err != nil {
+			return err
+		} else if len(*businessRolesRes) > 10 {
+			*businessRolesRes = (*businessRolesRes)[:len(*businessRolesRes)-1]
+			res.NextPage = timestamppb.New((*businessRolesRes)[len(*businessRolesRes)-1].CreateTime)
+		} else if len(*businessRolesRes) == 0 {
+			res.NextPage = timestamppb.New(nextPage)
+		} else {
+			res.NextPage = timestamppb.New((*businessRolesRes)[len(*businessRolesRes)-1].CreateTime)
+		}
+		businessRoles := make([]*pb.BusinessRole, 0, len(*businessRolesRes))
+		for _, i := range *businessRolesRes {
+			businessRoles = append(businessRoles, &pb.BusinessRole{
+				Id:         i.ID.String(),
+				Name:       i.Name,
+				BusinessId: i.BusinessId.String(),
+				CreateTime: timestamppb.New(i.CreateTime),
+				UpdateTime: timestamppb.New(i.UpdateTime),
+			})
+		}
+		res.BusinessRoles = businessRoles
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
 }
 
 func (i *businessService) UpdatePartnerApplication(ctx context.Context, req *pb.UpdatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error) {

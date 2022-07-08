@@ -1,0 +1,50 @@
+{
+  "details": {
+    "methodFqn": "main.BusinessService.ModifyBusinessRolePermission",
+    "metadata": [
+      {
+        "key": "Device-Id",
+        "value": "1"
+      },
+      {
+        "key": "App-Version",
+        "value": "1.0.0"
+      },
+      {
+        "key": "Access-Token",
+        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTcxNjAwNjksInN1YiI6IjFjZTMxZjAxLWY1ZjEtNGQxMi04ZTkwLWEwM2E2MzM0NjM5YyJ9.J-GBbfFSYkaeZ4rA_gcOl3AnAnF-3tIjcQj8Bf7f2Bk"
+      },
+      {
+        "key": "Platform",
+        "value": "Android"
+      },
+      {
+        "key": "System-Version",
+        "value": "11"
+      },
+      {
+        "key": "Model",
+        "value": "Google Pixel 3XL"
+      },
+      {
+        "key": "App",
+        "value": "App"
+      },
+      {
+        "key": "Firebase-Cloud-Messaging-Id",
+        "value": "1"
+      },
+      {
+        "key": "Authorization",
+        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTcxNjAxMTIsInN1YiI6IjFlYmE0ZjA5LTE5ZWYtNDJkYS1iYTY1LTU4MjQxZjQ3YzMwNiJ9.48BHWD-QPMJF6SxxNR2GY0q8xpj078n9SMRcOXUG0d0"
+      }
+    ]
+  },
+  "requests": [
+    {
+      "location": "ModifyBusinessRolePermission-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

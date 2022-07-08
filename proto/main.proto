@@ -36,9 +36,16 @@ service BusinessService {
   rpc CreateBusiness (CreateBusinessRequest) returns (CreateBusinessResponse) {}
   // rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
   rpc UpdateBusiness (UpdateBusinessRequest) returns (Business) {}
+
   rpc CreatePartnerApplication (CreatePartnerApplicationRequest) returns (PartnerApplication) {}
   rpc ListPartnerApplication (ListPartnerApplicationRequest) returns (ListPartnerApplicationResponse) {}
   rpc UpdatePartnerApplication (UpdatePartnerApplicationRequest) returns (PartnerApplication) {}
+
+  rpc CreateBusinessRole (CreateBusinessRoleRequest) returns (BusinessRole) {}
+  rpc UpdateBusinessRole (UpdateBusinessRoleRequest) returns (BusinessRole) {}
+  rpc ModifyBusinessRolePermission (ModifyBusinessRolePermissionRequest) returns (google.protobuf.Empty) {}
+  rpc ListBusinessRole (ListBusinessRoleRequest) returns (ListBusinessRoleResponse) {}
+  rpc DeleteBusinessRole (DeleteBusinessRoleRequest) returns (google.protobuf.Empty) {}
 }
 
 service ItemService {
@@ -55,7 +62,9 @@ service UserService {
   rpc GetUser (google.protobuf.Empty) returns (User) {}
   rpc UpdateUser (UpdateUserRequest) returns (User) {}
   rpc GetAddressInfo (GetAddressInfoRequest) returns (GetAddressInfoResponse) {}
+
   rpc ListUserAddress (google.protobuf.Empty) returns (ListUserAddressResponse) {}
+  rpc GetUserAddress (GetUserAddressRequest) returns (UserAddress) {}
   rpc CreateUserAddress (CreateUserAddressRequest) returns (UserAddress) {}
   rpc UpdateUserAddress (UpdateUserAddressRequest) returns (UserAddress) {}
   rpc DeleteUserAddress (DeleteUserAddressRequest) returns (google.protobuf.Empty) {}
@@ -91,6 +100,38 @@ service AnalyticsService {
 }
 
 // Request & Response Message
+
+message ModifyBusinessRolePermissionRequest {
+  string businessRoleId = 1;
+  repeated string permissionIds = 2;
+}
+
+message UpdateBusinessRoleRequest {
+  string id = 1;
+  BusinessRole businessRole = 2;
+}
+
+message DeleteBusinessRoleRequest {
+  string id = 1;
+}
+
+message GetUserAddressRequest {
+  string id = 1;
+}
+
+message ListBusinessRoleRequest {
+  string businessId = 1;
+  google.protobuf.Timestamp nextPage = 2;
+}
+
+message ListBusinessRoleResponse {
+  repeated BusinessRole businessRoles = 1;
+  google.protobuf.Timestamp nextPage = 2;
+}
+
+message CreateBusinessRoleRequest {
+  BusinessRole businessRole = 1;
+}
 
 message ListApplicationRequest {
   google.protobuf.Timestamp nextPage = 1;
@@ -628,9 +669,10 @@ message User {
   string thumbnailUrl = 9;
   string blurHash = 10;
   repeated UserAddress userAddress = 11;
-  repeated Permission permissions = 12;
-  google.protobuf.Timestamp createTime = 13;
-  google.protobuf.Timestamp updateTime = 14;
+  repeated UserPermission permissions = 12;
+  repeated CartItem cartItems = 13;
+  google.protobuf.Timestamp createTime = 14;
+  google.protobuf.Timestamp updateTime = 15;
 }
 
 message Municipality {
@@ -833,6 +875,15 @@ message Session {
   string deviceId = 7;
 }
 
+message BusinessRole {
+  string id = 1;
+  string name = 2;
+  string businessId = 3;
+  repeated Permission permissions = 4;
+  google.protobuf.Timestamp createTime = 5;
+  google.protobuf.Timestamp updateTime = 6;
+}
+
 // message Device {
 //   string id = 1;
 //   PlatformType platform = 2;
@@ -846,25 +897,41 @@ message Session {
 
 message UserAddress {
   string id = 1;
-  string tag = 2;
-  string number = 3;
-  string address = 4;
-  Point coordinates = 5;
-  string instructions = 6;
-  string userId = 7;
-  string provinceId = 8;
-  string municipalityId = 9;
-  google.protobuf.Timestamp createTime = 10;
-  google.protobuf.Timestamp updateTime = 11;
+  string name = 2;
+  bool selected = 3;
+  string number = 4;
+  string address = 5;
+  Point coordinates = 6;
+  string instructions = 7;
+  string userId = 8;
+  string provinceId = 9;
+  string municipalityId = 10;
+  google.protobuf.Timestamp createTime = 11;
+  google.protobuf.Timestamp updateTime = 12;
 }
 
-message Permission {
+message BusinessRolePermission {
+  string id = 1;
+  string businessRoleId = 2;
+  string permissionId = 3;
+  google.protobuf.Timestamp createTime = 4;
+  google.protobuf.Timestamp updateTime = 5;
+}
+
+message UserPermission {
   string id = 1;
   string name = 2;
   string userId = 4;
   string businessId = 5;
   google.protobuf.Timestamp createTime = 6;
   google.protobuf.Timestamp updateTime = 7;
+}
+
+message Permission {
+  string id = 1;
+  string name = 2;
+  google.protobuf.Timestamp createTime = 3;
+  google.protobuf.Timestamp updateTime = 4;
 }
 
 message Polygon {
