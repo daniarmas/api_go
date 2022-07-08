@@ -475,7 +475,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
 			}
 		} else {
-			response, responseErr = i.dao.NewItemRepository().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10, &[]string{"id", "name", "priceCup", "thumbnail", "thumbnail_blurhash", "cursor"})
+			response, responseErr = i.dao.NewItemRepository().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10, &[]string{"id", "name", "price_cup", "thumbnail", "thumbnail_blurhash", "cursor"})
 			if responseErr != nil {
 				return responseErr
 			}
@@ -519,7 +519,7 @@ func (i *itemService) SearchItemByBusiness(ctx context.Context, req *pb.SearchIt
 		if appErr != nil {
 			return appErr
 		}
-		response, responseErr = i.dao.NewItemRepository().SearchItemByBusiness(tx, req.Name, int64(req.NextPage), req.BusinessId, &[]string{"id", "name", "price", "thumbnail", "thumbnail_blurhash", "cursor"})
+		response, responseErr = i.dao.NewItemRepository().SearchItemByBusiness(tx, req.Name, int64(req.NextPage), req.BusinessId, &[]string{"id", "name", "price_cup", "thumbnail", "blurhash", "cursor"})
 		if responseErr != nil {
 			return responseErr
 		}

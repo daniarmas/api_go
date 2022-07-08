@@ -1,0 +1,50 @@
+{
+  "details": {
+    "methodFqn": "main.BusinessService.ListBusinessRole",
+    "metadata": [
+      {
+        "key": "Device-Id",
+        "value": "1"
+      },
+      {
+        "key": "App-Version",
+        "value": "1.0.0"
+      },
+      {
+        "key": "Access-Token",
+        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTcxMTIxNzIsInN1YiI6IjMyZGI3OTRjLTUwZjAtNDJhOC1iMjNiLTA1YWNiMjFmNGMwMSJ9.Crir2mmXu6TykUEHU66hZ2mjIJ56yRachI_CZtRKVkk"
+      },
+      {
+        "key": "Platform",
+        "value": "Android"
+      },
+      {
+        "key": "System-Version",
+        "value": "11"
+      },
+      {
+        "key": "Model",
+        "value": "Google Pixel 3XL"
+      },
+      {
+        "key": "App",
+        "value": "App"
+      },
+      {
+        "key": "Firebase-Cloud-Messaging-Id",
+        "value": "1"
+      },
+      {
+        "key": "Authorization",
+        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTcxMTIyMzksInN1YiI6IjIzNTYxYWExLTExYTEtNDJjYy05MGIyLWMzNGE1ZGI5YWY4MyJ9.NNqjmyo8JvypeYh6OF2sLqebwes6OHQhrZ3Z9XRcXoI"
+      }
+    ]
+  },
+  "requests": [
+    {
+      "location": "ListBusinessRole-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

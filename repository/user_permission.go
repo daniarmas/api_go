@@ -8,14 +8,57 @@ import (
 	"github.com/daniarmas/api_go/utils"
 	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
 type UserPermissionRepository interface {
+	CreateUserPermission(tx *gorm.DB, data *[]models.UserPermission) (*[]models.UserPermission, error)
 	GetUserPermission(tx *gorm.DB, where *models.UserPermission, fields *[]string) (*models.UserPermission, error)
+	DeleteUserPermission(tx *gorm.DB, where *models.UserPermission, ids *[]uuid.UUID) (*[]models.UserPermission, error)
+	DeleteUserPermissionByBusinessRoleId(tx *gorm.DB, where *models.UserPermission) (*[]models.UserPermission, error)
+	DeleteUserPermissionByPermissionId(tx *gorm.DB, permissionIds *[]uuid.UUID) (*[]models.UserPermission, error)
 }
 
 type userPermissionRepository struct{}
+
+func (v *userPermissionRepository) DeleteUserPermissionByBusinessRoleId(tx *gorm.DB, where *models.UserPermission) (*[]models.UserPermission, error) {
+	res, err := Datasource.NewUserPermissionDatasource().DeleteUserPermissionByBusinessRoleId(tx, where)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (v *userPermissionRepository) CreateUserPermission(tx *gorm.DB, data *[]models.UserPermission) (*[]models.UserPermission, error) {
+	res, err := Datasource.NewUserPermissionDatasource().CreateUserPermission(tx, data)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (v *userPermissionRepository) DeleteUserPermissionByPermissionId(tx *gorm.DB, permission_ids *[]uuid.UUID) (*[]models.UserPermission, error) {
+	res, err := Datasource.NewUserPermissionDatasource().DeleteUserPermissionByPermissionId(tx, permission_ids)
+	if err != nil {
+		return nil, err
+	} else {
+		ctx := context.Background()
+		rdbPipe := Rdb.Pipeline()
+		for _, i := range *res {
+			cacheId := "user_permission:" + i.ID.String()
+			cacheErr := rdbPipe.Del(ctx, cacheId).Err()
+			if cacheErr != nil {
+				log.Error(cacheErr)
+			}
+		}
+		_, err := rdbPipe.Exec(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
 
 func (v *userPermissionRepository) GetUserPermission(tx *gorm.DB, where *models.UserPermission, fields *[]string) (*models.UserPermission, error) {
 	var cacheId string
@@ -73,4 +116,18 @@ func (v *userPermissionRepository) GetUserPermission(tx *gorm.DB, where *models.
 			UpdateTime:   updateTime,
 		}, nil
 	}
+}
+
+func (v *userPermissionRepository) DeleteUserPermission(tx *gorm.DB, where *models.UserPermission, ids *[]uuid.UUID) (*[]models.UserPermission, error) {
+	ctx := context.Background()
+	cacheId := "user_permission:" + where.ID.String()
+	cacheErr := Rdb.Del(ctx, cacheId).Err()
+	if cacheErr != nil {
+		log.Error(cacheErr)
+	}
+	res, err := Datasource.NewUserPermissionDatasource().DeleteUserPermission(tx, where, ids)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }

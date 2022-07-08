@@ -2,6 +2,7 @@ package datasource
 
 import (
 	"errors"
+	"time"
 
 	"github.com/daniarmas/api_go/models"
 	"github.com/google/uuid"
@@ -11,12 +12,23 @@ import (
 
 type BusinessRoleDatasource interface {
 	CreateBusinessRole(tx *gorm.DB, data *models.BusinessRole) (*models.BusinessRole, error)
+	UpdateBusinessRole(tx *gorm.DB, where *models.BusinessRole, data *models.BusinessRole) (*models.BusinessRole, error)
 	GetBusinessRole(tx *gorm.DB, where *models.BusinessRole, fields *[]string) (*models.BusinessRole, error)
-	ListBusinessRole(tx *gorm.DB, where *models.BusinessRole, fields *[]string) (*[]models.BusinessRole, error)
+	ListBusinessRole(tx *gorm.DB, where *models.BusinessRole, cursor *time.Time, fields *[]string) (*[]models.BusinessRole, error)
 	DeleteBusinessRole(tx *gorm.DB, where *models.BusinessRole, ids *[]uuid.UUID) (*[]models.BusinessRole, error)
 }
 
 type businessRoleDatasource struct{}
+
+func (v *businessRoleDatasource) UpdateBusinessRole(tx *gorm.DB, where *models.BusinessRole, data *models.BusinessRole) (*models.BusinessRole, error) {
+	result := tx.Clauses(clause.Returning{}).Where(where).Updates(&data)
+	if result.Error != nil {
+		return nil, result.Error
+	} else if result.RowsAffected == 0 {
+		return nil, errors.New("record not found")
+	}
+	return data, nil
+}
 
 func (v *businessRoleDatasource) CreateBusinessRole(tx *gorm.DB, data *models.BusinessRole) (*models.BusinessRole, error) {
 	result := tx.Create(&data)
@@ -42,13 +54,13 @@ func (v *businessRoleDatasource) DeleteBusinessRole(tx *gorm.DB, where *models.B
 	return res, nil
 }
 
-func (i *businessRoleDatasource) ListBusinessRole(tx *gorm.DB, where *models.BusinessRole, fields *[]string) (*[]models.BusinessRole, error) {
+func (i *businessRoleDatasource) ListBusinessRole(tx *gorm.DB, where *models.BusinessRole, cursor *time.Time, fields *[]string) (*[]models.BusinessRole, error) {
 	var res []models.BusinessRole
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields
 	}
-	result := tx.Where(where).Select(*selectFields).Find(&res)
+	result := tx.Model(&models.BusinessRole{}).Select(*selectFields).Limit(11).Where("create_time < ?", cursor).Order("create_time desc").Scan(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}

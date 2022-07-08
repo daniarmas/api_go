@@ -15,6 +15,8 @@ type UserAddressDatasource interface {
 	ListUserAddress(tx *gorm.DB, where *models.UserAddress, fields *[]string) (*[]models.UserAddress, error)
 	CreateUserAddress(tx *gorm.DB, data *models.UserAddress) (*models.UserAddress, error)
 	UpdateUserAddress(tx *gorm.DB, where *models.UserAddress, data *models.UserAddress) (*models.UserAddress, error)
+	UpdateUserAddressByUserId(tx *gorm.DB, where *models.UserAddress, data *models.UserAddress) (*models.UserAddress, error)
+	UpdateUserAddressSelected(tx *gorm.DB, where *models.UserAddress, data *models.UserAddress) (*models.UserAddress, error)
 	GetUserAddress(tx *gorm.DB, where *models.UserAddress) (*models.UserAddress, error)
 	DeleteUserAddress(tx *gorm.DB, where *models.UserAddress, ids *[]uuid.UUID) (*[]models.UserAddress, error)
 }
@@ -23,7 +25,7 @@ type userAddressDatasource struct{}
 
 func (i *userAddressDatasource) ListUserAddress(tx *gorm.DB, where *models.UserAddress, fields *[]string) (*[]models.UserAddress, error) {
 	var res []models.UserAddress
-	selectFields := &[]string{"id", "tag", "address", "number", "ST_AsEWKB(coordinates) AS coordinates", "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time"}
+	selectFields := &[]string{"id", "selected", "name", "address", "number", "ST_AsEWKB(coordinates) AS coordinates", "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time"}
 	if fields != nil {
 		selectFields = fields
 	}
@@ -38,9 +40,25 @@ func (i *userAddressDatasource) CreateUserAddress(tx *gorm.DB, data *models.User
 	point := fmt.Sprintf("POINT(%v %v)", data.Coordinates.Point.Coords()[1], data.Coordinates.Point.Coords()[0])
 	var time = time.Now().UTC()
 	var res models.UserAddress
-	result := tx.Raw(`INSERT INTO "user_address" ("tag", "address", "number", "coordinates", "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time") VALUES (?, ?, ?, ST_GeomFromText(?, 4326), ?, ?, ?, ?, ?, ?) RETURNING "id", "tag", "address", "number", ST_AsEWKB(coordinates) AS coordinates, "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time"`, data.Tag, data.Address, data.Number, point, data.Instructions, data.UserId, data.ProvinceId, data.MunicipalityId, time, time).Scan(&res)
+	result := tx.Raw(`INSERT INTO "user_address" ("name", "address", "number", "coordinates", "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time") VALUES (?, ?, ?, ST_GeomFromText(?, 4326), ?, ?, ?, ?, ?, ?) RETURNING "id", "selected", "name", "address", "number", ST_AsEWKB(coordinates) AS coordinates, "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time"`, data.Name, data.Address, data.Number, point, data.Instructions, data.UserId, data.ProvinceId, data.MunicipalityId, time, time).Scan(&res)
 	if result.Error != nil {
 		return nil, result.Error
+	}
+	return &res, nil
+}
+
+func (i *userAddressDatasource) UpdateUserAddressSelected(tx *gorm.DB, where *models.UserAddress, data *models.UserAddress) (*models.UserAddress, error) {
+	var res models.UserAddress
+	var time = time.Now().UTC()
+	result := tx.Raw(`UPDATE "user_address" SET "selected"='true',"update_time"=? WHERE "user_address"."id" = ? AND "user_address"."delete_time" IS NULL RETURNING "id", "name", "selected", "address", "number", ST_AsEWKB(coordinates) AS coordinates, "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time"`, time, where.ID).Scan(&res)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("record not found")
+		} else {
+			return nil, result.Error
+		}
+	} else if result.RowsAffected == 0 {
+		return nil, errors.New("record not found")
 	}
 	return &res, nil
 }
@@ -53,7 +71,23 @@ func (i *userAddressDatasource) UpdateUserAddress(tx *gorm.DB, where *models.Use
 	}
 	var res models.UserAddress
 	var time = time.Now().UTC()
-	result := tx.Raw(`UPDATE "user_address" SET "tag"=?,"address"=?,"number"=?,"coordinates"=ST_GeomFromText(?, 4326),"instructions"=?,"user_id"=?,"province_id"=?,"municipality_id"=?,"create_time"=?,"update_time"=? WHERE "user_address"."id" = ? AND "user_address"."delete_time" IS NULL RETURNING "id", "tag", "address", "number", ST_AsEWKB(coordinates) AS coordinates, "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time"`, data.Tag, data.Address, data.Number, point, data.Instructions, data.UserId, data.ProvinceId, data.MunicipalityId, time, time, where.ID).Scan(&res)
+	result := tx.Raw(`UPDATE "user_address" SET "selected"=?,"name"=?,"address"=?,"number"=?,"coordinates"=ST_GeomFromText(?, 4326),"instructions"=?,"user_id"=?,"province_id"=?,"municipality_id"=?,"create_time"=?,"update_time"=? WHERE "user_address"."id" = ? AND "user_address"."delete_time" IS NULL RETURNING "id", "name", "selected", "address", "number", ST_AsEWKB(coordinates) AS coordinates, "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time"`, data.Selected, data.Name, data.Address, data.Number, point, data.Instructions, data.UserId, data.ProvinceId, data.MunicipalityId, time, time, where.ID).Scan(&res)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("record not found")
+		} else {
+			return nil, result.Error
+		}
+	} else if result.RowsAffected == 0 {
+		return nil, errors.New("record not found")
+	}
+	return &res, nil
+}
+
+func (i *userAddressDatasource) UpdateUserAddressByUserId(tx *gorm.DB, where *models.UserAddress, data *models.UserAddress) (*models.UserAddress, error) {
+	var res models.UserAddress
+	var time = time.Now().UTC()
+	result := tx.Raw(`UPDATE "user_address" SET "selected"='false',"update_time"=? WHERE "user_address"."user_id" = ? AND "user_address"."delete_time" IS NULL RETURNING "id", "name", "selected", "address", "number", ST_AsEWKB(coordinates) AS coordinates, "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time"`, time, where.UserId).Scan(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
@@ -68,7 +102,7 @@ func (i *userAddressDatasource) UpdateUserAddress(tx *gorm.DB, where *models.Use
 
 func (i *userAddressDatasource) GetUserAddress(tx *gorm.DB, where *models.UserAddress) (*models.UserAddress, error) {
 	var res models.UserAddress
-	result := tx.Raw(`SELECT "id", "tag", "address", "number", ST_AsEWKB(coordinates) AS coordinates, "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time" FROM "user_address" WHERE id = ? LIMIT 1`, where.ID).Scan(&res)
+	result := tx.Raw(`SELECT "id", "name", "selected", "address", "number", ST_AsEWKB(coordinates) AS coordinates, "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time" FROM "user_address" WHERE id = ? LIMIT 1`, where.ID).Scan(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

@@ -92,7 +92,7 @@ services:
     restart: on-failure
     entrypoint: >
       /bin/sh -c "
-      /usr/bin/mc alias set minio http://192.168.1.2:9011 root root1234;
+      /usr/bin/mc alias set minio http://192.168.0.2:9011 root root1234;
       /usr/bin/mc mb minio/business-avatar;
       /usr/bin/mc mb minio/business-avatar-deleted;
       /usr/bin/mc mb minio/items;

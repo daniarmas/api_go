@@ -528,6 +528,11 @@ type BusinessServiceClient interface {
 	CreatePartnerApplication(ctx context.Context, in *CreatePartnerApplicationRequest, opts ...grpc.CallOption) (*PartnerApplication, error)
 	ListPartnerApplication(ctx context.Context, in *ListPartnerApplicationRequest, opts ...grpc.CallOption) (*ListPartnerApplicationResponse, error)
 	UpdatePartnerApplication(ctx context.Context, in *UpdatePartnerApplicationRequest, opts ...grpc.CallOption) (*PartnerApplication, error)
+	CreateBusinessRole(ctx context.Context, in *CreateBusinessRoleRequest, opts ...grpc.CallOption) (*BusinessRole, error)
+	UpdateBusinessRole(ctx context.Context, in *UpdateBusinessRoleRequest, opts ...grpc.CallOption) (*BusinessRole, error)
+	ModifyBusinessRolePermission(ctx context.Context, in *ModifyBusinessRolePermissionRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ListBusinessRole(ctx context.Context, in *ListBusinessRoleRequest, opts ...grpc.CallOption) (*ListBusinessRoleResponse, error)
+	DeleteBusinessRole(ctx context.Context, in *DeleteBusinessRoleRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type businessServiceClient struct {
@@ -610,6 +615,51 @@ func (c *businessServiceClient) UpdatePartnerApplication(ctx context.Context, in
 	return out, nil
 }
 
+func (c *businessServiceClient) CreateBusinessRole(ctx context.Context, in *CreateBusinessRoleRequest, opts ...grpc.CallOption) (*BusinessRole, error) {
+	out := new(BusinessRole)
+	err := c.cc.Invoke(ctx, "/main.BusinessService/CreateBusinessRole", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *businessServiceClient) UpdateBusinessRole(ctx context.Context, in *UpdateBusinessRoleRequest, opts ...grpc.CallOption) (*BusinessRole, error) {
+	out := new(BusinessRole)
+	err := c.cc.Invoke(ctx, "/main.BusinessService/UpdateBusinessRole", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *businessServiceClient) ModifyBusinessRolePermission(ctx context.Context, in *ModifyBusinessRolePermissionRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/main.BusinessService/ModifyBusinessRolePermission", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *businessServiceClient) ListBusinessRole(ctx context.Context, in *ListBusinessRoleRequest, opts ...grpc.CallOption) (*ListBusinessRoleResponse, error) {
+	out := new(ListBusinessRoleResponse)
+	err := c.cc.Invoke(ctx, "/main.BusinessService/ListBusinessRole", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *businessServiceClient) DeleteBusinessRole(ctx context.Context, in *DeleteBusinessRoleRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/main.BusinessService/DeleteBusinessRole", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BusinessServiceServer is the server API for BusinessService service.
 // All implementations must embed UnimplementedBusinessServiceServer
 // for forward compatibility
@@ -623,6 +673,11 @@ type BusinessServiceServer interface {
 	CreatePartnerApplication(context.Context, *CreatePartnerApplicationRequest) (*PartnerApplication, error)
 	ListPartnerApplication(context.Context, *ListPartnerApplicationRequest) (*ListPartnerApplicationResponse, error)
 	UpdatePartnerApplication(context.Context, *UpdatePartnerApplicationRequest) (*PartnerApplication, error)
+	CreateBusinessRole(context.Context, *CreateBusinessRoleRequest) (*BusinessRole, error)
+	UpdateBusinessRole(context.Context, *UpdateBusinessRoleRequest) (*BusinessRole, error)
+	ModifyBusinessRolePermission(context.Context, *ModifyBusinessRolePermissionRequest) (*emptypb.Empty, error)
+	ListBusinessRole(context.Context, *ListBusinessRoleRequest) (*ListBusinessRoleResponse, error)
+	DeleteBusinessRole(context.Context, *DeleteBusinessRoleRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedBusinessServiceServer()
 }
 
@@ -653,6 +708,21 @@ func (UnimplementedBusinessServiceServer) ListPartnerApplication(context.Context
 }
 func (UnimplementedBusinessServiceServer) UpdatePartnerApplication(context.Context, *UpdatePartnerApplicationRequest) (*PartnerApplication, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdatePartnerApplication not implemented")
+}
+func (UnimplementedBusinessServiceServer) CreateBusinessRole(context.Context, *CreateBusinessRoleRequest) (*BusinessRole, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateBusinessRole not implemented")
+}
+func (UnimplementedBusinessServiceServer) UpdateBusinessRole(context.Context, *UpdateBusinessRoleRequest) (*BusinessRole, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateBusinessRole not implemented")
+}
+func (UnimplementedBusinessServiceServer) ModifyBusinessRolePermission(context.Context, *ModifyBusinessRolePermissionRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ModifyBusinessRolePermission not implemented")
+}
+func (UnimplementedBusinessServiceServer) ListBusinessRole(context.Context, *ListBusinessRoleRequest) (*ListBusinessRoleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListBusinessRole not implemented")
+}
+func (UnimplementedBusinessServiceServer) DeleteBusinessRole(context.Context, *DeleteBusinessRoleRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteBusinessRole not implemented")
 }
 func (UnimplementedBusinessServiceServer) mustEmbedUnimplementedBusinessServiceServer() {}
 
@@ -811,6 +881,96 @@ func _BusinessService_UpdatePartnerApplication_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BusinessService_CreateBusinessRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateBusinessRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusinessServiceServer).CreateBusinessRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.BusinessService/CreateBusinessRole",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusinessServiceServer).CreateBusinessRole(ctx, req.(*CreateBusinessRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BusinessService_UpdateBusinessRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateBusinessRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusinessServiceServer).UpdateBusinessRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.BusinessService/UpdateBusinessRole",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusinessServiceServer).UpdateBusinessRole(ctx, req.(*UpdateBusinessRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BusinessService_ModifyBusinessRolePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ModifyBusinessRolePermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusinessServiceServer).ModifyBusinessRolePermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.BusinessService/ModifyBusinessRolePermission",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusinessServiceServer).ModifyBusinessRolePermission(ctx, req.(*ModifyBusinessRolePermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BusinessService_ListBusinessRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBusinessRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusinessServiceServer).ListBusinessRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.BusinessService/ListBusinessRole",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusinessServiceServer).ListBusinessRole(ctx, req.(*ListBusinessRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BusinessService_DeleteBusinessRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteBusinessRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusinessServiceServer).DeleteBusinessRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.BusinessService/DeleteBusinessRole",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusinessServiceServer).DeleteBusinessRole(ctx, req.(*DeleteBusinessRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BusinessService_ServiceDesc is the grpc.ServiceDesc for BusinessService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -849,6 +1009,26 @@ var BusinessService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdatePartnerApplication",
 			Handler:    _BusinessService_UpdatePartnerApplication_Handler,
+		},
+		{
+			MethodName: "CreateBusinessRole",
+			Handler:    _BusinessService_CreateBusinessRole_Handler,
+		},
+		{
+			MethodName: "UpdateBusinessRole",
+			Handler:    _BusinessService_UpdateBusinessRole_Handler,
+		},
+		{
+			MethodName: "ModifyBusinessRolePermission",
+			Handler:    _BusinessService_ModifyBusinessRolePermission_Handler,
+		},
+		{
+			MethodName: "ListBusinessRole",
+			Handler:    _BusinessService_ListBusinessRole_Handler,
+		},
+		{
+			MethodName: "DeleteBusinessRole",
+			Handler:    _BusinessService_DeleteBusinessRole_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1165,6 +1345,7 @@ type UserServiceClient interface {
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*User, error)
 	GetAddressInfo(ctx context.Context, in *GetAddressInfoRequest, opts ...grpc.CallOption) (*GetAddressInfoResponse, error)
 	ListUserAddress(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListUserAddressResponse, error)
+	GetUserAddress(ctx context.Context, in *GetUserAddressRequest, opts ...grpc.CallOption) (*UserAddress, error)
 	CreateUserAddress(ctx context.Context, in *CreateUserAddressRequest, opts ...grpc.CallOption) (*UserAddress, error)
 	UpdateUserAddress(ctx context.Context, in *UpdateUserAddressRequest, opts ...grpc.CallOption) (*UserAddress, error)
 	DeleteUserAddress(ctx context.Context, in *DeleteUserAddressRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -1214,6 +1395,15 @@ func (c *userServiceClient) ListUserAddress(ctx context.Context, in *emptypb.Emp
 	return out, nil
 }
 
+func (c *userServiceClient) GetUserAddress(ctx context.Context, in *GetUserAddressRequest, opts ...grpc.CallOption) (*UserAddress, error) {
+	out := new(UserAddress)
+	err := c.cc.Invoke(ctx, "/main.UserService/GetUserAddress", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) CreateUserAddress(ctx context.Context, in *CreateUserAddressRequest, opts ...grpc.CallOption) (*UserAddress, error) {
 	out := new(UserAddress)
 	err := c.cc.Invoke(ctx, "/main.UserService/CreateUserAddress", in, out, opts...)
@@ -1249,6 +1439,7 @@ type UserServiceServer interface {
 	UpdateUser(context.Context, *UpdateUserRequest) (*User, error)
 	GetAddressInfo(context.Context, *GetAddressInfoRequest) (*GetAddressInfoResponse, error)
 	ListUserAddress(context.Context, *emptypb.Empty) (*ListUserAddressResponse, error)
+	GetUserAddress(context.Context, *GetUserAddressRequest) (*UserAddress, error)
 	CreateUserAddress(context.Context, *CreateUserAddressRequest) (*UserAddress, error)
 	UpdateUserAddress(context.Context, *UpdateUserAddressRequest) (*UserAddress, error)
 	DeleteUserAddress(context.Context, *DeleteUserAddressRequest) (*emptypb.Empty, error)
@@ -1270,6 +1461,9 @@ func (UnimplementedUserServiceServer) GetAddressInfo(context.Context, *GetAddres
 }
 func (UnimplementedUserServiceServer) ListUserAddress(context.Context, *emptypb.Empty) (*ListUserAddressResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListUserAddress not implemented")
+}
+func (UnimplementedUserServiceServer) GetUserAddress(context.Context, *GetUserAddressRequest) (*UserAddress, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserAddress not implemented")
 }
 func (UnimplementedUserServiceServer) CreateUserAddress(context.Context, *CreateUserAddressRequest) (*UserAddress, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUserAddress not implemented")
@@ -1365,6 +1559,24 @@ func _UserService_ListUserAddress_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetUserAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserAddressRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetUserAddress(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.UserService/GetUserAddress",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetUserAddress(ctx, req.(*GetUserAddressRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_CreateUserAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateUserAddressRequest)
 	if err := dec(in); err != nil {
@@ -1441,6 +1653,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListUserAddress",
 			Handler:    _UserService_ListUserAddress_Handler,
+		},
+		{
+			MethodName: "GetUserAddress",
+			Handler:    _UserService_GetUserAddress_Handler,
 		},
 		{
 			MethodName: "CreateUserAddress",

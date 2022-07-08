@@ -105,6 +105,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 	var userRes *models.User
 	var bannedUserRes *models.BannedUser
 	var bannedDeviceRes *models.BannedDevice
+	var cartItems *[]models.CartItem
 	var deviceRes *models.Device
 	var verificationCodeErr, userErr, bannedUserErr, bannedDeviceErr, deviceErr, refreshTokenErr, authorizationTokenErr, jwtRefreshTokenErr, jwtAuthorizationTokenErr error
 	var refreshTokenRes *models.RefreshToken
@@ -191,16 +192,37 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		if jwtAuthorizationTokenErr != nil {
 			return jwtAuthorizationTokenErr
 		}
+		cartItems, err = v.dao.NewCartItemRepository().ListCartItemAll(tx, &models.CartItem{UserId: authorizationTokenRes.UserId}, nil)
+		if err != nil {
+			return err
+		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
+	itemsResponse := make([]*pb.CartItem, 0, len(*cartItems))
+	for _, item := range *cartItems {
+		itemsResponse = append(itemsResponse, &pb.CartItem{
+			Id:                   item.ID.String(),
+			Name:                 item.Name,
+			PriceCup:             item.PriceCup,
+			ItemId:               item.ItemId.String(),
+			BusinessId:           item.BusinessId.String(),
+			AuthorizationTokenId: item.AuthorizationTokenId.String(),
+			Quantity:             item.Quantity,
+			Thumbnail:            item.Thumbnail,
+			ThumbnailUrl:         v.config.ItemsBulkName + "/" + item.Thumbnail,
+			BlurHash:             item.BlurHash,
+			CreateTime:           timestamppb.New(item.CreateTime),
+			UpdateTime:           timestamppb.New(item.UpdateTime),
+		})
+	}
 	userAddress := make([]*pb.UserAddress, 0, len(userRes.UserAddress))
-	permissions := make([]*pb.Permission, 0, len(userRes.UserPermissions))
+	permissions := make([]*pb.UserPermission, 0, len(userRes.UserPermissions))
 	if *md.App == "Business" {
 		for _, item := range userRes.UserPermissions {
-			permissions = append(permissions, &pb.Permission{
+			permissions = append(permissions, &pb.UserPermission{
 				Id:         item.ID.String(),
 				Name:       item.Name,
 				UserId:     item.UserId.String(),
@@ -213,7 +235,8 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 	for _, item := range userRes.UserAddress {
 		userAddress = append(userAddress, &pb.UserAddress{
 			Id:             item.ID.String(),
-			Tag:            item.Tag,
+			Name:           item.Name,
+			Selected:       item.Selected,
 			Number:         item.Number,
 			Address:        item.Address,
 			Instructions:   item.Instructions,
@@ -246,6 +269,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		BlurHash:            userRes.BlurHash,
 		Permissions:         permissions,
 		UserAddress:         userAddress,
+		CartItems:           itemsResponse,
 		CreateTime:          timestamppb.New(userRes.CreateTime),
 		UpdateTime:          timestamppb.New(userRes.UpdateTime),
 	}}, nil
