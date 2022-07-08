@@ -15,6 +15,10 @@ func (m *ObjectStorageServer) GetPresignedPutObject(ctx context.Context, req *pb
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
 	if req.HighQualityPhoto == "" {
 		invalidArgs = true
 		invalidHighQualityPhoto = &epb.BadRequest_FieldViolation{

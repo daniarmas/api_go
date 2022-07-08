@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/daniarmas/api_go/config"
 	"github.com/daniarmas/api_go/utils"
 	log "github.com/sirupsen/logrus"
 	gomail "gopkg.in/mail.v2"
 )
 
-func SendMail(to, from, fromPassword, subject, body string, config *utils.Config) {
+func SendMail(to, from, fromPassword, subject, body string, config *config.Config) {
 	m := gomail.NewMessage()
 	// Set E-Mail sender
 	m.SetHeader("From", from)
@@ -31,7 +32,7 @@ func SendMail(to, from, fromPassword, subject, body string, config *utils.Config
 	}
 }
 
-func SendSignInMail(to string, signInTime time.Time, config *utils.Config, md *utils.ClientMetadata) {
+func SendSignInMail(to string, signInTime time.Time, config *config.Config, md *utils.ClientMetadata) {
 	msg := fmt.Sprintf("Se ha iniciado sesión en su cuenta el día %s.\n\nDispositivo: %s\nSistema Operativo: %s %s\n\nEnviamos este correo electrónico para asegurarnos de que haya sido usted.\nSi reconoce este inicio:\nNo es necesario hacer nada, puede ignorar este correo.\n\nGracias\nEl equipo de %s", signInTime.UTC(), *md.Model, *md.Platform, *md.SystemVersion, config.AppName)
 	m := gomail.NewMessage()
 	// Set E-Mail sender

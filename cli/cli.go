@@ -8,10 +8,10 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/daniarmas/api_go/datasource"
-	"github.com/daniarmas/api_go/models"
-	"github.com/daniarmas/api_go/repository"
-	"github.com/daniarmas/api_go/utils"
+	"github.com/daniarmas/api_go/config"
+	"github.com/daniarmas/api_go/internal/datasource"
+	"github.com/daniarmas/api_go/internal/entity"
+	"github.com/daniarmas/api_go/internal/repository"
 	"gorm.io/gorm"
 )
 
@@ -35,7 +35,7 @@ Use "./main help <command>" for more information about a command.
 	createApp = "createapp"
 )
 
-func HandleCli(args []string, db *gorm.DB, config *utils.Config, repositoryDao repository.DAO) {
+func HandleCli(args []string, db *gorm.DB, config *config.Config, repositoryDao repository.Repository) {
 	if len(args) != 1 {
 		createAppCmd := flag.NewFlagSet("createapp", flag.ExitOnError)
 		flag.NewFlagSet("--config", flag.ExitOnError)
@@ -59,10 +59,10 @@ func HandleCli(args []string, db *gorm.DB, config *utils.Config, repositoryDao r
 	}
 }
 
-func handleCreateApp(getCreateAdmin *flag.FlagSet, repositoryDao repository.DAO, db *gorm.DB) {
+func handleCreateApp(getCreateAdmin *flag.FlagSet, repositoryDao repository.Repository, db *gorm.DB) {
 	err := db.Transaction(func(tx *gorm.DB) error {
 		expTime := time.Now().UTC().AddDate(0, 0, 1)
-		createAppRes, createAppErr := repositoryDao.NewApplicationRepository().CreateApplication(tx, &models.Application{Name: "Initial", Version: "1.0.0", ExpirationTime: expTime})
+		createAppRes, createAppErr := repositoryDao.NewApplicationRepository().CreateApplication(tx, &entity.Application{Name: "Initial", Version: "1.0.0", ExpirationTime: expTime})
 		if createAppErr != nil {
 			log.Error(createAppErr)
 			os.Exit(0)
