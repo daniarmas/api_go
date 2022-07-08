@@ -5,14 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/daniarmas/api_go/config"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 )
-
-// type JsonWebTokenMetadata struct {
-// 	TokenId *uuid.UUID
-// 	Token   *string
-// }
 
 type JwtTokenDatasource interface {
 	CreateJwtAccessToken(tokenMetadata *JsonWebTokenMetadata) error
@@ -22,10 +18,12 @@ type JwtTokenDatasource interface {
 	ParseJwtAuthorizationToken(tokenMetadata *JsonWebTokenMetadata) error
 }
 
-type jwtTokenDatasource struct{}
+type jwtTokenDatasource struct {
+	Config *config.Config
+}
 
 func (v *jwtTokenDatasource) CreateJwtAccessToken(tokenMetadata *JsonWebTokenMetadata) error {
-	hmacSecret := []byte(Config.JwtSecret)
+	hmacSecret := []byte(v.Config.JwtSecret)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		ExpiresAt: time.Now().Add(time.Hour * 8760).Unix(),
 		Subject:   tokenMetadata.TokenId.String(),
@@ -40,7 +38,7 @@ func (v *jwtTokenDatasource) CreateJwtAccessToken(tokenMetadata *JsonWebTokenMet
 }
 
 func (v *jwtTokenDatasource) CreateJwtRefreshToken(tokenMetadata *JsonWebTokenMetadata) error {
-	hmacSecret := []byte(Config.JwtSecret)
+	hmacSecret := []byte(v.Config.JwtSecret)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		ExpiresAt: time.Now().Add(time.Hour * 720).Unix(),
 		Subject:   tokenMetadata.TokenId.String(),
@@ -55,7 +53,7 @@ func (v *jwtTokenDatasource) CreateJwtRefreshToken(tokenMetadata *JsonWebTokenMe
 }
 
 func (r *jwtTokenDatasource) CreateJwtAuthorizationToken(tokenMetadata *JsonWebTokenMetadata) error {
-	hmacSecret := []byte(Config.JwtSecret)
+	hmacSecret := []byte(r.Config.JwtSecret)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
 		Subject:   tokenMetadata.TokenId.String(),
@@ -70,7 +68,7 @@ func (r *jwtTokenDatasource) CreateJwtAuthorizationToken(tokenMetadata *JsonWebT
 }
 
 func (r *jwtTokenDatasource) ParseJwtRefreshToken(tokenMetadata *JsonWebTokenMetadata) error {
-	hmacSecret := []byte(Config.JwtSecret)
+	hmacSecret := []byte(r.Config.JwtSecret)
 	// Parse takes the token string and a function for looking up the key. The latter is especially
 	// useful if you use multiple keys for your application.  The standard is to use 'kid' in the
 	// head of the token to identify which key to use, but the parsed token (head and claims) is provided
@@ -98,7 +96,7 @@ func (r *jwtTokenDatasource) ParseJwtRefreshToken(tokenMetadata *JsonWebTokenMet
 }
 
 func (r *jwtTokenDatasource) ParseJwtAuthorizationToken(tokenMetadata *JsonWebTokenMetadata) error {
-	hmacSecret := []byte(Config.JwtSecret)
+	hmacSecret := []byte(r.Config.JwtSecret)
 	// Parse takes the token string and a function for looking up the key. The latter is especially
 	// useful if you use multiple keys for your application.  The standard is to use 'kid' in the
 	// head of the token to identify which key to use, but the parsed token (head and claims) is provided

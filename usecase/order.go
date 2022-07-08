@@ -11,6 +11,7 @@ import (
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
+	"github.com/daniarmas/api_go/pkg/sqldb"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
@@ -29,17 +30,18 @@ type OrderService interface {
 }
 
 type orderService struct {
-	dao repository.DAO
+	dao   repository.Repository
+	sqldb *sqldb.Sql
 }
 
-func NewOrderService(dao repository.DAO) OrderService {
-	return &orderService{dao: dao}
+func NewOrderService(dao repository.Repository, sqldb *sqldb.Sql) OrderService {
+	return &orderService{dao: dao, sqldb: sqldb}
 }
 
 func (i *orderService) ListOrderedItemWithItem(ctx context.Context, req *pb.ListOrderedItemRequest, md *utils.ClientMetadata) (*pb.ListOrderedItemResponse, error) {
 	var res pb.ListOrderedItemResponse
 	orderId := uuid.MustParse(req.OrderId)
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -93,7 +95,7 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 	var res *pb.Order
 	id := uuid.MustParse(req.Order.Id)
 	var cancelReasons string
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -203,7 +205,7 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 	var res *pb.Order
 	var cartItems []uuid.UUID
 	location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -711,7 +713,7 @@ func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, 
 		nextPage = req.NextPage.AsTime()
 	}
 	var res pb.ListOrderResponse
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr

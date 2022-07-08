@@ -23,14 +23,16 @@ type BusinessRepository interface {
 	BusinessIsInRange(tx *gorm.DB, coordinates ewkb.Point, businessId *uuid.UUID) (*bool, error)
 }
 
-type businessRepository struct{}
+type businessRepository struct {
+	rdb *redis.Client
+}
 
 func (b *businessRepository) BusinessIsInRange(tx *gorm.DB, coordinates ewkb.Point, businessId *uuid.UUID) (*bool, error) {
 	lat := strconv.FormatFloat(coordinates.Point.Coords()[0], 'E', -1, 64)
 	long := strconv.FormatFloat(coordinates.Point.Coords()[1], 'E', -1, 64)
 	cacheId := "business_is_in_range:" + lat + long + ":" + businessId.String()
 	ctx := context.Background()
-	cacheRes, cacheErr := Rdb.HGetAll(ctx, cacheId).Result()
+	cacheRes, cacheErr := b.rdb.HGetAll(ctx, cacheId).Result()
 	// Check if exists in cache
 	if len(cacheRes) == 0 || cacheErr == redis.Nil {
 		dbRes, dbErr := Datasource.NewBusinessDatasource().BusinessIsInRange(tx, coordinates, businessId)
@@ -38,13 +40,13 @@ func (b *businessRepository) BusinessIsInRange(tx *gorm.DB, coordinates ewkb.Poi
 			return nil, dbErr
 		}
 		go func() {
-			cacheErr := Rdb.HSet(ctx, cacheId, []string{
+			cacheErr := b.rdb.HSet(ctx, cacheId, []string{
 				"is_in_range", strconv.FormatBool(*dbRes),
 			}).Err()
 			if cacheErr != nil {
 				log.Error(cacheErr)
 			} else {
-				Rdb.Expire(ctx, cacheId, time.Minute*30)
+				b.rdb.Expire(ctx, cacheId, time.Minute*30)
 			}
 		}()
 		return dbRes, nil

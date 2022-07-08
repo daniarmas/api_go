@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type DAO interface {
+type Repository interface {
 	NewItemRepository() ItemRepository
 	NewVerificationCodeRepository() VerificationCodeRepository
 	NewUserRepository() UserRepository
@@ -44,151 +44,149 @@ type DAO interface {
 	NewPermissionRepository() PermissionRepository
 }
 
-type dao struct {
+type repository struct {
 }
 
-var Config *config.Config
-var Datasource datasource.DAO
+var Datasource datasource.Datasource
 var Rdb *redis.Client
 
-func NewDAO(db *gorm.DB, config *config.Config, datasourceDao datasource.DAO, rdb *redis.Client) DAO {
-	Rdb = rdb
-	Config = config
+func New(db *gorm.DB, config *config.Config, datasourceDao datasource.Datasource, rdb *redis.Client) Repository {
 	Datasource = datasourceDao
-	return &dao{}
+	Rdb = rdb
+	return &repository{}
 }
 
-func (d *dao) NewJwtTokenRepository() JwtTokenRepository {
+func (d *repository) NewJwtTokenRepository() JwtTokenRepository {
 	return &jwtTokenRepository{}
 }
 
-func (d *dao) NewItemRepository() ItemRepository {
+func (d *repository) NewItemRepository() ItemRepository {
 	return &itemRepository{}
 }
 
-func (d *dao) NewVerificationCodeRepository() VerificationCodeRepository {
+func (d *repository) NewVerificationCodeRepository() VerificationCodeRepository {
 	return &verificationCodeRepository{}
 }
 
-func (d *dao) NewApplicationRepository() ApplicationRepository {
+func (d *repository) NewApplicationRepository() ApplicationRepository {
 	return &applicationRepository{}
 }
 
-func (d *dao) NewUserRepository() UserRepository {
+func (d *repository) NewUserRepository() UserRepository {
 	return &userRepository{}
 }
 
-func (d *dao) NewMunicipalityRepository() MunicipalityRepository {
+func (d *repository) NewMunicipalityRepository() MunicipalityRepository {
 	return &municipalityRepository{}
 }
 
-func (d *dao) NewBusinessUserRepository() BusinessUserRepository {
+func (d *repository) NewBusinessUserRepository() BusinessUserRepository {
 	return &businessUserRepository{}
 }
 
-func (d *dao) NewOrderLifecycleRepository() OrderLifecycleRepository {
+func (d *repository) NewOrderLifecycleRepository() OrderLifecycleRepository {
 	return &orderLifecycleRepository{}
 }
 
-func (d *dao) NewProvinceRepository() ProvinceRepository {
+func (d *repository) NewProvinceRepository() ProvinceRepository {
 	return &provinceRepository{}
 }
 
-func (d *dao) NewUnionBusinessRoleAndPermissionRepository() UnionBusinessRoleAndPermissionRepository {
+func (d *repository) NewUnionBusinessRoleAndPermissionRepository() UnionBusinessRoleAndPermissionRepository {
 	return &unionBusinessRoleAndPermissionRepository{}
 }
-func (d *dao) NewUnionBusinessRoleAndUserRepository() UnionBusinessRoleAndUserRepository {
+func (d *repository) NewUnionBusinessRoleAndUserRepository() UnionBusinessRoleAndUserRepository {
 	return &unionBusinessRoleAndUserRepository{}
 }
 
-func (d *dao) NewPermissionRepository() PermissionRepository {
+func (d *repository) NewPermissionRepository() PermissionRepository {
 	return &permissionRepository{}
 }
 
-func (d *dao) NewBusinessAnalyticsRepository() BusinessAnalyticsRepository {
+func (d *repository) NewBusinessAnalyticsRepository() BusinessAnalyticsRepository {
 	return &businessAnalyticsRepository{}
 }
 
-func (d *dao) NewItemAnalyticsRepository() ItemAnalyticsRepository {
+func (d *repository) NewItemAnalyticsRepository() ItemAnalyticsRepository {
 	return &itemAnalyticsRepository{}
 }
 
-func (d *dao) NewOrderRepository() OrderRepository {
+func (d *repository) NewOrderRepository() OrderRepository {
 	return &orderRepository{}
 }
 
-func (d *dao) NewBusinessScheduleRepository() BusinessScheduleRepository {
+func (d *repository) NewBusinessScheduleRepository() BusinessScheduleRepository {
 	return &businessScheduleRepository{}
 }
 
-func (d *dao) NewUserAddressRepository() UserAddressRepository {
+func (d *repository) NewUserAddressRepository() UserAddressRepository {
 	return &userAddressRepository{}
 }
 
-func (d *dao) NewBannedUserRepository() BannedUserRepository {
+func (d *repository) NewBannedUserRepository() BannedUserRepository {
 	return &bannedUserRepository{}
 }
 
-func (d *dao) NewOrderedRepository() OrderedRepository {
+func (d *repository) NewOrderedRepository() OrderedRepository {
 	return &orderedRepository{}
 }
 
-func (d *dao) NewUnionOrderAndOrderedItemRepository() UnionOrderAndOrderedItemRepository {
+func (d *repository) NewUnionOrderAndOrderedItemRepository() UnionOrderAndOrderedItemRepository {
 	return &unionOrderAndOrderedItemRepository{}
 }
 
-func (d *dao) NewBannedDeviceRepository() BannedDeviceRepository {
+func (d *repository) NewBannedDeviceRepository() BannedDeviceRepository {
 	return &bannedDeviceRepository{}
 }
 
-func (d *dao) NewDeviceRepository() DeviceRepository {
+func (d *repository) NewDeviceRepository() DeviceRepository {
 	return &deviceRepository{}
 }
 
-func (d *dao) NewRefreshTokenRepository() RefreshTokenRepository {
+func (d *repository) NewRefreshTokenRepository() RefreshTokenRepository {
 	return &refreshTokenRepository{}
 }
 
-func (d *dao) NewPartnerApplicationRepository() PartnerApplicationRepository {
+func (d *repository) NewPartnerApplicationRepository() PartnerApplicationRepository {
 	return &partnerApplicationRepository{}
 }
 
-func (d *dao) NewAuthorizationTokenRepository() AuthorizationTokenRepository {
+func (d *repository) NewAuthorizationTokenRepository() AuthorizationTokenRepository {
 	return &authorizationTokenRepository{}
 }
 
-func (d *dao) NewBusinessCategoryRepository() BusinessCategoryRepository {
+func (d *repository) NewBusinessCategoryRepository() BusinessCategoryRepository {
 	return &businessCategoryRepository{}
 }
 
-func (d *dao) NewSessionRepository() SessionRepository {
+func (d *repository) NewSessionRepository() SessionRepository {
 	return &sessionRepository{}
 }
 
-func (d *dao) NewBusinessRepository() BusinessRepository {
+func (d *repository) NewBusinessRepository() BusinessRepository {
 	return &businessRepository{}
 }
 
-func (d *dao) NewBusinessCollectionRepository() BusinessCollectionRepository {
+func (d *repository) NewBusinessCollectionRepository() BusinessCollectionRepository {
 	return &businessCollectionRepository{}
 }
 
-func (d *dao) NewUnionBusinessAndMunicipalityRepository() UnionBusinessAndMunicipalityRepository {
+func (d *repository) NewUnionBusinessAndMunicipalityRepository() UnionBusinessAndMunicipalityRepository {
 	return &unionBusinessAndMunicipality{}
 }
 
-func (d *dao) NewBusinessRoleRepository() BusinessRoleRepository {
+func (d *repository) NewBusinessRoleRepository() BusinessRoleRepository {
 	return &businessRoleRepository{}
 }
 
-func (d *dao) NewObjectStorageRepository() ObjectStorageRepository {
+func (d *repository) NewObjectStorageRepository() ObjectStorageRepository {
 	return &objectStorageRepository{}
 }
 
-func (d *dao) NewCartItemRepository() CartItemRepository {
+func (d *repository) NewCartItemRepository() CartItemRepository {
 	return &cartItemRepository{}
 }
 
-func (d *dao) NewUserPermissionRepository() UserPermissionRepository {
+func (d *repository) NewUserPermissionRepository() UserPermissionRepository {
 	return &userPermissionRepository{}
 }

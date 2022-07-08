@@ -8,6 +8,7 @@ import (
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
+	"github.com/daniarmas/api_go/pkg/sqldb"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
@@ -23,11 +24,12 @@ type ApplicationService interface {
 }
 
 type applicationService struct {
-	dao repository.DAO
+	dao   repository.Repository
+	sqldb *sqldb.Sql
 }
 
-func NewApplicationService(dao repository.DAO) ApplicationService {
-	return &applicationService{dao: dao}
+func NewApplicationService(dao repository.Repository, sqldb *sqldb.Sql) ApplicationService {
+	return &applicationService{dao: dao, sqldb: sqldb}
 }
 
 func (i *applicationService) ListApplication(ctx context.Context, req *pb.ListApplicationRequest, md *utils.ClientMetadata) (*pb.ListApplicationResponse, error) {
@@ -38,7 +40,7 @@ func (i *applicationService) ListApplication(ctx context.Context, req *pb.ListAp
 	} else {
 		nextPage = req.NextPage.AsTime()
 	}
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if err != nil {
 			return err
@@ -101,7 +103,7 @@ func (i *applicationService) ListApplication(ctx context.Context, req *pb.ListAp
 
 func (i *applicationService) DeleteApplication(ctx context.Context, req *pb.DeleteApplicationRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
 	var res gp.Empty
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if err != nil {
 			return err
@@ -147,7 +149,7 @@ func (i *applicationService) DeleteApplication(ctx context.Context, req *pb.Dele
 
 func (i *applicationService) CreateApplication(ctx context.Context, req *pb.CreateApplicationRequest, md *utils.ClientMetadata) (*pb.Application, error) {
 	var res pb.Application
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr

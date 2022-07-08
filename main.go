@@ -10,12 +10,13 @@ import (
 	"github.com/daniarmas/api_go/config"
 	"github.com/daniarmas/api_go/datasource"
 	pb "github.com/daniarmas/api_go/pkg"
+	"github.com/daniarmas/api_go/pkg/rdb"
+	"github.com/daniarmas/api_go/pkg/s3"
 	"github.com/daniarmas/api_go/pkg/sqldb"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/tlscert"
 	"github.com/daniarmas/api_go/usecase"
 	"github.com/daniarmas/api_go/utils"
-	"github.com/go-redis/redis/v9"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -57,12 +58,7 @@ func serviceRegister(sv *grpc.Server) {
 		log.Fatal("cannot load config:", err)
 	}
 	// Redis
-	rdbAddres := fmt.Sprintf("%s:%d", cfg.RedisHost, cfg.RedisPort)
-	rdb := redis.NewClient(&redis.Options{
-		Addr: rdbAddres,
-		// Password: config.RedisPassword, // no password set
-		// DB:       config.RedisDb,       // use default DB
-	})
+	rdb := rdb.New(cfg)
 	// Standard Library Database Connection
 	stDb, err := sql.Open("pgx",
 		cfg.DBDsn)
@@ -71,32 +67,32 @@ func serviceRegister(sv *grpc.Server) {
 	}
 	// defer stDb.Close()
 	// Database GORM
-	db, err := sqldb.New(cfg)
+	sqlDb, err := sqldb.New(cfg)
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 		return
 	}
 	// ObjectStorageServer
-	objectStorage, objectStorageErr := datasource.NewMinioClient(cfg)
-	if objectStorageErr != nil {
-		log.Fatalf("Error connecting to minio: %v", objectStorageErr)
+	s3, err := s3.New(cfg)
+	if err != nil {
+		log.Fatalf("Error connecting to minio: %v", err)
 	}
 	// Datasource
-	datasourceDao := datasource.NewDAO(db.Gorm, cfg, objectStorage)
+	datasource := datasource.New(sqlDb.Gorm, cfg, s3)
 	// Repository
-	repositoryDao := repository.NewDAO(db.Gorm, cfg, datasourceDao, rdb)
+	repository := repository.New(sqlDb.Gorm, cfg, datasource, rdb)
 	// Handle the cli
-	cli.HandleCli(os.Args, db.Gorm, cfg, repositoryDao)
-	itemService := usecase.NewItemService(repositoryDao, cfg, stDb)
-	authenticationService := usecase.NewAuthenticationService(repositoryDao, cfg)
-	businessService := usecase.NewBusinessService(repositoryDao, cfg, stDb)
-	userService := usecase.NewUserService(repositoryDao, cfg, rdb)
-	cartItemService := usecase.NewCartItemService(repositoryDao, cfg)
-	orderService := usecase.NewOrderService(repositoryDao)
-	banService := usecase.NewBanService(repositoryDao)
-	objectStorageService := usecase.NewObjectStorageService(repositoryDao)
-	analyicsService := usecase.NewAnalyticsService(repositoryDao, stDb)
-	applicationService := usecase.NewApplicationService(repositoryDao)
+	cli.HandleCli(os.Args, sqlDb.Gorm, cfg, repository)
+	itemService := usecase.NewItemService(repository, cfg, stDb, sqlDb)
+	authenticationService := usecase.NewAuthenticationService(repository, cfg, sqlDb)
+	businessService := usecase.NewBusinessService(repository, cfg, stDb, sqlDb)
+	userService := usecase.NewUserService(repository, cfg, rdb, sqlDb)
+	cartItemService := usecase.NewCartItemService(repository, cfg, sqlDb)
+	orderService := usecase.NewOrderService(repository, sqlDb)
+	banService := usecase.NewBanService(repository, sqlDb)
+	objectStorageService := usecase.NewObjectStorageService(repository, sqlDb, cfg)
+	analyicsService := usecase.NewAnalyticsService(repository, stDb)
+	applicationService := usecase.NewApplicationService(repository, sqlDb)
 	pb.RegisterItemServiceServer(sv, app.NewItemServer(
 		itemService,
 	))

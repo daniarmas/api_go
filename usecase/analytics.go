@@ -18,11 +18,11 @@ type AnalyticsService interface {
 }
 
 type analyticsService struct {
-	dao  repository.DAO
+	dao  repository.Repository
 	stDb *sql.DB
 }
 
-func NewAnalyticsService(dao repository.DAO, stDb *sql.DB) AnalyticsService {
+func NewAnalyticsService(dao repository.Repository, stDb *sql.DB) AnalyticsService {
 	return &analyticsService{dao: dao, stDb: stDb}
 }
 

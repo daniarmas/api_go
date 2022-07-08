@@ -21,7 +21,7 @@ type objectStorageDatasource struct {
 }
 
 func (m *objectStorageDatasource) PresignedPutObject(ctx context.Context, bucketName, objectName string, expiry time.Duration) (*string, error) {
-	res, err := MinioClient.PresignedPutObject(context.Background(), bucketName, objectName, expiry)
+	res, err := m.Minio.PresignedPutObject(context.Background(), bucketName, objectName, expiry)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func (m *objectStorageDatasource) PresignedPutObject(ctx context.Context, bucket
 }
 
 func (m *objectStorageDatasource) RemoveObject(ctx context.Context, bucketName, objectName string, opts minio.RemoveObjectOptions) error {
-	err := MinioClient.RemoveObject(ctx, bucketName, objectName, opts)
+	err := m.Minio.RemoveObject(ctx, bucketName, objectName, opts)
 	if err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func (m *objectStorageDatasource) RemoveObject(ctx context.Context, bucketName, 
 }
 
 func (m *objectStorageDatasource) BucketExists(ctx context.Context, bucketName string) (*bool, error) {
-	result, err := MinioClient.BucketExists(ctx, bucketName)
+	result, err := m.Minio.BucketExists(ctx, bucketName)
 	if err != nil {
 		return nil, err
 	}

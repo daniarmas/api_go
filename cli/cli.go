@@ -35,7 +35,7 @@ Use "./main help <command>" for more information about a command.
 	createApp = "createapp"
 )
 
-func HandleCli(args []string, db *gorm.DB, config *config.Config, repositoryDao repository.DAO) {
+func HandleCli(args []string, db *gorm.DB, config *config.Config, repositoryDao repository.Repository) {
 	if len(args) != 1 {
 		createAppCmd := flag.NewFlagSet("createapp", flag.ExitOnError)
 		flag.NewFlagSet("--config", flag.ExitOnError)
@@ -59,7 +59,7 @@ func HandleCli(args []string, db *gorm.DB, config *config.Config, repositoryDao 
 	}
 }
 
-func handleCreateApp(getCreateAdmin *flag.FlagSet, repositoryDao repository.DAO, db *gorm.DB) {
+func handleCreateApp(getCreateAdmin *flag.FlagSet, repositoryDao repository.Repository, db *gorm.DB) {
 	err := db.Transaction(func(tx *gorm.DB) error {
 		expTime := time.Now().UTC().AddDate(0, 0, 1)
 		createAppRes, createAppErr := repositoryDao.NewApplicationRepository().CreateApplication(tx, &models.Application{Name: "Initial", Version: "1.0.0", ExpirationTime: expTime})

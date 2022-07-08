@@ -10,6 +10,7 @@ import (
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
+	"github.com/daniarmas/api_go/pkg/sqldb"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
@@ -31,19 +32,20 @@ type ItemService interface {
 }
 
 type itemService struct {
-	dao    repository.DAO
+	dao    repository.Repository
 	config *config.Config
 	stDb   *sql.DB
+	sqldb  *sqldb.Sql
 }
 
-func NewItemService(dao repository.DAO, config *config.Config, stDb *sql.DB) ItemService {
-	return &itemService{dao: dao, config: config, stDb: stDb}
+func NewItemService(dao repository.Repository, config *config.Config, stDb *sql.DB, sqldb *sqldb.Sql) ItemService {
+	return &itemService{dao: dao, config: config, stDb: stDb, sqldb: sqldb}
 }
 
 func (i *itemService) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest, md *utils.ClientMetadata) (*pb.Item, error) {
 	var updateItemRes *models.Item
 	var updateItemErr error
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -84,45 +86,45 @@ func (i *itemService) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest,
 			return errors.New("item in the cart")
 		}
 		if req.Item.HighQualityPhoto != "" || req.Item.LowQualityPhoto != "" || req.Item.Thumbnail != "" {
-			_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.Item.HighQualityPhoto)
+			_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.ItemsBulkName, req.Item.HighQualityPhoto)
 			if hqErr != nil && hqErr.Error() == "ObjectMissing" {
 				return errors.New("HighQualityPhotoObject missing")
 			} else if hqErr != nil {
 				return hqErr
 			}
-			_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.Item.LowQualityPhoto)
+			_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.ItemsBulkName, req.Item.LowQualityPhoto)
 			if lqErr != nil && lqErr.Error() == "ObjectMissing" {
 				return errors.New("LowQualityPhotoObject missing")
 			} else if lqErr != nil {
 				return lqErr
 			}
-			_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.Item.Thumbnail)
+			_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.ItemsBulkName, req.Item.Thumbnail)
 			if tnErr != nil && tnErr.Error() == "ObjectMissing" {
 				return errors.New("ThumbnailObject missing")
 			} else if tnErr != nil {
 				return tnErr
 			}
-			_, copyHqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getItemRes.HighQualityPhoto}, minio.CopySrcOptions{Bucket: repository.Config.ItemsBulkName, Object: getItemRes.HighQualityPhoto})
+			_, copyHqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.ItemsDeletedBulkName, Object: getItemRes.HighQualityPhoto}, minio.CopySrcOptions{Bucket: i.config.ItemsBulkName, Object: getItemRes.HighQualityPhoto})
 			if copyHqErr != nil {
 				return copyHqErr
 			}
-			_, copyLqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getItemRes.LowQualityPhoto}, minio.CopySrcOptions{Bucket: repository.Config.ItemsBulkName, Object: getItemRes.LowQualityPhoto})
+			_, copyLqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.ItemsDeletedBulkName, Object: getItemRes.LowQualityPhoto}, minio.CopySrcOptions{Bucket: i.config.ItemsBulkName, Object: getItemRes.LowQualityPhoto})
 			if copyLqErr != nil {
 				return copyLqErr
 			}
-			_, copyThErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getItemRes.Thumbnail}, minio.CopySrcOptions{Bucket: repository.Config.ItemsBulkName, Object: getItemRes.Thumbnail})
+			_, copyThErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.ItemsDeletedBulkName, Object: getItemRes.Thumbnail}, minio.CopySrcOptions{Bucket: i.config.ItemsBulkName, Object: getItemRes.Thumbnail})
 			if copyThErr != nil {
 				return copyThErr
 			}
-			rmHqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.ItemsBulkName, getItemRes.HighQualityPhoto, minio.RemoveObjectOptions{})
+			rmHqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.ItemsBulkName, getItemRes.HighQualityPhoto, minio.RemoveObjectOptions{})
 			if rmHqErr != nil {
 				return rmHqErr
 			}
-			rmLqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.ItemsBulkName, getItemRes.LowQualityPhoto, minio.RemoveObjectOptions{})
+			rmLqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.ItemsBulkName, getItemRes.LowQualityPhoto, minio.RemoveObjectOptions{})
 			if rmLqErr != nil {
 				return rmLqErr
 			}
-			rmThErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.ItemsBulkName, getItemRes.Thumbnail, minio.RemoveObjectOptions{})
+			rmThErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.ItemsBulkName, getItemRes.Thumbnail, minio.RemoveObjectOptions{})
 			if rmThErr != nil {
 				return rmThErr
 			}
@@ -155,7 +157,7 @@ func (i *itemService) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest,
 }
 
 func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest, md *utils.ClientMetadata) error {
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -215,27 +217,27 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 		if deleteItemErr != nil {
 			return deleteItemErr
 		}
-		_, copyHqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getItemRes.HighQualityPhoto}, minio.CopySrcOptions{Bucket: repository.Config.ItemsBulkName, Object: getItemRes.HighQualityPhoto})
+		_, copyHqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.ItemsDeletedBulkName, Object: getItemRes.HighQualityPhoto}, minio.CopySrcOptions{Bucket: i.config.ItemsBulkName, Object: getItemRes.HighQualityPhoto})
 		if copyHqErr != nil {
 			return copyHqErr
 		}
-		_, copyLqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getItemRes.LowQualityPhoto}, minio.CopySrcOptions{Bucket: repository.Config.ItemsBulkName, Object: getItemRes.LowQualityPhoto})
+		_, copyLqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.ItemsDeletedBulkName, Object: getItemRes.LowQualityPhoto}, minio.CopySrcOptions{Bucket: i.config.ItemsBulkName, Object: getItemRes.LowQualityPhoto})
 		if copyLqErr != nil {
 			return copyLqErr
 		}
-		_, copyThErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getItemRes.Thumbnail}, minio.CopySrcOptions{Bucket: repository.Config.ItemsBulkName, Object: getItemRes.Thumbnail})
+		_, copyThErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.ItemsDeletedBulkName, Object: getItemRes.Thumbnail}, minio.CopySrcOptions{Bucket: i.config.ItemsBulkName, Object: getItemRes.Thumbnail})
 		if copyThErr != nil {
 			return copyThErr
 		}
-		rmHqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.ItemsBulkName, getItemRes.HighQualityPhoto, minio.RemoveObjectOptions{})
+		rmHqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.ItemsBulkName, getItemRes.HighQualityPhoto, minio.RemoveObjectOptions{})
 		if rmHqErr != nil {
 			return rmHqErr
 		}
-		rmLqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.ItemsBulkName, getItemRes.LowQualityPhoto, minio.RemoveObjectOptions{})
+		rmLqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.ItemsBulkName, getItemRes.LowQualityPhoto, minio.RemoveObjectOptions{})
 		if rmLqErr != nil {
 			return rmLqErr
 		}
-		rmThErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.ItemsBulkName, getItemRes.Thumbnail, minio.RemoveObjectOptions{})
+		rmThErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.ItemsBulkName, getItemRes.Thumbnail, minio.RemoveObjectOptions{})
 		if rmThErr != nil {
 			return rmThErr
 		}
@@ -250,7 +252,7 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest, md *utils.ClientMetadata) (*pb.Item, error) {
 	var itemRes *models.Item
 	var itemErr error
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -286,19 +288,19 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 		} else if err != nil {
 			return err
 		}
-		_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.Item.HighQualityPhoto)
+		_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.ItemsBulkName, req.Item.HighQualityPhoto)
 		if hqErr != nil && hqErr.Error() == "ObjectMissing" {
 			return errors.New("highQualityPhotoObject missing")
 		} else if hqErr != nil {
 			return hqErr
 		}
-		_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.Item.LowQualityPhoto)
+		_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.ItemsBulkName, req.Item.LowQualityPhoto)
 		if lqErr != nil && lqErr.Error() == "ObjectMissing" {
 			return errors.New("lowQualityPhotoObject missing")
 		} else if lqErr != nil {
 			return lqErr
 		}
-		_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.ItemsBulkName, req.Item.Thumbnail)
+		_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.ItemsBulkName, req.Item.Thumbnail)
 		if tnErr != nil && tnErr.Error() == "ObjectMissing" {
 			return errors.New("thumbnailObject missing")
 		} else if tnErr != nil {
@@ -337,7 +339,7 @@ func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md 
 		businessId = uuid.MustParse(req.BusinessId)
 		where.BusinessId = &businessId
 	}
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -390,7 +392,7 @@ func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *u
 	var res pb.Item
 	var item *models.Item
 	var itemErr error
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -436,7 +438,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 	var response *[]models.Item
 	var searchItemResponse pb.SearchItemResponse
 	var responseErr error
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -515,7 +517,7 @@ func (i *itemService) SearchItemByBusiness(ctx context.Context, req *pb.SearchIt
 	var response *[]models.Item
 	var searchItemResponse pb.SearchItemByBusinessResponse
 	var responseErr error
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr

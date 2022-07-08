@@ -10,6 +10,7 @@ import (
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
+	"github.com/daniarmas/api_go/pkg/sqldb"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
@@ -28,19 +29,20 @@ type CartItemService interface {
 }
 
 type cartItemService struct {
-	dao    repository.DAO
+	dao    repository.Repository
 	config *config.Config
+	sqldb  *sqldb.Sql
 }
 
-func NewCartItemService(dao repository.DAO, config *config.Config) CartItemService {
-	return &cartItemService{dao: dao, config: config}
+func NewCartItemService(dao repository.Repository, config *config.Config, sqldb *sqldb.Sql) CartItemService {
+	return &cartItemService{dao: dao, config: config, sqldb: sqldb}
 }
 
 func (i *cartItemService) EmptyAndAddCartItem(ctx context.Context, req *pb.EmptyAndAddCartItemRequest, md *utils.ClientMetadata) (*pb.CartItem, error) {
 	var result *models.CartItem
 	var resultErr error
 	itemId := uuid.MustParse(req.ItemId)
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -157,7 +159,7 @@ func (i *cartItemService) EmptyAndAddCartItem(ctx context.Context, req *pb.Empty
 }
 
 func (i *cartItemService) EmptyCartItem(ctx context.Context, md *utils.ClientMetadata) (*gp.Empty, error) {
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -224,7 +226,7 @@ func (i *cartItemService) EmptyCartItem(ctx context.Context, md *utils.ClientMet
 func (i *cartItemService) IsEmptyCartItem(ctx context.Context, req *gp.Empty, md *utils.ClientMetadata) (*pb.IsEmptyCartItemResponse, error) {
 	var cartItemQuantityRes *bool
 	var cartItemQuantityErr error
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -271,7 +273,7 @@ func (i *cartItemService) ListCartItem(ctx context.Context, req *pb.ListCartItem
 	} else {
 		nextPage = req.NextPage.AsTime()
 	}
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -337,7 +339,7 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 	var result *models.CartItem
 	var resultErr error
 	itemId := uuid.MustParse(req.ItemId)
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -428,7 +430,7 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 }
 
 func (i *cartItemService) DeleteCartItem(ctx context.Context, req *pb.DeleteCartItemRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr

@@ -10,6 +10,7 @@ import (
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
+	"github.com/daniarmas/api_go/pkg/sqldb"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
@@ -39,17 +40,18 @@ type BusinessService interface {
 
 type businessService struct {
 	config *config.Config
-	dao    repository.DAO
+	dao    repository.Repository
 	stDb   *sql.DB
+	sqldb  *sqldb.Sql
 }
 
-func NewBusinessService(dao repository.DAO, config *config.Config, stDb *sql.DB) BusinessService {
-	return &businessService{dao: dao, config: config, stDb: stDb}
+func NewBusinessService(dao repository.Repository, config *config.Config, stDb *sql.DB, sqldb *sqldb.Sql) BusinessService {
+	return &businessService{dao: dao, config: config, stDb: stDb, sqldb: sqldb}
 }
 
 func (i *businessService) ModifyBusinessRolePermission(ctx context.Context, req *pb.ModifyBusinessRolePermissionRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
 	var res gp.Empty
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -145,7 +147,7 @@ func (i *businessService) ModifyBusinessRolePermission(ctx context.Context, req 
 
 func (i *businessService) UpdateBusinessRole(ctx context.Context, req *pb.UpdateBusinessRoleRequest, md *utils.ClientMetadata) (*pb.BusinessRole, error) {
 	var res pb.BusinessRole
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -197,7 +199,7 @@ func (i *businessService) UpdateBusinessRole(ctx context.Context, req *pb.Update
 }
 
 func (i *businessService) DeleteBusinessRole(ctx context.Context, req *pb.DeleteBusinessRoleRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -253,7 +255,7 @@ func (i *businessService) DeleteBusinessRole(ctx context.Context, req *pb.Delete
 
 func (i *businessService) CreateBusinessRole(ctx context.Context, req *pb.CreateBusinessRoleRequest, md *utils.ClientMetadata) (*pb.BusinessRole, error) {
 	var res pb.BusinessRole
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -322,7 +324,7 @@ func (i *businessService) ListBusinessRole(ctx context.Context, req *pb.ListBusi
 	} else {
 		nextPage = req.NextPage.AsTime()
 	}
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -384,7 +386,7 @@ func (i *businessService) ListBusinessRole(ctx context.Context, req *pb.ListBusi
 
 func (i *businessService) UpdatePartnerApplication(ctx context.Context, req *pb.UpdatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error) {
 	var res pb.PartnerApplication
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -465,7 +467,7 @@ func (i *businessService) ListPartnerApplication(ctx context.Context, req *pb.Li
 	} else {
 		nextPage = req.NextPage.AsTime()
 	}
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -531,7 +533,7 @@ func (i *businessService) ListPartnerApplication(ctx context.Context, req *pb.Li
 
 func (i *businessService) CreatePartnerApplication(ctx context.Context, req *pb.CreatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error) {
 	var res pb.PartnerApplication
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -601,7 +603,7 @@ func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusi
 	var businessRes *models.Business
 	var businessErr error
 	id := uuid.MustParse(req.Id)
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -656,45 +658,45 @@ func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusi
 			return getBusinessErr
 		}
 		if req.HighQualityPhoto != "" || req.LowQualityPhoto != "" || req.Thumbnail != "" {
-			_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, req.HighQualityPhoto)
+			_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.BusinessAvatarBulkName, req.HighQualityPhoto)
 			if hqErr != nil && hqErr.Error() == "ObjectMissing" {
 				return errors.New("HighQualityPhotoObject missing")
 			} else if hqErr != nil {
 				return hqErr
 			}
-			_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, req.LowQualityPhoto)
+			_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.BusinessAvatarBulkName, req.LowQualityPhoto)
 			if lqErr != nil && lqErr.Error() == "ObjectMissing" {
 				return errors.New("LowQualityPhotoObject missing")
 			} else if lqErr != nil {
 				return lqErr
 			}
-			_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, req.Thumbnail)
+			_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.BusinessAvatarBulkName, req.Thumbnail)
 			if tnErr != nil && tnErr.Error() == "ObjectMissing" {
 				return errors.New("ThumbnailObject missing")
 			} else if tnErr != nil {
 				return tnErr
 			}
-			_, copyHqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getBusinessRes.HighQualityPhoto}, minio.CopySrcOptions{Bucket: repository.Config.BusinessAvatarBulkName, Object: getBusinessRes.HighQualityPhoto})
+			_, copyHqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.ItemsDeletedBulkName, Object: getBusinessRes.HighQualityPhoto}, minio.CopySrcOptions{Bucket: i.config.BusinessAvatarBulkName, Object: getBusinessRes.HighQualityPhoto})
 			if copyHqErr != nil {
 				return copyHqErr
 			}
-			_, copyLqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getBusinessRes.LowQualityPhoto}, minio.CopySrcOptions{Bucket: repository.Config.BusinessAvatarBulkName, Object: getBusinessRes.LowQualityPhoto})
+			_, copyLqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.ItemsDeletedBulkName, Object: getBusinessRes.LowQualityPhoto}, minio.CopySrcOptions{Bucket: i.config.BusinessAvatarBulkName, Object: getBusinessRes.LowQualityPhoto})
 			if copyLqErr != nil {
 				return copyLqErr
 			}
-			_, copyThErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.ItemsDeletedBulkName, Object: getBusinessRes.Thumbnail}, minio.CopySrcOptions{Bucket: repository.Config.BusinessAvatarBulkName, Object: getBusinessRes.Thumbnail})
+			_, copyThErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.ItemsDeletedBulkName, Object: getBusinessRes.Thumbnail}, minio.CopySrcOptions{Bucket: i.config.BusinessAvatarBulkName, Object: getBusinessRes.Thumbnail})
 			if copyThErr != nil {
 				return copyThErr
 			}
-			rmHqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.BusinessAvatarBulkName, getBusinessRes.HighQualityPhoto, minio.RemoveObjectOptions{})
+			rmHqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.BusinessAvatarBulkName, getBusinessRes.HighQualityPhoto, minio.RemoveObjectOptions{})
 			if rmHqErr != nil {
 				return rmHqErr
 			}
-			rmLqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.BusinessAvatarBulkName, getBusinessRes.LowQualityPhoto, minio.RemoveObjectOptions{})
+			rmLqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.BusinessAvatarBulkName, getBusinessRes.LowQualityPhoto, minio.RemoveObjectOptions{})
 			if rmLqErr != nil {
 				return rmLqErr
 			}
-			rmThErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.BusinessAvatarBulkName, getBusinessRes.Thumbnail, minio.RemoveObjectOptions{})
+			rmThErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.BusinessAvatarBulkName, getBusinessRes.Thumbnail, minio.RemoveObjectOptions{})
 			if rmThErr != nil {
 				return rmThErr
 			}
@@ -710,9 +712,9 @@ func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusi
 		businessRes, businessErr = i.dao.NewBusinessRepository().UpdateBusiness(tx, &models.Business{
 			Name:                  req.Name,
 			Address:               req.Address,
-			HighQualityPhoto:      datasource.Config.BusinessAvatarBulkName + "/" + req.HighQualityPhoto,
-			LowQualityPhoto:       datasource.Config.BusinessAvatarBulkName + "/" + req.LowQualityPhoto,
-			Thumbnail:             datasource.Config.BusinessAvatarBulkName + "/" + req.Thumbnail,
+			HighQualityPhoto:      i.config.BusinessAvatarBulkName + "/" + req.HighQualityPhoto,
+			LowQualityPhoto:       i.config.BusinessAvatarBulkName + "/" + req.LowQualityPhoto,
+			Thumbnail:             i.config.BusinessAvatarBulkName + "/" + req.Thumbnail,
 			BlurHash:              req.BlurHash,
 			TimeMarginOrderMonth:  req.TimeMarginOrderMonth,
 			TimeMarginOrderDay:    req.TimeMarginOrderDay,
@@ -739,7 +741,7 @@ func (i *businessService) CreateBusiness(ctx context.Context, req *pb.CreateBusi
 	var businessRes *models.Business
 	var businessErr error
 	var response pb.CreateBusinessResponse
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -771,19 +773,19 @@ func (i *businessService) CreateBusiness(ctx context.Context, req *pb.CreateBusi
 		if !businessOwnerRes.IsBusinessOwner {
 			return errors.New("permission denied")
 		}
-		_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, req.HighQualityPhoto)
+		_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.BusinessAvatarBulkName, req.HighQualityPhoto)
 		if hqErr != nil && hqErr.Error() == "ObjectMissing" {
 			return errors.New("HighQualityPhotoObject missing")
 		} else if hqErr != nil {
 			return hqErr
 		}
-		_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, req.LowQualityPhoto)
+		_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.BusinessAvatarBulkName, req.LowQualityPhoto)
 		if lqErr != nil && lqErr.Error() == "ObjectMissing" {
 			return errors.New("LowQualityPhotoObject missing")
 		} else if lqErr != nil {
 			return lqErr
 		}
-		_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.BusinessAvatarBulkName, req.Thumbnail)
+		_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.BusinessAvatarBulkName, req.Thumbnail)
 		if tnErr != nil && tnErr.Error() == "ObjectMissing" {
 			return errors.New("ThumbnailObject missing")
 		} else if tnErr != nil {
@@ -851,7 +853,7 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 	var response pb.FeedResponse
 	var businessCategories []*pb.BusinessCategory
 	provinceId := uuid.MustParse(req.ProvinceId)
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := v.dao.NewApplicationRepository().CheckApplication(tx, *meta.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -964,7 +966,7 @@ func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRe
 	var businessCollectionRes *[]models.BusinessCollection
 	var businessErr, businessCollectionErr error
 	var itemsCategoryResponse []*pb.BusinessCollection
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := v.dao.NewApplicationRepository().CheckApplication(tx, *meta.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -1008,7 +1010,7 @@ func (v *businessService) GetBusinessWithDistance(ctx context.Context, req *pb.G
 	var businessCollectionRes *[]models.BusinessCollection
 	var businessErr, businessCollectionErr error
 	var businessCollectionResponse []*pb.BusinessCollection
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := v.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr

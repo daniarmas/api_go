@@ -6,6 +6,7 @@ import (
 
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/pkg/sqldb"
 	"github.com/daniarmas/api_go/repository"
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
@@ -17,17 +18,18 @@ type BanService interface {
 }
 
 type banService struct {
-	dao repository.DAO
+	dao   repository.Repository
+	sqldb *sqldb.Sql
 }
 
-func NewBanService(dao repository.DAO) BanService {
-	return &banService{dao: dao}
+func NewBanService(dao repository.Repository, sqldb *sqldb.Sql) BanService {
+	return &banService{dao: dao, sqldb: sqldb}
 }
 
 func (i *banService) GetBannedDevice(metadata *metadata.MD) (*models.BannedDevice, error) {
 	var bannedDevice *models.BannedDevice
 	var bannedDeviceErr error
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		bannedDevice, bannedDeviceErr = i.dao.NewBannedDeviceRepository().GetBannedDevice(tx, &models.BannedDevice{DeviceIdentifier: metadata.Get("deviceid")[0]}, nil)
 		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
 			return bannedDeviceErr
@@ -44,7 +46,7 @@ func (i *banService) GetBannedUser(metadata *metadata.MD) (*models.BannedUser, e
 	var ctx = context.Background()
 	var bannedUser *models.BannedUser
 	var bannedUserErr error
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: &metadata.Get("authorization")[0]}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {

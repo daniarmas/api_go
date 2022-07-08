@@ -11,6 +11,7 @@ import (
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
+	"github.com/daniarmas/api_go/pkg/sqldb"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/utils"
 	smtp "github.com/daniarmas/api_go/utils/smtp"
@@ -32,16 +33,17 @@ type AuthenticationService interface {
 }
 
 type authenticationService struct {
-	dao    repository.DAO
+	dao    repository.Repository
 	config *config.Config
+	sqldb  *sqldb.Sql
 }
 
-func NewAuthenticationService(dao repository.DAO, config *config.Config) AuthenticationService {
-	return &authenticationService{dao: dao, config: config}
+func NewAuthenticationService(dao repository.Repository, config *config.Config, sqldb *sqldb.Sql) AuthenticationService {
+	return &authenticationService{dao: dao, config: config, sqldb: sqldb}
 }
 
 func (v *authenticationService) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := v.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -84,7 +86,7 @@ func (v *authenticationService) CreateVerificationCode(ctx context.Context, req 
 }
 
 func (v *authenticationService) GetVerificationCode(ctx context.Context, req *pb.GetVerificationCodeRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := v.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -115,7 +117,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		jwtRefreshToken       *datasource.JsonWebTokenMetadata
 		jwtAuthorizationToken *datasource.JsonWebTokenMetadata
 	)
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		deviceRes, deviceErr = v.dao.NewDeviceRepository().GetDevice(tx, &models.Device{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
 		if deviceErr != nil && deviceErr.Error() != "record not found" {
 			return deviceErr
@@ -290,7 +292,7 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 		jwtRefreshToken       *datasource.JsonWebTokenMetadata
 		jwtAuthorizationToken *datasource.JsonWebTokenMetadata
 	)
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := v.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -389,7 +391,7 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 	var bannedDeviceRes *models.BannedDevice
 	var deviceRes *models.Device
 	var bannedDeviceErr, deviceErr, userErr, bannedUserErr error
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := v.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -463,7 +465,7 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 }
 
 func (v *authenticationService) SignOut(ctx context.Context, req *pb.SignOutRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := v.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -543,7 +545,7 @@ func (v *authenticationService) ListSession(ctx context.Context, md *utils.Clien
 	var authorizationTokenRes *models.AuthorizationToken
 	var authorizationTokenErr error
 	var listSessionErr error
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := v.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -608,7 +610,7 @@ func (v *authenticationService) ListSession(ctx context.Context, md *utils.Clien
 func (v *authenticationService) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest, md *utils.ClientMetadata) (*pb.RefreshTokenResponse, error) {
 	var jwtAuthorizationTokenErr, jwtRefreshTokenErr error
 	var jwtRefreshTokenNew, jwtAuthorizationTokenNew *datasource.JsonWebTokenMetadata
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := v.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr

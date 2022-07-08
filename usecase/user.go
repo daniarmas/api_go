@@ -8,6 +8,7 @@ import (
 	"github.com/daniarmas/api_go/datasource"
 	"github.com/daniarmas/api_go/models"
 	pb "github.com/daniarmas/api_go/pkg"
+	"github.com/daniarmas/api_go/pkg/sqldb"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/utils"
 	"github.com/go-redis/redis/v9"
@@ -32,18 +33,19 @@ type UserService interface {
 }
 
 type userService struct {
-	dao    repository.DAO
+	dao    repository.Repository
 	config *config.Config
 	rdb    *redis.Client
+	sqldb  *sqldb.Sql
 }
 
-func NewUserService(dao repository.DAO, config *config.Config, rdb *redis.Client) UserService {
-	return &userService{dao: dao, config: config, rdb: rdb}
+func NewUserService(dao repository.Repository, config *config.Config, rdb *redis.Client, sqldb *sqldb.Sql) UserService {
+	return &userService{dao: dao, config: config, rdb: rdb, sqldb: sqldb}
 }
 
 func (i *userService) GetUserAddress(ctx context.Context, req *pb.GetUserAddressRequest, md *utils.ClientMetadata) (*pb.UserAddress, error) {
 	var res pb.UserAddress
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -101,7 +103,7 @@ func (i *userService) GetUserAddress(ctx context.Context, req *pb.GetUserAddress
 
 func (i *userService) UpdateUserAddress(ctx context.Context, req *pb.UpdateUserAddressRequest, md *utils.ClientMetadata) (*pb.UserAddress, error) {
 	var res pb.UserAddress
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -195,7 +197,7 @@ func (i *userService) UpdateUserAddress(ctx context.Context, req *pb.UpdateUserA
 }
 
 func (i *userService) DeleteUserAddress(ctx context.Context, req *pb.DeleteUserAddressRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -237,7 +239,7 @@ func (i *userService) DeleteUserAddress(ctx context.Context, req *pb.DeleteUserA
 
 func (i *userService) CreateUserAddress(ctx context.Context, req *pb.CreateUserAddressRequest, md *utils.ClientMetadata) (*pb.UserAddress, error) {
 	var res pb.UserAddress
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -304,7 +306,7 @@ func (i *userService) CreateUserAddress(ctx context.Context, req *pb.CreateUserA
 
 func (i *userService) ListUserAddress(ctx context.Context, req *gp.Empty, md *utils.ClientMetadata) (*pb.ListUserAddressResponse, error) {
 	var res pb.ListUserAddressResponse
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -363,7 +365,7 @@ func (i *userService) ListUserAddress(ctx context.Context, req *gp.Empty, md *ut
 func (i *userService) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoRequest, md *utils.ClientMetadata) (*pb.GetAddressInfoResponse, error) {
 	var res pb.GetAddressInfoResponse
 	location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -392,7 +394,7 @@ func (i *userService) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfo
 func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*pb.User, error) {
 	var userRes *models.User
 	var userErr error
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -483,7 +485,7 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 	var updatedUserRes *models.User
 	var updatedUserErr error
 	var userId uuid.UUID
-	err := datasource.Connection.Transaction(func(tx *gorm.DB) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
 			return appErr
@@ -546,50 +548,50 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 			}
 
 		} else if req.User.HighQualityPhoto != "" && req.User.LowQualityPhoto != "" && req.User.Thumbnail != "" && req.User.BlurHash != "" {
-			_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.UsersBulkName, req.User.HighQualityPhoto)
+			_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.UsersBulkName, req.User.HighQualityPhoto)
 			if hqErr != nil {
 				return hqErr
 			}
-			_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.UsersBulkName, req.User.LowQualityPhoto)
+			_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.UsersBulkName, req.User.LowQualityPhoto)
 			if lqErr != nil {
 				return lqErr
 			}
-			_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), datasource.Config.UsersBulkName, req.User.Thumbnail)
+			_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.UsersBulkName, req.User.Thumbnail)
 			if tnErr != nil {
 				return tnErr
 			}
 			if userRes.HighQualityPhoto != "" {
-				_, copyHqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.UsersDeletedBulkName, Object: userRes.HighQualityPhoto}, minio.CopySrcOptions{Bucket: repository.Config.UsersBulkName, Object: userRes.HighQualityPhoto})
+				_, copyHqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.UsersDeletedBulkName, Object: userRes.HighQualityPhoto}, minio.CopySrcOptions{Bucket: i.config.UsersBulkName, Object: userRes.HighQualityPhoto})
 				if copyHqErr != nil {
 					return copyHqErr
 				}
 			}
 			if userRes.LowQualityPhoto != "" {
-				_, copyLqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.UsersDeletedBulkName, Object: userRes.LowQualityPhoto}, minio.CopySrcOptions{Bucket: repository.Config.UsersBulkName, Object: userRes.LowQualityPhoto})
+				_, copyLqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.UsersDeletedBulkName, Object: userRes.LowQualityPhoto}, minio.CopySrcOptions{Bucket: i.config.UsersBulkName, Object: userRes.LowQualityPhoto})
 				if copyLqErr != nil {
 					return copyLqErr
 				}
 			}
 			if userRes.Thumbnail != "" {
-				_, copyThErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: repository.Config.UsersDeletedBulkName, Object: userRes.Thumbnail}, minio.CopySrcOptions{Bucket: repository.Config.UsersBulkName, Object: userRes.Thumbnail})
+				_, copyThErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.UsersDeletedBulkName, Object: userRes.Thumbnail}, minio.CopySrcOptions{Bucket: i.config.UsersBulkName, Object: userRes.Thumbnail})
 				if copyThErr != nil {
 					return copyThErr
 				}
 			}
 			if userRes.HighQualityPhoto != "" {
-				rmHqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.UsersBulkName, userRes.HighQualityPhoto, minio.RemoveObjectOptions{})
+				rmHqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.UsersBulkName, userRes.HighQualityPhoto, minio.RemoveObjectOptions{})
 				if rmHqErr != nil {
 					return rmHqErr
 				}
 			}
 			if userRes.LowQualityPhoto != "" {
-				rmLqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.UsersBulkName, userRes.LowQualityPhoto, minio.RemoveObjectOptions{})
+				rmLqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.UsersBulkName, userRes.LowQualityPhoto, minio.RemoveObjectOptions{})
 				if rmLqErr != nil {
 					return rmLqErr
 				}
 			}
 			if userRes.Thumbnail != "" {
-				rmThErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), repository.Config.UsersBulkName, userRes.Thumbnail, minio.RemoveObjectOptions{})
+				rmThErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.UsersBulkName, userRes.Thumbnail, minio.RemoveObjectOptions{})
 				if rmThErr != nil {
 					return rmThErr
 				}
