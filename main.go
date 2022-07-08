@@ -7,6 +7,7 @@ import (
 
 	"github.com/daniarmas/api_go/app"
 	"github.com/daniarmas/api_go/cli"
+	"github.com/daniarmas/api_go/config"
 	"github.com/daniarmas/api_go/datasource"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/pkg/sqldb"
@@ -22,7 +23,7 @@ import (
 
 func main() {
 	// Configurations
-	config, err := datasource.NewConfig()
+	cfg, err := config.New()
 	if err != nil {
 		log.Fatal("cannot load config:", err)
 	}
@@ -31,15 +32,15 @@ func main() {
 	// log.SetFlags(log.LstdFlags | log.Lshortfile)
 	builder := utils.GrpcServerBuilder{}
 	addInterceptors(&builder)
-	if config.Environment == "development" {
+	if cfg.Environment == "development" {
 		builder.EnableReflection(true)
 	}
-	if config.Tls == "true" {
+	if cfg.Tls == "true" {
 		builder.SetTlsCert(&tlscert.Cert)
 	}
 	s := builder.Build()
 	s.RegisterService(serviceRegister)
-	grpcServerAddress := fmt.Sprintf("0.0.0.0:%d", config.ApiPort)
+	grpcServerAddress := fmt.Sprintf("0.0.0.0:%d", cfg.ApiPort)
 	startErr := s.Start(grpcServerAddress)
 	if startErr != nil {
 		log.Fatalf("%v", startErr)
@@ -51,7 +52,7 @@ func main() {
 
 func serviceRegister(sv *grpc.Server) {
 	// Configurations
-	cfg, err := datasource.NewConfig()
+	cfg, err := config.New()
 	if err != nil {
 		log.Fatal("cannot load config:", err)
 	}

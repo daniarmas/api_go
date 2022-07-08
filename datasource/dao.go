@@ -201,69 +201,6 @@ func NewMinioClient(config *config.Config) (*minio.Client, error) {
 	return minioClient, nil
 }
 
-func NewConfig() (*config.Config, error) {
-	Config, err := config.LoadConfig()
-	if err != nil {
-		return nil, err
-	}
-	return &Config, nil
-}
-
-// func CloseDB() error {
-// 	sqlDB, err := Connection.DB()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	sqlDB.Close()
-// 	logg.Info("Database connection closed")
-// 	return nil
-// }
-
-// func NewDB(config *config.Config) (*gorm.DB, error) {
-// 	host := config.DBHost
-// 	port := config.DBPort
-// 	user := config.DBUser
-// 	dbName := config.DBDatabase
-// 	password := config.DBPassword
-
-// 	// Starting a database
-// 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable", host, user, password, dbName, port)
-// 	newLogger := logger.New(
-// 		log.New(os.Stdout, "\r\n", log.LstdFlags),
-// 		logger.Config{
-// 			SlowThreshold:             time.Millisecond * 200,
-// 			LogLevel:                  logger.Info,
-// 			IgnoreRecordNotFoundError: false,
-// 			Colorful:                  true,
-// 		},
-// 	)
-// 	DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-// 		SkipDefaultTransaction: true,
-// 		Logger:                 newLogger,
-// 	})
-// 	if err != nil {
-// 		logg.Error(err)
-// 	}
-// 	dbConnect, err := DB.DB()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	var dbError error
-// 	maxAttempts := 20
-// 	for attempts := 1; attempts <= maxAttempts; attempts++ {
-// 		dbError = dbConnect.Ping()
-// 		if dbError == nil {
-// 			break
-// 		}
-// 		logg.Error(dbError)
-// 		time.Sleep(time.Duration(attempts) * time.Second)
-// 	}
-// 	if dbError != nil {
-// 		logg.Error(dbError)
-// 	}
-// 	return DB, nil
-// }
-
 func (d *dao) NewObjectStorageDatasource() ObjectStorageDatasource {
 	return &objectStorageDatasource{Minio: MinioClient}
 }

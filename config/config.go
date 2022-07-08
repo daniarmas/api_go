@@ -35,17 +35,21 @@ type Config struct {
 	RedisDb                            int    `mapstructure:"REDIS_DB"`
 }
 
-func LoadConfig() (config Config, err error) {
+func New() (*Config, error) {
+	var cfg Config
 	viper.AddConfigPath(".")
 	viper.SetConfigName("app")
 	viper.SetConfigType("env")
 	viper.AutomaticEnv()
 
-	err = viper.ReadInConfig()
+	err := viper.ReadInConfig()
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	err = viper.Unmarshal(&config)
-	return
+	err = viper.Unmarshal(&cfg)
+	if err != nil {
+		return nil, err
+	}
+	return &cfg, nil
 }
