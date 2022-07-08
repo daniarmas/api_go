@@ -19,7 +19,7 @@ type Sql struct {
 	SqlDb *sql.DB
 }
 
-func New(cfg config.Config) (*Sql, error) {
+func New(cfg *config.Config) (*Sql, error) {
 	// Starting a database
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable", cfg.DBHost, cfg.DBUser, cfg.DBPassword, cfg.DBDatabase, cfg.DBPort)
 	newLogger := logger.New(
