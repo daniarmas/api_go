@@ -132,7 +132,7 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.I
 		case "record not found":
 			st = status.New(codes.NotFound, "Item not found")
 		default:
-			st = status.New(codes.Internal, "Internal server error")
+			st = status.New(codes.Internal, err.Error())
 		}
 		return nil, st.Err()
 	}

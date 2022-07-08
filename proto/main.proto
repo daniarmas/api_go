@@ -670,8 +670,9 @@ message User {
   string blurHash = 10;
   repeated UserAddress userAddress = 11;
   repeated UserPermission permissions = 12;
-  google.protobuf.Timestamp createTime = 13;
-  google.protobuf.Timestamp updateTime = 14;
+  repeated CartItem cartItems = 13;
+  google.protobuf.Timestamp createTime = 14;
+  google.protobuf.Timestamp updateTime = 15;
 }
 
 message Municipality {
