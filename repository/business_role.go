@@ -3,22 +3,22 @@ package repository
 import (
 	"time"
 
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type BusinessRoleRepository interface {
-	CreateBusinessRole(tx *gorm.DB, data *models.BusinessRole) (*models.BusinessRole, error)
-	UpdateBusinessRole(tx *gorm.DB, where *models.BusinessRole, data *models.BusinessRole) (*models.BusinessRole, error)
-	GetBusinessRole(tx *gorm.DB, where *models.BusinessRole, fields *[]string) (*models.BusinessRole, error)
-	ListBusinessRole(tx *gorm.DB, where *models.BusinessRole, cursor *time.Time, fields *[]string) (*[]models.BusinessRole, error)
-	DeleteBusinessRole(tx *gorm.DB, where *models.BusinessRole, ids *[]uuid.UUID) (*[]models.BusinessRole, error)
+	CreateBusinessRole(tx *gorm.DB, data *entity.BusinessRole) (*entity.BusinessRole, error)
+	UpdateBusinessRole(tx *gorm.DB, where *entity.BusinessRole, data *entity.BusinessRole) (*entity.BusinessRole, error)
+	GetBusinessRole(tx *gorm.DB, where *entity.BusinessRole, fields *[]string) (*entity.BusinessRole, error)
+	ListBusinessRole(tx *gorm.DB, where *entity.BusinessRole, cursor *time.Time, fields *[]string) (*[]entity.BusinessRole, error)
+	DeleteBusinessRole(tx *gorm.DB, where *entity.BusinessRole, ids *[]uuid.UUID) (*[]entity.BusinessRole, error)
 }
 
 type businessRoleRepository struct{}
 
-func (v *businessRoleRepository) UpdateBusinessRole(tx *gorm.DB, where *models.BusinessRole, data *models.BusinessRole) (*models.BusinessRole, error) {
+func (v *businessRoleRepository) UpdateBusinessRole(tx *gorm.DB, where *entity.BusinessRole, data *entity.BusinessRole) (*entity.BusinessRole, error) {
 	res, err := Datasource.NewBusinessRoleDatasource().UpdateBusinessRole(tx, where, data)
 	if err != nil {
 		return nil, err
@@ -26,7 +26,7 @@ func (v *businessRoleRepository) UpdateBusinessRole(tx *gorm.DB, where *models.B
 	return res, nil
 }
 
-func (v *businessRoleRepository) CreateBusinessRole(tx *gorm.DB, data *models.BusinessRole) (*models.BusinessRole, error) {
+func (v *businessRoleRepository) CreateBusinessRole(tx *gorm.DB, data *entity.BusinessRole) (*entity.BusinessRole, error) {
 	res, err := Datasource.NewBusinessRoleDatasource().CreateBusinessRole(tx, data)
 	if err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func (v *businessRoleRepository) CreateBusinessRole(tx *gorm.DB, data *models.Bu
 	return res, nil
 }
 
-func (v *businessRoleRepository) DeleteBusinessRole(tx *gorm.DB, where *models.BusinessRole, ids *[]uuid.UUID) (*[]models.BusinessRole, error) {
+func (v *businessRoleRepository) DeleteBusinessRole(tx *gorm.DB, where *entity.BusinessRole, ids *[]uuid.UUID) (*[]entity.BusinessRole, error) {
 	res, err := Datasource.NewBusinessRoleDatasource().DeleteBusinessRole(tx, where, ids)
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func (v *businessRoleRepository) DeleteBusinessRole(tx *gorm.DB, where *models.B
 	return res, nil
 }
 
-func (i *businessRoleRepository) ListBusinessRole(tx *gorm.DB, where *models.BusinessRole, cursor *time.Time, fields *[]string) (*[]models.BusinessRole, error) {
+func (i *businessRoleRepository) ListBusinessRole(tx *gorm.DB, where *entity.BusinessRole, cursor *time.Time, fields *[]string) (*[]entity.BusinessRole, error) {
 	res, err := Datasource.NewBusinessRoleDatasource().ListBusinessRole(tx, where, cursor, fields)
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (i *businessRoleRepository) ListBusinessRole(tx *gorm.DB, where *models.Bus
 	return res, nil
 }
 
-func (i *businessRoleRepository) GetBusinessRole(tx *gorm.DB, where *models.BusinessRole, fields *[]string) (*models.BusinessRole, error) {
+func (i *businessRoleRepository) GetBusinessRole(tx *gorm.DB, where *entity.BusinessRole, fields *[]string) (*entity.BusinessRole, error) {
 	res, err := Datasource.NewBusinessRoleDatasource().GetBusinessRole(tx, where, fields)
 	if err != nil {
 		return nil, err

@@ -6,21 +6,21 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"gorm.io/gorm"
 )
 
 type BusinessAnalyticsDatasource interface {
-	CreateBusinessAnalytics(tx *sql.Tx, data *[]models.BusinessAnalytics) (*[]models.BusinessAnalytics, error)
-	GetBusinessAnalytics(tx *gorm.DB, where *models.BusinessAnalytics, fields *[]string) (*models.BusinessAnalytics, error)
-	ListBusinessAnalytics(tx *gorm.DB, where *models.BusinessAnalytics, fields *[]string) (*[]models.BusinessAnalytics, error)
+	CreateBusinessAnalytics(tx *sql.Tx, data *[]entity.BusinessAnalytics) (*[]entity.BusinessAnalytics, error)
+	GetBusinessAnalytics(tx *gorm.DB, where *entity.BusinessAnalytics, fields *[]string) (*entity.BusinessAnalytics, error)
+	ListBusinessAnalytics(tx *gorm.DB, where *entity.BusinessAnalytics, fields *[]string) (*[]entity.BusinessAnalytics, error)
 }
 
 type businessAnalyticsDatasource struct{}
 
-func (i *businessAnalyticsDatasource) CreateBusinessAnalytics(tx *sql.Tx, data *[]models.BusinessAnalytics) (*[]models.BusinessAnalytics, error) {
+func (i *businessAnalyticsDatasource) CreateBusinessAnalytics(tx *sql.Tx, data *[]entity.BusinessAnalytics) (*[]entity.BusinessAnalytics, error) {
 	var values string
-	var res []models.BusinessAnalytics
+	var res []entity.BusinessAnalytics
 	for index, item := range *data {
 		if index != len(*data)-1 {
 			values = values + fmt.Sprintf("('%s', '%s', '%v', '%v'), ", item.Type, item.BusinessId, item.CreateTime.Format(time.RFC3339), item.CreateTime.Format(time.RFC3339))
@@ -34,7 +34,7 @@ func (i *businessAnalyticsDatasource) CreateBusinessAnalytics(tx *sql.Tx, data *
 		return nil, err
 	}
 	for result.Next() {
-		var businessAnalytics models.BusinessAnalytics
+		var businessAnalytics entity.BusinessAnalytics
 		if err := result.Scan(&businessAnalytics.ID, &businessAnalytics.Type, &businessAnalytics.BusinessId, &businessAnalytics.CreateTime, &businessAnalytics.UpdateTime, &businessAnalytics.DeleteTime); err != nil {
 			return nil, err
 		}
@@ -43,8 +43,8 @@ func (i *businessAnalyticsDatasource) CreateBusinessAnalytics(tx *sql.Tx, data *
 	return &res, nil
 }
 
-func (v *businessAnalyticsDatasource) GetBusinessAnalytics(tx *gorm.DB, where *models.BusinessAnalytics, fields *[]string) (*models.BusinessAnalytics, error) {
-	var res *models.BusinessAnalytics
+func (v *businessAnalyticsDatasource) GetBusinessAnalytics(tx *gorm.DB, where *entity.BusinessAnalytics, fields *[]string) (*entity.BusinessAnalytics, error) {
+	var res *entity.BusinessAnalytics
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields
@@ -60,8 +60,8 @@ func (v *businessAnalyticsDatasource) GetBusinessAnalytics(tx *gorm.DB, where *m
 	return res, nil
 }
 
-func (i *businessAnalyticsDatasource) ListBusinessAnalytics(tx *gorm.DB, where *models.BusinessAnalytics, fields *[]string) (*[]models.BusinessAnalytics, error) {
-	var res []models.BusinessAnalytics
+func (i *businessAnalyticsDatasource) ListBusinessAnalytics(tx *gorm.DB, where *entity.BusinessAnalytics, fields *[]string) (*[]entity.BusinessAnalytics, error) {
+	var res []entity.BusinessAnalytics
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields

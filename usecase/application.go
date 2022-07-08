@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/daniarmas/api_go/datasource"
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/pkg/sqldb"
 	"github.com/daniarmas/api_go/repository"
@@ -59,17 +59,17 @@ func (i *applicationService) ListApplication(ctx context.Context, req *pb.ListAp
 				return err
 			}
 		}
-		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if err != nil {
 			return err
 		}
-		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_application"}, &[]string{"id"})
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_application"}, &[]string{"id"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
-		apps, err := i.dao.NewApplicationRepository().ListApplication(tx, &models.Application{}, &nextPage, nil)
+		apps, err := i.dao.NewApplicationRepository().ListApplication(tx, &entity.Application{}, &nextPage, nil)
 		if err != nil {
 			return err
 		} else if len(*apps) > 10 {
@@ -122,18 +122,18 @@ func (i *applicationService) DeleteApplication(ctx context.Context, req *pb.Dele
 				return err
 			}
 		}
-		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if err != nil {
 			return err
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{UserId: authorizationTokenRes.UserId, Name: "delete_application"}, &[]string{"id"})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "delete_application"}, &[]string{"id"})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
 		id := uuid.MustParse(req.Id)
-		_, err = i.dao.NewApplicationRepository().DeleteApplication(tx, &models.Application{ID: &id}, nil)
+		_, err = i.dao.NewApplicationRepository().DeleteApplication(tx, &entity.Application{ID: &id}, nil)
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("application not found")
 		} else if err != nil {
@@ -168,17 +168,17 @@ func (i *applicationService) CreateApplication(ctx context.Context, req *pb.Crea
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &models.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &models.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_application"}, &[]string{"id"})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_application"}, &[]string{"id"})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
-		appRes, appErr := i.dao.NewApplicationRepository().CreateApplication(tx, &models.Application{Name: req.Application.Name, Version: req.Application.Version, Description: req.Application.Description, ExpirationTime: req.Application.ExpirationTime.AsTime()})
+		appRes, appErr := i.dao.NewApplicationRepository().CreateApplication(tx, &entity.Application{Name: req.Application.Name, Version: req.Application.Version, Description: req.Application.Description, ExpirationTime: req.Application.ExpirationTime.AsTime()})
 		if appErr != nil {
 			return appErr
 		}

@@ -4,23 +4,23 @@ import (
 	"errors"
 	"time"
 
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type ApplicationDatasource interface {
-	CreateApplication(tx *gorm.DB, data *models.Application) (*models.Application, error)
-	GetApplication(tx *gorm.DB, where *models.Application, fields *[]string) (*models.Application, error)
-	ListApplication(tx *gorm.DB, where *models.Application, cursor *time.Time, fields *[]string) (*[]models.Application, error)
-	DeleteApplication(tx *gorm.DB, where *models.Application, ids *[]uuid.UUID) (*[]models.Application, error)
+	CreateApplication(tx *gorm.DB, data *entity.Application) (*entity.Application, error)
+	GetApplication(tx *gorm.DB, where *entity.Application, fields *[]string) (*entity.Application, error)
+	ListApplication(tx *gorm.DB, where *entity.Application, cursor *time.Time, fields *[]string) (*[]entity.Application, error)
+	DeleteApplication(tx *gorm.DB, where *entity.Application, ids *[]uuid.UUID) (*[]entity.Application, error)
 }
 
 type applicationDatasource struct{}
 
-func (i *applicationDatasource) DeleteApplication(tx *gorm.DB, where *models.Application, ids *[]uuid.UUID) (*[]models.Application, error) {
-	var res *[]models.Application
+func (i *applicationDatasource) DeleteApplication(tx *gorm.DB, where *entity.Application, ids *[]uuid.UUID) (*[]entity.Application, error) {
+	var res *[]entity.Application
 	var result *gorm.DB
 	if ids != nil {
 		result = tx.Clauses(clause.Returning{}).Where(`id IN ?`, ids).Delete(&res)
@@ -35,20 +35,20 @@ func (i *applicationDatasource) DeleteApplication(tx *gorm.DB, where *models.App
 	return res, nil
 }
 
-func (i *applicationDatasource) ListApplication(tx *gorm.DB, where *models.Application, cursor *time.Time, fields *[]string) (*[]models.Application, error) {
-	var res []models.Application
+func (i *applicationDatasource) ListApplication(tx *gorm.DB, where *entity.Application, cursor *time.Time, fields *[]string) (*[]entity.Application, error) {
+	var res []entity.Application
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields
 	}
-	result := tx.Model(&models.Application{}).Select(*selectFields).Limit(11).Where(where).Where("create_time < ?", cursor).Order("create_time desc").Scan(&res)
+	result := tx.Model(&entity.Application{}).Select(*selectFields).Limit(11).Where(where).Where("create_time < ?", cursor).Order("create_time desc").Scan(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return &res, nil
 }
 
-func (v *applicationDatasource) CreateApplication(tx *gorm.DB, data *models.Application) (*models.Application, error) {
+func (v *applicationDatasource) CreateApplication(tx *gorm.DB, data *entity.Application) (*entity.Application, error) {
 	result := tx.Create(&data)
 	if result.Error != nil {
 		return nil, result.Error
@@ -56,8 +56,8 @@ func (v *applicationDatasource) CreateApplication(tx *gorm.DB, data *models.Appl
 	return data, nil
 }
 
-func (v *applicationDatasource) GetApplication(tx *gorm.DB, where *models.Application, fields *[]string) (*models.Application, error) {
-	var res *models.Application
+func (v *applicationDatasource) GetApplication(tx *gorm.DB, where *entity.Application, fields *[]string) (*entity.Application, error) {
+	var res *entity.Application
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields

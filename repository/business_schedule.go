@@ -1,18 +1,18 @@
 package repository
 
 import (
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"gorm.io/gorm"
 )
 
 type BusinessScheduleRepository interface {
-	GetBusinessSchedule(tx *gorm.DB, where *models.BusinessSchedule, fields *[]string) (*models.BusinessSchedule, error)
-	BusinessIsOpen(tx *gorm.DB, where *models.BusinessSchedule, orderType string) (bool, error)
+	GetBusinessSchedule(tx *gorm.DB, where *entity.BusinessSchedule, fields *[]string) (*entity.BusinessSchedule, error)
+	BusinessIsOpen(tx *gorm.DB, where *entity.BusinessSchedule, orderType string) (bool, error)
 }
 
 type businessScheduleRepository struct{}
 
-func (i *businessScheduleRepository) GetBusinessSchedule(tx *gorm.DB, where *models.BusinessSchedule, fields *[]string) (*models.BusinessSchedule, error) {
+func (i *businessScheduleRepository) GetBusinessSchedule(tx *gorm.DB, where *entity.BusinessSchedule, fields *[]string) (*entity.BusinessSchedule, error) {
 	result, err := Datasource.NewBusinessScheduleDatasource().GetBusinessSchedule(tx, where, fields)
 	if err != nil {
 		return nil, err
@@ -20,7 +20,7 @@ func (i *businessScheduleRepository) GetBusinessSchedule(tx *gorm.DB, where *mod
 	return result, nil
 }
 
-func (i *businessScheduleRepository) BusinessIsOpen(tx *gorm.DB, where *models.BusinessSchedule, orderType string) (bool, error) {
+func (i *businessScheduleRepository) BusinessIsOpen(tx *gorm.DB, where *entity.BusinessSchedule, orderType string) (bool, error) {
 	result, err := Datasource.NewBusinessScheduleDatasource().BusinessIsOpen(tx, where, orderType)
 	if err != nil {
 		return false, err

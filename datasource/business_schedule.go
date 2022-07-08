@@ -6,19 +6,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"gorm.io/gorm"
 )
 
 type BusinessScheduleDatasource interface {
-	GetBusinessSchedule(tx *gorm.DB, where *models.BusinessSchedule, fields *[]string) (*models.BusinessSchedule, error)
-	BusinessIsOpen(tx *gorm.DB, where *models.BusinessSchedule, orderType string) (bool, error)
+	GetBusinessSchedule(tx *gorm.DB, where *entity.BusinessSchedule, fields *[]string) (*entity.BusinessSchedule, error)
+	BusinessIsOpen(tx *gorm.DB, where *entity.BusinessSchedule, orderType string) (bool, error)
 }
 
 type businessScheduleDatasource struct{}
 
-func (v *businessScheduleDatasource) GetBusinessSchedule(tx *gorm.DB, where *models.BusinessSchedule, fields *[]string) (*models.BusinessSchedule, error) {
-	var res *models.BusinessSchedule
+func (v *businessScheduleDatasource) GetBusinessSchedule(tx *gorm.DB, where *entity.BusinessSchedule, fields *[]string) (*entity.BusinessSchedule, error) {
+	var res *entity.BusinessSchedule
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields
@@ -34,8 +34,8 @@ func (v *businessScheduleDatasource) GetBusinessSchedule(tx *gorm.DB, where *mod
 	return res, nil
 }
 
-func (v *businessScheduleDatasource) BusinessIsOpen(tx *gorm.DB, where *models.BusinessSchedule, orderType string) (bool, error) {
-	var schedule *models.BusinessSchedule
+func (v *businessScheduleDatasource) BusinessIsOpen(tx *gorm.DB, where *entity.BusinessSchedule, orderType string) (bool, error) {
+	var schedule *entity.BusinessSchedule
 	timeNow := time.Now().UTC()
 	weekday := timeNow.Weekday().String()
 	result := tx.Where(where).Take(&schedule)

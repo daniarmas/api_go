@@ -4,28 +4,28 @@ import (
 	"errors"
 	"time"
 
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type ItemDatasource interface {
-	GetItem(tx *gorm.DB, where *models.Item, fields *[]string) (*models.Item, error)
-	ListItem(tx *gorm.DB, where *models.Item, cursor time.Time, fields *[]string) (*[]models.Item, error)
-	ListItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]models.Item, error)
-	CreateItem(tx *gorm.DB, data *models.Item) (*models.Item, error)
-	SearchItem(tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64, fields *[]string) (*[]models.Item, error)
-	SearchItemByBusiness(tx *gorm.DB, name string, cursor int64, businessId string, fields *[]string) (*[]models.Item, error)
-	UpdateItem(tx *gorm.DB, where *models.Item, data *models.Item) (*models.Item, error)
-	UpdateItems(tx *gorm.DB, data *[]models.Item) (*[]models.Item, error)
-	DeleteItem(tx *gorm.DB, where *models.Item) error
+	GetItem(tx *gorm.DB, where *entity.Item, fields *[]string) (*entity.Item, error)
+	ListItem(tx *gorm.DB, where *entity.Item, cursor time.Time, fields *[]string) (*[]entity.Item, error)
+	ListItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.Item, error)
+	CreateItem(tx *gorm.DB, data *entity.Item) (*entity.Item, error)
+	SearchItem(tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64, fields *[]string) (*[]entity.Item, error)
+	SearchItemByBusiness(tx *gorm.DB, name string, cursor int64, businessId string, fields *[]string) (*[]entity.Item, error)
+	UpdateItem(tx *gorm.DB, where *entity.Item, data *entity.Item) (*entity.Item, error)
+	UpdateItems(tx *gorm.DB, data *[]entity.Item) (*[]entity.Item, error)
+	DeleteItem(tx *gorm.DB, where *entity.Item) error
 }
 
 type itemDatasource struct{}
 
-func (v *itemDatasource) DeleteItem(tx *gorm.DB, where *models.Item) error {
-	var itemResult *[]models.Item
+func (v *itemDatasource) DeleteItem(tx *gorm.DB, where *entity.Item) error {
+	var itemResult *[]entity.Item
 	result := tx.Where(where).Delete(&itemResult)
 	if result.Error != nil {
 		return result.Error
@@ -33,7 +33,7 @@ func (v *itemDatasource) DeleteItem(tx *gorm.DB, where *models.Item) error {
 	return nil
 }
 
-func (v *itemDatasource) CreateItem(tx *gorm.DB, data *models.Item) (*models.Item, error) {
+func (v *itemDatasource) CreateItem(tx *gorm.DB, data *entity.Item) (*entity.Item, error) {
 	result := tx.Create(&data)
 	if result.Error != nil {
 		return nil, result.Error
@@ -41,8 +41,8 @@ func (v *itemDatasource) CreateItem(tx *gorm.DB, data *models.Item) (*models.Ite
 	return data, nil
 }
 
-func (i *itemDatasource) ListItem(tx *gorm.DB, where *models.Item, cursor time.Time, fields *[]string) (*[]models.Item, error) {
-	var res []models.Item
+func (i *itemDatasource) ListItem(tx *gorm.DB, where *entity.Item, cursor time.Time, fields *[]string) (*[]entity.Item, error) {
+	var res []entity.Item
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields
@@ -54,8 +54,8 @@ func (i *itemDatasource) ListItem(tx *gorm.DB, where *models.Item, cursor time.T
 	return &res, nil
 }
 
-func (i *itemDatasource) ListItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]models.Item, error) {
-	var res []models.Item
+func (i *itemDatasource) ListItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.Item, error) {
+	var res []entity.Item
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields
@@ -67,8 +67,8 @@ func (i *itemDatasource) ListItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]s
 	return &res, nil
 }
 
-func (i *itemDatasource) GetItem(tx *gorm.DB, where *models.Item, fields *[]string) (*models.Item, error) {
-	var res *models.Item
+func (i *itemDatasource) GetItem(tx *gorm.DB, where *entity.Item, fields *[]string) (*entity.Item, error) {
+	var res *entity.Item
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields
@@ -84,8 +84,8 @@ func (i *itemDatasource) GetItem(tx *gorm.DB, where *models.Item, fields *[]stri
 	return res, nil
 }
 
-func (i *itemDatasource) SearchItem(tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64, fields *[]string) (*[]models.Item, error) {
-	var items []models.Item
+func (i *itemDatasource) SearchItem(tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64, fields *[]string) (*[]entity.Item, error) {
+	var items []entity.Item
 	var result *gorm.DB
 	where := "%" + name + "%"
 	selectFields := &[]string{"*"}
@@ -103,8 +103,8 @@ func (i *itemDatasource) SearchItem(tx *gorm.DB, name string, provinceId string,
 	return &items, nil
 }
 
-func (i *itemDatasource) SearchItemByBusiness(tx *gorm.DB, name string, cursor int64, businessId string, fields *[]string) (*[]models.Item, error) {
-	var items []models.Item
+func (i *itemDatasource) SearchItemByBusiness(tx *gorm.DB, name string, cursor int64, businessId string, fields *[]string) (*[]entity.Item, error) {
+	var items []entity.Item
 	var result *gorm.DB
 	where := "%" + name + "%"
 	selectFields := &[]string{"*"}
@@ -118,7 +118,7 @@ func (i *itemDatasource) SearchItemByBusiness(tx *gorm.DB, name string, cursor i
 	return &items, nil
 }
 
-func (v *itemDatasource) UpdateItem(tx *gorm.DB, where *models.Item, data *models.Item) (*models.Item, error) {
+func (v *itemDatasource) UpdateItem(tx *gorm.DB, where *entity.Item, data *entity.Item) (*entity.Item, error) {
 	result := tx.Clauses(clause.Returning{}).Where(where).Updates(&data)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
@@ -130,7 +130,7 @@ func (v *itemDatasource) UpdateItem(tx *gorm.DB, where *models.Item, data *model
 	return data, nil
 }
 
-func (v *itemDatasource) UpdateItems(tx *gorm.DB, data *[]models.Item) (*[]models.Item, error) {
+func (v *itemDatasource) UpdateItems(tx *gorm.DB, data *[]entity.Item) (*[]entity.Item, error) {
 	result := tx.Clauses(clause.Returning{}).Updates(data)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {

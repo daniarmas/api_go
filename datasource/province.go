@@ -4,20 +4,20 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	"gorm.io/gorm"
 )
 
 type ProvinceDatasource interface {
-	ProvinceByCoordinate(tx *gorm.DB, coordinate ewkb.Point, fields *[]string) (*models.Province, error)
-	GetProvince(tx *gorm.DB, where *models.Province, fields *[]string) (*models.Province, error)
+	ProvinceByCoordinate(tx *gorm.DB, coordinate ewkb.Point, fields *[]string) (*entity.Province, error)
+	GetProvince(tx *gorm.DB, where *entity.Province, fields *[]string) (*entity.Province, error)
 }
 
 type provinceDatasource struct{}
 
-func (i *provinceDatasource) ProvinceByCoordinate(tx *gorm.DB, coordinate ewkb.Point, fields *[]string) (*models.Province, error) {
-	var provinceResult *models.Province
+func (i *provinceDatasource) ProvinceByCoordinate(tx *gorm.DB, coordinate ewkb.Point, fields *[]string) (*entity.Province, error) {
+	var provinceResult *entity.Province
 	p := fmt.Sprintf("'POINT(%v %v)'", coordinate.Point.Coords()[1], coordinate.Point.Coords()[0])
 	selectFields := &[]string{"*"}
 	if fields != nil {
@@ -34,8 +34,8 @@ func (i *provinceDatasource) ProvinceByCoordinate(tx *gorm.DB, coordinate ewkb.P
 	return provinceResult, nil
 }
 
-func (i *provinceDatasource) GetProvince(tx *gorm.DB, where *models.Province, fields *[]string) (*models.Province, error) {
-	var res *models.Province
+func (i *provinceDatasource) GetProvince(tx *gorm.DB, where *entity.Province, fields *[]string) (*entity.Province, error) {
+	var res *entity.Province
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields

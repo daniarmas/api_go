@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
@@ -14,12 +14,12 @@ import (
 )
 
 type BusinessRepository interface {
-	Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceId string, municipalityId string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]models.Business, error)
-	CreateBusiness(tx *gorm.DB, data *models.Business) (*models.Business, error)
-	GetBusiness(tx *gorm.DB, where *models.Business, fields *[]string) (*models.Business, error)
-	GetBusinessWithDistance(tx *gorm.DB, where *models.Business) (*models.Business, error)
-	UpdateBusiness(tx *gorm.DB, data *models.Business, where *models.Business) (*models.Business, error)
-	UpdateBusinessCoordinate(tx *gorm.DB, data *models.Business, where *models.Business) error
+	Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceId string, municipalityId string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]entity.Business, error)
+	CreateBusiness(tx *gorm.DB, data *entity.Business) (*entity.Business, error)
+	GetBusiness(tx *gorm.DB, where *entity.Business, fields *[]string) (*entity.Business, error)
+	GetBusinessWithDistance(tx *gorm.DB, where *entity.Business) (*entity.Business, error)
+	UpdateBusiness(tx *gorm.DB, data *entity.Business, where *entity.Business) (*entity.Business, error)
+	UpdateBusinessCoordinate(tx *gorm.DB, data *entity.Business, where *entity.Business) error
 	BusinessIsInRange(tx *gorm.DB, coordinates ewkb.Point, businessId *uuid.UUID) (*bool, error)
 }
 
@@ -56,7 +56,7 @@ func (b *businessRepository) BusinessIsInRange(tx *gorm.DB, coordinates ewkb.Poi
 	}
 }
 
-func (b *businessRepository) CreateBusiness(tx *gorm.DB, data *models.Business) (*models.Business, error) {
+func (b *businessRepository) CreateBusiness(tx *gorm.DB, data *entity.Business) (*entity.Business, error) {
 	res, err := Datasource.NewBusinessDatasource().CreateBusiness(tx, data)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (b *businessRepository) CreateBusiness(tx *gorm.DB, data *models.Business) 
 	return res, nil
 }
 
-func (b *businessRepository) UpdateBusiness(tx *gorm.DB, data *models.Business, where *models.Business) (*models.Business, error) {
+func (b *businessRepository) UpdateBusiness(tx *gorm.DB, data *entity.Business, where *entity.Business) (*entity.Business, error) {
 	res, err := Datasource.NewBusinessDatasource().UpdateBusiness(tx, data, where)
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func (b *businessRepository) UpdateBusiness(tx *gorm.DB, data *models.Business, 
 	return res, nil
 }
 
-func (b *businessRepository) UpdateBusinessCoordinate(tx *gorm.DB, data *models.Business, where *models.Business) error {
+func (b *businessRepository) UpdateBusinessCoordinate(tx *gorm.DB, data *entity.Business, where *entity.Business) error {
 	err := Datasource.NewBusinessDatasource().UpdateBusinessCoordinate(tx, data, where)
 	if err != nil {
 		return err
@@ -80,7 +80,7 @@ func (b *businessRepository) UpdateBusinessCoordinate(tx *gorm.DB, data *models.
 	return nil
 }
 
-func (b *businessRepository) Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceId string, municipalityId string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]models.Business, error) {
+func (b *businessRepository) Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceId string, municipalityId string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]entity.Business, error) {
 	result, err := Datasource.NewBusinessDatasource().Feed(tx, coordinates, limit, provinceId, municipalityId, cursor, municipalityNotEqual, homeDelivery, toPickUp)
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func (b *businessRepository) Feed(tx *gorm.DB, coordinates ewkb.Point, limit int
 	return result, nil
 }
 
-func (b *businessRepository) GetBusinessWithDistance(tx *gorm.DB, where *models.Business) (*models.Business, error) {
+func (b *businessRepository) GetBusinessWithDistance(tx *gorm.DB, where *entity.Business) (*entity.Business, error) {
 	result, err := Datasource.NewBusinessDatasource().GetBusinessWithDistance(tx, where)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (b *businessRepository) GetBusinessWithDistance(tx *gorm.DB, where *models.
 	return result, nil
 }
 
-func (b *businessRepository) GetBusiness(tx *gorm.DB, where *models.Business, fields *[]string) (*models.Business, error) {
+func (b *businessRepository) GetBusiness(tx *gorm.DB, where *entity.Business, fields *[]string) (*entity.Business, error) {
 	result, err := Datasource.NewBusinessDatasource().GetBusiness(tx, where, fields)
 	if err != nil {
 		return nil, err

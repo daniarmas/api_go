@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/daniarmas/api_go/datasource"
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
@@ -14,16 +14,16 @@ import (
 )
 
 type ApplicationRepository interface {
-	CreateApplication(tx *gorm.DB, data *models.Application) (*models.Application, error)
-	GetApplication(tx *gorm.DB, where *models.Application, fields *[]string) (*models.Application, error)
-	ListApplication(tx *gorm.DB, where *models.Application, cursor *time.Time, fields *[]string) (*[]models.Application, error)
+	CreateApplication(tx *gorm.DB, data *entity.Application) (*entity.Application, error)
+	GetApplication(tx *gorm.DB, where *entity.Application, fields *[]string) (*entity.Application, error)
+	ListApplication(tx *gorm.DB, where *entity.Application, cursor *time.Time, fields *[]string) (*[]entity.Application, error)
 	CheckApplication(tx *gorm.DB, accessToken string) error
-	DeleteApplication(tx *gorm.DB, where *models.Application, ids *[]uuid.UUID) (*[]models.Application, error)
+	DeleteApplication(tx *gorm.DB, where *entity.Application, ids *[]uuid.UUID) (*[]entity.Application, error)
 }
 
 type applicationRepository struct{}
 
-func (i *applicationRepository) GetApplication(tx *gorm.DB, where *models.Application, fields *[]string) (*models.Application, error) {
+func (i *applicationRepository) GetApplication(tx *gorm.DB, where *entity.Application, fields *[]string) (*entity.Application, error) {
 	res, err := Datasource.NewApplicationDatasource().GetApplication(tx, where, fields)
 	if err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func (i *applicationRepository) GetApplication(tx *gorm.DB, where *models.Applic
 	return res, nil
 }
 
-func (i *applicationRepository) CreateApplication(tx *gorm.DB, data *models.Application) (*models.Application, error) {
+func (i *applicationRepository) CreateApplication(tx *gorm.DB, data *entity.Application) (*entity.Application, error) {
 	res, err := Datasource.NewApplicationDatasource().CreateApplication(tx, data)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (i *applicationRepository) CreateApplication(tx *gorm.DB, data *models.Appl
 	return res, nil
 }
 
-func (i *applicationRepository) DeleteApplication(tx *gorm.DB, where *models.Application, ids *[]uuid.UUID) (*[]models.Application, error) {
+func (i *applicationRepository) DeleteApplication(tx *gorm.DB, where *entity.Application, ids *[]uuid.UUID) (*[]entity.Application, error) {
 	res, err := Datasource.NewApplicationDatasource().DeleteApplication(tx, where, ids)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func (i *applicationRepository) DeleteApplication(tx *gorm.DB, where *models.App
 	return res, nil
 }
 
-func (i *applicationRepository) ListApplication(tx *gorm.DB, where *models.Application, cursor *time.Time, fields *[]string) (*[]models.Application, error) {
+func (i *applicationRepository) ListApplication(tx *gorm.DB, where *entity.Application, cursor *time.Time, fields *[]string) (*[]entity.Application, error) {
 	res, err := Datasource.NewApplicationDatasource().ListApplication(tx, where, cursor, fields)
 	if err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ func (i *applicationRepository) CheckApplication(tx *gorm.DB, accessToken string
 	cacheRes, cacheErr := Rdb.HGetAll(ctx, cacheId).Result()
 	// Check if exists in cache
 	if len(cacheRes) == 0 || cacheErr == redis.Nil {
-		dbRes, dbErr := Datasource.NewApplicationDatasource().GetApplication(tx, &models.Application{ID: jwtAccessToken.TokenId}, nil)
+		dbRes, dbErr := Datasource.NewApplicationDatasource().GetApplication(tx, &entity.Application{ID: jwtAccessToken.TokenId}, nil)
 		if dbErr != nil && dbErr.Error() == "record not found" {
 			return errors.New("unauthenticated application")
 		} else if dbErr != nil {

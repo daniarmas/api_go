@@ -1,21 +1,21 @@
 package repository
 
 import (
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type BusinessCategoryRepository interface {
-	GetBusinessCategory(tx *gorm.DB, where *models.BusinessCategory, fields *[]string) (*models.BusinessCategory, error)
-	CreateBusinessCategory(tx *gorm.DB, data *models.BusinessCategory) (*models.BusinessCategory, error)
-	DeleteBusinessCategory(tx *gorm.DB, where *models.BusinessCategory, ids *[]uuid.UUID) (*[]models.BusinessCategory, error)
-	ListBusinessCategory(tx *gorm.DB, where *models.BusinessCategory, fields *[]string) (*[]models.BusinessCategory, error)
+	GetBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory, fields *[]string) (*entity.BusinessCategory, error)
+	CreateBusinessCategory(tx *gorm.DB, data *entity.BusinessCategory) (*entity.BusinessCategory, error)
+	DeleteBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory, ids *[]uuid.UUID) (*[]entity.BusinessCategory, error)
+	ListBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory, fields *[]string) (*[]entity.BusinessCategory, error)
 }
 
 type businessCategoryRepository struct{}
 
-func (i *businessCategoryRepository) ListBusinessCategory(tx *gorm.DB, where *models.BusinessCategory, fields *[]string) (*[]models.BusinessCategory, error) {
+func (i *businessCategoryRepository) ListBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory, fields *[]string) (*[]entity.BusinessCategory, error) {
 	res, err := Datasource.NewBusinessCategoryDatasource().ListBusinessCategory(tx, where, fields)
 	if err != nil {
 		return nil, err
@@ -23,7 +23,7 @@ func (i *businessCategoryRepository) ListBusinessCategory(tx *gorm.DB, where *mo
 	return res, nil
 }
 
-func (v *businessCategoryRepository) CreateBusinessCategory(tx *gorm.DB, data *models.BusinessCategory) (*models.BusinessCategory, error) {
+func (v *businessCategoryRepository) CreateBusinessCategory(tx *gorm.DB, data *entity.BusinessCategory) (*entity.BusinessCategory, error) {
 	res, err := Datasource.NewBusinessCategoryDatasource().CreateBusinessCategory(tx, data)
 	if err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func (v *businessCategoryRepository) CreateBusinessCategory(tx *gorm.DB, data *m
 	return res, nil
 }
 
-func (v *businessCategoryRepository) GetBusinessCategory(tx *gorm.DB, where *models.BusinessCategory, fields *[]string) (*models.BusinessCategory, error) {
+func (v *businessCategoryRepository) GetBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory, fields *[]string) (*entity.BusinessCategory, error) {
 	res, err := Datasource.NewBusinessCategoryDatasource().GetBusinessCategory(tx, where, fields)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (v *businessCategoryRepository) GetBusinessCategory(tx *gorm.DB, where *mod
 	return res, nil
 }
 
-func (v *businessCategoryRepository) DeleteBusinessCategory(tx *gorm.DB, where *models.BusinessCategory, ids *[]uuid.UUID) (*[]models.BusinessCategory, error) {
+func (v *businessCategoryRepository) DeleteBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory, ids *[]uuid.UUID) (*[]entity.BusinessCategory, error) {
 	res, err := Datasource.NewBusinessCategoryDatasource().DeleteBusinessCategory(tx, where, ids)
 	if err != nil {
 		return nil, err

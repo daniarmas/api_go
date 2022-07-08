@@ -6,21 +6,21 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"gorm.io/gorm"
 )
 
 type ItemAnalyticsDatasource interface {
-	CreateItemAnalytics(tx *sql.Tx, data *[]models.ItemAnalytics) (*[]models.ItemAnalytics, error)
-	GetItemAnalytics(tx *gorm.DB, where *models.ItemAnalytics, fields *[]string) (*models.ItemAnalytics, error)
-	ListItemAnalytics(tx *gorm.DB, where *models.ItemAnalytics, fields *[]string) (*[]models.ItemAnalytics, error)
+	CreateItemAnalytics(tx *sql.Tx, data *[]entity.ItemAnalytics) (*[]entity.ItemAnalytics, error)
+	GetItemAnalytics(tx *gorm.DB, where *entity.ItemAnalytics, fields *[]string) (*entity.ItemAnalytics, error)
+	ListItemAnalytics(tx *gorm.DB, where *entity.ItemAnalytics, fields *[]string) (*[]entity.ItemAnalytics, error)
 }
 
 type itemAnalyticsDatasource struct{}
 
-func (i *itemAnalyticsDatasource) CreateItemAnalytics(tx *sql.Tx, data *[]models.ItemAnalytics) (*[]models.ItemAnalytics, error) {
+func (i *itemAnalyticsDatasource) CreateItemAnalytics(tx *sql.Tx, data *[]entity.ItemAnalytics) (*[]entity.ItemAnalytics, error) {
 	var values string
-	var res []models.ItemAnalytics
+	var res []entity.ItemAnalytics
 	for index, item := range *data {
 		if index != len(*data)-1 {
 			values = values + fmt.Sprintf("('%s', '%s', '%v', '%v'), ", item.Type, item.ItemId, item.CreateTime.Format(time.RFC3339), item.CreateTime.Format(time.RFC3339))
@@ -34,7 +34,7 @@ func (i *itemAnalyticsDatasource) CreateItemAnalytics(tx *sql.Tx, data *[]models
 		return nil, err
 	}
 	for result.Next() {
-		var itemAnalytics models.ItemAnalytics
+		var itemAnalytics entity.ItemAnalytics
 		if err := result.Scan(&itemAnalytics.ID, &itemAnalytics.Type, &itemAnalytics.ItemId, &itemAnalytics.CreateTime, &itemAnalytics.UpdateTime, &itemAnalytics.DeleteTime); err != nil {
 			return nil, err
 		}
@@ -43,8 +43,8 @@ func (i *itemAnalyticsDatasource) CreateItemAnalytics(tx *sql.Tx, data *[]models
 	return &res, nil
 }
 
-func (v *itemAnalyticsDatasource) GetItemAnalytics(tx *gorm.DB, where *models.ItemAnalytics, fields *[]string) (*models.ItemAnalytics, error) {
-	var res *models.ItemAnalytics
+func (v *itemAnalyticsDatasource) GetItemAnalytics(tx *gorm.DB, where *entity.ItemAnalytics, fields *[]string) (*entity.ItemAnalytics, error) {
+	var res *entity.ItemAnalytics
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields
@@ -60,8 +60,8 @@ func (v *itemAnalyticsDatasource) GetItemAnalytics(tx *gorm.DB, where *models.It
 	return res, nil
 }
 
-func (i *itemAnalyticsDatasource) ListItemAnalytics(tx *gorm.DB, where *models.ItemAnalytics, fields *[]string) (*[]models.ItemAnalytics, error) {
-	var res []models.ItemAnalytics
+func (i *itemAnalyticsDatasource) ListItemAnalytics(tx *gorm.DB, where *entity.ItemAnalytics, fields *[]string) (*[]entity.ItemAnalytics, error) {
+	var res []entity.ItemAnalytics
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields

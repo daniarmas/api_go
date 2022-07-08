@@ -3,22 +3,22 @@ package datasource
 import (
 	"errors"
 
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type RefreshTokenDatasource interface {
-	GetRefreshToken(tx *gorm.DB, where *models.RefreshToken, fields *[]string) (*models.RefreshToken, error)
-	CreateRefreshToken(tx *gorm.DB, data *models.RefreshToken) (*models.RefreshToken, error)
-	DeleteRefreshToken(tx *gorm.DB, where *models.RefreshToken, ids *[]uuid.UUID) (*[]models.RefreshToken, error)
-	DeleteRefreshTokenDeviceIdNotEqual(tx *gorm.DB, where *models.RefreshToken, ids *[]uuid.UUID) (*[]models.RefreshToken, error)
+	GetRefreshToken(tx *gorm.DB, where *entity.RefreshToken, fields *[]string) (*entity.RefreshToken, error)
+	CreateRefreshToken(tx *gorm.DB, data *entity.RefreshToken) (*entity.RefreshToken, error)
+	DeleteRefreshToken(tx *gorm.DB, where *entity.RefreshToken, ids *[]uuid.UUID) (*[]entity.RefreshToken, error)
+	DeleteRefreshTokenDeviceIdNotEqual(tx *gorm.DB, where *entity.RefreshToken, ids *[]uuid.UUID) (*[]entity.RefreshToken, error)
 }
 
 type refreshTokenDatasource struct{}
 
-func (v *refreshTokenDatasource) CreateRefreshToken(tx *gorm.DB, data *models.RefreshToken) (*models.RefreshToken, error) {
+func (v *refreshTokenDatasource) CreateRefreshToken(tx *gorm.DB, data *entity.RefreshToken) (*entity.RefreshToken, error) {
 	result := tx.Create(&data)
 	if result.Error != nil {
 		return nil, result.Error
@@ -26,8 +26,8 @@ func (v *refreshTokenDatasource) CreateRefreshToken(tx *gorm.DB, data *models.Re
 	return data, nil
 }
 
-func (r *refreshTokenDatasource) DeleteRefreshToken(tx *gorm.DB, where *models.RefreshToken, ids *[]uuid.UUID) (*[]models.RefreshToken, error) {
-	var res *[]models.RefreshToken
+func (r *refreshTokenDatasource) DeleteRefreshToken(tx *gorm.DB, where *entity.RefreshToken, ids *[]uuid.UUID) (*[]entity.RefreshToken, error) {
+	var res *[]entity.RefreshToken
 	var result *gorm.DB
 	if ids != nil {
 		result = tx.Clauses(clause.Returning{}).Where(`id IN ?`, ids).Delete(&res)
@@ -42,8 +42,8 @@ func (r *refreshTokenDatasource) DeleteRefreshToken(tx *gorm.DB, where *models.R
 	return res, nil
 }
 
-func (r *refreshTokenDatasource) DeleteRefreshTokenDeviceIdNotEqual(tx *gorm.DB, where *models.RefreshToken, ids *[]uuid.UUID) (*[]models.RefreshToken, error) {
-	var res *[]models.RefreshToken
+func (r *refreshTokenDatasource) DeleteRefreshTokenDeviceIdNotEqual(tx *gorm.DB, where *entity.RefreshToken, ids *[]uuid.UUID) (*[]entity.RefreshToken, error) {
+	var res *[]entity.RefreshToken
 	var result *gorm.DB
 	if ids != nil {
 		result = tx.Clauses(clause.Returning{}).Where(`id IN ?`, ids).Delete(&res)
@@ -58,8 +58,8 @@ func (r *refreshTokenDatasource) DeleteRefreshTokenDeviceIdNotEqual(tx *gorm.DB,
 	return res, nil
 }
 
-func (v *refreshTokenDatasource) GetRefreshToken(tx *gorm.DB, where *models.RefreshToken, fields *[]string) (*models.RefreshToken, error) {
-	var res *models.RefreshToken
+func (v *refreshTokenDatasource) GetRefreshToken(tx *gorm.DB, where *entity.RefreshToken, fields *[]string) (*entity.RefreshToken, error) {
+	var res *entity.RefreshToken
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields

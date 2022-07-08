@@ -4,23 +4,23 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type UserDatasource interface {
-	GetUser(tx *gorm.DB, user *models.User, fields *[]string) (*models.User, error)
-	GetUserWithAddress(tx *gorm.DB, user *models.User, fields *[]string) (*models.User, error)
-	CreateUser(tx *gorm.DB, data *models.User) (*models.User, error)
-	UpdateUser(tx *gorm.DB, where *models.User, data *models.User) (*models.User, error)
+	GetUser(tx *gorm.DB, user *entity.User, fields *[]string) (*entity.User, error)
+	GetUserWithAddress(tx *gorm.DB, user *entity.User, fields *[]string) (*entity.User, error)
+	CreateUser(tx *gorm.DB, data *entity.User) (*entity.User, error)
+	UpdateUser(tx *gorm.DB, where *entity.User, data *entity.User) (*entity.User, error)
 }
 
 type userDatasource struct{}
 
-func (u *userDatasource) GetUserWithAddress(tx *gorm.DB, where *models.User, fields *[]string) (*models.User, error) {
-	var res *models.User
-	var userAddressResult []models.UserAddress
+func (u *userDatasource) GetUserWithAddress(tx *gorm.DB, where *entity.User, fields *[]string) (*entity.User, error) {
+	var res *entity.User
+	var userAddressResult []entity.UserAddress
 	var userAddressErr error
 	result := tx.Preload("UserPermissions").Where(where).Take(&res)
 	if result.Error != nil {
@@ -39,8 +39,8 @@ func (u *userDatasource) GetUserWithAddress(tx *gorm.DB, where *models.User, fie
 	return res, nil
 }
 
-func (u *userDatasource) GetUser(tx *gorm.DB, where *models.User, fields *[]string) (*models.User, error) {
-	var res *models.User
+func (u *userDatasource) GetUser(tx *gorm.DB, where *entity.User, fields *[]string) (*entity.User, error) {
+	var res *entity.User
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields
@@ -56,8 +56,8 @@ func (u *userDatasource) GetUser(tx *gorm.DB, where *models.User, fields *[]stri
 	return res, nil
 }
 
-func (u *userDatasource) CreateUser(tx *gorm.DB, data *models.User) (*models.User, error) {
-	var existUser *models.User
+func (u *userDatasource) CreateUser(tx *gorm.DB, data *entity.User) (*entity.User, error) {
+	var existUser *entity.User
 	existResult := tx.Where("email = ?", data.Email).Select("id").Take(&existUser)
 	if existResult.Error != nil && existResult.Error.Error() != "record not found" {
 		return nil, existResult.Error
@@ -73,7 +73,7 @@ func (u *userDatasource) CreateUser(tx *gorm.DB, data *models.User) (*models.Use
 	return data, nil
 }
 
-func (v *userDatasource) UpdateUser(tx *gorm.DB, where *models.User, data *models.User) (*models.User, error) {
+func (v *userDatasource) UpdateUser(tx *gorm.DB, where *entity.User, data *entity.User) (*entity.User, error) {
 	result := tx.Clauses(clause.Returning{}).Where(where).Updates(&data)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {

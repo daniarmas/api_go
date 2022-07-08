@@ -3,18 +3,18 @@ package datasource
 import (
 	"errors"
 
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"gorm.io/gorm"
 )
 
 type BannedDeviceDatasource interface {
-	GetBannedDevice(tx *gorm.DB, where *models.BannedDevice, fields *[]string) (*models.BannedDevice, error)
+	GetBannedDevice(tx *gorm.DB, where *entity.BannedDevice, fields *[]string) (*entity.BannedDevice, error)
 }
 
 type bannedDeviceDatasource struct{}
 
-func (v *bannedDeviceDatasource) GetBannedDevice(tx *gorm.DB, where *models.BannedDevice, fields *[]string) (*models.BannedDevice, error) {
-	var res *models.BannedDevice
+func (v *bannedDeviceDatasource) GetBannedDevice(tx *gorm.DB, where *entity.BannedDevice, fields *[]string) (*entity.BannedDevice, error) {
+	var res *entity.BannedDevice
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields

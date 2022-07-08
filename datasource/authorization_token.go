@@ -3,22 +3,22 @@ package datasource
 import (
 	"errors"
 
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type AuthorizationTokenDatasource interface {
-	GetAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken, fields *[]string) (*models.AuthorizationToken, error)
-	CreateAuthorizationToken(tx *gorm.DB, data *models.AuthorizationToken) (*models.AuthorizationToken, error)
-	DeleteAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error)
-	DeleteAuthorizationTokenByRefreshTokenIds(tx *gorm.DB, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error)
+	GetAuthorizationToken(tx *gorm.DB, where *entity.AuthorizationToken, fields *[]string) (*entity.AuthorizationToken, error)
+	CreateAuthorizationToken(tx *gorm.DB, data *entity.AuthorizationToken) (*entity.AuthorizationToken, error)
+	DeleteAuthorizationToken(tx *gorm.DB, where *entity.AuthorizationToken, ids *[]uuid.UUID) (*[]entity.AuthorizationToken, error)
+	DeleteAuthorizationTokenByRefreshTokenIds(tx *gorm.DB, ids *[]uuid.UUID) (*[]entity.AuthorizationToken, error)
 }
 
 type authorizationTokenDatasource struct{}
 
-func (v *authorizationTokenDatasource) CreateAuthorizationToken(tx *gorm.DB, data *models.AuthorizationToken) (*models.AuthorizationToken, error) {
+func (v *authorizationTokenDatasource) CreateAuthorizationToken(tx *gorm.DB, data *entity.AuthorizationToken) (*entity.AuthorizationToken, error) {
 	result := tx.Create(&data)
 	if result.Error != nil {
 		return nil, result.Error
@@ -26,8 +26,8 @@ func (v *authorizationTokenDatasource) CreateAuthorizationToken(tx *gorm.DB, dat
 	return data, nil
 }
 
-func (r *authorizationTokenDatasource) DeleteAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error) {
-	var res *[]models.AuthorizationToken
+func (r *authorizationTokenDatasource) DeleteAuthorizationToken(tx *gorm.DB, where *entity.AuthorizationToken, ids *[]uuid.UUID) (*[]entity.AuthorizationToken, error) {
+	var res *[]entity.AuthorizationToken
 	var result *gorm.DB
 	if ids != nil {
 		result = tx.Clauses(clause.Returning{}).Where(`id IN ?`, ids).Delete(&res)
@@ -42,8 +42,8 @@ func (r *authorizationTokenDatasource) DeleteAuthorizationToken(tx *gorm.DB, whe
 	return res, nil
 }
 
-func (r *authorizationTokenDatasource) DeleteAuthorizationTokenByRefreshTokenIds(tx *gorm.DB, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error) {
-	var res *[]models.AuthorizationToken
+func (r *authorizationTokenDatasource) DeleteAuthorizationTokenByRefreshTokenIds(tx *gorm.DB, ids *[]uuid.UUID) (*[]entity.AuthorizationToken, error) {
+	var res *[]entity.AuthorizationToken
 	result := tx.Clauses(clause.Returning{}).Where(`refresh_token_id IN ?`, *ids).Delete(&res)
 	if result.Error != nil {
 		return nil, result.Error
@@ -53,8 +53,8 @@ func (r *authorizationTokenDatasource) DeleteAuthorizationTokenByRefreshTokenIds
 	return res, nil
 }
 
-func (v *authorizationTokenDatasource) GetAuthorizationToken(tx *gorm.DB, where *models.AuthorizationToken, fields *[]string) (*models.AuthorizationToken, error) {
-	var res *models.AuthorizationToken
+func (v *authorizationTokenDatasource) GetAuthorizationToken(tx *gorm.DB, where *entity.AuthorizationToken, fields *[]string) (*entity.AuthorizationToken, error) {
+	var res *entity.AuthorizationToken
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields

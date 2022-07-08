@@ -3,21 +3,21 @@ package datasource
 import (
 	"errors"
 
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type VerificationCodeDatasource interface {
-	GetVerificationCode(tx *gorm.DB, where *models.VerificationCode, fields *[]string) (*models.VerificationCode, error)
-	CreateVerificationCode(tx *gorm.DB, data *models.VerificationCode) (*models.VerificationCode, error)
-	DeleteVerificationCode(tx *gorm.DB, where *models.VerificationCode, ids *[]uuid.UUID) (*[]models.VerificationCode, error)
+	GetVerificationCode(tx *gorm.DB, where *entity.VerificationCode, fields *[]string) (*entity.VerificationCode, error)
+	CreateVerificationCode(tx *gorm.DB, data *entity.VerificationCode) (*entity.VerificationCode, error)
+	DeleteVerificationCode(tx *gorm.DB, where *entity.VerificationCode, ids *[]uuid.UUID) (*[]entity.VerificationCode, error)
 }
 
 type verificationCodeDatasource struct{}
 
-func (v *verificationCodeDatasource) CreateVerificationCode(tx *gorm.DB, data *models.VerificationCode) (*models.VerificationCode, error) {
+func (v *verificationCodeDatasource) CreateVerificationCode(tx *gorm.DB, data *entity.VerificationCode) (*entity.VerificationCode, error) {
 	result := tx.Create(&data)
 	if result.Error != nil {
 		return nil, result.Error
@@ -25,8 +25,8 @@ func (v *verificationCodeDatasource) CreateVerificationCode(tx *gorm.DB, data *m
 	return data, nil
 }
 
-func (v *verificationCodeDatasource) GetVerificationCode(tx *gorm.DB, verificationCode *models.VerificationCode, fields *[]string) (*models.VerificationCode, error) {
-	var res *models.VerificationCode
+func (v *verificationCodeDatasource) GetVerificationCode(tx *gorm.DB, verificationCode *entity.VerificationCode, fields *[]string) (*entity.VerificationCode, error) {
+	var res *entity.VerificationCode
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields
@@ -42,8 +42,8 @@ func (v *verificationCodeDatasource) GetVerificationCode(tx *gorm.DB, verificati
 	return res, nil
 }
 
-func (v *verificationCodeDatasource) DeleteVerificationCode(tx *gorm.DB, where *models.VerificationCode, ids *[]uuid.UUID) (*[]models.VerificationCode, error) {
-	var res *[]models.VerificationCode
+func (v *verificationCodeDatasource) DeleteVerificationCode(tx *gorm.DB, where *entity.VerificationCode, ids *[]uuid.UUID) (*[]entity.VerificationCode, error) {
+	var res *[]entity.VerificationCode
 	var result *gorm.DB
 	if ids != nil {
 		result = tx.Clauses(clause.Returning{}).Where(`id IN ?`, ids).Delete(&res)

@@ -1,17 +1,17 @@
 package repository
 
 import (
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"gorm.io/gorm"
 )
 
 type ProvinceRepository interface {
-	GetProvince(tx *gorm.DB, where *models.Province, fields *[]string) (*models.Province, error)
+	GetProvince(tx *gorm.DB, where *entity.Province, fields *[]string) (*entity.Province, error)
 }
 
 type provinceRepository struct{}
 
-func (v *provinceRepository) GetProvince(tx *gorm.DB, where *models.Province, fields *[]string) (*models.Province, error) {
+func (v *provinceRepository) GetProvince(tx *gorm.DB, where *entity.Province, fields *[]string) (*entity.Province, error) {
 	res, err := Datasource.NewProvinceDatasource().GetProvince(tx, where, fields)
 	if err != nil {
 		return nil, err

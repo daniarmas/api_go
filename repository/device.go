@@ -1,19 +1,19 @@
 package repository
 
 import (
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"gorm.io/gorm"
 )
 
 type DeviceRepository interface {
-	GetDevice(tx *gorm.DB, where *models.Device, fields *[]string) (*models.Device, error)
-	CreateDevice(tx *gorm.DB, data *models.Device) (*models.Device, error)
-	UpdateDevice(tx *gorm.DB, where *models.Device, data *models.Device) (*models.Device, error)
+	GetDevice(tx *gorm.DB, where *entity.Device, fields *[]string) (*entity.Device, error)
+	CreateDevice(tx *gorm.DB, data *entity.Device) (*entity.Device, error)
+	UpdateDevice(tx *gorm.DB, where *entity.Device, data *entity.Device) (*entity.Device, error)
 }
 
 type deviceRepository struct{}
 
-func (i *deviceRepository) GetDevice(tx *gorm.DB, where *models.Device, fields *[]string) (*models.Device, error) {
+func (i *deviceRepository) GetDevice(tx *gorm.DB, where *entity.Device, fields *[]string) (*entity.Device, error) {
 	res, err := Datasource.NewDeviceDatasource().GetDevice(tx, where, fields)
 	if err != nil {
 		return nil, err
@@ -21,7 +21,7 @@ func (i *deviceRepository) GetDevice(tx *gorm.DB, where *models.Device, fields *
 	return res, err
 }
 
-func (v *deviceRepository) CreateDevice(tx *gorm.DB, data *models.Device) (*models.Device, error) {
+func (v *deviceRepository) CreateDevice(tx *gorm.DB, data *entity.Device) (*entity.Device, error) {
 	res, err := Datasource.NewDeviceDatasource().CreateDevice(tx, data)
 	if err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func (v *deviceRepository) CreateDevice(tx *gorm.DB, data *models.Device) (*mode
 	return res, err
 }
 
-func (v *deviceRepository) UpdateDevice(tx *gorm.DB, where *models.Device, data *models.Device) (*models.Device, error) {
+func (v *deviceRepository) UpdateDevice(tx *gorm.DB, where *entity.Device, data *entity.Device) (*entity.Device, error) {
 	res, err := Datasource.NewDeviceDatasource().UpdateDevice(tx, where, data)
 	if err != nil {
 		return nil, err

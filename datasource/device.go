@@ -3,20 +3,20 @@ package datasource
 import (
 	"errors"
 
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"gorm.io/gorm"
 )
 
 type DeviceDatasource interface {
-	GetDevice(tx *gorm.DB, where *models.Device, fields *[]string) (*models.Device, error)
-	CreateDevice(tx *gorm.DB, data *models.Device) (*models.Device, error)
-	UpdateDevice(tx *gorm.DB, where *models.Device, data *models.Device) (*models.Device, error)
+	GetDevice(tx *gorm.DB, where *entity.Device, fields *[]string) (*entity.Device, error)
+	CreateDevice(tx *gorm.DB, data *entity.Device) (*entity.Device, error)
+	UpdateDevice(tx *gorm.DB, where *entity.Device, data *entity.Device) (*entity.Device, error)
 }
 
 type deviceDatasource struct{}
 
-func (i *deviceDatasource) GetDevice(tx *gorm.DB, where *models.Device, fields *[]string) (*models.Device, error) {
-	var res *models.Device
+func (i *deviceDatasource) GetDevice(tx *gorm.DB, where *entity.Device, fields *[]string) (*entity.Device, error) {
+	var res *entity.Device
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields
@@ -32,7 +32,7 @@ func (i *deviceDatasource) GetDevice(tx *gorm.DB, where *models.Device, fields *
 	return res, nil
 }
 
-func (v *deviceDatasource) CreateDevice(tx *gorm.DB, data *models.Device) (*models.Device, error) {
+func (v *deviceDatasource) CreateDevice(tx *gorm.DB, data *entity.Device) (*entity.Device, error) {
 	result := tx.Create(&data)
 	if result.Error != nil {
 		return nil, result.Error
@@ -40,7 +40,7 @@ func (v *deviceDatasource) CreateDevice(tx *gorm.DB, data *models.Device) (*mode
 	return data, nil
 }
 
-func (v *deviceDatasource) UpdateDevice(tx *gorm.DB, where *models.Device, data *models.Device) (*models.Device, error) {
+func (v *deviceDatasource) UpdateDevice(tx *gorm.DB, where *entity.Device, data *entity.Device) (*entity.Device, error) {
 	result := tx.Where(where).Updates(&data)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {

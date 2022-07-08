@@ -10,7 +10,7 @@ import (
 
 	"github.com/daniarmas/api_go/config"
 	"github.com/daniarmas/api_go/datasource"
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"github.com/daniarmas/api_go/repository"
 	"gorm.io/gorm"
 )
@@ -62,7 +62,7 @@ func HandleCli(args []string, db *gorm.DB, config *config.Config, repositoryDao 
 func handleCreateApp(getCreateAdmin *flag.FlagSet, repositoryDao repository.Repository, db *gorm.DB) {
 	err := db.Transaction(func(tx *gorm.DB) error {
 		expTime := time.Now().UTC().AddDate(0, 0, 1)
-		createAppRes, createAppErr := repositoryDao.NewApplicationRepository().CreateApplication(tx, &models.Application{Name: "Initial", Version: "1.0.0", ExpirationTime: expTime})
+		createAppRes, createAppErr := repositoryDao.NewApplicationRepository().CreateApplication(tx, &entity.Application{Name: "Initial", Version: "1.0.0", ExpirationTime: expTime})
 		if createAppErr != nil {
 			log.Error(createAppErr)
 			os.Exit(0)

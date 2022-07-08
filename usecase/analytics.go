@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/repository"
 	"github.com/daniarmas/api_go/utils"
@@ -45,20 +45,20 @@ func (i *analyticsService) CollectAnalytics(ctx context.Context, req *pb.Collect
 				log.Fatal(err)
 			}
 
-			var businessAnalytics []models.BusinessAnalytics
+			var businessAnalytics []entity.BusinessAnalytics
 			for _, i := range req.BusinessAnalytics {
 				businessId := uuid.MustParse(i.BusinessId)
-				businessAnalytics = append(businessAnalytics, models.BusinessAnalytics{
+				businessAnalytics = append(businessAnalytics, entity.BusinessAnalytics{
 					Type:       i.Type.String(),
 					BusinessId: &businessId,
 					CreateTime: i.CreateTime.AsTime(),
 					UpdateTime: i.CreateTime.AsTime(),
 				})
 			}
-			var itemAnalytics []models.ItemAnalytics
+			var itemAnalytics []entity.ItemAnalytics
 			for _, i := range req.ItemAnalytics {
 				itemId := uuid.MustParse(i.ItemId)
-				itemAnalytics = append(itemAnalytics, models.ItemAnalytics{
+				itemAnalytics = append(itemAnalytics, entity.ItemAnalytics{
 					Type:       i.Type.String(),
 					ItemId:     &itemId,
 					CreateTime: i.CreateTime.AsTime(),

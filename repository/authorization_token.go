@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
@@ -12,15 +12,15 @@ import (
 )
 
 type AuthorizationTokenRepository interface {
-	GetAuthorizationToken(ctx context.Context, tx *gorm.DB, where *models.AuthorizationToken, fields *[]string) (*models.AuthorizationToken, error)
-	CreateAuthorizationToken(ctx context.Context, tx *gorm.DB, data *models.AuthorizationToken) (*models.AuthorizationToken, error)
-	DeleteAuthorizationToken(ctx context.Context, tx *gorm.DB, where *models.AuthorizationToken, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error)
-	DeleteAuthorizationTokenByRefreshTokenIds(ctx context.Context, tx *gorm.DB, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error)
+	GetAuthorizationToken(ctx context.Context, tx *gorm.DB, where *entity.AuthorizationToken, fields *[]string) (*entity.AuthorizationToken, error)
+	CreateAuthorizationToken(ctx context.Context, tx *gorm.DB, data *entity.AuthorizationToken) (*entity.AuthorizationToken, error)
+	DeleteAuthorizationToken(ctx context.Context, tx *gorm.DB, where *entity.AuthorizationToken, ids *[]uuid.UUID) (*[]entity.AuthorizationToken, error)
+	DeleteAuthorizationTokenByRefreshTokenIds(ctx context.Context, tx *gorm.DB, ids *[]uuid.UUID) (*[]entity.AuthorizationToken, error)
 }
 
 type authorizationTokenRepository struct{}
 
-func (v *authorizationTokenRepository) CreateAuthorizationToken(ctx context.Context, tx *gorm.DB, data *models.AuthorizationToken) (*models.AuthorizationToken, error) {
+func (v *authorizationTokenRepository) CreateAuthorizationToken(ctx context.Context, tx *gorm.DB, data *entity.AuthorizationToken) (*entity.AuthorizationToken, error) {
 	// Store in the database
 	dbRes, dbErr := Datasource.NewAuthorizationTokenDatasource().CreateAuthorizationToken(tx, data)
 	if dbErr != nil {
@@ -48,7 +48,7 @@ func (v *authorizationTokenRepository) CreateAuthorizationToken(ctx context.Cont
 	return dbRes, nil
 }
 
-func (r *authorizationTokenRepository) DeleteAuthorizationToken(ctx context.Context, tx *gorm.DB, where *models.AuthorizationToken, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error) {
+func (r *authorizationTokenRepository) DeleteAuthorizationToken(ctx context.Context, tx *gorm.DB, where *entity.AuthorizationToken, ids *[]uuid.UUID) (*[]entity.AuthorizationToken, error) {
 	// Delete in cache
 	if where.ID != nil {
 		go func() {
@@ -67,7 +67,7 @@ func (r *authorizationTokenRepository) DeleteAuthorizationToken(ctx context.Cont
 	return dbRes, nil
 }
 
-func (r *authorizationTokenRepository) DeleteAuthorizationTokenByRefreshTokenIds(ctx context.Context, tx *gorm.DB, ids *[]uuid.UUID) (*[]models.AuthorizationToken, error) {
+func (r *authorizationTokenRepository) DeleteAuthorizationTokenByRefreshTokenIds(ctx context.Context, tx *gorm.DB, ids *[]uuid.UUID) (*[]entity.AuthorizationToken, error) {
 	// Delete in cache
 	go func() {
 		for _, i := range *ids {
@@ -86,7 +86,7 @@ func (r *authorizationTokenRepository) DeleteAuthorizationTokenByRefreshTokenIds
 	return res, nil
 }
 
-func (v *authorizationTokenRepository) GetAuthorizationToken(ctx context.Context, tx *gorm.DB, where *models.AuthorizationToken, fields *[]string) (*models.AuthorizationToken, error) {
+func (v *authorizationTokenRepository) GetAuthorizationToken(ctx context.Context, tx *gorm.DB, where *entity.AuthorizationToken, fields *[]string) (*entity.AuthorizationToken, error) {
 	cacheId := "authorization_token:" + where.ID.String()
 	cacheRes, cacheErr := Rdb.HGetAll(ctx, cacheId).Result()
 	// Check if exists in cache
@@ -120,7 +120,7 @@ func (v *authorizationTokenRepository) GetAuthorizationToken(ctx context.Context
 		appVersion := cacheRes["app_version"]
 		createTime, _ := time.Parse(time.RFC3339, cacheRes["create_time"])
 		updateTime, _ := time.Parse(time.RFC3339, cacheRes["update_time"])
-		return &models.AuthorizationToken{
+		return &entity.AuthorizationToken{
 			ID:             &id,
 			RefreshTokenId: &refreshTokenId,
 			UserId:         &userId,

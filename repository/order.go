@@ -1,21 +1,21 @@
 package repository
 
 import (
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"gorm.io/gorm"
 )
 
 type OrderRepository interface {
-	ListOrder(tx *gorm.DB, where *models.Order, fields *[]string) (*[]models.Order, error)
-	ListOrderWithBusiness(tx *gorm.DB, where *models.OrderBusiness) (*[]models.OrderBusiness, error)
-	CreateOrder(tx *gorm.DB, data *models.Order) (*models.Order, error)
-	UpdateOrder(tx *gorm.DB, where *models.Order, data *models.Order) (*models.Order, error)
-	GetOrder(tx *gorm.DB, where *models.Order) (*models.Order, error)
+	ListOrder(tx *gorm.DB, where *entity.Order, fields *[]string) (*[]entity.Order, error)
+	ListOrderWithBusiness(tx *gorm.DB, where *entity.OrderBusiness) (*[]entity.OrderBusiness, error)
+	CreateOrder(tx *gorm.DB, data *entity.Order) (*entity.Order, error)
+	UpdateOrder(tx *gorm.DB, where *entity.Order, data *entity.Order) (*entity.Order, error)
+	GetOrder(tx *gorm.DB, where *entity.Order) (*entity.Order, error)
 }
 
 type orderRepository struct{}
 
-func (i *orderRepository) ListOrder(tx *gorm.DB, where *models.Order, fields *[]string) (*[]models.Order, error) {
+func (i *orderRepository) ListOrder(tx *gorm.DB, where *entity.Order, fields *[]string) (*[]entity.Order, error) {
 	result, err := Datasource.NewOrderDatasource().ListOrder(tx, where, fields)
 	if err != nil {
 		return nil, err
@@ -23,7 +23,7 @@ func (i *orderRepository) ListOrder(tx *gorm.DB, where *models.Order, fields *[]
 	return result, nil
 }
 
-func (i *orderRepository) GetOrder(tx *gorm.DB, where *models.Order) (*models.Order, error) {
+func (i *orderRepository) GetOrder(tx *gorm.DB, where *entity.Order) (*entity.Order, error) {
 	res, err := Datasource.NewOrderDatasource().GetOrder(tx, where)
 	if err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func (i *orderRepository) GetOrder(tx *gorm.DB, where *models.Order) (*models.Or
 	return res, nil
 }
 
-func (i *orderRepository) ListOrderWithBusiness(tx *gorm.DB, where *models.OrderBusiness) (*[]models.OrderBusiness, error) {
+func (i *orderRepository) ListOrderWithBusiness(tx *gorm.DB, where *entity.OrderBusiness) (*[]entity.OrderBusiness, error) {
 	result, err := Datasource.NewOrderDatasource().ListOrderWithBusiness(tx, where)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (i *orderRepository) ListOrderWithBusiness(tx *gorm.DB, where *models.Order
 	return result, nil
 }
 
-func (i *orderRepository) CreateOrder(tx *gorm.DB, data *models.Order) (*models.Order, error) {
+func (i *orderRepository) CreateOrder(tx *gorm.DB, data *entity.Order) (*entity.Order, error) {
 	res, err := Datasource.NewOrderDatasource().CreateOrder(tx, data)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func (i *orderRepository) CreateOrder(tx *gorm.DB, data *models.Order) (*models.
 	return res, nil
 }
 
-func (i *orderRepository) UpdateOrder(tx *gorm.DB, where *models.Order, data *models.Order) (*models.Order, error) {
+func (i *orderRepository) UpdateOrder(tx *gorm.DB, where *entity.Order, data *entity.Order) (*entity.Order, error) {
 	result, err := Datasource.NewOrderDatasource().UpdateOrder(tx, where, data)
 	if err != nil {
 		return nil, err

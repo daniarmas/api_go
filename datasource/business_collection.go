@@ -3,19 +3,19 @@ package datasource
 import (
 	"errors"
 
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"gorm.io/gorm"
 )
 
 type BusinessCollectionDatasource interface {
-	GetBusinessCollection(tx *gorm.DB, where *models.BusinessCollection, fields *[]string) (*models.BusinessCollection, error)
-	ListBusinessCollection(tx *gorm.DB, where *models.BusinessCollection, fields *[]string) (*[]models.BusinessCollection, error)
+	GetBusinessCollection(tx *gorm.DB, where *entity.BusinessCollection, fields *[]string) (*entity.BusinessCollection, error)
+	ListBusinessCollection(tx *gorm.DB, where *entity.BusinessCollection, fields *[]string) (*[]entity.BusinessCollection, error)
 }
 
 type businessCollectionDatasource struct{}
 
-func (i *businessCollectionDatasource) ListBusinessCollection(tx *gorm.DB, where *models.BusinessCollection, fields *[]string) (*[]models.BusinessCollection, error) {
-	var itemsCategory []models.BusinessCollection
+func (i *businessCollectionDatasource) ListBusinessCollection(tx *gorm.DB, where *entity.BusinessCollection, fields *[]string) (*[]entity.BusinessCollection, error) {
+	var itemsCategory []entity.BusinessCollection
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields
@@ -27,8 +27,8 @@ func (i *businessCollectionDatasource) ListBusinessCollection(tx *gorm.DB, where
 	return &itemsCategory, nil
 }
 
-func (i *businessCollectionDatasource) GetBusinessCollection(tx *gorm.DB, where *models.BusinessCollection, fields *[]string) (*models.BusinessCollection, error) {
-	var businessBusinessCollection *models.BusinessCollection
+func (i *businessCollectionDatasource) GetBusinessCollection(tx *gorm.DB, where *entity.BusinessCollection, fields *[]string) (*entity.BusinessCollection, error) {
+	var businessBusinessCollection *entity.BusinessCollection
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields

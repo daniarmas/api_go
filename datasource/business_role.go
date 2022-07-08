@@ -4,23 +4,23 @@ import (
 	"errors"
 	"time"
 
-	"github.com/daniarmas/api_go/models"
+	"github.com/daniarmas/api_go/internal/entity"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type BusinessRoleDatasource interface {
-	CreateBusinessRole(tx *gorm.DB, data *models.BusinessRole) (*models.BusinessRole, error)
-	UpdateBusinessRole(tx *gorm.DB, where *models.BusinessRole, data *models.BusinessRole) (*models.BusinessRole, error)
-	GetBusinessRole(tx *gorm.DB, where *models.BusinessRole, fields *[]string) (*models.BusinessRole, error)
-	ListBusinessRole(tx *gorm.DB, where *models.BusinessRole, cursor *time.Time, fields *[]string) (*[]models.BusinessRole, error)
-	DeleteBusinessRole(tx *gorm.DB, where *models.BusinessRole, ids *[]uuid.UUID) (*[]models.BusinessRole, error)
+	CreateBusinessRole(tx *gorm.DB, data *entity.BusinessRole) (*entity.BusinessRole, error)
+	UpdateBusinessRole(tx *gorm.DB, where *entity.BusinessRole, data *entity.BusinessRole) (*entity.BusinessRole, error)
+	GetBusinessRole(tx *gorm.DB, where *entity.BusinessRole, fields *[]string) (*entity.BusinessRole, error)
+	ListBusinessRole(tx *gorm.DB, where *entity.BusinessRole, cursor *time.Time, fields *[]string) (*[]entity.BusinessRole, error)
+	DeleteBusinessRole(tx *gorm.DB, where *entity.BusinessRole, ids *[]uuid.UUID) (*[]entity.BusinessRole, error)
 }
 
 type businessRoleDatasource struct{}
 
-func (v *businessRoleDatasource) UpdateBusinessRole(tx *gorm.DB, where *models.BusinessRole, data *models.BusinessRole) (*models.BusinessRole, error) {
+func (v *businessRoleDatasource) UpdateBusinessRole(tx *gorm.DB, where *entity.BusinessRole, data *entity.BusinessRole) (*entity.BusinessRole, error) {
 	result := tx.Clauses(clause.Returning{}).Where(where).Updates(&data)
 	if result.Error != nil {
 		return nil, result.Error
@@ -30,7 +30,7 @@ func (v *businessRoleDatasource) UpdateBusinessRole(tx *gorm.DB, where *models.B
 	return data, nil
 }
 
-func (v *businessRoleDatasource) CreateBusinessRole(tx *gorm.DB, data *models.BusinessRole) (*models.BusinessRole, error) {
+func (v *businessRoleDatasource) CreateBusinessRole(tx *gorm.DB, data *entity.BusinessRole) (*entity.BusinessRole, error) {
 	result := tx.Create(&data)
 	if result.Error != nil {
 		return nil, result.Error
@@ -38,8 +38,8 @@ func (v *businessRoleDatasource) CreateBusinessRole(tx *gorm.DB, data *models.Bu
 	return data, nil
 }
 
-func (v *businessRoleDatasource) DeleteBusinessRole(tx *gorm.DB, where *models.BusinessRole, ids *[]uuid.UUID) (*[]models.BusinessRole, error) {
-	var res *[]models.BusinessRole
+func (v *businessRoleDatasource) DeleteBusinessRole(tx *gorm.DB, where *entity.BusinessRole, ids *[]uuid.UUID) (*[]entity.BusinessRole, error) {
+	var res *[]entity.BusinessRole
 	var result *gorm.DB
 	if ids != nil {
 		result = tx.Clauses(clause.Returning{}).Where(`id IN ?`, ids).Delete(&res)
@@ -54,21 +54,21 @@ func (v *businessRoleDatasource) DeleteBusinessRole(tx *gorm.DB, where *models.B
 	return res, nil
 }
 
-func (i *businessRoleDatasource) ListBusinessRole(tx *gorm.DB, where *models.BusinessRole, cursor *time.Time, fields *[]string) (*[]models.BusinessRole, error) {
-	var res []models.BusinessRole
+func (i *businessRoleDatasource) ListBusinessRole(tx *gorm.DB, where *entity.BusinessRole, cursor *time.Time, fields *[]string) (*[]entity.BusinessRole, error) {
+	var res []entity.BusinessRole
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields
 	}
-	result := tx.Model(&models.BusinessRole{}).Select(*selectFields).Limit(11).Where("create_time < ?", cursor).Order("create_time desc").Scan(&res)
+	result := tx.Model(&entity.BusinessRole{}).Select(*selectFields).Limit(11).Where("create_time < ?", cursor).Order("create_time desc").Scan(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return &res, nil
 }
 
-func (i *businessRoleDatasource) GetBusinessRole(tx *gorm.DB, where *models.BusinessRole, fields *[]string) (*models.BusinessRole, error) {
-	var res *models.BusinessRole
+func (i *businessRoleDatasource) GetBusinessRole(tx *gorm.DB, where *entity.BusinessRole, fields *[]string) (*entity.BusinessRole, error) {
+	var res *entity.BusinessRole
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields
