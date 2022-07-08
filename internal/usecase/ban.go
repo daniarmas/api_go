@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/daniarmas/api_go/datasource"
+	"github.com/daniarmas/api_go/internal/datasource"
 	"github.com/daniarmas/api_go/internal/entity"
 	"github.com/daniarmas/api_go/pkg/sqldb"
 	"github.com/daniarmas/api_go/internal/repository"

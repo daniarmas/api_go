@@ -9,9 +9,9 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/daniarmas/api_go/config"
-	"github.com/daniarmas/api_go/datasource"
+	"github.com/daniarmas/api_go/internal/datasource"
 	"github.com/daniarmas/api_go/internal/entity"
-	"github.com/daniarmas/api_go/repository"
+	"github.com/daniarmas/api_go/internal/repository"
 	"gorm.io/gorm"
 )
 

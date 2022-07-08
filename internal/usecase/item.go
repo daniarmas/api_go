@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/daniarmas/api_go/config"
-	"github.com/daniarmas/api_go/datasource"
+	"github.com/daniarmas/api_go/internal/datasource"
 	"github.com/daniarmas/api_go/internal/entity"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/pkg/sqldb"
