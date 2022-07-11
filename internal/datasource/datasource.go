@@ -14,6 +14,7 @@ type JsonWebTokenMetadata struct {
 }
 
 type Datasource interface {
+	NewUserConfigurationDatasource() UserConfigurationDatasource
 	NewObjectStorageDatasource() ObjectStorageDatasource
 	NewJwtTokenDatasource() JwtTokenDatasource
 	NewVerificationCodeDatasource() VerificationCodeDatasource
@@ -61,6 +62,10 @@ func New(db *gorm.DB, config *config.Config, minio *minio.Client) Datasource {
 		Config: config,
 		Minio:  minio,
 	}
+}
+
+func (d *datasource) NewUserConfigurationDatasource() UserConfigurationDatasource {
+	return &userConfigurationDatasource{}
 }
 
 func (d *datasource) NewObjectStorageDatasource() ObjectStorageDatasource {
