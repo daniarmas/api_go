@@ -150,7 +150,7 @@ func (i *userService) GetUserAddress(ctx context.Context, req *pb.GetUserAddress
 			UserId:         userAddressRes.UserId.String(),
 			ProvinceId:     userAddressRes.ProvinceId.String(),
 			MunicipalityId: userAddressRes.MunicipalityId.String(),
-			Coordinates:    &pb.Point{Latitude: userAddressRes.Coordinates.FlatCoords()[0], Longitude: userAddressRes.Coordinates.FlatCoords()[1]},
+			Coordinates:    &pb.Point{Latitude: userAddressRes.Coordinates.FlatCoords()[1], Longitude: userAddressRes.Coordinates.FlatCoords()[0]},
 			CreateTime:     timestamppb.New(userAddressRes.CreateTime),
 			UpdateTime:     timestamppb.New(userAddressRes.UpdateTime),
 		}
@@ -245,7 +245,7 @@ func (i *userService) UpdateUserAddress(ctx context.Context, req *pb.UpdateUserA
 			UserId:         updateUserAddressRes.UserId.String(),
 			ProvinceId:     updateUserAddressRes.ProvinceId.String(),
 			MunicipalityId: updateUserAddressRes.MunicipalityId.String(),
-			Coordinates:    &pb.Point{Latitude: updateUserAddressRes.Coordinates.FlatCoords()[0], Longitude: updateUserAddressRes.Coordinates.FlatCoords()[1]},
+			Coordinates:    &pb.Point{Latitude: updateUserAddressRes.Coordinates.FlatCoords()[1], Longitude: updateUserAddressRes.Coordinates.FlatCoords()[0]},
 			CreateTime:     timestamppb.New(updateUserAddressRes.CreateTime),
 			UpdateTime:     timestamppb.New(updateUserAddressRes.UpdateTime),
 		}
@@ -353,7 +353,7 @@ func (i *userService) CreateUserAddress(ctx context.Context, req *pb.CreateUserA
 			Selected:       createUserAddressRes.Selected,
 			ProvinceId:     createUserAddressRes.ProvinceId.String(),
 			MunicipalityId: createUserAddressRes.MunicipalityId.String(),
-			Coordinates:    &pb.Point{Latitude: createUserAddressRes.Coordinates.FlatCoords()[0], Longitude: createUserAddressRes.Coordinates.FlatCoords()[1]},
+			Coordinates:    &pb.Point{Latitude: createUserAddressRes.Coordinates.FlatCoords()[1], Longitude: createUserAddressRes.Coordinates.FlatCoords()[0]},
 			CreateTime:     timestamppb.New(createUserAddressRes.CreateTime),
 			UpdateTime:     timestamppb.New(createUserAddressRes.UpdateTime),
 		}
@@ -403,7 +403,7 @@ func (i *userService) ListUserAddress(ctx context.Context, req *gp.Empty, md *ut
 				Id:             i.ID.String(),
 				Name:           i.Name,
 				UserId:         i.UserId.String(),
-				Coordinates:    &pb.Point{Latitude: i.Coordinates.FlatCoords()[0], Longitude: i.Coordinates.FlatCoords()[1]},
+				Coordinates:    &pb.Point{Latitude: i.Coordinates.FlatCoords()[1], Longitude: i.Coordinates.FlatCoords()[0]},
 				Address:        i.Address,
 				Number:         i.Number,
 				Selected:       i.Selected,

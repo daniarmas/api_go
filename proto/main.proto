@@ -770,8 +770,9 @@ message Item {
   string businessId = 23;
   string businessCollectionId = 24;
   bool isInRange = 25;
-  google.protobuf.Timestamp createTime = 26;
-  google.protobuf.Timestamp updateTime = 27;
+  string businessName = 26;
+  google.protobuf.Timestamp createTime = 27;
+  google.protobuf.Timestamp updateTime = 28;
 }
 
 message Application {
