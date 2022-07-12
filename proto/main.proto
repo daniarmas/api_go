@@ -840,6 +840,7 @@ message SearchItem {
   string thumbnailUrl = 5;
   string blurHash = 6;
   int32 cursor = 7;
+  string businessId = 8;
 }
 
 message ItemPhoto {

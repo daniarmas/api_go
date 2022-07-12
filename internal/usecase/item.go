@@ -9,9 +9,9 @@ import (
 	"github.com/daniarmas/api_go/config"
 	"github.com/daniarmas/api_go/internal/datasource"
 	"github.com/daniarmas/api_go/internal/entity"
+	"github.com/daniarmas/api_go/internal/repository"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/pkg/sqldb"
-	"github.com/daniarmas/api_go/internal/repository"
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
@@ -444,7 +444,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 			return appErr
 		}
 		if req.SearchMunicipalityType.String() == "More" {
-			response, responseErr = i.dao.NewItemRepository().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), false, 10, &[]string{"id", "name", "price_cup", "thumbnail", "blurhash", "cursor"})
+			response, responseErr = i.dao.NewItemRepository().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), false, 10, &[]string{"id", "name", "price_cup", "thumbnail", "blurhash", "cursor", "business_id"})
 			if responseErr != nil {
 				return responseErr
 			}
@@ -454,7 +454,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_More
 			} else if len(*response) <= 10 && len(*response) != 0 {
 				length := 10 - len(*response)
-				responseAdd, responseErr := i.dao.NewItemRepository().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, int64(length), &[]string{"id", "name", "price_cup", "thumbnail", "blurhash", "cursor"})
+				responseAdd, responseErr := i.dao.NewItemRepository().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, int64(length), &[]string{"id", "name", "price_cup", "thumbnail", "blurhash", "cursor", "business_id"})
 				if responseErr != nil {
 					return responseErr
 				}
@@ -465,7 +465,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 				searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
 				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
 			} else if len(*response) == 0 {
-				response, responseErr = i.dao.NewItemRepository().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10, &[]string{"id", "name", "price_cup", "thumbnail", "blurhash", "cursor"})
+				response, responseErr = i.dao.NewItemRepository().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10, &[]string{"id", "name", "price_cup", "thumbnail", "blurhash", "cursor", "business_id"})
 				if responseErr != nil {
 					return responseErr
 				}
@@ -478,7 +478,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
 			}
 		} else {
-			response, responseErr = i.dao.NewItemRepository().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10, &[]string{"id", "name", "price_cup", "thumbnail", "thumbnail_blurhash", "cursor"})
+			response, responseErr = i.dao.NewItemRepository().SearchItem(tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10, &[]string{"id", "name", "price_cup", "thumbnail", "thumbnail_blurhash", "cursor", "business_id"})
 			if responseErr != nil {
 				return responseErr
 			}
@@ -505,6 +505,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 				ThumbnailUrl: i.config.ItemsBulkName + "/" + e.Thumbnail,
 				BlurHash:     e.BlurHash,
 				PriceCup:     e.PriceCup,
+				BusinessId:   e.BusinessId.String(),
 				Cursor:       int32(e.Cursor),
 			})
 		}
@@ -522,7 +523,7 @@ func (i *itemService) SearchItemByBusiness(ctx context.Context, req *pb.SearchIt
 		if appErr != nil {
 			return appErr
 		}
-		response, responseErr = i.dao.NewItemRepository().SearchItemByBusiness(tx, req.Name, int64(req.NextPage), req.BusinessId, &[]string{"id", "name", "price_cup", "thumbnail", "blurhash", "cursor"})
+		response, responseErr = i.dao.NewItemRepository().SearchItemByBusiness(tx, req.Name, int64(req.NextPage), req.BusinessId, &[]string{"id", "name", "price_cup", "thumbnail", "blurhash", "cursor", "business_id"})
 		if responseErr != nil {
 			return responseErr
 		}
@@ -549,6 +550,7 @@ func (i *itemService) SearchItemByBusiness(ctx context.Context, req *pb.SearchIt
 				BlurHash:     e.BlurHash,
 				PriceCup:     e.PriceCup,
 				Cursor:       int32(e.Cursor),
+				BusinessId:   e.BusinessId.String(),
 			})
 		}
 		searchItemResponse.Items = itemsResponse
