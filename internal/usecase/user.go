@@ -7,9 +7,9 @@ import (
 	"github.com/daniarmas/api_go/config"
 	"github.com/daniarmas/api_go/internal/datasource"
 	"github.com/daniarmas/api_go/internal/entity"
+	"github.com/daniarmas/api_go/internal/repository"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/pkg/sqldb"
-	"github.com/daniarmas/api_go/internal/repository"
 	"github.com/daniarmas/api_go/utils"
 	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
@@ -30,6 +30,7 @@ type UserService interface {
 	CreateUserAddress(ctx context.Context, req *pb.CreateUserAddressRequest, md *utils.ClientMetadata) (*pb.UserAddress, error)
 	UpdateUserAddress(ctx context.Context, req *pb.UpdateUserAddressRequest, md *utils.ClientMetadata) (*pb.UserAddress, error)
 	DeleteUserAddress(ctx context.Context, req *pb.DeleteUserAddressRequest, md *utils.ClientMetadata) (*gp.Empty, error)
+	UpdateUserConfiguration(ctx context.Context, req *pb.UpdateUserConfigurationRequest, md *utils.ClientMetadata) (*pb.UserConfiguration, error)
 }
 
 type userService struct {
@@ -41,6 +42,66 @@ type userService struct {
 
 func NewUserService(dao repository.Repository, config *config.Config, rdb *redis.Client, sqldb *sqldb.Sql) UserService {
 	return &userService{dao: dao, config: config, rdb: rdb, sqldb: sqldb}
+}
+
+func (i *userService) UpdateUserConfiguration(ctx context.Context, req *pb.UpdateUserConfigurationRequest, md *utils.ClientMetadata) (*pb.UserConfiguration, error) {
+	var res pb.UserConfiguration
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
+		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if appErr != nil {
+			return appErr
+		}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorization token expired")
+			case "signature is invalid":
+				return errors.New("authorization token signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("authorization token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("authorization token not found")
+		} else if err != nil && err.Error() != "record not found" {
+			return err
+		}
+		dataSaving := req.UserConfiguration.DataSaving
+		highQualityImagesWifi := req.UserConfiguration.HighQualityImagesWifi
+		highQualityImagesData := req.UserConfiguration.HighQualityImagesData
+		data := entity.UserConfiguration{
+			DataSaving:            &dataSaving,
+			HighQualityImagesWifi: &highQualityImagesWifi,
+			HighQualityImagesData: &highQualityImagesData,
+		}
+		if req.UserConfiguration.PaymentMethod == pb.PaymentMethodType_PaymentMethodTypeUnspecified {
+			data.PaymentMethod = ""
+		}
+		userConfigurationRes, err := i.dao.NewUserConfigurationRepository().UpdateUserConfiguration(tx, &entity.UserConfiguration{UserId: authorizationTokenRes.UserId}, &data)
+		if err != nil {
+			return err
+		}
+		res = pb.UserConfiguration{
+			Id:                    userConfigurationRes.ID.String(),
+			DataSaving:            *userConfigurationRes.DataSaving,
+			HighQualityImagesWifi: *userConfigurationRes.HighQualityImagesWifi,
+			HighQualityImagesData: *userConfigurationRes.HighQualityImagesData,
+			PaymentMethod:         *utils.ParsePaymentMethodType(&userConfigurationRes.PaymentMethod),
+			UserId:                userConfigurationRes.UserId.String(),
+			CreateTime:            timestamppb.New(userConfigurationRes.CreateTime),
+			UpdateTime:            timestamppb.New(userConfigurationRes.UpdateTime),
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
 }
 
 func (i *userService) GetUserAddress(ctx context.Context, req *pb.GetUserAddressRequest, md *utils.ClientMetadata) (*pb.UserAddress, error) {

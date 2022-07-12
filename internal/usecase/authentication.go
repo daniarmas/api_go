@@ -280,9 +280,9 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		CartItems:           itemsResponse,
 		Configuration: &pb.UserConfiguration{
 			Id:                    configuration.ID.String(),
-			DataSaving:            configuration.DataSaving,
-			HighQualityImagesWifi: configuration.HighQualityImagesWifi,
-			HighQualityImagesData: configuration.HighQualityImagesData,
+			DataSaving:            *configuration.DataSaving,
+			HighQualityImagesWifi: *configuration.HighQualityImagesWifi,
+			HighQualityImagesData: *configuration.HighQualityImagesData,
 			UserId:                configuration.UserId.String(),
 			PaymentMethod:         *utils.ParsePaymentMethodType(&configuration.PaymentMethod),
 			CreateTime:            timestamppb.New(configuration.CreateTime),

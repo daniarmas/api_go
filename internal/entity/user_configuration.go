@@ -15,9 +15,9 @@ func (UserConfiguration) TableName() string {
 
 type UserConfiguration struct {
 	ID                    *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
-	DataSaving            bool           `gorm:"column:data_saving"`
-	HighQualityImagesWifi bool           `gorm:"column:high_quality_images_wifi"`
-	HighQualityImagesData bool           `gorm:"column:high_quality_images_data"`
+	DataSaving            *bool          `gorm:"column:data_saving"`
+	HighQualityImagesWifi *bool          `gorm:"column:high_quality_images_wifi"`
+	HighQualityImagesData *bool          `gorm:"column:high_quality_images_data"`
 	PaymentMethod         string         `gorm:"column:payment_method"`
 	UserId                *uuid.UUID     `gorm:"column:user_id;not null"`
 	User                  User           `gorm:"foreignKey:UserId"`

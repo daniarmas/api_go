@@ -68,6 +68,8 @@ service UserService {
   rpc CreateUserAddress (CreateUserAddressRequest) returns (UserAddress) {}
   rpc UpdateUserAddress (UpdateUserAddressRequest) returns (UserAddress) {}
   rpc DeleteUserAddress (DeleteUserAddressRequest) returns (google.protobuf.Empty) {}
+
+  rpc UpdateUserConfiguration (UpdateUserConfigurationRequest) returns (UserConfiguration) {}
 }
 
 service OrderService {
@@ -100,6 +102,11 @@ service AnalyticsService {
 }
 
 // Request & Response Message
+
+message UpdateUserConfigurationRequest {
+  string userId = 1;
+  UserConfiguration userConfiguration = 2;
+}
 
 message ModifyBusinessRolePermissionRequest {
   string businessRoleId = 1;

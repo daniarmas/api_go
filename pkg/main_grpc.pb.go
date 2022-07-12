@@ -1349,6 +1349,7 @@ type UserServiceClient interface {
 	CreateUserAddress(ctx context.Context, in *CreateUserAddressRequest, opts ...grpc.CallOption) (*UserAddress, error)
 	UpdateUserAddress(ctx context.Context, in *UpdateUserAddressRequest, opts ...grpc.CallOption) (*UserAddress, error)
 	DeleteUserAddress(ctx context.Context, in *DeleteUserAddressRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	UpdateUserConfiguration(ctx context.Context, in *UpdateUserConfigurationRequest, opts ...grpc.CallOption) (*UserConfiguration, error)
 }
 
 type userServiceClient struct {
@@ -1431,6 +1432,15 @@ func (c *userServiceClient) DeleteUserAddress(ctx context.Context, in *DeleteUse
 	return out, nil
 }
 
+func (c *userServiceClient) UpdateUserConfiguration(ctx context.Context, in *UpdateUserConfigurationRequest, opts ...grpc.CallOption) (*UserConfiguration, error) {
+	out := new(UserConfiguration)
+	err := c.cc.Invoke(ctx, "/main.UserService/UpdateUserConfiguration", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
@@ -1443,6 +1453,7 @@ type UserServiceServer interface {
 	CreateUserAddress(context.Context, *CreateUserAddressRequest) (*UserAddress, error)
 	UpdateUserAddress(context.Context, *UpdateUserAddressRequest) (*UserAddress, error)
 	DeleteUserAddress(context.Context, *DeleteUserAddressRequest) (*emptypb.Empty, error)
+	UpdateUserConfiguration(context.Context, *UpdateUserConfigurationRequest) (*UserConfiguration, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -1473,6 +1484,9 @@ func (UnimplementedUserServiceServer) UpdateUserAddress(context.Context, *Update
 }
 func (UnimplementedUserServiceServer) DeleteUserAddress(context.Context, *DeleteUserAddressRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteUserAddress not implemented")
+}
+func (UnimplementedUserServiceServer) UpdateUserConfiguration(context.Context, *UpdateUserConfigurationRequest) (*UserConfiguration, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserConfiguration not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 
@@ -1631,6 +1645,24 @@ func _UserService_DeleteUserAddress_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_UpdateUserConfiguration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserConfigurationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpdateUserConfiguration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.UserService/UpdateUserConfiguration",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpdateUserConfiguration(ctx, req.(*UpdateUserConfigurationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1669,6 +1701,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteUserAddress",
 			Handler:    _UserService_DeleteUserAddress_Handler,
+		},
+		{
+			MethodName: "UpdateUserConfiguration",
+			Handler:    _UserService_UpdateUserConfiguration_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
