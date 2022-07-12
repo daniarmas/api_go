@@ -671,8 +671,9 @@ message User {
   repeated UserAddress userAddress = 11;
   repeated UserPermission permissions = 12;
   repeated CartItem cartItems = 13;
-  google.protobuf.Timestamp createTime = 14;
-  google.protobuf.Timestamp updateTime = 15;
+  UserConfiguration configuration = 14;
+  google.protobuf.Timestamp createTime = 15;
+  google.protobuf.Timestamp updateTime = 16;
 }
 
 message Municipality {
@@ -910,6 +911,17 @@ message UserAddress {
   google.protobuf.Timestamp updateTime = 12;
 }
 
+message UserConfiguration {
+  string id = 1;
+  bool dataSaving = 2;
+	bool highQualityImagesWifi = 3;
+	bool highQualityImagesData = 4;
+	PaymentMethodType paymentMethod = 5;
+  string userId = 6;
+  google.protobuf.Timestamp createTime = 11;
+  google.protobuf.Timestamp updateTime = 12;
+}
+
 message BusinessRolePermission {
   string id = 1;
   string businessRoleId = 2;
@@ -1034,6 +1046,13 @@ enum PhotoType {
   PhotoTypeBusiness = 1;
   PhotoTypeItem = 2;
   PhotoTypeUser = 3;
+}
+
+enum PaymentMethodType {
+  PaymentMethodTypeUnspecified = 0;
+  PaymentMethodTypeCash = 1;
+  PaymentMethodTypeEnzona = 2;
+  PaymentMethodTypeSolanaPay = 3;
 }
 
 // 'Sign_In', 'Sign_Up', 'Change_User_Email'

@@ -35,6 +35,19 @@ func ParseOrderStatusType(tp *string) *pb.OrderStatusType {
 	}
 }
 
+func ParsePaymentMethodType(tp *string) *pb.PaymentMethodType {
+	switch *tp {
+	case "PaymentMethodTypeCash":
+		return pb.PaymentMethodType_PaymentMethodTypeCash.Enum()
+	case "PaymentMethodTypeEnzona":
+		return pb.PaymentMethodType_PaymentMethodTypeEnzona.Enum()
+	case "PaymentMethodTypeSolanaPay":
+		return pb.PaymentMethodType_PaymentMethodTypeSolanaPay.Enum()
+	default:
+		return pb.PaymentMethodType_PaymentMethodTypeUnspecified.Enum()
+	}
+}
+
 func ParsePartnerApplicationStatus(tp *string) *pb.PartnerApplicationStatus {
 	switch *tp {
 	case "PartnerApplicationStatusPending":
