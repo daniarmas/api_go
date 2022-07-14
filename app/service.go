@@ -2,7 +2,7 @@ package app
 
 import (
 	"github.com/daniarmas/api_go/internal/usecase"
-	pb "github.com/daniarmas/api_go/pkg"
+	pb "github.com/daniarmas/api_go/pkg/grpc"
 )
 
 type ItemServer struct {
@@ -13,16 +13,6 @@ type ItemServer struct {
 type ApplicationServer struct {
 	pb.UnimplementedApplicationServiceServer
 	applicationService usecase.ApplicationService
-}
-
-type BanServer struct {
-	pb.UnimplementedBanServiceServer
-	banService usecase.BanService
-}
-
-type AnalyticsServer struct {
-	pb.UnimplementedAnalyticsServiceServer
-	analyticsService usecase.AnalyticsService
 }
 
 type ObjectStorageServer struct {
@@ -76,22 +66,6 @@ func NewObjectStorageServer(
 ) *ObjectStorageServer {
 	return &ObjectStorageServer{
 		objectStorageService: objectStorageService,
-	}
-}
-
-func NewAnalyticsServer(
-	analyticsService usecase.AnalyticsService,
-) *AnalyticsServer {
-	return &AnalyticsServer{
-		analyticsService: analyticsService,
-	}
-}
-
-func NewBanServer(
-	banService usecase.BanService,
-) *BanServer {
-	return &BanServer{
-		banService: banService,
 	}
 }
 

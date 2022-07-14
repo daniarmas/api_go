@@ -25,9 +25,7 @@ type Datasource interface {
 	NewBusinessCollectionDatasource() BusinessCollectionDatasource
 	NewDeviceDatasource() DeviceDatasource
 	NewBusinessDatasource() BusinessDatasource
-	NewBannedUserDatasource() BannedUserDatasource
 	NewBusinessUserDatasource() BusinessUserDatasource
-	NewBannedDeviceDatasource() BannedDeviceDatasource
 	NewCartItemDatasource() CartItemDatasource
 	NewPermissionDatasource() PermissionDatasource
 	NewUserPermissionDatasource() UserPermissionDatasource
@@ -41,8 +39,6 @@ type Datasource interface {
 	NewBusinessScheduleDatasource() BusinessScheduleDatasource
 	NewOrderLifecycleDatasource() OrderLifecycleDatasource
 	NewBusinessCategoryDatasource() BusinessCategoryDatasource
-	NewBusinessAnalyticsDatasource() BusinessAnalyticsDatasource
-	NewItemAnalyticsDatasource() ItemAnalyticsDatasource
 	NewUserAddressDatasource() UserAddressDatasource
 	NewPartnerApplicationDatasource() PartnerApplicationDatasource
 	NewBusinessRoleDatasource() BusinessRoleDatasource
@@ -114,14 +110,6 @@ func (d *datasource) NewUnionBusinessRoleAndPermissionDatasource() UnionBusiness
 	return &unionBusinessRoleAndPermissionDatasource{}
 }
 
-func (d *datasource) NewBusinessAnalyticsDatasource() BusinessAnalyticsDatasource {
-	return &businessAnalyticsDatasource{}
-}
-
-func (d *datasource) NewItemAnalyticsDatasource() ItemAnalyticsDatasource {
-	return &itemAnalyticsDatasource{}
-}
-
 func (d *datasource) NewBusinessUserDatasource() BusinessUserDatasource {
 	return &businessUserDatasource{}
 }
@@ -188,14 +176,6 @@ func (d *datasource) NewDeviceDatasource() DeviceDatasource {
 
 func (d *datasource) NewBusinessDatasource() BusinessDatasource {
 	return &businessDatasource{}
-}
-
-func (d *datasource) NewBannedUserDatasource() BannedUserDatasource {
-	return &bannedUserDatasource{}
-}
-
-func (d *datasource) NewBannedDeviceDatasource() BannedDeviceDatasource {
-	return &bannedDeviceDatasource{}
 }
 
 func (d *datasource) NewCartItemDatasource() CartItemDatasource {

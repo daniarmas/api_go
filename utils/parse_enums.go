@@ -1,6 +1,6 @@
 package utils
 
-import pb "github.com/daniarmas/api_go/pkg"
+import pb "github.com/daniarmas/api_go/pkg/grpc"
 
 func ParsePlatformType(tp *string) *pb.PlatformType {
 	if *tp == "IOS" {

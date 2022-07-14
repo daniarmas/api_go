@@ -12,8 +12,6 @@ type Repository interface {
 	NewItemRepository() ItemRepository
 	NewVerificationCodeRepository() VerificationCodeRepository
 	NewUserRepository() UserRepository
-	NewBannedUserRepository() BannedUserRepository
-	NewBannedDeviceRepository() BannedDeviceRepository
 	NewDeviceRepository() DeviceRepository
 	NewRefreshTokenRepository() RefreshTokenRepository
 	NewAuthorizationTokenRepository() AuthorizationTokenRepository
@@ -34,8 +32,6 @@ type Repository interface {
 	NewBusinessScheduleRepository() BusinessScheduleRepository
 	NewOrderLifecycleRepository() OrderLifecycleRepository
 	NewBusinessCategoryRepository() BusinessCategoryRepository
-	NewBusinessAnalyticsRepository() BusinessAnalyticsRepository
-	NewItemAnalyticsRepository() ItemAnalyticsRepository
 	NewUserAddressRepository() UserAddressRepository
 	NewPartnerApplicationRepository() PartnerApplicationRepository
 	NewBusinessRoleRepository() BusinessRoleRepository
@@ -108,14 +104,6 @@ func (d *repository) NewPermissionRepository() PermissionRepository {
 	return &permissionRepository{}
 }
 
-func (d *repository) NewBusinessAnalyticsRepository() BusinessAnalyticsRepository {
-	return &businessAnalyticsRepository{}
-}
-
-func (d *repository) NewItemAnalyticsRepository() ItemAnalyticsRepository {
-	return &itemAnalyticsRepository{}
-}
-
 func (d *repository) NewOrderRepository() OrderRepository {
 	return &orderRepository{}
 }
@@ -128,20 +116,12 @@ func (d *repository) NewUserAddressRepository() UserAddressRepository {
 	return &userAddressRepository{}
 }
 
-func (d *repository) NewBannedUserRepository() BannedUserRepository {
-	return &bannedUserRepository{}
-}
-
 func (d *repository) NewOrderedRepository() OrderedRepository {
 	return &orderedRepository{}
 }
 
 func (d *repository) NewUnionOrderAndOrderedItemRepository() UnionOrderAndOrderedItemRepository {
 	return &unionOrderAndOrderedItemRepository{}
-}
-
-func (d *repository) NewBannedDeviceRepository() BannedDeviceRepository {
-	return &bannedDeviceRepository{}
 }
 
 func (d *repository) NewDeviceRepository() DeviceRepository {

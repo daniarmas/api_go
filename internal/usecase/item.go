@@ -10,7 +10,7 @@ import (
 	"github.com/daniarmas/api_go/internal/datasource"
 	"github.com/daniarmas/api_go/internal/entity"
 	"github.com/daniarmas/api_go/internal/repository"
-	pb "github.com/daniarmas/api_go/pkg"
+	pb "github.com/daniarmas/api_go/pkg/grpc"
 	"github.com/daniarmas/api_go/pkg/sqldb"
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"

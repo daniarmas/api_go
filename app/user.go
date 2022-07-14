@@ -5,7 +5,7 @@ import (
 	"net/mail"
 	"strconv"
 
-	pb "github.com/daniarmas/api_go/pkg"
+	pb "github.com/daniarmas/api_go/pkg/grpc"
 	"github.com/daniarmas/api_go/utils"
 	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"

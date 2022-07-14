@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	pb "github.com/daniarmas/api_go/pkg"
+	pb "github.com/daniarmas/api_go/pkg/grpc"
 	utils "github.com/daniarmas/api_go/utils"
 	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"

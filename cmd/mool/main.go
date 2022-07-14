@@ -11,7 +11,7 @@ import (
 	"github.com/daniarmas/api_go/internal/datasource"
 	"github.com/daniarmas/api_go/internal/repository"
 	"github.com/daniarmas/api_go/internal/usecase"
-	pb "github.com/daniarmas/api_go/pkg"
+	pb "github.com/daniarmas/api_go/pkg/grpc"
 	"github.com/daniarmas/api_go/pkg/rdb"
 	"github.com/daniarmas/api_go/pkg/s3"
 	"github.com/daniarmas/api_go/pkg/sqldb"
@@ -89,9 +89,7 @@ func serviceRegister(sv *grpc.Server) {
 	userService := usecase.NewUserService(repository, cfg, rdb, sqlDb)
 	cartItemService := usecase.NewCartItemService(repository, cfg, sqlDb)
 	orderService := usecase.NewOrderService(repository, sqlDb)
-	banService := usecase.NewBanService(repository, sqlDb)
 	objectStorageService := usecase.NewObjectStorageService(repository, sqlDb, cfg)
-	analyicsService := usecase.NewAnalyticsService(repository, stDb)
 	applicationService := usecase.NewApplicationService(repository, sqlDb)
 	pb.RegisterItemServiceServer(sv, app.NewItemServer(
 		itemService,
@@ -111,13 +109,9 @@ func serviceRegister(sv *grpc.Server) {
 	pb.RegisterOrderServiceServer(sv, app.NewOrderServer(
 		orderService,
 	))
-	pb.RegisterBanServiceServer(sv, app.NewBanServer(
-		banService,
-	))
 	pb.RegisterObjectStorageServiceServer(sv, app.NewObjectStorageServer(
 		objectStorageService,
 	))
-	pb.RegisterAnalyticsServiceServer(sv, app.NewAnalyticsServer(analyicsService))
 	pb.RegisterApplicationServiceServer(sv, app.NewApplicationServer(applicationService))
 }
 
