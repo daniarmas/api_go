@@ -8,6 +8,7 @@ import (
 )
 
 type Repository interface {
+	NewUserConfigurationRepository() UserConfigurationRepository
 	NewItemRepository() ItemRepository
 	NewVerificationCodeRepository() VerificationCodeRepository
 	NewUserRepository() UserRepository
@@ -54,6 +55,10 @@ func New(db *gorm.DB, config *config.Config, datasourceDao datasource.Datasource
 	Datasource = datasourceDao
 	Rdb = rdb
 	return &repository{}
+}
+
+func (d *repository) NewUserConfigurationRepository() UserConfigurationRepository {
+	return &userConfigurationRepository{}
 }
 
 func (d *repository) NewJwtTokenRepository() JwtTokenRepository {

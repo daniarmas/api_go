@@ -4,8 +4,8 @@
     "number": "123",
     "address": "Linea entre la mierda y san miguel",
     "coordinates": {
-      "latitude": 1.23,
-      "longitude": 1.23
+      "latitude": 1.0,
+      "longitude": 2.00
     },
     "instructions": "cuidado con el perro",
     "provinceId": "fdd8d920-af20-40e8-bb4f-6c1194a1b756",

@@ -10,9 +10,9 @@ import (
 	"github.com/daniarmas/api_go/config"
 	"github.com/daniarmas/api_go/internal/datasource"
 	"github.com/daniarmas/api_go/internal/entity"
+	"github.com/daniarmas/api_go/internal/repository"
 	pb "github.com/daniarmas/api_go/pkg"
 	"github.com/daniarmas/api_go/pkg/sqldb"
-	"github.com/daniarmas/api_go/internal/repository"
 	"github.com/daniarmas/api_go/utils"
 	smtp "github.com/daniarmas/api_go/utils/smtp"
 	"github.com/google/uuid"
@@ -109,6 +109,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 	var bannedUserRes *entity.BannedUser
 	var bannedDeviceRes *entity.BannedDevice
 	var cartItems *[]entity.CartItem
+	var configuration *entity.UserConfiguration
 	var deviceRes *entity.Device
 	var verificationCodeErr, userErr, bannedUserErr, bannedDeviceErr, deviceErr, refreshTokenErr, authorizationTokenErr, jwtRefreshTokenErr, jwtAuthorizationTokenErr error
 	var refreshTokenRes *entity.RefreshToken
@@ -199,6 +200,10 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		if err != nil {
 			return err
 		}
+		configuration, err = v.dao.NewUserConfigurationRepository().GetUserConfiguration(tx, &entity.UserConfiguration{UserId: userRes.ID})
+		if err != nil {
+			return err
+		}
 		return nil
 	})
 	if err != nil {
@@ -273,8 +278,18 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		Permissions:         permissions,
 		UserAddress:         userAddress,
 		CartItems:           itemsResponse,
-		CreateTime:          timestamppb.New(userRes.CreateTime),
-		UpdateTime:          timestamppb.New(userRes.UpdateTime),
+		Configuration: &pb.UserConfiguration{
+			Id:                    configuration.ID.String(),
+			DataSaving:            *configuration.DataSaving,
+			HighQualityImagesWifi: *configuration.HighQualityImagesWifi,
+			HighQualityImagesData: *configuration.HighQualityImagesData,
+			UserId:                configuration.UserId.String(),
+			PaymentMethod:         *utils.ParsePaymentMethodType(&configuration.PaymentMethod),
+			CreateTime:            timestamppb.New(configuration.CreateTime),
+			UpdateTime:            timestamppb.New(configuration.UpdateTime),
+		},
+		CreateTime: timestamppb.New(userRes.CreateTime),
+		UpdateTime: timestamppb.New(userRes.UpdateTime),
 	}}, nil
 }
 

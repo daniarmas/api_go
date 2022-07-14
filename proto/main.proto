@@ -68,6 +68,8 @@ service UserService {
   rpc CreateUserAddress (CreateUserAddressRequest) returns (UserAddress) {}
   rpc UpdateUserAddress (UpdateUserAddressRequest) returns (UserAddress) {}
   rpc DeleteUserAddress (DeleteUserAddressRequest) returns (google.protobuf.Empty) {}
+
+  rpc UpdateUserConfiguration (UpdateUserConfigurationRequest) returns (UserConfiguration) {}
 }
 
 service OrderService {
@@ -100,6 +102,11 @@ service AnalyticsService {
 }
 
 // Request & Response Message
+
+message UpdateUserConfigurationRequest {
+  string userId = 1;
+  UserConfiguration userConfiguration = 2;
+}
 
 message ModifyBusinessRolePermissionRequest {
   string businessRoleId = 1;
@@ -671,8 +678,9 @@ message User {
   repeated UserAddress userAddress = 11;
   repeated UserPermission permissions = 12;
   repeated CartItem cartItems = 13;
-  google.protobuf.Timestamp createTime = 14;
-  google.protobuf.Timestamp updateTime = 15;
+  UserConfiguration configuration = 14;
+  google.protobuf.Timestamp createTime = 15;
+  google.protobuf.Timestamp updateTime = 16;
 }
 
 message Municipality {
@@ -762,8 +770,9 @@ message Item {
   string businessId = 23;
   string businessCollectionId = 24;
   bool isInRange = 25;
-  google.protobuf.Timestamp createTime = 26;
-  google.protobuf.Timestamp updateTime = 27;
+  string businessName = 26;
+  google.protobuf.Timestamp createTime = 27;
+  google.protobuf.Timestamp updateTime = 28;
 }
 
 message Application {
@@ -832,6 +841,7 @@ message SearchItem {
   string thumbnailUrl = 5;
   string blurHash = 6;
   int32 cursor = 7;
+  string businessId = 8;
 }
 
 message ItemPhoto {
@@ -906,6 +916,17 @@ message UserAddress {
   string userId = 8;
   string provinceId = 9;
   string municipalityId = 10;
+  google.protobuf.Timestamp createTime = 11;
+  google.protobuf.Timestamp updateTime = 12;
+}
+
+message UserConfiguration {
+  string id = 1;
+  bool dataSaving = 2;
+	bool highQualityImagesWifi = 3;
+	bool highQualityImagesData = 4;
+	PaymentMethodType paymentMethod = 5;
+  string userId = 6;
   google.protobuf.Timestamp createTime = 11;
   google.protobuf.Timestamp updateTime = 12;
 }
@@ -1034,6 +1055,13 @@ enum PhotoType {
   PhotoTypeBusiness = 1;
   PhotoTypeItem = 2;
   PhotoTypeUser = 3;
+}
+
+enum PaymentMethodType {
+  PaymentMethodTypeUnspecified = 0;
+  PaymentMethodTypeCash = 1;
+  PaymentMethodTypeEnzona = 2;
+  PaymentMethodTypeSolanaPay = 3;
 }
 
 // 'Sign_In', 'Sign_Up', 'Change_User_Email'
