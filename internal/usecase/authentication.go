@@ -354,7 +354,9 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 				return deviceErr
 			}
 		}
-		createUserRes, createUserErr = v.dao.NewUserRepository().CreateUser(tx, &entity.User{Email: req.Email, IsLegalAge: true, FullName: req.FullName})
+		trueValue := true
+		falseValue := false
+		createUserRes, createUserErr = v.dao.NewUserRepository().CreateUser(tx, &entity.User{Email: req.Email, IsLegalAge: true, FullName: req.FullName, UserConfiguration: entity.UserConfiguration{PaymentMethod: "PaymentMethodTypeCash", DataSaving: &falseValue, HighQualityImagesWifi: &trueValue, HighQualityImagesData: &trueValue}})
 		if createUserErr != nil {
 			return createUserErr
 		}
@@ -392,9 +394,19 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 		return nil, err
 	}
 	return &pb.SignUpResponse{AuthorizationToken: *jwtAuthorizationToken.Token, RefreshToken: *jwtRefreshToken.Token, User: &pb.User{
-		Id:         createUserRes.ID.String(),
-		FullName:   createUserRes.FullName,
-		Email:      createUserRes.Email,
+		Id:       createUserRes.ID.String(),
+		FullName: createUserRes.FullName,
+		Email:    createUserRes.Email,
+		Configuration: &pb.UserConfiguration{
+			Id:                    createUserRes.UserConfiguration.ID.String(),
+			DataSaving:            *createUserRes.UserConfiguration.DataSaving,
+			HighQualityImagesWifi: *createUserRes.UserConfiguration.HighQualityImagesWifi,
+			HighQualityImagesData: *createUserRes.UserConfiguration.HighQualityImagesData,
+			UserId:                createUserRes.UserConfiguration.UserId.String(),
+			PaymentMethod:         *utils.ParsePaymentMethodType(&createUserRes.UserConfiguration.PaymentMethod),
+			CreateTime:            timestamppb.New(createUserRes.UserConfiguration.CreateTime),
+			UpdateTime:            timestamppb.New(createUserRes.UserConfiguration.UpdateTime),
+		},
 		CreateTime: timestamppb.New(createUserRes.CreateTime),
 		UpdateTime: timestamppb.New(createUserRes.UpdateTime),
 	}}, nil
