@@ -16,6 +16,8 @@ import (
 	"github.com/daniarmas/api_go/utils"
 	smtp "github.com/daniarmas/api_go/utils/smtp"
 	"github.com/google/uuid"
+	"github.com/twpayne/go-geom"
+	"github.com/twpayne/go-geom/encoding/ewkb"
 	gp "google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
@@ -299,6 +301,7 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 	var bannedDeviceRes *entity.BannedDevice
 	var deviceRes *entity.Device
 	var verificationCodeRes *entity.VerificationCode
+	var createUserAddress *entity.UserAddress
 	var verificationCodeErr, userErr, bannedUserErr, bannedDeviceErr, deviceErr, refreshTokenErr, authorizationTokenErr, jwtRefreshTokenErr, jwtAuthorizationTokenErr, createUserErr error
 	var refreshTokenRes *entity.RefreshToken
 	var authorizationTokenRes *entity.AuthorizationToken
@@ -356,9 +359,16 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 		}
 		trueValue := true
 		falseValue := false
+		municipalityId := uuid.MustParse(req.UserAddress.MunicipalityId)
+		provinceId := uuid.MustParse(req.UserAddress.ProvinceId)
+		coordinates := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.UserAddress.Coordinates.Latitude, req.UserAddress.Coordinates.Longitude}).SetSRID(4326)}
 		createUserRes, createUserErr = v.dao.NewUserRepository().CreateUser(tx, &entity.User{Email: req.Email, IsLegalAge: true, FullName: req.FullName, UserConfiguration: entity.UserConfiguration{PaymentMethod: "PaymentMethodTypeCash", DataSaving: &falseValue, HighQualityImagesWifi: &trueValue, HighQualityImagesData: &trueValue}})
 		if createUserErr != nil {
 			return createUserErr
+		}
+		createUserAddress, err = v.dao.NewUserAddressRepository().CreateUserAddress(tx, &entity.UserAddress{Selected: true, Name: req.UserAddress.Name, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, ProvinceId: &provinceId, MunicipalityId: &municipalityId, Coordinates: coordinates, UserId: createUserRes.ID})
+		if err != nil {
+			return err
 		}
 		refreshTokenRes, refreshTokenErr = v.dao.NewRefreshTokenRepository().CreateRefreshToken(tx, &entity.RefreshToken{UserId: createUserRes.ID, DeviceId: deviceRes.ID})
 		if refreshTokenErr != nil {
@@ -393,10 +403,27 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 	if err != nil {
 		return nil, err
 	}
+
 	return &pb.SignUpResponse{AuthorizationToken: *jwtAuthorizationToken.Token, RefreshToken: *jwtRefreshToken.Token, User: &pb.User{
 		Id:       createUserRes.ID.String(),
 		FullName: createUserRes.FullName,
 		Email:    createUserRes.Email,
+		UserAddress: []*pb.UserAddress{
+			{
+				Id:             createUserAddress.ID.String(),
+				Name:           createUserAddress.Name,
+				Selected:       createUserAddress.Selected,
+				Number:         createUserAddress.Number,
+				Address:        createUserAddress.Address,
+				Instructions:   createUserAddress.Instructions,
+				UserId:         createUserAddress.UserId.String(),
+				ProvinceId:     createUserAddress.ProvinceId.String(),
+				MunicipalityId: createUserAddress.MunicipalityId.String(),
+				CreateTime:     timestamppb.New(createUserAddress.CreateTime),
+				UpdateTime:     timestamppb.New(createUserAddress.UpdateTime),
+				Coordinates:    &pb.Point{Latitude: createUserAddress.Coordinates.FlatCoords()[1], Longitude: createUserAddress.Coordinates.FlatCoords()[0]},
+			},
+		},
 		Configuration: &pb.UserConfiguration{
 			Id:                    createUserRes.UserConfiguration.ID.String(),
 			DataSaving:            *createUserRes.UserConfiguration.DataSaving,

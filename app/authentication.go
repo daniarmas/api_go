@@ -252,13 +252,91 @@ func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest
 
 func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest) (*pb.SignUpResponse, error) {
 	var (
-		invalidEmail    *epb.BadRequest_FieldViolation
-		invalidCode     *epb.BadRequest_FieldViolation
-		invalidFullname *epb.BadRequest_FieldViolation
+		invalidEmail          *epb.BadRequest_FieldViolation
+		invalidCode           *epb.BadRequest_FieldViolation
+		invalidFullname       *epb.BadRequest_FieldViolation
+		invalidName           *epb.BadRequest_FieldViolation
+		invalidAddress        *epb.BadRequest_FieldViolation
+		invalidNumber         *epb.BadRequest_FieldViolation
+		invalidCoordinates    *epb.BadRequest_FieldViolation
+		invalidProvinceId     *epb.BadRequest_FieldViolation
+		invalidMunicipalityId *epb.BadRequest_FieldViolation
 	)
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if req.UserAddress.Coordinates == nil {
+		invalidArgs = true
+		invalidCoordinates = &epb.BadRequest_FieldViolation{
+			Field:       "userAddress.Coordinates",
+			Description: "The userAddress.Coordinates field is required",
+		}
+	} else if req.UserAddress.Coordinates != nil {
+		if req.UserAddress.Coordinates.Latitude == 0 {
+			invalidArgs = true
+			invalidCoordinates = &epb.BadRequest_FieldViolation{
+				Field:       "userAddress.Coordinates.Latitude",
+				Description: "The userAddress.Coordinates.Latitude field is required",
+			}
+		} else if req.UserAddress.Coordinates.Longitude == 0 {
+			invalidArgs = true
+			invalidCoordinates = &epb.BadRequest_FieldViolation{
+				Field:       "userAddress.Coordinates.Longitude",
+				Description: "The userAddress.Coordinates.Longitude field is required",
+			}
+		}
+	}
+	if req.UserAddress.ProvinceId == "" {
+		invalidArgs = true
+		invalidProvinceId = &epb.BadRequest_FieldViolation{
+			Field:       "userAddress.provinceId",
+			Description: "The userAddress.provinceId field is required",
+		}
+	} else if req.UserAddress.ProvinceId != "" {
+		if !utils.IsValidUUID(&req.UserAddress.ProvinceId) {
+			invalidArgs = true
+			invalidProvinceId = &epb.BadRequest_FieldViolation{
+				Field:       "userAddress.provinceId",
+				Description: "The userAddress.provinceId field is not a valid uuid v4",
+			}
+		}
+	}
+	if req.UserAddress.MunicipalityId == "" {
+		invalidArgs = true
+		invalidMunicipalityId = &epb.BadRequest_FieldViolation{
+			Field:       "userAddress.municipalityId",
+			Description: "The userAddress.municipalityId field is required",
+		}
+	} else if req.UserAddress.MunicipalityId != "" {
+		if !utils.IsValidUUID(&req.UserAddress.MunicipalityId) {
+			invalidArgs = true
+			invalidMunicipalityId = &epb.BadRequest_FieldViolation{
+				Field:       "userAddress.municipalityId",
+				Description: "The userAddress.municipalityId field is not a valid uuid v4",
+			}
+		}
+	}
+	if req.UserAddress.Name == "" {
+		invalidArgs = true
+		invalidEmail = &epb.BadRequest_FieldViolation{
+			Field:       "userAddress.name",
+			Description: "The userAddress.name field is required",
+		}
+	}
+	if req.UserAddress.Address == "" {
+		invalidArgs = true
+		invalidEmail = &epb.BadRequest_FieldViolation{
+			Field:       "userAddress.address",
+			Description: "The userAddress.address field is required",
+		}
+	}
+	if req.UserAddress.Number == "" {
+		invalidArgs = true
+		invalidEmail = &epb.BadRequest_FieldViolation{
+			Field:       "userAddress.number",
+			Description: "The userAddress.number field is required",
+		}
+	}
 	if req.Email == "" {
 		invalidArgs = true
 		invalidEmail = &epb.BadRequest_FieldViolation{
@@ -312,6 +390,36 @@ func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest
 		if invalidFullname != nil {
 			st, _ = st.WithDetails(
 				invalidFullname,
+			)
+		}
+		if invalidAddress != nil {
+			st, _ = st.WithDetails(
+				invalidAddress,
+			)
+		}
+		if invalidCoordinates != nil {
+			st, _ = st.WithDetails(
+				invalidCoordinates,
+			)
+		}
+		if invalidName != nil {
+			st, _ = st.WithDetails(
+				invalidName,
+			)
+		}
+		if invalidNumber != nil {
+			st, _ = st.WithDetails(
+				invalidNumber,
+			)
+		}
+		if invalidMunicipalityId != nil {
+			st, _ = st.WithDetails(
+				invalidMunicipalityId,
+			)
+		}
+		if invalidProvinceId != nil {
+			st, _ = st.WithDetails(
+				invalidProvinceId,
 			)
 		}
 		return nil, st.Err()
