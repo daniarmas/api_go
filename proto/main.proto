@@ -91,6 +91,7 @@ service CartItemService {
 
 service PaymentMethodService {
   rpc CreatePaymentMethod (CreatePaymentMethodRequest) returns (PaymentMethod) {}
+  rpc ListPaymentMethod (ListPaymentMethodRequest) returns (ListPaymentMethodResponse) {}
 }
 
 // service BanService {
@@ -107,6 +108,14 @@ service ObjectStorageService {
 // }
 
 // Request & Response Message
+
+message ListPaymentMethodRequest {
+
+}
+
+message ListPaymentMethodResponse {
+  repeated PaymentMethod paymentMethods = 1;
+}
 
 message CreatePaymentMethodRequest {
   PaymentMethod paymentMethod = 1;
