@@ -8,7 +8,7 @@ import (
 
 type OrderedItemDatasource interface {
 	BatchCreateOrderedItem(tx *gorm.DB, data *[]entity.OrderedItem) (*[]entity.OrderedItem, error)
-	ListOrderedItemByIds(tx *gorm.DB, ids *[]uuid.UUID, fields *[]string) (*[]entity.OrderedItem, error)
+	ListOrderedItemByIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.OrderedItem, error)
 	ListOrderedItem(tx *gorm.DB, where *entity.OrderedItem, fields *[]string) (*[]entity.OrderedItem, error)
 }
 
@@ -22,13 +22,13 @@ func (i *orderedItemDatasource) BatchCreateOrderedItem(tx *gorm.DB, data *[]enti
 	return data, nil
 }
 
-func (i *orderedItemDatasource) ListOrderedItemByIds(tx *gorm.DB, ids *[]uuid.UUID, fields *[]string) (*[]entity.OrderedItem, error) {
+func (i *orderedItemDatasource) ListOrderedItemByIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.OrderedItem, error) {
 	var res []entity.OrderedItem
 	selectFields := &[]string{"*"}
 	if fields != nil {
 		selectFields = fields
 	}
-	result := tx.Where("id IN ? ", *ids).Select(*selectFields).Find(&res)
+	result := tx.Where("id IN ? ", ids).Select(*selectFields).Find(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}

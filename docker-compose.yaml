@@ -86,9 +86,9 @@ services:
   #     retries: 3
   createbuckets:
     image: docker.uclv.cu/minio/mc:RELEASE.2022-04-16T21-11-21Z
-    depends_on:
-      minio:
-        condition: service_healthy
+    # depends_on:
+    #   minio:
+    #     condition: service_healthy
     restart: on-failure
     entrypoint: >
       /bin/sh -c "

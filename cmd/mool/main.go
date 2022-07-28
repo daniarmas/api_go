@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/daniarmas/api_go/app"
 	"github.com/daniarmas/api_go/cli"
@@ -17,12 +18,31 @@ import (
 	"github.com/daniarmas/api_go/pkg/sqldb"
 	"github.com/daniarmas/api_go/tlscert"
 	"github.com/daniarmas/api_go/utils"
+	"github.com/getsentry/sentry-go"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
 func main() {
+	// Sentry
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: "http://b60953b9e22c48a9bce354aeb2f65854@sentry.mool.cu:30957/2",
+		// Set TracesSampleRate to 1.0 to capture 100%
+		// of transactions for performance monitoring.
+		// We recommend adjusting this value in production,
+		TracesSampleRate: 1.0,
+	})
+	if err != nil {
+		log.Fatalf("sentry.Init: %s", err)
+	}
+	// Flush buffered events before the program terminates.
+	defer sentry.Flush(2 * time.Second)
+
+	sentry.CaptureMessage("It works!")
+	if err != nil {
+		log.Fatalf("sentry.Init: %s", err)
+	}
 	// Configurations
 	cfg, err := config.New()
 	if err != nil {

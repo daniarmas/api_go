@@ -8,7 +8,7 @@ import (
 
 type OrderedRepository interface {
 	BatchCreateOrderedItem(tx *gorm.DB, data *[]entity.OrderedItem) (*[]entity.OrderedItem, error)
-	ListOrderedItemByIds(tx *gorm.DB, ids *[]uuid.UUID, fields *[]string) (*[]entity.OrderedItem, error)
+	ListOrderedItemByIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.OrderedItem, error)
 	ListOrderedItem(tx *gorm.DB, where *entity.OrderedItem, fields *[]string) (*[]entity.OrderedItem, error)
 }
 
@@ -22,7 +22,7 @@ func (i *orderedRepository) BatchCreateOrderedItem(tx *gorm.DB, data *[]entity.O
 	return res, nil
 }
 
-func (i *orderedRepository) ListOrderedItemByIds(tx *gorm.DB, ids *[]uuid.UUID, fields *[]string) (*[]entity.OrderedItem, error) {
+func (i *orderedRepository) ListOrderedItemByIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.OrderedItem, error) {
 	result, err := Datasource.NewOrderedItemDatasource().ListOrderedItemByIds(tx, ids, fields)
 	if err != nil {
 		return nil, err

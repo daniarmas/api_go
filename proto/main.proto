@@ -73,6 +73,7 @@ service UserService {
 }
 
 service OrderService {
+  rpc GetOrder (GetOrderRequest) returns (Order) {}
   rpc ListOrder (ListOrderRequest) returns (ListOrderResponse) {}
   rpc CreateOrder (CreateOrderRequest) returns (Order) {}
   rpc UpdateOrder (UpdateOrderRequest) returns (Order) {}
@@ -102,6 +103,10 @@ service ObjectStorageService {
 // }
 
 // Request & Response Message
+
+message GetOrderRequest {
+  string id = 1;
+}
 
 message UpdateUserConfigurationRequest {
   string userId = 1;
@@ -660,9 +665,10 @@ message Order {
   string userId = 12;
   string businessName = 13;
   int32 itemsQuantity = 14;
-  google.protobuf.Timestamp orderTime = 15;
-  google.protobuf.Timestamp createTime = 16;
-  google.protobuf.Timestamp updateTime = 17;
+  repeated OrderedItem orderedItems = 15;
+  google.protobuf.Timestamp orderTime = 16;
+  google.protobuf.Timestamp createTime = 17;
+  google.protobuf.Timestamp updateTime = 18;
 }
 
 message User {
@@ -1009,14 +1015,15 @@ enum AppType  {
 
 enum OrderStatusType {
   OrderStatusTypeUnspecified = 0; 
-  OrderStatusTypePending = 1;
-  OrderStatusTypeApproved = 2;
-  OrderStatusTypeRejected = 3;
-  OrderStatusTypeReceived = 4;
-  OrderStatusTypeCanceled = 5;
-  OrderStatusTypeExpired = 6;
-  OrderStatusTypeDone = 7;
-  OrderStatusTypeStarted = 8;
+  OrderStatusTypePendingPayment = 1;
+  OrderStatusTypeOrdered = 2;
+  OrderStatusTypeAccepted = 3;
+  OrderStatusTypeReady = 4;
+  OrderStatusTypeAssignedMessenger = 5;
+  OrderStatusTypeDelivered = 6;
+  OrderStatusTypeRejected = 7;
+  OrderStatusTypeCancelled = 8;
+  OrderStatusTypeExpired = 9;
 }
 
 enum PartnerApplicationStatus {

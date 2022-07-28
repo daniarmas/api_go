@@ -58,20 +58,6 @@ func (v *authenticationService) CreateVerificationCode(ctx context.Context, req 
 		} else if user != nil && (req.Type.String() == "SignUp" || req.Type.String() == "ChangeUserEmail") {
 			return errors.New("user already exists")
 		}
-		bannedUserResult, err := v.dao.NewBannedUserRepository().GetBannedUser(tx, &entity.BannedUser{Email: req.Email}, &[]string{"id"})
-		if err != nil && err.Error() != "record not found" {
-			return err
-		}
-		if bannedUserResult != nil {
-			return errors.New("banned user")
-		}
-		bannedDeviceResult, err := v.dao.NewBannedDeviceRepository().GetBannedDevice(tx, &entity.BannedDevice{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
-		if err != nil && err.Error() != "record not found" {
-			return err
-		}
-		if bannedDeviceResult != nil {
-			return errors.New("banned device")
-		}
 		v.dao.NewVerificationCodeRepository().DeleteVerificationCode(tx, &entity.VerificationCode{Email: req.Email, Type: req.Type.String(), DeviceIdentifier: *md.DeviceIdentifier}, nil)
 		createVerificationCodeRes, createVerificationCodeErr := v.dao.NewVerificationCodeRepository().CreateVerificationCode(tx, &entity.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: *md.DeviceIdentifier, CreateTime: time.Now(), UpdateTime: time.Now()})
 		if createVerificationCodeErr != nil {
@@ -108,12 +94,10 @@ func (v *authenticationService) GetVerificationCode(ctx context.Context, req *pb
 func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInRequest, md *utils.ClientMetadata) (*pb.SignInResponse, error) {
 	var verificationCodeRes *entity.VerificationCode
 	var userRes *entity.User
-	var bannedUserRes *entity.BannedUser
-	var bannedDeviceRes *entity.BannedDevice
 	var cartItems *[]entity.CartItem
 	var configuration *entity.UserConfiguration
 	var deviceRes *entity.Device
-	var verificationCodeErr, userErr, bannedUserErr, bannedDeviceErr, deviceErr, refreshTokenErr, authorizationTokenErr, jwtRefreshTokenErr, jwtAuthorizationTokenErr error
+	var verificationCodeErr, userErr, deviceErr, refreshTokenErr, authorizationTokenErr, jwtRefreshTokenErr, jwtAuthorizationTokenErr error
 	var refreshTokenRes *entity.RefreshToken
 	var authorizationTokenRes *entity.AuthorizationToken
 	var (
@@ -139,12 +123,6 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		if appErr != nil {
 			return appErr
 		}
-		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceRepository().GetBannedDevice(tx, &entity.BannedDevice{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{})
-		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
-			return bannedDeviceErr
-		} else if bannedDeviceRes != nil {
-			return errors.New("device banned")
-		}
 		verificationCodeRes, verificationCodeErr = v.dao.NewVerificationCodeRepository().GetVerificationCode(tx, &entity.VerificationCode{Email: req.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "SignIn"}, &[]string{"id"})
 		if verificationCodeErr != nil && verificationCodeErr.Error() == "record not found" {
 			return errors.New("verification code not found")
@@ -159,12 +137,6 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 			default:
 				return userErr
 			}
-		}
-		bannedUserRes, bannedUserErr = v.dao.NewBannedUserRepository().GetBannedUser(tx, &entity.BannedUser{Email: req.Email}, &[]string{})
-		if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
-			return bannedUserErr
-		} else if bannedUserRes != nil {
-			return errors.New("user banned")
 		}
 		_, err := v.dao.NewVerificationCodeRepository().DeleteVerificationCode(tx, &entity.VerificationCode{Email: req.Email, Type: "SignIn", DeviceIdentifier: *md.DeviceIdentifier}, nil)
 		if err != nil {
@@ -297,12 +269,10 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 
 func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpRequest, md *utils.ClientMetadata) (*pb.SignUpResponse, error) {
 	var userRes *entity.User
-	var bannedUserRes *entity.BannedUser
-	var bannedDeviceRes *entity.BannedDevice
 	var deviceRes *entity.Device
 	var verificationCodeRes *entity.VerificationCode
 	var createUserAddress *entity.UserAddress
-	var verificationCodeErr, userErr, bannedUserErr, bannedDeviceErr, deviceErr, refreshTokenErr, authorizationTokenErr, jwtRefreshTokenErr, jwtAuthorizationTokenErr, createUserErr error
+	var verificationCodeErr, userErr, deviceErr, refreshTokenErr, authorizationTokenErr, jwtRefreshTokenErr, jwtAuthorizationTokenErr, createUserErr error
 	var refreshTokenRes *entity.RefreshToken
 	var authorizationTokenRes *entity.AuthorizationToken
 	var createUserRes *entity.User
@@ -315,12 +285,6 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 		if appErr != nil {
 			return appErr
 		}
-		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceRepository().GetBannedDevice(tx, &entity.BannedDevice{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
-		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
-			return bannedDeviceErr
-		} else if bannedDeviceRes != nil {
-			return errors.New("device banned")
-		}
 		verificationCodeRes, verificationCodeErr = v.dao.NewVerificationCodeRepository().GetVerificationCode(tx, &entity.VerificationCode{Email: req.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "SignUp"}, &[]string{"id"})
 		if verificationCodeErr != nil && verificationCodeErr.Error() == "record not found" {
 			return errors.New("verification code not found")
@@ -332,12 +296,6 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 			return userErr
 		} else if userRes != nil {
 			return errors.New("user exists")
-		}
-		bannedUserRes, bannedUserErr = v.dao.NewBannedUserRepository().GetBannedUser(tx, &entity.BannedUser{Email: req.Email}, &[]string{"id"})
-		if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
-			return bannedUserErr
-		} else if bannedUserRes != nil {
-			return errors.New("user banned")
 		}
 		_, err := v.dao.NewVerificationCodeRepository().DeleteVerificationCode(tx, &entity.VerificationCode{ID: verificationCodeRes.ID}, nil)
 		if err != nil {
@@ -441,10 +399,8 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 
 func (v *authenticationService) CheckSession(ctx context.Context, md *utils.ClientMetadata) (*[]string, error) {
 	var userRes *entity.User
-	var bannedUserRes *entity.BannedUser
-	var bannedDeviceRes *entity.BannedDevice
 	var deviceRes *entity.Device
-	var bannedDeviceErr, deviceErr, userErr, bannedUserErr error
+	var deviceErr, userErr error
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := v.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
@@ -463,12 +419,6 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 			if deviceErr != nil {
 				return deviceErr
 			}
-		}
-		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceRepository().GetBannedDevice(tx, &entity.BannedDevice{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
-		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
-			return bannedDeviceErr
-		} else if bannedDeviceRes != nil {
-			return errors.New("device banned")
 		}
 		if md.Authorization != nil && *md.Authorization != "" {
 			jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
@@ -502,12 +452,6 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 				return userErr
 			} else if userRes == nil {
 				return errors.New("user not found")
-			}
-			bannedUserRes, bannedUserErr = v.dao.NewBannedUserRepository().GetBannedUser(tx, &entity.BannedUser{UserId: authorizationTokenRes.UserId}, &[]string{"id"})
-			if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
-				return bannedUserErr
-			} else if bannedUserRes != nil {
-				return errors.New("user banned")
 			}
 		}
 		return nil
