@@ -111,6 +111,7 @@ func serviceRegister(sv *grpc.Server) {
 	orderService := usecase.NewOrderService(repository, sqlDb)
 	objectStorageService := usecase.NewObjectStorageService(repository, sqlDb, cfg)
 	applicationService := usecase.NewApplicationService(repository, sqlDb)
+	paymentMethodService := usecase.NewPaymentMethodService(repository, cfg, rdb, sqlDb)
 	pb.RegisterItemServiceServer(sv, app.NewItemServer(
 		itemService,
 	))
@@ -133,6 +134,9 @@ func serviceRegister(sv *grpc.Server) {
 		objectStorageService,
 	))
 	pb.RegisterApplicationServiceServer(sv, app.NewApplicationServer(applicationService))
+	pb.RegisterPaymentMethodServiceServer(sv, app.NewPaymentMethodServer(
+		paymentMethodService,
+	))
 }
 
 func addInterceptors(s *utils.GrpcServerBuilder) {

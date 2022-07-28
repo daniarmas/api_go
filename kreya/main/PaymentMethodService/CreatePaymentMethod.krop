@@ -1,6 +1,6 @@
 {
   "details": {
-    "methodFqn": "main.AuthenticationService.CreateVerificationCode",
+    "methodFqn": "main.PaymentMethodService.CreatePaymentMethod",
     "metadata": [
       {
         "key": "Device-Id",
@@ -16,7 +16,7 @@
       },
       {
         "key": "Platform",
-        "value": "IOS"
+        "value": "iOS"
       },
       {
         "key": "System-Version",
@@ -33,13 +33,16 @@
       {
         "key": "Firebase-Cloud-Messaging-Id",
         "value": "1"
+      },
+      {
+        "key": "Authorization",
+        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTkxMzUzNjgsInN1YiI6IjMyZWVkZmE3LTIyYWItNGZkMS05Yjc2LTY3YTg0NWU5ODRjOCJ9.9x86TYBqA4htjWJipFqBRjIL0Z_qVC0hUa_K7hPD1a0"
       }
-    ],
-    "disableServerCertificateValidation": true
+    ]
   },
   "requests": [
     {
-      "location": "CreateVerificationCode-request.json"
+      "location": "CreatePaymentMethod-request.json"
     }
   ],
   "operationType": "unary",
