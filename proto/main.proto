@@ -89,6 +89,10 @@ service CartItemService {
   rpc EmptyAndAddCartItem (EmptyAndAddCartItemRequest) returns (CartItem) {}
 }
 
+service PaymentMethodService {
+  rpc CreatePaymentMethod (CreatePaymentMethodRequest) returns (PaymentMethod) {}
+}
+
 // service BanService {
 //   rpc GetBannedDevice(google.protobuf.Empty) returns (GetBannedDeviceResponse) {}
 //   rpc GetBannedUser(google.protobuf.Empty) returns (GetBannedUserResponse) {}
@@ -103,6 +107,10 @@ service ObjectStorageService {
 // }
 
 // Request & Response Message
+
+message CreatePaymentMethodRequest {
+  PaymentMethod paymentMethod = 1;
+}
 
 message GetOrderRequest {
   string id = 1;
@@ -938,6 +946,16 @@ message UserConfiguration {
   google.protobuf.Timestamp updateTime = 12;
 }
 
+message PaymentMethod {
+  string id = 1;
+  string name = 2;
+  PaymentMethodType type = 3;
+  string address = 4;
+  bool enabled = 5;
+  google.protobuf.Timestamp createTime = 6;
+  google.protobuf.Timestamp updateTime = 7;
+}
+
 message BusinessRolePermission {
   string id = 1;
   string businessRoleId = 2;
@@ -1069,8 +1087,10 @@ enum PaymentMethodType {
   PaymentMethodTypeUnspecified = 0;
   PaymentMethodTypeCash = 1;
   PaymentMethodTypeEnzona = 2;
-  PaymentMethodTypeSolanaPay = 3;
+  PaymentMethodTypeTransfermovil = 3;
+  PaymentMethodTypeSolanaPay = 4;
 }
+
 
 // 'Sign_In', 'Sign_Up', 'Change_User_Email'
 

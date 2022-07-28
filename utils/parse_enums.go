@@ -12,6 +12,21 @@ func ParsePlatformType(tp *string) *pb.PlatformType {
 	}
 }
 
+func ParsePaymentMethodType(tp *string) *pb.PaymentMethodType {
+	switch *tp {
+	case "PaymentMethodTypeCash":
+		return pb.PaymentMethodType_PaymentMethodTypeCash.Enum()
+	case "PaymentMethodTypeEnzona":
+		return pb.PaymentMethodType_PaymentMethodTypeEnzona.Enum()
+	case "PaymentMethodTypeTransfermovil":
+		return pb.PaymentMethodType_PaymentMethodTypeTransfermovil.Enum()
+	case "PaymentMethodTypeSolanaPay":
+		return pb.PaymentMethodType_PaymentMethodTypeSolanaPay.Enum()
+	default:
+		return pb.PaymentMethodType_PaymentMethodTypeUnspecified.Enum()
+	}
+}
+
 func ParseOrderStatusType(tp *string) *pb.OrderStatusType {
 	switch *tp {
 	case "OrderStatusTypePendingPayment":
@@ -34,19 +49,6 @@ func ParseOrderStatusType(tp *string) *pb.OrderStatusType {
 		return pb.OrderStatusType_OrderStatusTypeCancelled.Enum()
 	default:
 		return pb.OrderStatusType_OrderStatusTypeUnspecified.Enum()
-	}
-}
-
-func ParsePaymentMethodType(tp *string) *pb.PaymentMethodType {
-	switch *tp {
-	case "PaymentMethodTypeCash":
-		return pb.PaymentMethodType_PaymentMethodTypeCash.Enum()
-	case "PaymentMethodTypeEnzona":
-		return pb.PaymentMethodType_PaymentMethodTypeEnzona.Enum()
-	case "PaymentMethodTypeSolanaPay":
-		return pb.PaymentMethodType_PaymentMethodTypeSolanaPay.Enum()
-	default:
-		return pb.PaymentMethodType_PaymentMethodTypeUnspecified.Enum()
 	}
 }
 

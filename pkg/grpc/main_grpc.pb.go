@@ -2207,6 +2207,92 @@ var CartItemService_ServiceDesc = grpc.ServiceDesc{
 	Metadata: "main.proto",
 }
 
+// PaymentMethodServiceClient is the client API for PaymentMethodService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type PaymentMethodServiceClient interface {
+	CreatePaymentMethod(ctx context.Context, in *CreatePaymentMethodRequest, opts ...grpc.CallOption) (*PaymentMethod, error)
+}
+
+type paymentMethodServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewPaymentMethodServiceClient(cc grpc.ClientConnInterface) PaymentMethodServiceClient {
+	return &paymentMethodServiceClient{cc}
+}
+
+func (c *paymentMethodServiceClient) CreatePaymentMethod(ctx context.Context, in *CreatePaymentMethodRequest, opts ...grpc.CallOption) (*PaymentMethod, error) {
+	out := new(PaymentMethod)
+	err := c.cc.Invoke(ctx, "/main.PaymentMethodService/CreatePaymentMethod", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// PaymentMethodServiceServer is the server API for PaymentMethodService service.
+// All implementations must embed UnimplementedPaymentMethodServiceServer
+// for forward compatibility
+type PaymentMethodServiceServer interface {
+	CreatePaymentMethod(context.Context, *CreatePaymentMethodRequest) (*PaymentMethod, error)
+	mustEmbedUnimplementedPaymentMethodServiceServer()
+}
+
+// UnimplementedPaymentMethodServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedPaymentMethodServiceServer struct {
+}
+
+func (UnimplementedPaymentMethodServiceServer) CreatePaymentMethod(context.Context, *CreatePaymentMethodRequest) (*PaymentMethod, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePaymentMethod not implemented")
+}
+func (UnimplementedPaymentMethodServiceServer) mustEmbedUnimplementedPaymentMethodServiceServer() {}
+
+// UnsafePaymentMethodServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to PaymentMethodServiceServer will
+// result in compilation errors.
+type UnsafePaymentMethodServiceServer interface {
+	mustEmbedUnimplementedPaymentMethodServiceServer()
+}
+
+func RegisterPaymentMethodServiceServer(s grpc.ServiceRegistrar, srv PaymentMethodServiceServer) {
+	s.RegisterService(&PaymentMethodService_ServiceDesc, srv)
+}
+
+func _PaymentMethodService_CreatePaymentMethod_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePaymentMethodRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentMethodServiceServer).CreatePaymentMethod(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.PaymentMethodService/CreatePaymentMethod",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentMethodServiceServer).CreatePaymentMethod(ctx, req.(*CreatePaymentMethodRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// PaymentMethodService_ServiceDesc is the grpc.ServiceDesc for PaymentMethodService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var PaymentMethodService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "main.PaymentMethodService",
+	HandlerType: (*PaymentMethodServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreatePaymentMethod",
+			Handler:    _PaymentMethodService_CreatePaymentMethod_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "main.proto",
+}
+
 // ObjectStorageServiceClient is the client API for ObjectStorageService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
