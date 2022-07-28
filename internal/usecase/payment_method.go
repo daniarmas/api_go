@@ -52,11 +52,15 @@ func (i *paymentMethodService) CreatePaymentMethod(ctx context.Context, req *pb.
 				return authorizationTokenParseErr
 			}
 		}
-		_, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("authorization token not found")
 		} else if err != nil && err.Error() != "record not found" {
 			return err
+		}
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_payment_method"}, &[]string{"id"})
+		if permissionErr != nil && permissionErr.Error() == "record not found" {
+			return errors.New("permission denied")
 		}
 		result, err := i.dao.NewPaymentMethodRepository().CreatePaymentMethod(tx, &entity.PaymentMethod{Name: req.PaymentMethod.Name, Enabled: req.PaymentMethod.Enabled, Address: req.PaymentMethod.Address, Type: req.PaymentMethod.Type.String()})
 		if err != nil {
