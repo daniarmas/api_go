@@ -45,6 +45,7 @@ type Datasource interface {
 	NewUnionBusinessRoleAndPermissionDatasource() UnionBusinessRoleAndPermissionDatasource
 	NewUnionBusinessRoleAndUserDatasource() UnionBusinessRoleAndUserDatasource
 	NewPaymentMethodDatasource() PaymentMethodDatasource
+	NewBusinessPaymentMethodDatasource() BusinessPaymentMethodDatasource
 }
 
 type datasource struct {
@@ -59,6 +60,10 @@ func New(db *gorm.DB, config *config.Config, minio *minio.Client) Datasource {
 		Config: config,
 		Minio:  minio,
 	}
+}
+
+func (d *datasource) NewBusinessPaymentMethodDatasource() BusinessPaymentMethodDatasource {
+	return &businessPaymentMethodDatasource{}
 }
 
 func (d *datasource) NewPaymentMethodDatasource() PaymentMethodDatasource {
