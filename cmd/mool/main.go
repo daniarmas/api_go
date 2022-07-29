@@ -61,7 +61,7 @@ func main() {
 	}
 	s := builder.Build()
 	s.RegisterService(serviceRegister)
-	grpcServerAddress := fmt.Sprintf("0.0.0.0:%d", cfg.ApiPort)
+	grpcServerAddress := fmt.Sprintf("0.0.0.0:%s", cfg.ApiPort)
 	startErr := s.Start(grpcServerAddress)
 	if startErr != nil {
 		log.Fatalf("%v", startErr)

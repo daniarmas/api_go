@@ -3,6 +3,7 @@ package smtp
 import (
 	"crypto/tls"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/daniarmas/api_go/config"
@@ -22,7 +23,8 @@ func SendMail(to, from, fromPassword, subject, body string, config *config.Confi
 	// Set E-Mail body. You can set plain text or html with text/html
 	m.SetBody("text/plain", body)
 	// Settings for SMTP server
-	d := gomail.NewDialer(config.EmailHostname, config.EmailSmtpPort, from, fromPassword)
+	emailPort, _ := strconv.ParseInt(config.EmailSmtpPort, 10, 0)
+	d := gomail.NewDialer(config.EmailHostname, int(emailPort), from, fromPassword)
 	// This is only needed when SSL/TLS certificate is not valid on server.
 	// In production this should be set to false.
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
@@ -44,7 +46,8 @@ func SendSignInMail(to string, signInTime time.Time, config *config.Config, md *
 	// Set E-Mail body. You can set plain text or html with text/html
 	m.SetBody("text/plain", msg)
 	// Settings for SMTP server
-	d := gomail.NewDialer(config.EmailHostname, config.EmailSmtpPort, config.EmailAddress, config.EmailAddressPassword)
+	emailPort, _ := strconv.ParseInt(config.EmailSmtpPort, 10, 0)
+	d := gomail.NewDialer(config.EmailHostname, int(emailPort), config.EmailAddress, config.EmailAddressPassword)
 	// This is only needed when SSL/TLS certificate is not valid on server.
 	// In production this should be set to false.
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}

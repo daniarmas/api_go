@@ -40,6 +40,7 @@ type Repository interface {
 	NewUnionBusinessRoleAndUserRepository() UnionBusinessRoleAndUserRepository
 	NewPermissionRepository() PermissionRepository
 	NewPaymentMethodRepository() PaymentMethodRepository
+	NewBusinessPaymentMethodRepository() BusinessPaymentMethodRepository
 }
 
 type repository struct {
@@ -179,4 +180,8 @@ func (d *repository) NewUserPermissionRepository() UserPermissionRepository {
 
 func (d *repository) NewPaymentMethodRepository() PaymentMethodRepository {
 	return &paymentMethodRepository{}
+}
+
+func (d *repository) NewBusinessPaymentMethodRepository() BusinessPaymentMethodRepository {
+	return &businessPaymentMethodRepository{}
 }
