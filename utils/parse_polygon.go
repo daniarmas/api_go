@@ -1,7 +1,7 @@
 package utils
 
 import (
-	pb "github.com/daniarmas/api_go/pkg"
+	pb "github.com/daniarmas/api_go/pkg/grpc"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 )
 

@@ -1,0 +1,50 @@
+{
+  "details": {
+    "methodFqn": "main.OrderService.GetOrder",
+    "metadata": [
+      {
+        "key": "Device-Id",
+        "value": "10"
+      },
+      {
+        "key": "App-Version",
+        "value": "1.0.0"
+      },
+      {
+        "key": "Access-Token",
+        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTkwMzcwMzUsInN1YiI6ImM5MDUzZDc3LWQ0ZmUtNDgyZC04N2NmLWRmMGViZGYzNDU0YyJ9.yBuwTAwsFcfaYqyKlar0B2s_7NhOc5UbGf6_qH5jizw"
+      },
+      {
+        "key": "Platform",
+        "value": "iOS"
+      },
+      {
+        "key": "System-Version",
+        "value": "14"
+      },
+      {
+        "key": "Model",
+        "value": "iPhone 11"
+      },
+      {
+        "key": "App",
+        "value": "App"
+      },
+      {
+        "key": "Firebase-Cloud-Messaging-Id",
+        "value": "1"
+      },
+      {
+        "key": "Authorization",
+        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTkwMzcwODIsInN1YiI6IjdjNTM1NzQ5LWVmN2UtNGIxMy1hZTczLTFiMTc4ZDhlODMxZSJ9.xx9AN42XpaL_s1RdPo0vGoHWNlltWY7t1oPBt_7Oby8"
+      }
+    ]
+  },
+  "requests": [
+    {
+      "location": "GetOrder-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

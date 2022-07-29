@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/daniarmas/api_go/app"
 	"github.com/daniarmas/api_go/cli"
@@ -11,18 +12,37 @@ import (
 	"github.com/daniarmas/api_go/internal/datasource"
 	"github.com/daniarmas/api_go/internal/repository"
 	"github.com/daniarmas/api_go/internal/usecase"
-	pb "github.com/daniarmas/api_go/pkg"
+	pb "github.com/daniarmas/api_go/pkg/grpc"
 	"github.com/daniarmas/api_go/pkg/rdb"
 	"github.com/daniarmas/api_go/pkg/s3"
 	"github.com/daniarmas/api_go/pkg/sqldb"
 	"github.com/daniarmas/api_go/tlscert"
 	"github.com/daniarmas/api_go/utils"
+	"github.com/getsentry/sentry-go"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
 func main() {
+	// Sentry
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: "http://b60953b9e22c48a9bce354aeb2f65854@sentry.mool.cu:30957/2",
+		// Set TracesSampleRate to 1.0 to capture 100%
+		// of transactions for performance monitoring.
+		// We recommend adjusting this value in production,
+		TracesSampleRate: 1.0,
+	})
+	if err != nil {
+		log.Fatalf("sentry.Init: %s", err)
+	}
+	// Flush buffered events before the program terminates.
+	defer sentry.Flush(2 * time.Second)
+
+	sentry.CaptureMessage("It works!")
+	if err != nil {
+		log.Fatalf("sentry.Init: %s", err)
+	}
 	// Configurations
 	cfg, err := config.New()
 	if err != nil {
@@ -41,7 +61,7 @@ func main() {
 	}
 	s := builder.Build()
 	s.RegisterService(serviceRegister)
-	grpcServerAddress := fmt.Sprintf("0.0.0.0:%d", cfg.ApiPort)
+	grpcServerAddress := fmt.Sprintf("0.0.0.0:%s", cfg.ApiPort)
 	startErr := s.Start(grpcServerAddress)
 	if startErr != nil {
 		log.Fatalf("%v", startErr)
@@ -89,10 +109,9 @@ func serviceRegister(sv *grpc.Server) {
 	userService := usecase.NewUserService(repository, cfg, rdb, sqlDb)
 	cartItemService := usecase.NewCartItemService(repository, cfg, sqlDb)
 	orderService := usecase.NewOrderService(repository, sqlDb)
-	banService := usecase.NewBanService(repository, sqlDb)
 	objectStorageService := usecase.NewObjectStorageService(repository, sqlDb, cfg)
-	analyicsService := usecase.NewAnalyticsService(repository, stDb)
 	applicationService := usecase.NewApplicationService(repository, sqlDb)
+	paymentMethodService := usecase.NewPaymentMethodService(repository, cfg, rdb, sqlDb)
 	pb.RegisterItemServiceServer(sv, app.NewItemServer(
 		itemService,
 	))
@@ -111,14 +130,13 @@ func serviceRegister(sv *grpc.Server) {
 	pb.RegisterOrderServiceServer(sv, app.NewOrderServer(
 		orderService,
 	))
-	pb.RegisterBanServiceServer(sv, app.NewBanServer(
-		banService,
-	))
 	pb.RegisterObjectStorageServiceServer(sv, app.NewObjectStorageServer(
 		objectStorageService,
 	))
-	pb.RegisterAnalyticsServiceServer(sv, app.NewAnalyticsServer(analyicsService))
 	pb.RegisterApplicationServiceServer(sv, app.NewApplicationServer(applicationService))
+	pb.RegisterPaymentMethodServiceServer(sv, app.NewPaymentMethodServer(
+		paymentMethodService,
+	))
 }
 
 func addInterceptors(s *utils.GrpcServerBuilder) {

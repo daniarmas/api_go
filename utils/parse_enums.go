@@ -1,6 +1,6 @@
 package utils
 
-import pb "github.com/daniarmas/api_go/pkg"
+import pb "github.com/daniarmas/api_go/pkg/grpc"
 
 func ParsePlatformType(tp *string) *pb.PlatformType {
 	if *tp == "IOS" {
@@ -12,24 +12,41 @@ func ParsePlatformType(tp *string) *pb.PlatformType {
 	}
 }
 
+func ParsePaymentMethodType(tp *string) *pb.PaymentMethodType {
+	switch *tp {
+	case "PaymentMethodTypeCash":
+		return pb.PaymentMethodType_PaymentMethodTypeCash.Enum()
+	case "PaymentMethodTypeEnzona":
+		return pb.PaymentMethodType_PaymentMethodTypeEnzona.Enum()
+	case "PaymentMethodTypeTransfermovil":
+		return pb.PaymentMethodType_PaymentMethodTypeTransfermovil.Enum()
+	case "PaymentMethodTypeSolanaPay":
+		return pb.PaymentMethodType_PaymentMethodTypeSolanaPay.Enum()
+	default:
+		return pb.PaymentMethodType_PaymentMethodTypeUnspecified.Enum()
+	}
+}
+
 func ParseOrderStatusType(tp *string) *pb.OrderStatusType {
 	switch *tp {
-	case "OrderStatusTypeStarted":
-		return pb.OrderStatusType_OrderStatusTypeStarted.Enum()
-	case "OrderStatusTypePending":
-		return pb.OrderStatusType_OrderStatusTypePending.Enum()
+	case "OrderStatusTypePendingPayment":
+		return pb.OrderStatusType_OrderStatusTypePendingPayment.Enum()
+	case "OrderStatusTypeOrdered":
+		return pb.OrderStatusType_OrderStatusTypeOrdered.Enum()
+	case "OrderStatusTypeAccepted":
+		return pb.OrderStatusType_OrderStatusTypeAccepted.Enum()
+	case "OrderStatusTypeReady":
+		return pb.OrderStatusType_OrderStatusTypeReady.Enum()
+	case "OrderStatusTypeAssignedMessenger":
+		return pb.OrderStatusType_OrderStatusTypeAssignedMessenger.Enum()
+	case "OrderStatusTypeDelivered":
+		return pb.OrderStatusType_OrderStatusTypeDelivered.Enum()
 	case "OrderStatusTypeRejected":
 		return pb.OrderStatusType_OrderStatusTypeRejected.Enum()
-	case "OrderStatusTypeApproved":
-		return pb.OrderStatusType_OrderStatusTypeApproved.Enum()
-	case "OrderStatusTypeReceived":
-		return pb.OrderStatusType_OrderStatusTypeReceived.Enum()
-	case "OrderStatusTypeCanceled":
-		return pb.OrderStatusType_OrderStatusTypeCanceled.Enum()
-	case "OrderStatusTypeDone":
-		return pb.OrderStatusType_OrderStatusTypeDone.Enum()
 	case "OrderStatusTypeExpired":
 		return pb.OrderStatusType_OrderStatusTypeExpired.Enum()
+	case "OrderStatusTypeCancelled":
+		return pb.OrderStatusType_OrderStatusTypeCancelled.Enum()
 	default:
 		return pb.OrderStatusType_OrderStatusTypeUnspecified.Enum()
 	}

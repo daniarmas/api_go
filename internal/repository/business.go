@@ -1,14 +1,14 @@
 package repository
 
 import (
-	"context"
-	"strconv"
-	"time"
+	// "context"
+	// "strconv"
+	// "time"
 
 	"github.com/daniarmas/api_go/internal/entity"
 	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
-	log "github.com/sirupsen/logrus"
+	// log "github.com/sirupsen/logrus"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	"gorm.io/gorm"
 )
@@ -28,32 +28,32 @@ type businessRepository struct {
 }
 
 func (b *businessRepository) BusinessIsInRange(tx *gorm.DB, coordinates ewkb.Point, businessId *uuid.UUID) (*bool, error) {
-	lat := strconv.FormatFloat(coordinates.Point.Coords()[0], 'E', -1, 64)
-	long := strconv.FormatFloat(coordinates.Point.Coords()[1], 'E', -1, 64)
-	cacheId := "business_is_in_range:" + lat + long + ":" + businessId.String()
-	ctx := context.Background()
-	cacheRes, cacheErr := b.rdb.HGetAll(ctx, cacheId).Result()
+	// lat := strconv.FormatFloat(coordinates.Point.Coords()[0], 'E', -1, 64)
+	// long := strconv.FormatFloat(coordinates.Point.Coords()[1], 'E', -1, 64)
+	// cacheId := "business_is_in_range:" + lat + long + ":" + businessId.String()
+	// ctx := context.Background()
+	// cacheRes, cacheErr := b.rdb.HGetAll(ctx, cacheId).Result()
 	// Check if exists in cache
-	if len(cacheRes) == 0 || cacheErr == redis.Nil {
-		dbRes, dbErr := Datasource.NewBusinessDatasource().BusinessIsInRange(tx, coordinates, businessId)
-		if dbErr != nil {
-			return nil, dbErr
-		}
-		go func() {
-			cacheErr := b.rdb.HSet(ctx, cacheId, []string{
-				"is_in_range", strconv.FormatBool(*dbRes),
-			}).Err()
-			if cacheErr != nil {
-				log.Error(cacheErr)
-			} else {
-				b.rdb.Expire(ctx, cacheId, time.Minute*30)
-			}
-		}()
-		return dbRes, nil
-	} else {
-		isInRange, _ := strconv.ParseBool(cacheRes["is_in_range"])
-		return &isInRange, nil
+	// if len(cacheRes) == 0 || cacheErr == redis.Nil {
+	dbRes, dbErr := Datasource.NewBusinessDatasource().BusinessIsInRange(tx, coordinates, businessId)
+	if dbErr != nil {
+		return nil, dbErr
 	}
+	// go func() {
+	// 	cacheErr := b.rdb.HSet(ctx, cacheId, []string{
+	// 		"is_in_range", strconv.FormatBool(*dbRes),
+	// 	}).Err()
+	// 	if cacheErr != nil {
+	// 		log.Error(cacheErr)
+	// 	} else {
+	// 		b.rdb.Expire(ctx, cacheId, time.Minute*30)
+	// 	}
+	// }()
+	return dbRes, nil
+	// } else {
+	// 	isInRange, _ := strconv.ParseBool(cacheRes["is_in_range"])
+	// return &isInRange, nil
+	// }
 }
 
 func (b *businessRepository) CreateBusiness(tx *gorm.DB, data *entity.Business) (*entity.Business, error) {

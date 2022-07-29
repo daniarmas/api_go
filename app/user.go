@@ -5,13 +5,71 @@ import (
 	"net/mail"
 	"strconv"
 
-	pb "github.com/daniarmas/api_go/pkg"
+	pb "github.com/daniarmas/api_go/pkg/grpc"
 	"github.com/daniarmas/api_go/utils"
 	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	gp "google.golang.org/protobuf/types/known/emptypb"
 )
+
+func (m *UserServer) UpdateUserConfiguration(ctx context.Context, req *pb.UpdateUserConfigurationRequest) (*pb.UserConfiguration, error) {
+	var st *status.Status
+	meta := utils.GetMetadata(ctx)
+	if meta.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		return nil, st.Err()
+	}
+	var invalidUserId *epb.BadRequest_FieldViolation
+	var invalidArgs bool
+	if req.UserId == "" {
+		invalidArgs = true
+		invalidUserId = &epb.BadRequest_FieldViolation{
+			Field:       "userId",
+			Description: "The userId field is required",
+		}
+	} else if req.UserId != "" {
+		if !utils.IsValidUUID(&req.UserId) {
+			invalidArgs = true
+			invalidUserId = &epb.BadRequest_FieldViolation{
+				Field:       "userId",
+				Description: "The userId field is not a valid uuid v4",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidUserId != nil {
+			st, _ = st.WithDetails(
+				invalidUserId,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.userService.UpdateUserConfiguration(ctx, req, meta)
+	if err != nil {
+		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
+		case "user configuration not found":
+			st = status.New(codes.Unauthenticated, "User address not found")
+		case "authorization token not found":
+			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return res, nil
+}
 
 func (m *UserServer) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoRequest) (*pb.GetAddressInfoResponse, error) {
 	var invalidProvinceId, invalidMunicipalityId, invalidLocation, invalidSearchMunicipalityType *epb.BadRequest_FieldViolation

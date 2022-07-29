@@ -6,7 +6,7 @@ import "google/protobuf/empty.proto";
 // import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "/pkg";
+option go_package = "/pkg/grpc";
 
 service AuthenticationService {
   rpc CreateVerificationCode (CreateVerificationCodeRequest) returns (google.protobuf.Empty) {}
@@ -68,9 +68,12 @@ service UserService {
   rpc CreateUserAddress (CreateUserAddressRequest) returns (UserAddress) {}
   rpc UpdateUserAddress (UpdateUserAddressRequest) returns (UserAddress) {}
   rpc DeleteUserAddress (DeleteUserAddressRequest) returns (google.protobuf.Empty) {}
+
+  rpc UpdateUserConfiguration (UpdateUserConfigurationRequest) returns (UserConfiguration) {}
 }
 
 service OrderService {
+  rpc GetOrder (GetOrderRequest) returns (Order) {}
   rpc ListOrder (ListOrderRequest) returns (ListOrderResponse) {}
   rpc CreateOrder (CreateOrderRequest) returns (Order) {}
   rpc UpdateOrder (UpdateOrderRequest) returns (Order) {}
@@ -86,20 +89,67 @@ service CartItemService {
   rpc EmptyAndAddCartItem (EmptyAndAddCartItemRequest) returns (CartItem) {}
 }
 
-service BanService {
-  rpc GetBannedDevice(google.protobuf.Empty) returns (GetBannedDeviceResponse) {}
-  rpc GetBannedUser(google.protobuf.Empty) returns (GetBannedUserResponse) {}
+service PaymentMethodService {
+  rpc CreatePaymentMethod (CreatePaymentMethodRequest) returns (PaymentMethod) {}
+  rpc ListPaymentMethod (ListPaymentMethodRequest) returns (ListPaymentMethodResponse) {}
+  rpc UpdatePaymentMethod (UpdatePaymentMethodRequest) returns (PaymentMethod) {}
+  rpc DeletePaymentMethod (DeletePaymentMethodRequest) returns (google.protobuf.Empty) {}
+
+  rpc ListBusinessPaymentMethod (ListBusinessPaymentMethodRequest) returns (ListBusinessPaymentMethodResponse) {}
 }
+
+// service BanService {
+//   rpc GetBannedDevice(google.protobuf.Empty) returns (GetBannedDeviceResponse) {}
+//   rpc GetBannedUser(google.protobuf.Empty) returns (GetBannedUserResponse) {}
+// }
 
 service ObjectStorageService {
   rpc GetPresignedPutObject (GetPresignedPutObjectRequest) returns (GetPresignedPutObjectResponse) {}
 }
 
-service AnalyticsService {
-  rpc CollectAnalytics (CollectAnalyticsRequest) returns (google.protobuf.Empty) {}
-}
+// service AnalyticsService {
+//   rpc CollectAnalytics (CollectAnalyticsRequest) returns (google.protobuf.Empty) {}
+// }
 
 // Request & Response Message
+
+message ListBusinessPaymentMethodRequest {
+  string businessId = 1;
+}
+
+message ListBusinessPaymentMethodResponse {
+  repeated BusinessPaymentMethod businessPaymentMethods = 1;
+}
+
+message DeletePaymentMethodRequest {
+  string id = 1;
+}
+
+message UpdatePaymentMethodRequest {
+  string id = 1;
+  PaymentMethod paymentMethod = 2;
+}
+
+message ListPaymentMethodRequest {
+
+}
+
+message ListPaymentMethodResponse {
+  repeated PaymentMethod paymentMethods = 1;
+}
+
+message CreatePaymentMethodRequest {
+  PaymentMethod paymentMethod = 1;
+}
+
+message GetOrderRequest {
+  string id = 1;
+}
+
+message UpdateUserConfigurationRequest {
+  string userId = 1;
+  UserConfiguration userConfiguration = 2;
+}
 
 message ModifyBusinessRolePermissionRequest {
   string businessRoleId = 1;
@@ -552,6 +602,7 @@ message SignUpRequest {
   string fullName = 2;
   string code = 3;
   SignUpType signUpType = 4;
+  UserAddress userAddress = 5;
 }
 
 message SignUpResponse {
@@ -652,9 +703,10 @@ message Order {
   string userId = 12;
   string businessName = 13;
   int32 itemsQuantity = 14;
-  google.protobuf.Timestamp orderTime = 15;
-  google.protobuf.Timestamp createTime = 16;
-  google.protobuf.Timestamp updateTime = 17;
+  repeated OrderedItem orderedItems = 15;
+  google.protobuf.Timestamp orderTime = 16;
+  google.protobuf.Timestamp createTime = 17;
+  google.protobuf.Timestamp updateTime = 18;
 }
 
 message User {
@@ -671,8 +723,9 @@ message User {
   repeated UserAddress userAddress = 11;
   repeated UserPermission permissions = 12;
   repeated CartItem cartItems = 13;
-  google.protobuf.Timestamp createTime = 14;
-  google.protobuf.Timestamp updateTime = 15;
+  UserConfiguration configuration = 14;
+  google.protobuf.Timestamp createTime = 15;
+  google.protobuf.Timestamp updateTime = 16;
 }
 
 message Municipality {
@@ -762,8 +815,9 @@ message Item {
   string businessId = 23;
   string businessCollectionId = 24;
   bool isInRange = 25;
-  google.protobuf.Timestamp createTime = 26;
-  google.protobuf.Timestamp updateTime = 27;
+  string businessName = 26;
+  google.protobuf.Timestamp createTime = 27;
+  google.protobuf.Timestamp updateTime = 28;
 }
 
 message Application {
@@ -832,6 +886,7 @@ message SearchItem {
   string thumbnailUrl = 5;
   string blurHash = 6;
   int32 cursor = 7;
+  string businessId = 8;
 }
 
 message ItemPhoto {
@@ -908,6 +963,37 @@ message UserAddress {
   string municipalityId = 10;
   google.protobuf.Timestamp createTime = 11;
   google.protobuf.Timestamp updateTime = 12;
+}
+
+message UserConfiguration {
+  string id = 1;
+  bool dataSaving = 2;
+	bool highQualityImagesWifi = 3;
+	bool highQualityImagesData = 4;
+	PaymentMethodType paymentMethod = 5;
+  string userId = 6;
+  google.protobuf.Timestamp createTime = 11;
+  google.protobuf.Timestamp updateTime = 12;
+}
+
+message PaymentMethod {
+  string id = 1;
+  PaymentMethodType type = 2;
+  string address = 3;
+  bool enabled = 4;
+  google.protobuf.Timestamp createTime = 5;
+  google.protobuf.Timestamp updateTime = 6;
+}
+
+message BusinessPaymentMethod {
+  string id = 1;
+  PaymentMethodType type = 2;
+  string address = 3;
+  bool enabled = 4;
+  string businessId = 5;
+  string paymentMethodId = 6;
+  google.protobuf.Timestamp createTime = 7;
+  google.protobuf.Timestamp updateTime = 8;
 }
 
 message BusinessRolePermission {
@@ -987,14 +1073,15 @@ enum AppType  {
 
 enum OrderStatusType {
   OrderStatusTypeUnspecified = 0; 
-  OrderStatusTypePending = 1;
-  OrderStatusTypeApproved = 2;
-  OrderStatusTypeRejected = 3;
-  OrderStatusTypeReceived = 4;
-  OrderStatusTypeCanceled = 5;
-  OrderStatusTypeExpired = 6;
-  OrderStatusTypeDone = 7;
-  OrderStatusTypeStarted = 8;
+  OrderStatusTypePendingPayment = 1;
+  OrderStatusTypeOrdered = 2;
+  OrderStatusTypeAccepted = 3;
+  OrderStatusTypeReady = 4;
+  OrderStatusTypeAssignedMessenger = 5;
+  OrderStatusTypeDelivered = 6;
+  OrderStatusTypeRejected = 7;
+  OrderStatusTypeCancelled = 8;
+  OrderStatusTypeExpired = 9;
 }
 
 enum PartnerApplicationStatus {
@@ -1035,6 +1122,15 @@ enum PhotoType {
   PhotoTypeItem = 2;
   PhotoTypeUser = 3;
 }
+
+enum PaymentMethodType {
+  PaymentMethodTypeUnspecified = 0;
+  PaymentMethodTypeCash = 1;
+  PaymentMethodTypeEnzona = 2;
+  PaymentMethodTypeTransfermovil = 3;
+  PaymentMethodTypeSolanaPay = 4;
+}
+
 
 // 'Sign_In', 'Sign_Up', 'Change_User_Email'
 

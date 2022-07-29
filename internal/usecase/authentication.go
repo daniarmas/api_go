@@ -10,12 +10,14 @@ import (
 	"github.com/daniarmas/api_go/config"
 	"github.com/daniarmas/api_go/internal/datasource"
 	"github.com/daniarmas/api_go/internal/entity"
-	pb "github.com/daniarmas/api_go/pkg"
-	"github.com/daniarmas/api_go/pkg/sqldb"
 	"github.com/daniarmas/api_go/internal/repository"
+	pb "github.com/daniarmas/api_go/pkg/grpc"
+	"github.com/daniarmas/api_go/pkg/sqldb"
 	"github.com/daniarmas/api_go/utils"
 	smtp "github.com/daniarmas/api_go/utils/smtp"
 	"github.com/google/uuid"
+	"github.com/twpayne/go-geom"
+	"github.com/twpayne/go-geom/encoding/ewkb"
 	gp "google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
@@ -56,20 +58,6 @@ func (v *authenticationService) CreateVerificationCode(ctx context.Context, req 
 		} else if user != nil && (req.Type.String() == "SignUp" || req.Type.String() == "ChangeUserEmail") {
 			return errors.New("user already exists")
 		}
-		bannedUserResult, err := v.dao.NewBannedUserRepository().GetBannedUser(tx, &entity.BannedUser{Email: req.Email}, &[]string{"id"})
-		if err != nil && err.Error() != "record not found" {
-			return err
-		}
-		if bannedUserResult != nil {
-			return errors.New("banned user")
-		}
-		bannedDeviceResult, err := v.dao.NewBannedDeviceRepository().GetBannedDevice(tx, &entity.BannedDevice{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
-		if err != nil && err.Error() != "record not found" {
-			return err
-		}
-		if bannedDeviceResult != nil {
-			return errors.New("banned device")
-		}
 		v.dao.NewVerificationCodeRepository().DeleteVerificationCode(tx, &entity.VerificationCode{Email: req.Email, Type: req.Type.String(), DeviceIdentifier: *md.DeviceIdentifier}, nil)
 		createVerificationCodeRes, createVerificationCodeErr := v.dao.NewVerificationCodeRepository().CreateVerificationCode(tx, &entity.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: *md.DeviceIdentifier, CreateTime: time.Now(), UpdateTime: time.Now()})
 		if createVerificationCodeErr != nil {
@@ -106,11 +94,10 @@ func (v *authenticationService) GetVerificationCode(ctx context.Context, req *pb
 func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInRequest, md *utils.ClientMetadata) (*pb.SignInResponse, error) {
 	var verificationCodeRes *entity.VerificationCode
 	var userRes *entity.User
-	var bannedUserRes *entity.BannedUser
-	var bannedDeviceRes *entity.BannedDevice
 	var cartItems *[]entity.CartItem
+	var configuration *entity.UserConfiguration
 	var deviceRes *entity.Device
-	var verificationCodeErr, userErr, bannedUserErr, bannedDeviceErr, deviceErr, refreshTokenErr, authorizationTokenErr, jwtRefreshTokenErr, jwtAuthorizationTokenErr error
+	var verificationCodeErr, userErr, deviceErr, refreshTokenErr, authorizationTokenErr, jwtRefreshTokenErr, jwtAuthorizationTokenErr error
 	var refreshTokenRes *entity.RefreshToken
 	var authorizationTokenRes *entity.AuthorizationToken
 	var (
@@ -136,12 +123,6 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		if appErr != nil {
 			return appErr
 		}
-		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceRepository().GetBannedDevice(tx, &entity.BannedDevice{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{})
-		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
-			return bannedDeviceErr
-		} else if bannedDeviceRes != nil {
-			return errors.New("device banned")
-		}
 		verificationCodeRes, verificationCodeErr = v.dao.NewVerificationCodeRepository().GetVerificationCode(tx, &entity.VerificationCode{Email: req.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "SignIn"}, &[]string{"id"})
 		if verificationCodeErr != nil && verificationCodeErr.Error() == "record not found" {
 			return errors.New("verification code not found")
@@ -156,12 +137,6 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 			default:
 				return userErr
 			}
-		}
-		bannedUserRes, bannedUserErr = v.dao.NewBannedUserRepository().GetBannedUser(tx, &entity.BannedUser{Email: req.Email}, &[]string{})
-		if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
-			return bannedUserErr
-		} else if bannedUserRes != nil {
-			return errors.New("user banned")
 		}
 		_, err := v.dao.NewVerificationCodeRepository().DeleteVerificationCode(tx, &entity.VerificationCode{Email: req.Email, Type: "SignIn", DeviceIdentifier: *md.DeviceIdentifier}, nil)
 		if err != nil {
@@ -196,6 +171,10 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 			return jwtAuthorizationTokenErr
 		}
 		cartItems, err = v.dao.NewCartItemRepository().ListCartItemAll(tx, &entity.CartItem{UserId: authorizationTokenRes.UserId}, nil)
+		if err != nil {
+			return err
+		}
+		configuration, err = v.dao.NewUserConfigurationRepository().GetUserConfiguration(tx, &entity.UserConfiguration{UserId: userRes.ID})
 		if err != nil {
 			return err
 		}
@@ -273,18 +252,27 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		Permissions:         permissions,
 		UserAddress:         userAddress,
 		CartItems:           itemsResponse,
-		CreateTime:          timestamppb.New(userRes.CreateTime),
-		UpdateTime:          timestamppb.New(userRes.UpdateTime),
+		Configuration: &pb.UserConfiguration{
+			Id:                    configuration.ID.String(),
+			DataSaving:            *configuration.DataSaving,
+			HighQualityImagesWifi: *configuration.HighQualityImagesWifi,
+			HighQualityImagesData: *configuration.HighQualityImagesData,
+			UserId:                configuration.UserId.String(),
+			PaymentMethod:         *utils.ParsePaymentMethodType(&configuration.PaymentMethod),
+			CreateTime:            timestamppb.New(configuration.CreateTime),
+			UpdateTime:            timestamppb.New(configuration.UpdateTime),
+		},
+		CreateTime: timestamppb.New(userRes.CreateTime),
+		UpdateTime: timestamppb.New(userRes.UpdateTime),
 	}}, nil
 }
 
 func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpRequest, md *utils.ClientMetadata) (*pb.SignUpResponse, error) {
 	var userRes *entity.User
-	var bannedUserRes *entity.BannedUser
-	var bannedDeviceRes *entity.BannedDevice
 	var deviceRes *entity.Device
 	var verificationCodeRes *entity.VerificationCode
-	var verificationCodeErr, userErr, bannedUserErr, bannedDeviceErr, deviceErr, refreshTokenErr, authorizationTokenErr, jwtRefreshTokenErr, jwtAuthorizationTokenErr, createUserErr error
+	var createUserAddress *entity.UserAddress
+	var verificationCodeErr, userErr, deviceErr, refreshTokenErr, authorizationTokenErr, jwtRefreshTokenErr, jwtAuthorizationTokenErr, createUserErr error
 	var refreshTokenRes *entity.RefreshToken
 	var authorizationTokenRes *entity.AuthorizationToken
 	var createUserRes *entity.User
@@ -297,12 +285,6 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 		if appErr != nil {
 			return appErr
 		}
-		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceRepository().GetBannedDevice(tx, &entity.BannedDevice{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
-		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
-			return bannedDeviceErr
-		} else if bannedDeviceRes != nil {
-			return errors.New("device banned")
-		}
 		verificationCodeRes, verificationCodeErr = v.dao.NewVerificationCodeRepository().GetVerificationCode(tx, &entity.VerificationCode{Email: req.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "SignUp"}, &[]string{"id"})
 		if verificationCodeErr != nil && verificationCodeErr.Error() == "record not found" {
 			return errors.New("verification code not found")
@@ -314,12 +296,6 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 			return userErr
 		} else if userRes != nil {
 			return errors.New("user exists")
-		}
-		bannedUserRes, bannedUserErr = v.dao.NewBannedUserRepository().GetBannedUser(tx, &entity.BannedUser{Email: req.Email}, &[]string{"id"})
-		if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
-			return bannedUserErr
-		} else if bannedUserRes != nil {
-			return errors.New("user banned")
 		}
 		_, err := v.dao.NewVerificationCodeRepository().DeleteVerificationCode(tx, &entity.VerificationCode{ID: verificationCodeRes.ID}, nil)
 		if err != nil {
@@ -339,9 +315,18 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 				return deviceErr
 			}
 		}
-		createUserRes, createUserErr = v.dao.NewUserRepository().CreateUser(tx, &entity.User{Email: req.Email, IsLegalAge: true, FullName: req.FullName})
+		trueValue := true
+		falseValue := false
+		municipalityId := uuid.MustParse(req.UserAddress.MunicipalityId)
+		provinceId := uuid.MustParse(req.UserAddress.ProvinceId)
+		coordinates := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.UserAddress.Coordinates.Latitude, req.UserAddress.Coordinates.Longitude}).SetSRID(4326)}
+		createUserRes, createUserErr = v.dao.NewUserRepository().CreateUser(tx, &entity.User{Email: req.Email, IsLegalAge: true, FullName: req.FullName, UserConfiguration: entity.UserConfiguration{PaymentMethod: "PaymentMethodTypeCash", DataSaving: &falseValue, HighQualityImagesWifi: &trueValue, HighQualityImagesData: &trueValue}})
 		if createUserErr != nil {
 			return createUserErr
+		}
+		createUserAddress, err = v.dao.NewUserAddressRepository().CreateUserAddress(tx, &entity.UserAddress{Selected: true, Name: req.UserAddress.Name, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, ProvinceId: &provinceId, MunicipalityId: &municipalityId, Coordinates: coordinates, UserId: createUserRes.ID})
+		if err != nil {
+			return err
 		}
 		refreshTokenRes, refreshTokenErr = v.dao.NewRefreshTokenRepository().CreateRefreshToken(tx, &entity.RefreshToken{UserId: createUserRes.ID, DeviceId: deviceRes.ID})
 		if refreshTokenErr != nil {
@@ -376,10 +361,37 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 	if err != nil {
 		return nil, err
 	}
+
 	return &pb.SignUpResponse{AuthorizationToken: *jwtAuthorizationToken.Token, RefreshToken: *jwtRefreshToken.Token, User: &pb.User{
-		Id:         createUserRes.ID.String(),
-		FullName:   createUserRes.FullName,
-		Email:      createUserRes.Email,
+		Id:       createUserRes.ID.String(),
+		FullName: createUserRes.FullName,
+		Email:    createUserRes.Email,
+		UserAddress: []*pb.UserAddress{
+			{
+				Id:             createUserAddress.ID.String(),
+				Name:           createUserAddress.Name,
+				Selected:       createUserAddress.Selected,
+				Number:         createUserAddress.Number,
+				Address:        createUserAddress.Address,
+				Instructions:   createUserAddress.Instructions,
+				UserId:         createUserAddress.UserId.String(),
+				ProvinceId:     createUserAddress.ProvinceId.String(),
+				MunicipalityId: createUserAddress.MunicipalityId.String(),
+				CreateTime:     timestamppb.New(createUserAddress.CreateTime),
+				UpdateTime:     timestamppb.New(createUserAddress.UpdateTime),
+				Coordinates:    &pb.Point{Latitude: createUserAddress.Coordinates.FlatCoords()[1], Longitude: createUserAddress.Coordinates.FlatCoords()[0]},
+			},
+		},
+		Configuration: &pb.UserConfiguration{
+			Id:                    createUserRes.UserConfiguration.ID.String(),
+			DataSaving:            *createUserRes.UserConfiguration.DataSaving,
+			HighQualityImagesWifi: *createUserRes.UserConfiguration.HighQualityImagesWifi,
+			HighQualityImagesData: *createUserRes.UserConfiguration.HighQualityImagesData,
+			UserId:                createUserRes.UserConfiguration.UserId.String(),
+			PaymentMethod:         *utils.ParsePaymentMethodType(&createUserRes.UserConfiguration.PaymentMethod),
+			CreateTime:            timestamppb.New(createUserRes.UserConfiguration.CreateTime),
+			UpdateTime:            timestamppb.New(createUserRes.UserConfiguration.UpdateTime),
+		},
 		CreateTime: timestamppb.New(createUserRes.CreateTime),
 		UpdateTime: timestamppb.New(createUserRes.UpdateTime),
 	}}, nil
@@ -387,10 +399,8 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 
 func (v *authenticationService) CheckSession(ctx context.Context, md *utils.ClientMetadata) (*[]string, error) {
 	var userRes *entity.User
-	var bannedUserRes *entity.BannedUser
-	var bannedDeviceRes *entity.BannedDevice
 	var deviceRes *entity.Device
-	var bannedDeviceErr, deviceErr, userErr, bannedUserErr error
+	var deviceErr, userErr error
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		appErr := v.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if appErr != nil {
@@ -409,12 +419,6 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 			if deviceErr != nil {
 				return deviceErr
 			}
-		}
-		bannedDeviceRes, bannedDeviceErr = v.dao.NewBannedDeviceRepository().GetBannedDevice(tx, &entity.BannedDevice{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
-		if bannedDeviceErr != nil && bannedDeviceErr.Error() != "record not found" {
-			return bannedDeviceErr
-		} else if bannedDeviceRes != nil {
-			return errors.New("device banned")
 		}
 		if md.Authorization != nil && *md.Authorization != "" {
 			jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
@@ -448,12 +452,6 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 				return userErr
 			} else if userRes == nil {
 				return errors.New("user not found")
-			}
-			bannedUserRes, bannedUserErr = v.dao.NewBannedUserRepository().GetBannedUser(tx, &entity.BannedUser{UserId: authorizationTokenRes.UserId}, &[]string{"id"})
-			if bannedUserErr != nil && bannedUserErr.Error() != "record not found" {
-				return bannedUserErr
-			} else if bannedUserRes != nil {
-				return errors.New("user banned")
 			}
 		}
 		return nil

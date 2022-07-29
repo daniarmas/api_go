@@ -4,7 +4,7 @@
 // - protoc             v3.17.3
 // source: main.proto
 
-package pkg
+package grpc
 
 import (
 	context "context"
@@ -1349,6 +1349,7 @@ type UserServiceClient interface {
 	CreateUserAddress(ctx context.Context, in *CreateUserAddressRequest, opts ...grpc.CallOption) (*UserAddress, error)
 	UpdateUserAddress(ctx context.Context, in *UpdateUserAddressRequest, opts ...grpc.CallOption) (*UserAddress, error)
 	DeleteUserAddress(ctx context.Context, in *DeleteUserAddressRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	UpdateUserConfiguration(ctx context.Context, in *UpdateUserConfigurationRequest, opts ...grpc.CallOption) (*UserConfiguration, error)
 }
 
 type userServiceClient struct {
@@ -1431,6 +1432,15 @@ func (c *userServiceClient) DeleteUserAddress(ctx context.Context, in *DeleteUse
 	return out, nil
 }
 
+func (c *userServiceClient) UpdateUserConfiguration(ctx context.Context, in *UpdateUserConfigurationRequest, opts ...grpc.CallOption) (*UserConfiguration, error) {
+	out := new(UserConfiguration)
+	err := c.cc.Invoke(ctx, "/main.UserService/UpdateUserConfiguration", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
@@ -1443,6 +1453,7 @@ type UserServiceServer interface {
 	CreateUserAddress(context.Context, *CreateUserAddressRequest) (*UserAddress, error)
 	UpdateUserAddress(context.Context, *UpdateUserAddressRequest) (*UserAddress, error)
 	DeleteUserAddress(context.Context, *DeleteUserAddressRequest) (*emptypb.Empty, error)
+	UpdateUserConfiguration(context.Context, *UpdateUserConfigurationRequest) (*UserConfiguration, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -1473,6 +1484,9 @@ func (UnimplementedUserServiceServer) UpdateUserAddress(context.Context, *Update
 }
 func (UnimplementedUserServiceServer) DeleteUserAddress(context.Context, *DeleteUserAddressRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteUserAddress not implemented")
+}
+func (UnimplementedUserServiceServer) UpdateUserConfiguration(context.Context, *UpdateUserConfigurationRequest) (*UserConfiguration, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserConfiguration not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 
@@ -1631,6 +1645,24 @@ func _UserService_DeleteUserAddress_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_UpdateUserConfiguration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserConfigurationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpdateUserConfiguration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.UserService/UpdateUserConfiguration",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpdateUserConfiguration(ctx, req.(*UpdateUserConfigurationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1670,6 +1702,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "DeleteUserAddress",
 			Handler:    _UserService_DeleteUserAddress_Handler,
 		},
+		{
+			MethodName: "UpdateUserConfiguration",
+			Handler:    _UserService_UpdateUserConfiguration_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "main.proto",
@@ -1679,6 +1715,7 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type OrderServiceClient interface {
+	GetOrder(ctx context.Context, in *GetOrderRequest, opts ...grpc.CallOption) (*Order, error)
 	ListOrder(ctx context.Context, in *ListOrderRequest, opts ...grpc.CallOption) (*ListOrderResponse, error)
 	CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*Order, error)
 	UpdateOrder(ctx context.Context, in *UpdateOrderRequest, opts ...grpc.CallOption) (*Order, error)
@@ -1691,6 +1728,15 @@ type orderServiceClient struct {
 
 func NewOrderServiceClient(cc grpc.ClientConnInterface) OrderServiceClient {
 	return &orderServiceClient{cc}
+}
+
+func (c *orderServiceClient) GetOrder(ctx context.Context, in *GetOrderRequest, opts ...grpc.CallOption) (*Order, error) {
+	out := new(Order)
+	err := c.cc.Invoke(ctx, "/main.OrderService/GetOrder", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *orderServiceClient) ListOrder(ctx context.Context, in *ListOrderRequest, opts ...grpc.CallOption) (*ListOrderResponse, error) {
@@ -1733,6 +1779,7 @@ func (c *orderServiceClient) ListOrderedItem(ctx context.Context, in *ListOrdere
 // All implementations must embed UnimplementedOrderServiceServer
 // for forward compatibility
 type OrderServiceServer interface {
+	GetOrder(context.Context, *GetOrderRequest) (*Order, error)
 	ListOrder(context.Context, *ListOrderRequest) (*ListOrderResponse, error)
 	CreateOrder(context.Context, *CreateOrderRequest) (*Order, error)
 	UpdateOrder(context.Context, *UpdateOrderRequest) (*Order, error)
@@ -1744,6 +1791,9 @@ type OrderServiceServer interface {
 type UnimplementedOrderServiceServer struct {
 }
 
+func (UnimplementedOrderServiceServer) GetOrder(context.Context, *GetOrderRequest) (*Order, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOrder not implemented")
+}
 func (UnimplementedOrderServiceServer) ListOrder(context.Context, *ListOrderRequest) (*ListOrderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrder not implemented")
 }
@@ -1767,6 +1817,24 @@ type UnsafeOrderServiceServer interface {
 
 func RegisterOrderServiceServer(s grpc.ServiceRegistrar, srv OrderServiceServer) {
 	s.RegisterService(&OrderService_ServiceDesc, srv)
+}
+
+func _OrderService_GetOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).GetOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.OrderService/GetOrder",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).GetOrder(ctx, req.(*GetOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _OrderService_ListOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -1848,6 +1916,10 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "main.OrderService",
 	HandlerType: (*OrderServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOrder",
+			Handler:    _OrderService_GetOrder_Handler,
+		},
 		{
 			MethodName: "ListOrder",
 			Handler:    _OrderService_ListOrder_Handler,
@@ -2135,122 +2207,230 @@ var CartItemService_ServiceDesc = grpc.ServiceDesc{
 	Metadata: "main.proto",
 }
 
-// BanServiceClient is the client API for BanService service.
+// PaymentMethodServiceClient is the client API for PaymentMethodService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type BanServiceClient interface {
-	GetBannedDevice(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetBannedDeviceResponse, error)
-	GetBannedUser(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetBannedUserResponse, error)
+type PaymentMethodServiceClient interface {
+	CreatePaymentMethod(ctx context.Context, in *CreatePaymentMethodRequest, opts ...grpc.CallOption) (*PaymentMethod, error)
+	ListPaymentMethod(ctx context.Context, in *ListPaymentMethodRequest, opts ...grpc.CallOption) (*ListPaymentMethodResponse, error)
+	UpdatePaymentMethod(ctx context.Context, in *UpdatePaymentMethodRequest, opts ...grpc.CallOption) (*PaymentMethod, error)
+	DeletePaymentMethod(ctx context.Context, in *DeletePaymentMethodRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ListBusinessPaymentMethod(ctx context.Context, in *ListBusinessPaymentMethodRequest, opts ...grpc.CallOption) (*ListBusinessPaymentMethodResponse, error)
 }
 
-type banServiceClient struct {
+type paymentMethodServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewBanServiceClient(cc grpc.ClientConnInterface) BanServiceClient {
-	return &banServiceClient{cc}
+func NewPaymentMethodServiceClient(cc grpc.ClientConnInterface) PaymentMethodServiceClient {
+	return &paymentMethodServiceClient{cc}
 }
 
-func (c *banServiceClient) GetBannedDevice(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetBannedDeviceResponse, error) {
-	out := new(GetBannedDeviceResponse)
-	err := c.cc.Invoke(ctx, "/main.BanService/GetBannedDevice", in, out, opts...)
+func (c *paymentMethodServiceClient) CreatePaymentMethod(ctx context.Context, in *CreatePaymentMethodRequest, opts ...grpc.CallOption) (*PaymentMethod, error) {
+	out := new(PaymentMethod)
+	err := c.cc.Invoke(ctx, "/main.PaymentMethodService/CreatePaymentMethod", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *banServiceClient) GetBannedUser(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetBannedUserResponse, error) {
-	out := new(GetBannedUserResponse)
-	err := c.cc.Invoke(ctx, "/main.BanService/GetBannedUser", in, out, opts...)
+func (c *paymentMethodServiceClient) ListPaymentMethod(ctx context.Context, in *ListPaymentMethodRequest, opts ...grpc.CallOption) (*ListPaymentMethodResponse, error) {
+	out := new(ListPaymentMethodResponse)
+	err := c.cc.Invoke(ctx, "/main.PaymentMethodService/ListPaymentMethod", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// BanServiceServer is the server API for BanService service.
-// All implementations must embed UnimplementedBanServiceServer
+func (c *paymentMethodServiceClient) UpdatePaymentMethod(ctx context.Context, in *UpdatePaymentMethodRequest, opts ...grpc.CallOption) (*PaymentMethod, error) {
+	out := new(PaymentMethod)
+	err := c.cc.Invoke(ctx, "/main.PaymentMethodService/UpdatePaymentMethod", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *paymentMethodServiceClient) DeletePaymentMethod(ctx context.Context, in *DeletePaymentMethodRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/main.PaymentMethodService/DeletePaymentMethod", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *paymentMethodServiceClient) ListBusinessPaymentMethod(ctx context.Context, in *ListBusinessPaymentMethodRequest, opts ...grpc.CallOption) (*ListBusinessPaymentMethodResponse, error) {
+	out := new(ListBusinessPaymentMethodResponse)
+	err := c.cc.Invoke(ctx, "/main.PaymentMethodService/ListBusinessPaymentMethod", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// PaymentMethodServiceServer is the server API for PaymentMethodService service.
+// All implementations must embed UnimplementedPaymentMethodServiceServer
 // for forward compatibility
-type BanServiceServer interface {
-	GetBannedDevice(context.Context, *emptypb.Empty) (*GetBannedDeviceResponse, error)
-	GetBannedUser(context.Context, *emptypb.Empty) (*GetBannedUserResponse, error)
-	mustEmbedUnimplementedBanServiceServer()
+type PaymentMethodServiceServer interface {
+	CreatePaymentMethod(context.Context, *CreatePaymentMethodRequest) (*PaymentMethod, error)
+	ListPaymentMethod(context.Context, *ListPaymentMethodRequest) (*ListPaymentMethodResponse, error)
+	UpdatePaymentMethod(context.Context, *UpdatePaymentMethodRequest) (*PaymentMethod, error)
+	DeletePaymentMethod(context.Context, *DeletePaymentMethodRequest) (*emptypb.Empty, error)
+	ListBusinessPaymentMethod(context.Context, *ListBusinessPaymentMethodRequest) (*ListBusinessPaymentMethodResponse, error)
+	mustEmbedUnimplementedPaymentMethodServiceServer()
 }
 
-// UnimplementedBanServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedBanServiceServer struct {
+// UnimplementedPaymentMethodServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedPaymentMethodServiceServer struct {
 }
 
-func (UnimplementedBanServiceServer) GetBannedDevice(context.Context, *emptypb.Empty) (*GetBannedDeviceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetBannedDevice not implemented")
+func (UnimplementedPaymentMethodServiceServer) CreatePaymentMethod(context.Context, *CreatePaymentMethodRequest) (*PaymentMethod, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePaymentMethod not implemented")
 }
-func (UnimplementedBanServiceServer) GetBannedUser(context.Context, *emptypb.Empty) (*GetBannedUserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetBannedUser not implemented")
+func (UnimplementedPaymentMethodServiceServer) ListPaymentMethod(context.Context, *ListPaymentMethodRequest) (*ListPaymentMethodResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPaymentMethod not implemented")
 }
-func (UnimplementedBanServiceServer) mustEmbedUnimplementedBanServiceServer() {}
+func (UnimplementedPaymentMethodServiceServer) UpdatePaymentMethod(context.Context, *UpdatePaymentMethodRequest) (*PaymentMethod, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePaymentMethod not implemented")
+}
+func (UnimplementedPaymentMethodServiceServer) DeletePaymentMethod(context.Context, *DeletePaymentMethodRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePaymentMethod not implemented")
+}
+func (UnimplementedPaymentMethodServiceServer) ListBusinessPaymentMethod(context.Context, *ListBusinessPaymentMethodRequest) (*ListBusinessPaymentMethodResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListBusinessPaymentMethod not implemented")
+}
+func (UnimplementedPaymentMethodServiceServer) mustEmbedUnimplementedPaymentMethodServiceServer() {}
 
-// UnsafeBanServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to BanServiceServer will
+// UnsafePaymentMethodServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to PaymentMethodServiceServer will
 // result in compilation errors.
-type UnsafeBanServiceServer interface {
-	mustEmbedUnimplementedBanServiceServer()
+type UnsafePaymentMethodServiceServer interface {
+	mustEmbedUnimplementedPaymentMethodServiceServer()
 }
 
-func RegisterBanServiceServer(s grpc.ServiceRegistrar, srv BanServiceServer) {
-	s.RegisterService(&BanService_ServiceDesc, srv)
+func RegisterPaymentMethodServiceServer(s grpc.ServiceRegistrar, srv PaymentMethodServiceServer) {
+	s.RegisterService(&PaymentMethodService_ServiceDesc, srv)
 }
 
-func _BanService_GetBannedDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+func _PaymentMethodService_CreatePaymentMethod_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePaymentMethodRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BanServiceServer).GetBannedDevice(ctx, in)
+		return srv.(PaymentMethodServiceServer).CreatePaymentMethod(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/main.BanService/GetBannedDevice",
+		FullMethod: "/main.PaymentMethodService/CreatePaymentMethod",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BanServiceServer).GetBannedDevice(ctx, req.(*emptypb.Empty))
+		return srv.(PaymentMethodServiceServer).CreatePaymentMethod(ctx, req.(*CreatePaymentMethodRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BanService_GetBannedUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+func _PaymentMethodService_ListPaymentMethod_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPaymentMethodRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BanServiceServer).GetBannedUser(ctx, in)
+		return srv.(PaymentMethodServiceServer).ListPaymentMethod(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/main.BanService/GetBannedUser",
+		FullMethod: "/main.PaymentMethodService/ListPaymentMethod",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BanServiceServer).GetBannedUser(ctx, req.(*emptypb.Empty))
+		return srv.(PaymentMethodServiceServer).ListPaymentMethod(ctx, req.(*ListPaymentMethodRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// BanService_ServiceDesc is the grpc.ServiceDesc for BanService service.
+func _PaymentMethodService_UpdatePaymentMethod_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePaymentMethodRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentMethodServiceServer).UpdatePaymentMethod(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.PaymentMethodService/UpdatePaymentMethod",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentMethodServiceServer).UpdatePaymentMethod(ctx, req.(*UpdatePaymentMethodRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PaymentMethodService_DeletePaymentMethod_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePaymentMethodRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentMethodServiceServer).DeletePaymentMethod(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.PaymentMethodService/DeletePaymentMethod",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentMethodServiceServer).DeletePaymentMethod(ctx, req.(*DeletePaymentMethodRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PaymentMethodService_ListBusinessPaymentMethod_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBusinessPaymentMethodRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentMethodServiceServer).ListBusinessPaymentMethod(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.PaymentMethodService/ListBusinessPaymentMethod",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentMethodServiceServer).ListBusinessPaymentMethod(ctx, req.(*ListBusinessPaymentMethodRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// PaymentMethodService_ServiceDesc is the grpc.ServiceDesc for PaymentMethodService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var BanService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "main.BanService",
-	HandlerType: (*BanServiceServer)(nil),
+var PaymentMethodService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "main.PaymentMethodService",
+	HandlerType: (*PaymentMethodServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetBannedDevice",
-			Handler:    _BanService_GetBannedDevice_Handler,
+			MethodName: "CreatePaymentMethod",
+			Handler:    _PaymentMethodService_CreatePaymentMethod_Handler,
 		},
 		{
-			MethodName: "GetBannedUser",
-			Handler:    _BanService_GetBannedUser_Handler,
+			MethodName: "ListPaymentMethod",
+			Handler:    _PaymentMethodService_ListPaymentMethod_Handler,
+		},
+		{
+			MethodName: "UpdatePaymentMethod",
+			Handler:    _PaymentMethodService_UpdatePaymentMethod_Handler,
+		},
+		{
+			MethodName: "DeletePaymentMethod",
+			Handler:    _PaymentMethodService_DeletePaymentMethod_Handler,
+		},
+		{
+			MethodName: "ListBusinessPaymentMethod",
+			Handler:    _PaymentMethodService_ListBusinessPaymentMethod_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -2337,92 +2517,6 @@ var ObjectStorageService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPresignedPutObject",
 			Handler:    _ObjectStorageService_GetPresignedPutObject_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "main.proto",
-}
-
-// AnalyticsServiceClient is the client API for AnalyticsService service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type AnalyticsServiceClient interface {
-	CollectAnalytics(ctx context.Context, in *CollectAnalyticsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-}
-
-type analyticsServiceClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewAnalyticsServiceClient(cc grpc.ClientConnInterface) AnalyticsServiceClient {
-	return &analyticsServiceClient{cc}
-}
-
-func (c *analyticsServiceClient) CollectAnalytics(ctx context.Context, in *CollectAnalyticsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/main.AnalyticsService/CollectAnalytics", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// AnalyticsServiceServer is the server API for AnalyticsService service.
-// All implementations must embed UnimplementedAnalyticsServiceServer
-// for forward compatibility
-type AnalyticsServiceServer interface {
-	CollectAnalytics(context.Context, *CollectAnalyticsRequest) (*emptypb.Empty, error)
-	mustEmbedUnimplementedAnalyticsServiceServer()
-}
-
-// UnimplementedAnalyticsServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedAnalyticsServiceServer struct {
-}
-
-func (UnimplementedAnalyticsServiceServer) CollectAnalytics(context.Context, *CollectAnalyticsRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CollectAnalytics not implemented")
-}
-func (UnimplementedAnalyticsServiceServer) mustEmbedUnimplementedAnalyticsServiceServer() {}
-
-// UnsafeAnalyticsServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to AnalyticsServiceServer will
-// result in compilation errors.
-type UnsafeAnalyticsServiceServer interface {
-	mustEmbedUnimplementedAnalyticsServiceServer()
-}
-
-func RegisterAnalyticsServiceServer(s grpc.ServiceRegistrar, srv AnalyticsServiceServer) {
-	s.RegisterService(&AnalyticsService_ServiceDesc, srv)
-}
-
-func _AnalyticsService_CollectAnalytics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CollectAnalyticsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AnalyticsServiceServer).CollectAnalytics(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/main.AnalyticsService/CollectAnalytics",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AnalyticsServiceServer).CollectAnalytics(ctx, req.(*CollectAnalyticsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// AnalyticsService_ServiceDesc is the grpc.ServiceDesc for AnalyticsService service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var AnalyticsService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "main.AnalyticsService",
-	HandlerType: (*AnalyticsServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "CollectAnalytics",
-			Handler:    _AnalyticsService_CollectAnalytics_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
