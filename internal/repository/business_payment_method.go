@@ -7,6 +7,7 @@ import (
 )
 
 type BusinessPaymentMethodRepository interface {
+	ListBusinessPaymentMethodWithEnabled(tx *gorm.DB, where *entity.BusinessPaymentMethod) (*[]entity.BusinessPaymentMethodWithEnabled, error)
 	ListBusinessPaymentMethod(tx *gorm.DB, where *entity.BusinessPaymentMethod) (*[]entity.BusinessPaymentMethod, error)
 	CreateBusinessPaymentMethod(tx *gorm.DB, data *entity.BusinessPaymentMethod) (*entity.BusinessPaymentMethod, error)
 	UpdateBusinessPaymentMethod(tx *gorm.DB, where *entity.BusinessPaymentMethod, data *entity.BusinessPaymentMethod) (*entity.BusinessPaymentMethod, error)
@@ -15,6 +16,14 @@ type BusinessPaymentMethodRepository interface {
 }
 
 type businessPaymentMethodRepository struct{}
+
+func (i *businessPaymentMethodRepository) ListBusinessPaymentMethodWithEnabled(tx *gorm.DB, where *entity.BusinessPaymentMethod) (*[]entity.BusinessPaymentMethodWithEnabled, error) {
+	result, err := Datasource.NewBusinessPaymentMethodDatasource().ListBusinessPaymentMethodWithEnabled(tx, where)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
 
 func (i *businessPaymentMethodRepository) ListBusinessPaymentMethod(tx *gorm.DB, where *entity.BusinessPaymentMethod) (*[]entity.BusinessPaymentMethod, error) {
 	result, err := Datasource.NewBusinessPaymentMethodDatasource().ListBusinessPaymentMethod(tx, where)

@@ -10,6 +10,7 @@ import (
 )
 
 type BusinessPaymentMethodDatasource interface {
+	ListBusinessPaymentMethodWithEnabled(tx *gorm.DB, where *entity.BusinessPaymentMethod) (*[]entity.BusinessPaymentMethodWithEnabled, error)
 	ListBusinessPaymentMethod(tx *gorm.DB, where *entity.BusinessPaymentMethod) (*[]entity.BusinessPaymentMethod, error)
 	CreateBusinessPaymentMethod(tx *gorm.DB, data *entity.BusinessPaymentMethod) (*entity.BusinessPaymentMethod, error)
 	UpdateBusinessPaymentMethod(tx *gorm.DB, where *entity.BusinessPaymentMethod, data *entity.BusinessPaymentMethod) (*entity.BusinessPaymentMethod, error)
@@ -22,6 +23,15 @@ type businessPaymentMethodDatasource struct{}
 func (i *businessPaymentMethodDatasource) ListBusinessPaymentMethod(tx *gorm.DB, where *entity.BusinessPaymentMethod) (*[]entity.BusinessPaymentMethod, error) {
 	var res []entity.BusinessPaymentMethod
 	result := tx.Where(where).Find(&res)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &res, nil
+}
+
+func (i *businessPaymentMethodDatasource) ListBusinessPaymentMethodWithEnabled(tx *gorm.DB, where *entity.BusinessPaymentMethod) (*[]entity.BusinessPaymentMethodWithEnabled, error) {
+	var res []entity.BusinessPaymentMethodWithEnabled
+	result := tx.Model(&entity.BusinessPaymentMethod{}).Select(`business_payment_method.id, business_payment_method.address, business_payment_method.type, business_payment_method.business_id, business_payment_method.payment_method_id, business_payment_method.create_time, business_payment_method.update_time, payment_method.enabled`).Where(where).Joins("left join payment_method on payment_method.id = business_payment_method.payment_method_id").Find(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}
