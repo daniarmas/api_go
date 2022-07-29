@@ -15,7 +15,7 @@ RUN go mod download
 # COPY *.go ./
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /mool
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build /cmd/mool/main.go -o /mool
 
 ##
 ## Deploy
