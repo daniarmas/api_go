@@ -1,0 +1,8 @@
+{
+  "paymentMethod": {
+    "name": "Cash",
+    "type": "PaymentMethodTypeCash",
+    "address": "",
+    "enabled": true,
+  }
+}

@@ -16,6 +16,7 @@ func (Item) TableName() string {
 type Item struct {
 	ID                   *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Name                 string         `gorm:"column:name;not null"`
+	BusinessName         string         `gorm:"column:business_name;not null"`
 	Description          string         `gorm:"column:description"`
 	PriceCup             string         `gorm:"column:price_cup;not null"`
 	CostCup              string         `gorm:"column:cost_cup"`

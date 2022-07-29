@@ -14,6 +14,7 @@ type JsonWebTokenMetadata struct {
 }
 
 type Datasource interface {
+	NewUserConfigurationDatasource() UserConfigurationDatasource
 	NewObjectStorageDatasource() ObjectStorageDatasource
 	NewJwtTokenDatasource() JwtTokenDatasource
 	NewVerificationCodeDatasource() VerificationCodeDatasource
@@ -24,9 +25,7 @@ type Datasource interface {
 	NewBusinessCollectionDatasource() BusinessCollectionDatasource
 	NewDeviceDatasource() DeviceDatasource
 	NewBusinessDatasource() BusinessDatasource
-	NewBannedUserDatasource() BannedUserDatasource
 	NewBusinessUserDatasource() BusinessUserDatasource
-	NewBannedDeviceDatasource() BannedDeviceDatasource
 	NewCartItemDatasource() CartItemDatasource
 	NewPermissionDatasource() PermissionDatasource
 	NewUserPermissionDatasource() UserPermissionDatasource
@@ -40,13 +39,12 @@ type Datasource interface {
 	NewBusinessScheduleDatasource() BusinessScheduleDatasource
 	NewOrderLifecycleDatasource() OrderLifecycleDatasource
 	NewBusinessCategoryDatasource() BusinessCategoryDatasource
-	NewBusinessAnalyticsDatasource() BusinessAnalyticsDatasource
-	NewItemAnalyticsDatasource() ItemAnalyticsDatasource
 	NewUserAddressDatasource() UserAddressDatasource
 	NewPartnerApplicationDatasource() PartnerApplicationDatasource
 	NewBusinessRoleDatasource() BusinessRoleDatasource
 	NewUnionBusinessRoleAndPermissionDatasource() UnionBusinessRoleAndPermissionDatasource
 	NewUnionBusinessRoleAndUserDatasource() UnionBusinessRoleAndUserDatasource
+	NewPaymentMethodDatasource() PaymentMethodDatasource
 }
 
 type datasource struct {
@@ -61,6 +59,14 @@ func New(db *gorm.DB, config *config.Config, minio *minio.Client) Datasource {
 		Config: config,
 		Minio:  minio,
 	}
+}
+
+func (d *datasource) NewPaymentMethodDatasource() PaymentMethodDatasource {
+	return &paymentMethodDatasource{}
+}
+
+func (d *datasource) NewUserConfigurationDatasource() UserConfigurationDatasource {
+	return &userConfigurationDatasource{}
 }
 
 func (d *datasource) NewObjectStorageDatasource() ObjectStorageDatasource {
@@ -107,14 +113,6 @@ func (d *datasource) NewJwtTokenDatasource() JwtTokenDatasource {
 
 func (d *datasource) NewUnionBusinessRoleAndPermissionDatasource() UnionBusinessRoleAndPermissionDatasource {
 	return &unionBusinessRoleAndPermissionDatasource{}
-}
-
-func (d *datasource) NewBusinessAnalyticsDatasource() BusinessAnalyticsDatasource {
-	return &businessAnalyticsDatasource{}
-}
-
-func (d *datasource) NewItemAnalyticsDatasource() ItemAnalyticsDatasource {
-	return &itemAnalyticsDatasource{}
 }
 
 func (d *datasource) NewBusinessUserDatasource() BusinessUserDatasource {
@@ -183,14 +181,6 @@ func (d *datasource) NewDeviceDatasource() DeviceDatasource {
 
 func (d *datasource) NewBusinessDatasource() BusinessDatasource {
 	return &businessDatasource{}
-}
-
-func (d *datasource) NewBannedUserDatasource() BannedUserDatasource {
-	return &bannedUserDatasource{}
-}
-
-func (d *datasource) NewBannedDeviceDatasource() BannedDeviceDatasource {
-	return &bannedDeviceDatasource{}
 }
 
 func (d *datasource) NewCartItemDatasource() CartItemDatasource {

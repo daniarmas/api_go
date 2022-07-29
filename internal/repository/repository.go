@@ -8,11 +8,10 @@ import (
 )
 
 type Repository interface {
+	NewUserConfigurationRepository() UserConfigurationRepository
 	NewItemRepository() ItemRepository
 	NewVerificationCodeRepository() VerificationCodeRepository
 	NewUserRepository() UserRepository
-	NewBannedUserRepository() BannedUserRepository
-	NewBannedDeviceRepository() BannedDeviceRepository
 	NewDeviceRepository() DeviceRepository
 	NewRefreshTokenRepository() RefreshTokenRepository
 	NewAuthorizationTokenRepository() AuthorizationTokenRepository
@@ -33,8 +32,6 @@ type Repository interface {
 	NewBusinessScheduleRepository() BusinessScheduleRepository
 	NewOrderLifecycleRepository() OrderLifecycleRepository
 	NewBusinessCategoryRepository() BusinessCategoryRepository
-	NewBusinessAnalyticsRepository() BusinessAnalyticsRepository
-	NewItemAnalyticsRepository() ItemAnalyticsRepository
 	NewUserAddressRepository() UserAddressRepository
 	NewPartnerApplicationRepository() PartnerApplicationRepository
 	NewBusinessRoleRepository() BusinessRoleRepository
@@ -42,6 +39,7 @@ type Repository interface {
 	NewUnionBusinessRoleAndPermissionRepository() UnionBusinessRoleAndPermissionRepository
 	NewUnionBusinessRoleAndUserRepository() UnionBusinessRoleAndUserRepository
 	NewPermissionRepository() PermissionRepository
+	NewPaymentMethodRepository() PaymentMethodRepository
 }
 
 type repository struct {
@@ -54,6 +52,10 @@ func New(db *gorm.DB, config *config.Config, datasourceDao datasource.Datasource
 	Datasource = datasourceDao
 	Rdb = rdb
 	return &repository{}
+}
+
+func (d *repository) NewUserConfigurationRepository() UserConfigurationRepository {
+	return &userConfigurationRepository{}
 }
 
 func (d *repository) NewJwtTokenRepository() JwtTokenRepository {
@@ -103,14 +105,6 @@ func (d *repository) NewPermissionRepository() PermissionRepository {
 	return &permissionRepository{}
 }
 
-func (d *repository) NewBusinessAnalyticsRepository() BusinessAnalyticsRepository {
-	return &businessAnalyticsRepository{}
-}
-
-func (d *repository) NewItemAnalyticsRepository() ItemAnalyticsRepository {
-	return &itemAnalyticsRepository{}
-}
-
 func (d *repository) NewOrderRepository() OrderRepository {
 	return &orderRepository{}
 }
@@ -123,20 +117,12 @@ func (d *repository) NewUserAddressRepository() UserAddressRepository {
 	return &userAddressRepository{}
 }
 
-func (d *repository) NewBannedUserRepository() BannedUserRepository {
-	return &bannedUserRepository{}
-}
-
 func (d *repository) NewOrderedRepository() OrderedRepository {
 	return &orderedRepository{}
 }
 
 func (d *repository) NewUnionOrderAndOrderedItemRepository() UnionOrderAndOrderedItemRepository {
 	return &unionOrderAndOrderedItemRepository{}
-}
-
-func (d *repository) NewBannedDeviceRepository() BannedDeviceRepository {
-	return &bannedDeviceRepository{}
 }
 
 func (d *repository) NewDeviceRepository() DeviceRepository {
@@ -189,4 +175,8 @@ func (d *repository) NewCartItemRepository() CartItemRepository {
 
 func (d *repository) NewUserPermissionRepository() UserPermissionRepository {
 	return &userPermissionRepository{}
+}
+
+func (d *repository) NewPaymentMethodRepository() PaymentMethodRepository {
+	return &paymentMethodRepository{}
 }
