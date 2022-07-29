@@ -94,6 +94,8 @@ service PaymentMethodService {
   rpc ListPaymentMethod (ListPaymentMethodRequest) returns (ListPaymentMethodResponse) {}
   rpc UpdatePaymentMethod (UpdatePaymentMethodRequest) returns (PaymentMethod) {}
   rpc DeletePaymentMethod (DeletePaymentMethodRequest) returns (google.protobuf.Empty) {}
+
+  rpc ListBusinessPaymentMethod (ListBusinessPaymentMethodRequest) returns (ListBusinessPaymentMethodResponse) {}
 }
 
 // service BanService {
@@ -110,6 +112,14 @@ service ObjectStorageService {
 // }
 
 // Request & Response Message
+
+message ListBusinessPaymentMethodRequest {
+
+}
+
+message ListBusinessPaymentMethodResponse {
+  repeated BusinessPaymentMethod businessPaymentMethods = 1;
+}
 
 message DeletePaymentMethodRequest {
   string id = 1;
@@ -974,6 +984,18 @@ message PaymentMethod {
   bool enabled = 5;
   google.protobuf.Timestamp createTime = 6;
   google.protobuf.Timestamp updateTime = 7;
+}
+
+message BusinessPaymentMethod {
+  string id = 1;
+  string name = 2;
+  PaymentMethodType type = 3;
+  string address = 4;
+  bool enabled = 5;
+  string businessId = 6;
+  string paymentMethodId = 7;
+  google.protobuf.Timestamp createTime = 8;
+  google.protobuf.Timestamp updateTime = 9;
 }
 
 message BusinessRolePermission {
