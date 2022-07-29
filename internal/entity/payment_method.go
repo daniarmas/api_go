@@ -15,7 +15,6 @@ func (PaymentMethod) TableName() string {
 
 type PaymentMethod struct {
 	ID         *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
-	Name       string         `gorm:"column:name;not null"`
 	Type       string         `gorm:"column:type;not null"`
 	Address    string         `gorm:"column:address"`
 	Enabled    bool           `gorm:"column:enabled;not null"`

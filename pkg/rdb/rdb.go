@@ -8,7 +8,7 @@ import (
 )
 
 func New(cfg *config.Config) *redis.Client {
-	rdbAddres := fmt.Sprintf("%s:%d", cfg.RedisHost, cfg.RedisPort)
+	rdbAddres := fmt.Sprintf("%s:%s", cfg.RedisHost, cfg.RedisPort)
 	rdb := redis.NewClient(&redis.Options{
 		Addr: rdbAddres,
 		// Password: config.RedisPassword, // no password set
