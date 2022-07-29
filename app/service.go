@@ -10,6 +10,11 @@ type ItemServer struct {
 	itemService usecase.ItemService
 }
 
+type PaymentMethodServer struct {
+	pb.UnimplementedPaymentMethodServiceServer
+	paymentMethodService usecase.PaymentMethodService
+}
+
 type ApplicationServer struct {
 	pb.UnimplementedApplicationServiceServer
 	applicationService usecase.ApplicationService
@@ -50,6 +55,14 @@ func NewOrderServer(
 ) *OrderServer {
 	return &OrderServer{
 		orderService: orderService,
+	}
+}
+
+func NewPaymentMethodServer(
+	paymentMethodService usecase.PaymentMethodService,
+) *PaymentMethodServer {
+	return &PaymentMethodServer{
+		paymentMethodService: paymentMethodService,
 	}
 }
 
