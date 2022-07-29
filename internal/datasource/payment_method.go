@@ -38,7 +38,9 @@ func (i *paymentMethodDatasource) CreatePaymentMethod(tx *gorm.DB, data *entity.
 
 func (i *paymentMethodDatasource) UpdatePaymentMethod(tx *gorm.DB, where *entity.PaymentMethod, data *entity.PaymentMethod) (*entity.PaymentMethod, error) {
 	result := tx.Clauses(clause.Returning{}).Where(where).Updates(&data)
-	if result.Error != nil {
+	if result.RowsAffected == 0 {
+		return nil, errors.New("record not found")
+	} else if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
 		} else {
