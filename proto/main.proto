@@ -93,6 +93,7 @@ service PaymentMethodService {
   rpc CreatePaymentMethod (CreatePaymentMethodRequest) returns (PaymentMethod) {}
   rpc ListPaymentMethod (ListPaymentMethodRequest) returns (ListPaymentMethodResponse) {}
   rpc UpdatePaymentMethod (UpdatePaymentMethodRequest) returns (PaymentMethod) {}
+  rpc DeletePaymentMethod (DeletePaymentMethodRequest) returns (google.protobuf.Empty) {}
 }
 
 // service BanService {
@@ -109,6 +110,10 @@ service ObjectStorageService {
 // }
 
 // Request & Response Message
+
+message DeletePaymentMethodRequest {
+  string id = 1;
+}
 
 message UpdatePaymentMethodRequest {
   string id = 1;

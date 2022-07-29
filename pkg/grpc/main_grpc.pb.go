@@ -2214,6 +2214,7 @@ type PaymentMethodServiceClient interface {
 	CreatePaymentMethod(ctx context.Context, in *CreatePaymentMethodRequest, opts ...grpc.CallOption) (*PaymentMethod, error)
 	ListPaymentMethod(ctx context.Context, in *ListPaymentMethodRequest, opts ...grpc.CallOption) (*ListPaymentMethodResponse, error)
 	UpdatePaymentMethod(ctx context.Context, in *UpdatePaymentMethodRequest, opts ...grpc.CallOption) (*PaymentMethod, error)
+	DeletePaymentMethod(ctx context.Context, in *DeletePaymentMethodRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type paymentMethodServiceClient struct {
@@ -2251,6 +2252,15 @@ func (c *paymentMethodServiceClient) UpdatePaymentMethod(ctx context.Context, in
 	return out, nil
 }
 
+func (c *paymentMethodServiceClient) DeletePaymentMethod(ctx context.Context, in *DeletePaymentMethodRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/main.PaymentMethodService/DeletePaymentMethod", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PaymentMethodServiceServer is the server API for PaymentMethodService service.
 // All implementations must embed UnimplementedPaymentMethodServiceServer
 // for forward compatibility
@@ -2258,6 +2268,7 @@ type PaymentMethodServiceServer interface {
 	CreatePaymentMethod(context.Context, *CreatePaymentMethodRequest) (*PaymentMethod, error)
 	ListPaymentMethod(context.Context, *ListPaymentMethodRequest) (*ListPaymentMethodResponse, error)
 	UpdatePaymentMethod(context.Context, *UpdatePaymentMethodRequest) (*PaymentMethod, error)
+	DeletePaymentMethod(context.Context, *DeletePaymentMethodRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedPaymentMethodServiceServer()
 }
 
@@ -2273,6 +2284,9 @@ func (UnimplementedPaymentMethodServiceServer) ListPaymentMethod(context.Context
 }
 func (UnimplementedPaymentMethodServiceServer) UpdatePaymentMethod(context.Context, *UpdatePaymentMethodRequest) (*PaymentMethod, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdatePaymentMethod not implemented")
+}
+func (UnimplementedPaymentMethodServiceServer) DeletePaymentMethod(context.Context, *DeletePaymentMethodRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePaymentMethod not implemented")
 }
 func (UnimplementedPaymentMethodServiceServer) mustEmbedUnimplementedPaymentMethodServiceServer() {}
 
@@ -2341,6 +2355,24 @@ func _PaymentMethodService_UpdatePaymentMethod_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PaymentMethodService_DeletePaymentMethod_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePaymentMethodRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentMethodServiceServer).DeletePaymentMethod(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.PaymentMethodService/DeletePaymentMethod",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentMethodServiceServer).DeletePaymentMethod(ctx, req.(*DeletePaymentMethodRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PaymentMethodService_ServiceDesc is the grpc.ServiceDesc for PaymentMethodService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2359,6 +2391,10 @@ var PaymentMethodService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdatePaymentMethod",
 			Handler:    _PaymentMethodService_UpdatePaymentMethod_Handler,
+		},
+		{
+			MethodName: "DeletePaymentMethod",
+			Handler:    _PaymentMethodService_DeletePaymentMethod_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
