@@ -3,11 +3,13 @@ package usecase
 import (
 	"context"
 	"errors"
+
 	// "fmt"
 	// "strconv"
 	// "strings"
 	"time"
 
+	"github.com/daniarmas/api_go/config"
 	"github.com/daniarmas/api_go/internal/datasource"
 	"github.com/daniarmas/api_go/internal/entity"
 	"github.com/daniarmas/api_go/internal/repository"
@@ -31,12 +33,13 @@ type OrderService interface {
 }
 
 type orderService struct {
-	dao   repository.Repository
-	sqldb *sqldb.Sql
+	dao    repository.Repository
+	config *config.Config
+	sqldb  *sqldb.Sql
 }
 
-func NewOrderService(dao repository.Repository, sqldb *sqldb.Sql) OrderService {
-	return &orderService{dao: dao, sqldb: sqldb}
+func NewOrderService(dao repository.Repository, sqldb *sqldb.Sql, config *config.Config) OrderService {
+	return &orderService{dao: dao, sqldb: sqldb, config: config}
 }
 
 func (i *orderService) GetOrder(ctx context.Context, req *pb.GetOrderRequest, md *utils.ClientMetadata) (*pb.Order, error) {
@@ -100,20 +103,21 @@ func (i *orderService) GetOrder(ctx context.Context, req *pb.GetOrderRequest, md
 			})
 		}
 		res = pb.Order{
-			Id:            order.ID.String(),
-			BusinessName:  order.BusinessName,
-			ShortId:       order.ShortId,
-			Number:        order.Number,
-			Address:       order.Address,
-			Instructions:  order.Instructions,
-			CancelReasons: order.CancelReasons,
-			PriceCup:      order.PriceCup,
-			BusinessId:    order.BusinessId.String(),
-			UserId:        order.UserId.String(),
-			OrderedItems:  orderedItems,
-			CreateTime:    timestamppb.New(order.CreateTime),
-			UpdateTime:    timestamppb.New(order.UpdateTime),
-			OrderTime:     timestamppb.New(order.OrderTime),
+			Id:                order.ID.String(),
+			BusinessName:      order.BusinessName,
+			ShortId:           order.ShortId,
+			Number:            order.Number,
+			Address:           order.Address,
+			Instructions:      order.Instructions,
+			CancelReasons:     order.CancelReasons,
+			PriceCup:          order.PriceCup,
+			BusinessId:        order.BusinessId.String(),
+			BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + order.BusinessThumbnail,
+			UserId:            order.UserId.String(),
+			OrderedItems:      orderedItems,
+			CreateTime:        timestamppb.New(order.CreateTime),
+			UpdateTime:        timestamppb.New(order.UpdateTime),
+			OrderTime:         timestamppb.New(order.OrderTime),
 		}
 		return nil
 	})
@@ -273,7 +277,7 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 		if createOrderLcErr != nil {
 			return createOrderLcErr
 		}
-		res = &pb.Order{Id: updateOrderRes.ID.String(), Status: *utils.ParseOrderStatusType(&updateOrderRes.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.OrderType), PriceCup: updateOrderRes.PriceCup, BusinessId: updateOrderRes.BusinessId.String(), UserId: updateOrderRes.UserId.String(), Coordinates: &pb.Point{Latitude: updateOrderRes.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Coordinates.FlatCoords()[1]}, OrderTime: timestamppb.New(updateOrderRes.OrderTime), CreateTime: timestamppb.New(updateOrderRes.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.UpdateTime), Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions, ShortId: updateOrderRes.ShortId, CancelReasons: updateOrderRes.CancelReasons, BusinessName: updateOrderRes.BusinessName, ItemsQuantity: updateOrderRes.ItemsQuantity}
+		res = &pb.Order{Id: updateOrderRes.ID.String(), BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + updateOrderRes.BusinessThumbnail, Status: *utils.ParseOrderStatusType(&updateOrderRes.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.OrderType), PriceCup: updateOrderRes.PriceCup, BusinessId: updateOrderRes.BusinessId.String(), UserId: updateOrderRes.UserId.String(), Coordinates: &pb.Point{Latitude: updateOrderRes.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Coordinates.FlatCoords()[1]}, OrderTime: timestamppb.New(updateOrderRes.OrderTime), CreateTime: timestamppb.New(updateOrderRes.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.UpdateTime), Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions, ShortId: updateOrderRes.ShortId, CancelReasons: updateOrderRes.CancelReasons, BusinessName: updateOrderRes.BusinessName, ItemsQuantity: updateOrderRes.ItemsQuantity}
 		return nil
 	})
 	if err != nil {
@@ -755,7 +759,7 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		if createOrderedItemsErr != nil {
 			return createOrderedItemsErr
 		}
-		createOrderRes, createOrderErr := i.dao.NewOrderRepository().CreateOrder(tx, &entity.Order{ItemsQuantity: quantity, OrderType: req.OrderType.String(), UserId: authorizationTokenRes.UserId, OrderTime: req.OrderTime.AsTime().UTC(), Coordinates: location, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: (*listCartItemRes)[0].BusinessId, PriceCup: price_cup.String(), CreateTime: createTime, UpdateTime: createTime, Number: req.Number, Address: req.Address, Instructions: req.Instructions, BusinessName: businessRes.Name, Status: "OrderStatusTypeOrdered"})
+		createOrderRes, createOrderErr := i.dao.NewOrderRepository().CreateOrder(tx, &entity.Order{ItemsQuantity: quantity, BusinessThumbnail: businessRes.Thumbnail, OrderType: req.OrderType.String(), UserId: authorizationTokenRes.UserId, OrderTime: req.OrderTime.AsTime().UTC(), Coordinates: location, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: (*listCartItemRes)[0].BusinessId, PriceCup: price_cup.String(), CreateTime: createTime, UpdateTime: createTime, Number: req.Number, Address: req.Address, Instructions: req.Instructions, BusinessName: businessRes.Name, Status: "OrderStatusTypeOrdered"})
 		if createOrderErr != nil {
 			return createOrderErr
 		}
@@ -775,7 +779,7 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		if err != nil {
 			return err
 		}
-		res = &pb.Order{BusinessName: businessRes.Name, ItemsQuantity: quantity, Status: *utils.ParseOrderStatusType(&createOrderRes.Status), OrderType: *utils.ParseOrderType(&createOrderRes.OrderType), Number: createOrderRes.Number, BusinessId: createOrderRes.BusinessId.String(), UserId: createOrderRes.UserId.String(), OrderTime: timestamppb.New(createOrderRes.OrderTime), Coordinates: &pb.Point{Latitude: createOrderRes.Coordinates.FlatCoords()[0], Longitude: createOrderRes.Coordinates.FlatCoords()[1]}, PriceCup: price_cup.String(), CreateTime: timestamppb.New(createOrderRes.CreateTime), UpdateTime: timestamppb.New(createOrderRes.UpdateTime), Address: createOrderRes.Address, Instructions: createOrderRes.Instructions, Id: createOrderRes.ID.String(), ShortId: createOrderRes.ShortId}
+		res = &pb.Order{BusinessName: businessRes.Name, BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + createOrderRes.BusinessThumbnail, ItemsQuantity: quantity, Status: *utils.ParseOrderStatusType(&createOrderRes.Status), OrderType: *utils.ParseOrderType(&createOrderRes.OrderType), Number: createOrderRes.Number, BusinessId: createOrderRes.BusinessId.String(), UserId: createOrderRes.UserId.String(), OrderTime: timestamppb.New(createOrderRes.OrderTime), Coordinates: &pb.Point{Latitude: createOrderRes.Coordinates.FlatCoords()[0], Longitude: createOrderRes.Coordinates.FlatCoords()[1]}, PriceCup: price_cup.String(), CreateTime: timestamppb.New(createOrderRes.CreateTime), UpdateTime: timestamppb.New(createOrderRes.UpdateTime), Address: createOrderRes.Address, Instructions: createOrderRes.Instructions, Id: createOrderRes.ID.String(), ShortId: createOrderRes.ShortId}
 		return nil
 	})
 	if err != nil {
@@ -846,15 +850,16 @@ func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, 
 			ItemsQuantity: item.ItemsQuantity,
 			PriceCup:      item.PriceCup,
 			Number:        item.Number, Address: item.Address,
-			Instructions: item.Instructions,
-			UserId:       item.UserId.String(),
-			OrderTime:    timestamppb.New(item.OrderTime),
-			Status:       *utils.ParseOrderStatusType(&item.Status),
-			OrderType:    *utils.ParseOrderType(&item.OrderType),
-			Coordinates:  &pb.Point{Latitude: item.Coordinates.Coords()[1], Longitude: item.Coordinates.Coords()[0]},
-			BusinessId:   item.BusinessId.String(),
-			CreateTime:   timestamppb.New(item.CreateTime),
-			UpdateTime:   timestamppb.New(item.UpdateTime),
+			Instructions:      item.Instructions,
+			UserId:            item.UserId.String(),
+			OrderTime:         timestamppb.New(item.OrderTime),
+			Status:            *utils.ParseOrderStatusType(&item.Status),
+			OrderType:         *utils.ParseOrderType(&item.OrderType),
+			Coordinates:       &pb.Point{Latitude: item.Coordinates.Coords()[1], Longitude: item.Coordinates.Coords()[0]},
+			BusinessId:        item.BusinessId.String(),
+			BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + item.BusinessThumbnail,
+			CreateTime:        timestamppb.New(item.CreateTime),
+			UpdateTime:        timestamppb.New(item.UpdateTime),
 		})
 	}
 	res.Orders = ordersResponse

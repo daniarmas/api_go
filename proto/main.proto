@@ -702,11 +702,12 @@ message Order {
   string businessId = 11;
   string userId = 12;
   string businessName = 13;
-  int32 itemsQuantity = 14;
-  repeated OrderedItem orderedItems = 15;
-  google.protobuf.Timestamp orderTime = 16;
-  google.protobuf.Timestamp createTime = 17;
-  google.protobuf.Timestamp updateTime = 18;
+  string businessThumbnail = 14;
+  int32 itemsQuantity = 15;
+  repeated OrderedItem orderedItems = 16;
+  google.protobuf.Timestamp orderTime = 17;
+  google.protobuf.Timestamp createTime = 18;
+  google.protobuf.Timestamp updateTime = 19;
 }
 
 message User {
