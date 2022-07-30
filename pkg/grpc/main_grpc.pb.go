@@ -2215,6 +2215,7 @@ type PaymentMethodServiceClient interface {
 	ListPaymentMethod(ctx context.Context, in *ListPaymentMethodRequest, opts ...grpc.CallOption) (*ListPaymentMethodResponse, error)
 	UpdatePaymentMethod(ctx context.Context, in *UpdatePaymentMethodRequest, opts ...grpc.CallOption) (*PaymentMethod, error)
 	DeletePaymentMethod(ctx context.Context, in *DeletePaymentMethodRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ListBusinessPaymentMethod(ctx context.Context, in *ListBusinessPaymentMethodRequest, opts ...grpc.CallOption) (*ListBusinessPaymentMethodResponse, error)
 }
 
 type paymentMethodServiceClient struct {
@@ -2261,6 +2262,15 @@ func (c *paymentMethodServiceClient) DeletePaymentMethod(ctx context.Context, in
 	return out, nil
 }
 
+func (c *paymentMethodServiceClient) ListBusinessPaymentMethod(ctx context.Context, in *ListBusinessPaymentMethodRequest, opts ...grpc.CallOption) (*ListBusinessPaymentMethodResponse, error) {
+	out := new(ListBusinessPaymentMethodResponse)
+	err := c.cc.Invoke(ctx, "/main.PaymentMethodService/ListBusinessPaymentMethod", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PaymentMethodServiceServer is the server API for PaymentMethodService service.
 // All implementations must embed UnimplementedPaymentMethodServiceServer
 // for forward compatibility
@@ -2269,6 +2279,7 @@ type PaymentMethodServiceServer interface {
 	ListPaymentMethod(context.Context, *ListPaymentMethodRequest) (*ListPaymentMethodResponse, error)
 	UpdatePaymentMethod(context.Context, *UpdatePaymentMethodRequest) (*PaymentMethod, error)
 	DeletePaymentMethod(context.Context, *DeletePaymentMethodRequest) (*emptypb.Empty, error)
+	ListBusinessPaymentMethod(context.Context, *ListBusinessPaymentMethodRequest) (*ListBusinessPaymentMethodResponse, error)
 	mustEmbedUnimplementedPaymentMethodServiceServer()
 }
 
@@ -2287,6 +2298,9 @@ func (UnimplementedPaymentMethodServiceServer) UpdatePaymentMethod(context.Conte
 }
 func (UnimplementedPaymentMethodServiceServer) DeletePaymentMethod(context.Context, *DeletePaymentMethodRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeletePaymentMethod not implemented")
+}
+func (UnimplementedPaymentMethodServiceServer) ListBusinessPaymentMethod(context.Context, *ListBusinessPaymentMethodRequest) (*ListBusinessPaymentMethodResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListBusinessPaymentMethod not implemented")
 }
 func (UnimplementedPaymentMethodServiceServer) mustEmbedUnimplementedPaymentMethodServiceServer() {}
 
@@ -2373,6 +2387,24 @@ func _PaymentMethodService_DeletePaymentMethod_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PaymentMethodService_ListBusinessPaymentMethod_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBusinessPaymentMethodRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentMethodServiceServer).ListBusinessPaymentMethod(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.PaymentMethodService/ListBusinessPaymentMethod",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentMethodServiceServer).ListBusinessPaymentMethod(ctx, req.(*ListBusinessPaymentMethodRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PaymentMethodService_ServiceDesc is the grpc.ServiceDesc for PaymentMethodService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2395,6 +2427,10 @@ var PaymentMethodService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeletePaymentMethod",
 			Handler:    _PaymentMethodService_DeletePaymentMethod_Handler,
+		},
+		{
+			MethodName: "ListBusinessPaymentMethod",
+			Handler:    _PaymentMethodService_ListBusinessPaymentMethod_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
