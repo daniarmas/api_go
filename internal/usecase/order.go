@@ -3,6 +3,9 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strconv"
+	"strings"
 
 	// "fmt"
 	// "strconv"
@@ -295,13 +298,6 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		if appErr != nil {
 			return appErr
 		}
-		createTime := time.Now().UTC()
-		orderTimeWeekday := req.OrderTime.AsTime()
-		orderTimeWeekdayHour, _, _ := orderTimeWeekday.Clock()
-		if orderTimeWeekdayHour >= 0 && orderTimeWeekdayHour <= 4 {
-			orderTimeWeekday = orderTimeWeekday.AddDate(0, 0, 1)
-		}
-		// weekday := orderTimeWeekday.Local().Weekday().String()
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
@@ -322,6 +318,13 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
+		createTime := time.Now().UTC()
+		orderTimeWeekday := req.OrderTime.AsTime()
+		orderTimeWeekdayHour, _, _ := orderTimeWeekday.Clock()
+		if orderTimeWeekdayHour >= 0 && orderTimeWeekdayHour <= 4 {
+			orderTimeWeekday = orderTimeWeekday.AddDate(0, 0, 1)
+		}
+		weekday := orderTimeWeekday.Local().Weekday().String()
 		listCartItemRes, listCartItemErr := i.dao.NewCartItemRepository().ListCartItemAll(tx, &entity.CartItem{UserId: authorizationTokenRes.UserId}, &[]string{"id", "business_id", "price_cup", "item_id", "user_id", "quantity", "name"})
 		if listCartItemErr != nil {
 			return listCartItemErr
@@ -343,418 +346,224 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 			quantity += item.Quantity
 			orderedItems = append(orderedItems, entity.OrderedItem{Quantity: item.Quantity, PriceCup: item.PriceCup, CartItemId: item.ID, UserId: item.UserId, ItemId: item.ItemId, Name: item.Name})
 		}
-		// businessScheduleRes, businessScheduleErr := i.dao.NewBusinessScheduleRepository().GetBusinessSchedule(tx, &entity.BusinessSchedule{BusinessId: (*listCartItemRes)[0].BusinessId}, nil)
-		// if businessScheduleErr != nil {
-		// 	return businessScheduleErr
-		// }
+		businessScheduleRes, businessScheduleErr := i.dao.NewBusinessScheduleRepository().GetBusinessSchedule(tx, &entity.BusinessSchedule{BusinessId: (*listCartItemRes)[0].BusinessId}, nil)
+		if businessScheduleErr != nil {
+			return businessScheduleErr
+		}
 		businessRes, businessErr := i.dao.NewBusinessRepository().GetBusinessWithDistance(tx, &entity.Business{ID: (*listCartItemRes)[0].BusinessId, Coordinates: location})
 		if businessErr != nil {
 			return businessErr
 		}
-		// orderTime := req.OrderTime.AsTime()
-		// orderTimeHour, _, _ := orderTime.Clock()
-		// if orderTimeHour >= 0 && orderTimeHour <= 4 {
-		// 	orderTime = orderTime.AddDate(0, 0, 1)
-		// }
-		// previousTime := createTime
-		// previousTime = previousTime.AddDate(0, int(businessRes.TimeMarginOrderMonth), int(businessRes.TimeMarginOrderDay))
-		// previousTime = previousTime.Add(time.Duration(businessRes.TimeMarginOrderHour) * time.Hour)
-		// previousTime = previousTime.Add(time.Duration(businessRes.TimeMarginOrderMinute) * time.Minute)
-		// fmt.Printf("ordertime: %s\n", orderTime)
-		// fmt.Printf("previoustime: %s", previousTime)
-		// if orderTime.Before(previousTime) {
-		// 	return errors.New("invalid schedule")
-		// }
-		// if req.OrderType.String() == "OrderTypeHomeDelivery" {
-		// 	switch weekday {
-		// 	case "Sunday":
-		// 		splitOpening := strings.Split(businessScheduleRes.OpeningTimeDeliverySunday, ":")
-		// 		splitClosing := strings.Split(businessScheduleRes.ClosingTimeDeliverySunday, ":")
-		// 		openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-		// 		if openingHourErr != nil {
-		// 			return openingHourErr
-		// 		}
-		// 		openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-		// 		if openingMinutesErr != nil {
-		// 			return openingMinutesErr
-		// 		}
-		// 		closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-		// 		if closingHourErr != nil {
-		// 			return closingHourErr
-		// 		}
-		// 		closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-		// 		if closingMinutesErr != nil {
-		// 			return closingMinutesErr
-		// 		}
-		// 		openingTimeSunday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.Local)
-		// 		closingTimeSunday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.Local)
-		// 		if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
-		// 			closingTimeSunday = closingTimeSunday.AddDate(0, 0, 1)
-		// 		}
-		// 		if orderTimeWeekday.Before(openingTimeSunday) || orderTimeWeekday.After(closingTimeSunday) {
-		// 			return errors.New("business closed")
-		// 		}
-		// 	case "Monday":
-		// 		splitOpening := strings.Split(businessScheduleRes.OpeningTimeDeliveryMonday, ":")
-		// 		splitClosing := strings.Split(businessScheduleRes.ClosingTimeDeliveryMonday, ":")
-		// 		openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-		// 		if openingHourErr != nil {
-		// 			return openingHourErr
-		// 		}
-		// 		openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-		// 		if openingMinutesErr != nil {
-		// 			return openingMinutesErr
-		// 		}
-		// 		closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-		// 		if closingHourErr != nil {
-		// 			return closingHourErr
-		// 		}
-		// 		closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-		// 		if closingMinutesErr != nil {
-		// 			return closingMinutesErr
-		// 		}
-		// 		openingTimeMonday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-		// 		closingTimeMonday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-		// 		if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
-		// 			closingTimeMonday = closingTimeMonday.AddDate(0, 0, 1)
-		// 		}
-		// 		if orderTimeWeekday.Before(openingTimeMonday) || orderTimeWeekday.After(closingTimeMonday) {
-		// 			return errors.New("business closed")
-		// 		}
-		// 	case "Tuesday":
-		// 		splitOpening := strings.Split(businessScheduleRes.OpeningTimeDeliveryTuesday, ":")
-		// 		splitClosing := strings.Split(businessScheduleRes.ClosingTimeDeliveryTuesday, ":")
-		// 		openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-		// 		if openingHourErr != nil {
-		// 			return openingHourErr
-		// 		}
-		// 		openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-		// 		if openingMinutesErr != nil {
-		// 			return openingMinutesErr
-		// 		}
-		// 		closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-		// 		if closingHourErr != nil {
-		// 			return closingHourErr
-		// 		}
-		// 		closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-		// 		if closingMinutesErr != nil {
-		// 			return closingMinutesErr
-		// 		}
-		// 		openingTimeTuesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.Local).UTC()
-		// 		closingTimeTuesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.Local).UTC()
-		// 		if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
-		// 			closingTimeTuesday = closingTimeTuesday.AddDate(0, 0, 1)
-		// 		}
-		// 		if orderTimeWeekday.Before(openingTimeTuesday) || orderTimeWeekday.After(closingTimeTuesday) {
-		// 			return errors.New("business closed")
-		// 		}
-		// 	case "Wednesday":
-		// 		splitOpening := strings.Split(businessScheduleRes.OpeningTimeDeliveryWednesday, ":")
-		// 		splitClosing := strings.Split(businessScheduleRes.ClosingTimeDeliveryWednesday, ":")
-		// 		openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-		// 		if openingHourErr != nil {
-		// 			return openingHourErr
-		// 		}
-		// 		openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-		// 		if openingMinutesErr != nil {
-		// 			return openingMinutesErr
-		// 		}
-		// 		closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-		// 		if closingHourErr != nil {
-		// 			return closingHourErr
-		// 		}
-		// 		closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-		// 		if closingMinutesErr != nil {
-		// 			return closingMinutesErr
-		// 		}
-		// 		openingTimeWednesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.Local).UTC()
-		// 		closingTimeWednesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.Local).UTC()
-		// 		if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
-		// 			closingTimeWednesday = closingTimeWednesday.AddDate(0, 0, 1)
-		// 		}
-		// 		if orderTimeWeekday.Before(openingTimeWednesday) || orderTimeWeekday.After(closingTimeWednesday) {
-		// 			return errors.New("business closed")
-		// 		}
-		// 	case "Thursday":
-		// 		splitOpening := strings.Split(businessScheduleRes.OpeningTimeDeliveryThursday, ":")
-		// 		splitClosing := strings.Split(businessScheduleRes.ClosingTimeDeliveryThursday, ":")
-		// 		openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-		// 		if openingHourErr != nil {
-		// 			return openingHourErr
-		// 		}
-		// 		openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-		// 		if openingMinutesErr != nil {
-		// 			return openingMinutesErr
-		// 		}
-		// 		closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-		// 		if closingHourErr != nil {
-		// 			return closingHourErr
-		// 		}
-		// 		closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-		// 		if closingMinutesErr != nil {
-		// 			return closingMinutesErr
-		// 		}
-		// 		openingTimeThursday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-		// 		closingTimeThursday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-		// 		if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
-		// 			closingTimeThursday = closingTimeThursday.AddDate(0, 0, 1)
-		// 		}
-		// 		if orderTimeWeekday.Before(openingTimeThursday) || orderTimeWeekday.After(closingTimeThursday) {
-		// 			return errors.New("business closed")
-		// 		}
-		// 	case "Friday":
-		// 		splitOpening := strings.Split(businessScheduleRes.OpeningTimeDeliveryFriday, ":")
-		// 		splitClosing := strings.Split(businessScheduleRes.ClosingTimeDeliveryFriday, ":")
-		// 		openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-		// 		if openingHourErr != nil {
-		// 			return openingHourErr
-		// 		}
-		// 		openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-		// 		if openingMinutesErr != nil {
-		// 			return openingMinutesErr
-		// 		}
-		// 		closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-		// 		if closingHourErr != nil {
-		// 			return closingHourErr
-		// 		}
-		// 		closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-		// 		if closingMinutesErr != nil {
-		// 			return closingMinutesErr
-		// 		}
-		// 		openingTimeFriday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-		// 		closingTimeFriday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-		// 		if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
-		// 			closingTimeFriday = closingTimeFriday.AddDate(0, 0, 1)
-		// 		}
-		// 		if orderTimeWeekday.Before(openingTimeFriday) || orderTimeWeekday.After(closingTimeFriday) {
-		// 			return errors.New("business closed")
-		// 		}
-		// 	case "Saturday":
-		// 		splitOpening := strings.Split(businessScheduleRes.OpeningTimeDeliverySaturday, ":")
-		// 		splitClosing := strings.Split(businessScheduleRes.ClosingTimeDeliverySaturday, ":")
-		// 		openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-		// 		if openingHourErr != nil {
-		// 			return openingHourErr
-		// 		}
-		// 		openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-		// 		if openingMinutesErr != nil {
-		// 			return openingMinutesErr
-		// 		}
-		// 		closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-		// 		if closingHourErr != nil {
-		// 			return closingHourErr
-		// 		}
-		// 		closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-		// 		if closingMinutesErr != nil {
-		// 			return closingMinutesErr
-		// 		}
-		// 		openingTimeSaturday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-		// 		closingTimeSaturday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-		// 		if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
-		// 			closingTimeSaturday = closingTimeSaturday.AddDate(0, 0, 1)
-		// 		}
-		// 		if orderTimeWeekday.Before(openingTimeSaturday) || orderTimeWeekday.After(closingTimeSaturday) {
-		// 			return errors.New("business closed")
-		// 		}
-		// 	}
-		// } else if req.OrderType.String() == "OrderTypePickUp" {
-		// 	switch weekday {
-		// 	case "Sunday":
-		// 		splitOpening := strings.Split(businessScheduleRes.OpeningTimeSunday, ":")
-		// 		splitClosing := strings.Split(businessScheduleRes.ClosingTimeSunday, ":")
-		// 		openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-		// 		if openingHourErr != nil {
-		// 			return openingHourErr
-		// 		}
-		// 		openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-		// 		if openingMinutesErr != nil {
-		// 			return openingMinutesErr
-		// 		}
-		// 		closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-		// 		if closingHourErr != nil {
-		// 			return closingHourErr
-		// 		}
-		// 		closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-		// 		if closingMinutesErr != nil {
-		// 			return closingMinutesErr
-		// 		}
-		// 		openingTimeSunday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-		// 		closingTimeSunday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-		// 		if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
-		// 			closingTimeSunday = closingTimeSunday.AddDate(0, 0, 1)
-		// 		}
-		// 		if orderTimeWeekday.Before(openingTimeSunday) || orderTimeWeekday.After(closingTimeSunday) {
-		// 			return errors.New("business closed")
-		// 		}
-		// 	case "Monday":
-		// 		splitOpening := strings.Split(businessScheduleRes.OpeningTimeMonday, ":")
-		// 		splitClosing := strings.Split(businessScheduleRes.ClosingTimeMonday, ":")
-		// 		openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-		// 		if openingHourErr != nil {
-		// 			return openingHourErr
-		// 		}
-		// 		openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-		// 		if openingMinutesErr != nil {
-		// 			return openingMinutesErr
-		// 		}
-		// 		closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-		// 		if closingHourErr != nil {
-		// 			return closingHourErr
-		// 		}
-		// 		closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-		// 		if closingMinutesErr != nil {
-		// 			return closingMinutesErr
-		// 		}
-		// 		openingTimeMonday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-		// 		closingTimeMonday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-		// 		if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
-		// 			closingTimeMonday = closingTimeMonday.AddDate(0, 0, 1)
-		// 		}
-		// 		if orderTimeWeekday.Before(openingTimeMonday) || orderTimeWeekday.After(closingTimeMonday) {
-		// 			return errors.New("business closed")
-		// 		}
-		// 	case "Tuesday":
-		// 		splitOpening := strings.Split(businessScheduleRes.OpeningTimeTuesday, ":")
-		// 		splitClosing := strings.Split(businessScheduleRes.ClosingTimeTuesday, ":")
-		// 		openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-		// 		if openingHourErr != nil {
-		// 			return openingHourErr
-		// 		}
-		// 		openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-		// 		if openingMinutesErr != nil {
-		// 			return openingMinutesErr
-		// 		}
-		// 		closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-		// 		if closingHourErr != nil {
-		// 			return closingHourErr
-		// 		}
-		// 		closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-		// 		if closingMinutesErr != nil {
-		// 			return closingMinutesErr
-		// 		}
-		// 		openingTimeTuesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-		// 		closingTimeTuesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-		// 		if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
-		// 			closingTimeTuesday = closingTimeTuesday.AddDate(0, 0, 1)
-		// 		}
-		// 		if orderTimeWeekday.Before(openingTimeTuesday) || orderTimeWeekday.After(closingTimeTuesday) {
-		// 			return errors.New("business closed")
-		// 		}
-		// 	case "Wednesday":
-		// 		splitOpening := strings.Split(businessScheduleRes.OpeningTimeWednesday, ":")
-		// 		splitClosing := strings.Split(businessScheduleRes.ClosingTimeWednesday, ":")
-		// 		openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-		// 		if openingHourErr != nil {
-		// 			return openingHourErr
-		// 		}
-		// 		openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-		// 		if openingMinutesErr != nil {
-		// 			return openingMinutesErr
-		// 		}
-		// 		closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-		// 		if closingHourErr != nil {
-		// 			return closingHourErr
-		// 		}
-		// 		closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-		// 		if closingMinutesErr != nil {
-		// 			return closingMinutesErr
-		// 		}
-		// 		var openingTimeDay, closingTimeDay int
-		// 		openingTimeDay = time.Now().Day()
-		// 		if closingHour >= 0 && closingHour <= 4 {
-		// 			closingTimeDay = orderTimeWeekday.Add(time.Duration(24) * time.Hour).Day()
-		// 		}
-		// 		openingTimeWednesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), openingTimeDay, openingHour, openingMinutes, 0, 0, time.UTC)
-		// 		closingTimeWednesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), closingTimeDay, closingHour, closingMinutes, 0, 0, time.UTC)
-		// 		if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
-		// 			closingTimeWednesday = closingTimeWednesday.AddDate(0, 0, 1)
-		// 		}
-		// 		if orderTimeWeekday.Before(openingTimeWednesday) || orderTimeWeekday.After(closingTimeWednesday) {
-		// 			return errors.New("business closed")
-		// 		}
-		// 	case "Thursday":
-		// 		splitOpening := strings.Split(businessScheduleRes.OpeningTimeThursday, ":")
-		// 		splitClosing := strings.Split(businessScheduleRes.ClosingTimeThursday, ":")
-		// 		openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-		// 		if openingHourErr != nil {
-		// 			return openingHourErr
-		// 		}
-		// 		openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-		// 		if openingMinutesErr != nil {
-		// 			return openingMinutesErr
-		// 		}
-		// 		closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-		// 		if closingHourErr != nil {
-		// 			return closingHourErr
-		// 		}
-		// 		closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-		// 		if closingMinutesErr != nil {
-		// 			return closingMinutesErr
-		// 		}
-		// 		openingTimeThursday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-		// 		closingTimeThursday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-		// 		if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
-		// 			closingTimeThursday = closingTimeThursday.AddDate(0, 0, 1)
-		// 		}
-		// 		if orderTimeWeekday.Before(openingTimeThursday) || orderTimeWeekday.After(closingTimeThursday) {
-		// 			return errors.New("business closed")
-		// 		}
-		// 	case "Friday":
-		// 		splitOpening := strings.Split(businessScheduleRes.OpeningTimeFriday, ":")
-		// 		splitClosing := strings.Split(businessScheduleRes.ClosingTimeFriday, ":")
-		// 		openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-		// 		if openingHourErr != nil {
-		// 			return openingHourErr
-		// 		}
-		// 		openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-		// 		if openingMinutesErr != nil {
-		// 			return openingMinutesErr
-		// 		}
-		// 		closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-		// 		if closingHourErr != nil {
-		// 			return closingHourErr
-		// 		}
-		// 		closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-		// 		if closingMinutesErr != nil {
-		// 			return closingMinutesErr
-		// 		}
-		// 		openingTimeFriday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-		// 		closingTimeFriday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-		// 		if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
-		// 			closingTimeFriday = closingTimeFriday.AddDate(0, 0, 1)
-		// 		}
-		// 		if orderTimeWeekday.Before(openingTimeFriday) || orderTimeWeekday.After(closingTimeFriday) {
-		// 			return errors.New("business closed")
-		// 		}
-		// 	case "Saturday":
-		// 		splitOpening := strings.Split(businessScheduleRes.OpeningTimeSaturday, ":")
-		// 		splitClosing := strings.Split(businessScheduleRes.ClosingTimeSaturday, ":")
-		// 		openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-		// 		if openingHourErr != nil {
-		// 			return openingHourErr
-		// 		}
-		// 		openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-		// 		if openingMinutesErr != nil {
-		// 			return openingMinutesErr
-		// 		}
-		// 		closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-		// 		if closingHourErr != nil {
-		// 			return closingHourErr
-		// 		}
-		// 		closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-		// 		if closingMinutesErr != nil {
-		// 			return closingMinutesErr
-		// 		}
-		// 		openingTimeSaturday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-		// 		closingTimeSaturday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
-		// 		if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
-		// 			closingTimeSaturday = closingTimeSaturday.AddDate(0, 0, 1)
-		// 		}
-		// 		if orderTimeWeekday.Before(openingTimeSaturday) || orderTimeWeekday.After(closingTimeSaturday) {
-		// 			return errors.New("business closed")
-		// 		}
-		// 	}
-		// }
+		orderTime := req.OrderTime.AsTime()
+		orderTimeHour, _, _ := orderTime.Clock()
+		if orderTimeHour >= 0 && orderTimeHour <= 4 {
+			orderTime = orderTime.AddDate(0, 0, 1)
+		}
+		previousTime := createTime
+		previousTime = previousTime.AddDate(0, int(businessRes.TimeMarginOrderMonth), int(businessRes.TimeMarginOrderDay))
+		previousTime = previousTime.Add(time.Duration(businessRes.TimeMarginOrderHour) * time.Hour)
+		previousTime = previousTime.Add(time.Duration(businessRes.TimeMarginOrderMinute) * time.Minute)
+		fmt.Printf("ordertime: %s\n", orderTime)
+		fmt.Printf("previoustime: %s", previousTime)
+		if orderTime.Before(previousTime) {
+			return errors.New("invalid schedule")
+		}
+		switch weekday {
+		case "Sunday":
+			splitOpening := strings.Split(businessScheduleRes.FirstOpeningTimeSunday, ":")
+			splitClosing := strings.Split(businessScheduleRes.FirstClosingTimeSunday, ":")
+			openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+			if openingHourErr != nil {
+				return openingHourErr
+			}
+			openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+			if openingMinutesErr != nil {
+				return openingMinutesErr
+			}
+			closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+			if closingHourErr != nil {
+				return closingHourErr
+			}
+			closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+			if closingMinutesErr != nil {
+				return closingMinutesErr
+			}
+			openingTimeSunday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+			closingTimeSunday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+			if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+				closingTimeSunday = closingTimeSunday.AddDate(0, 0, 1)
+			}
+			if orderTimeWeekday.Before(openingTimeSunday) || orderTimeWeekday.After(closingTimeSunday) {
+				return errors.New("business closed")
+			}
+		case "Monday":
+			splitOpening := strings.Split(businessScheduleRes.FirstOpeningTimeMonday, ":")
+			splitClosing := strings.Split(businessScheduleRes.FirstClosingTimeMonday, ":")
+			openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+			if openingHourErr != nil {
+				return openingHourErr
+			}
+			openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+			if openingMinutesErr != nil {
+				return openingMinutesErr
+			}
+			closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+			if closingHourErr != nil {
+				return closingHourErr
+			}
+			closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+			if closingMinutesErr != nil {
+				return closingMinutesErr
+			}
+			openingTimeMonday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+			closingTimeMonday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+			if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+				closingTimeMonday = closingTimeMonday.AddDate(0, 0, 1)
+			}
+			if orderTimeWeekday.Before(openingTimeMonday) || orderTimeWeekday.After(closingTimeMonday) {
+				return errors.New("business closed")
+			}
+		case "Tuesday":
+			splitOpening := strings.Split(businessScheduleRes.FirstOpeningTimeTuesday, ":")
+			splitClosing := strings.Split(businessScheduleRes.FirstClosingTimeTuesday, ":")
+			openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+			if openingHourErr != nil {
+				return openingHourErr
+			}
+			openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+			if openingMinutesErr != nil {
+				return openingMinutesErr
+			}
+			closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+			if closingHourErr != nil {
+				return closingHourErr
+			}
+			closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+			if closingMinutesErr != nil {
+				return closingMinutesErr
+			}
+			openingTimeTuesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+			closingTimeTuesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+			if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+				closingTimeTuesday = closingTimeTuesday.AddDate(0, 0, 1)
+			}
+			if orderTimeWeekday.Before(openingTimeTuesday) || orderTimeWeekday.After(closingTimeTuesday) {
+				return errors.New("business closed")
+			}
+		case "Wednesday":
+			splitOpening := strings.Split(businessScheduleRes.FirstOpeningTimeWednesday, ":")
+			splitClosing := strings.Split(businessScheduleRes.FirstClosingTimeWednesday, ":")
+			openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+			if openingHourErr != nil {
+				return openingHourErr
+			}
+			openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+			if openingMinutesErr != nil {
+				return openingMinutesErr
+			}
+			closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+			if closingHourErr != nil {
+				return closingHourErr
+			}
+			closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+			if closingMinutesErr != nil {
+				return closingMinutesErr
+			}
+			var openingTimeDay, closingTimeDay int
+			openingTimeDay = time.Now().Day()
+			if closingHour >= 0 && closingHour <= 4 {
+				closingTimeDay = orderTimeWeekday.Add(time.Duration(24) * time.Hour).Day()
+			}
+			openingTimeWednesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), openingTimeDay, openingHour, openingMinutes, 0, 0, time.UTC)
+			closingTimeWednesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), closingTimeDay, closingHour, closingMinutes, 0, 0, time.UTC)
+			if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+				closingTimeWednesday = closingTimeWednesday.AddDate(0, 0, 1)
+			}
+			if orderTimeWeekday.Before(openingTimeWednesday) || orderTimeWeekday.After(closingTimeWednesday) {
+				return errors.New("business closed")
+			}
+		case "Thursday":
+			splitOpening := strings.Split(businessScheduleRes.FirstOpeningTimeThursday, ":")
+			splitClosing := strings.Split(businessScheduleRes.FirstClosingTimeThursday, ":")
+			openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+			if openingHourErr != nil {
+				return openingHourErr
+			}
+			openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+			if openingMinutesErr != nil {
+				return openingMinutesErr
+			}
+			closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+			if closingHourErr != nil {
+				return closingHourErr
+			}
+			closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+			if closingMinutesErr != nil {
+				return closingMinutesErr
+			}
+			openingTimeThursday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+			closingTimeThursday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+			if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+				closingTimeThursday = closingTimeThursday.AddDate(0, 0, 1)
+			}
+			if orderTimeWeekday.Before(openingTimeThursday) || orderTimeWeekday.After(closingTimeThursday) {
+				return errors.New("business closed")
+			}
+		case "Friday":
+			splitOpening := strings.Split(businessScheduleRes.FirstOpeningTimeFriday, ":")
+			splitClosing := strings.Split(businessScheduleRes.FirstClosingTimeFriday, ":")
+			openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+			if openingHourErr != nil {
+				return openingHourErr
+			}
+			openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+			if openingMinutesErr != nil {
+				return openingMinutesErr
+			}
+			closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+			if closingHourErr != nil {
+				return closingHourErr
+			}
+			closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+			if closingMinutesErr != nil {
+				return closingMinutesErr
+			}
+			openingTimeFriday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+			closingTimeFriday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+			if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+				closingTimeFriday = closingTimeFriday.AddDate(0, 0, 1)
+			}
+			if orderTimeWeekday.Before(openingTimeFriday) || orderTimeWeekday.After(closingTimeFriday) {
+				return errors.New("business closed")
+			}
+		case "Saturday":
+			splitOpening := strings.Split(businessScheduleRes.FirstOpeningTimeSaturday, ":")
+			splitClosing := strings.Split(businessScheduleRes.FirstClosingTimeSaturday, ":")
+			openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
+			if openingHourErr != nil {
+				return openingHourErr
+			}
+			openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
+			if openingMinutesErr != nil {
+				return openingMinutesErr
+			}
+			closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
+			if closingHourErr != nil {
+				return closingHourErr
+			}
+			closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
+			if closingMinutesErr != nil {
+				return closingMinutesErr
+			}
+			openingTimeSaturday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+			closingTimeSaturday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+			if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+				closingTimeSaturday = closingTimeSaturday.AddDate(0, 0, 1)
+			}
+			if orderTimeWeekday.Before(openingTimeSaturday) || orderTimeWeekday.After(closingTimeSaturday) {
+				return errors.New("business closed")
+			}
+		}
 		_, createOrderedItemsErr := i.dao.NewOrderedRepository().BatchCreateOrderedItem(tx, &orderedItems)
 		if createOrderedItemsErr != nil {
 			return createOrderedItemsErr
