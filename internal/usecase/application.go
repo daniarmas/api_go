@@ -7,9 +7,9 @@ import (
 
 	"github.com/daniarmas/api_go/internal/datasource"
 	"github.com/daniarmas/api_go/internal/entity"
+	"github.com/daniarmas/api_go/internal/repository"
 	pb "github.com/daniarmas/api_go/pkg/grpc"
 	"github.com/daniarmas/api_go/pkg/sqldb"
-	"github.com/daniarmas/api_go/internal/repository"
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
 	gp "google.golang.org/protobuf/types/known/emptypb"
@@ -41,7 +41,7 @@ func (i *applicationService) ListApplication(ctx context.Context, req *pb.ListAp
 		nextPage = req.NextPage.AsTime()
 	}
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -104,7 +104,7 @@ func (i *applicationService) ListApplication(ctx context.Context, req *pb.ListAp
 func (i *applicationService) DeleteApplication(ctx context.Context, req *pb.DeleteApplicationRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
 	var res gp.Empty
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -150,9 +150,9 @@ func (i *applicationService) DeleteApplication(ctx context.Context, req *pb.Dele
 func (i *applicationService) CreateApplication(ctx context.Context, req *pb.CreateApplicationRequest, md *utils.ClientMetadata) (*pb.Application, error) {
 	var res pb.Application
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)

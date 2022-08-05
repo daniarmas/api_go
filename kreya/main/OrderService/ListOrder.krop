@@ -7,10 +7,6 @@
         "value": "10"
       },
       {
-        "key": "App-Version",
-        "value": "1.0.0"
-      },
-      {
         "key": "Access-Token",
         "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTkyNzE5NDcsInN1YiI6ImRhYTE0MWJjLTczMjUtNGZkZC04ZmI2LTkwOWNhYWU0YmQzNCJ9.c9GqhhJjQx8JqPI0PX1cz813-mxz0qk4GMBCNnqfFD0"
       },
@@ -25,10 +21,6 @@
       {
         "key": "Model",
         "value": "iPhone 11"
-      },
-      {
-        "key": "App",
-        "value": "App"
       },
       {
         "key": "Firebase-Cloud-Messaging-Id",
