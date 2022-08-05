@@ -9,9 +9,9 @@ import (
 	"github.com/daniarmas/api_go/config"
 	"github.com/daniarmas/api_go/internal/datasource"
 	"github.com/daniarmas/api_go/internal/entity"
+	"github.com/daniarmas/api_go/internal/repository"
 	pb "github.com/daniarmas/api_go/pkg/grpc"
 	"github.com/daniarmas/api_go/pkg/sqldb"
-	"github.com/daniarmas/api_go/internal/repository"
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
@@ -966,10 +966,11 @@ func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRe
 	var businessCollectionRes *[]entity.BusinessCollection
 	var businessErr, businessCollectionErr error
 	var itemsCategoryResponse []*pb.BusinessCollection
+	var schedule *entity.BusinessSchedule
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := v.dao.NewApplicationRepository().CheckApplication(tx, *meta.AccessToken)
-		if appErr != nil {
-			return appErr
+		err := v.dao.NewApplicationRepository().CheckApplication(tx, *meta.AccessToken)
+		if err != nil {
+			return err
 		}
 		businessId := uuid.MustParse(req.Id)
 		businessRes, businessErr = v.dao.NewBusinessRepository().GetBusiness(tx, &entity.Business{ID: &businessId}, nil)
@@ -977,6 +978,10 @@ func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRe
 			return errors.New("business not found")
 		} else if businessErr != nil {
 			return businessErr
+		}
+		schedule, err = v.dao.NewBusinessScheduleRepository().GetBusinessSchedule(tx, &entity.BusinessSchedule{BusinessId: businessRes.ID}, nil)
+		if err != nil {
+			return err
 		}
 		businessCollectionRes, businessCollectionErr = v.dao.NewBusinessCollectionRepository().ListBusinessCollection(tx, &entity.BusinessCollection{BusinessId: &businessId}, nil)
 		if businessCollectionErr != nil {
@@ -1002,7 +1007,37 @@ func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRe
 	highQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.HighQualityPhoto
 	lowQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.LowQualityPhoto
 	thumbnailUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.Thumbnail
-	return &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, LowQualityPhoto: businessRes.LowQualityPhoto, Thumbnail: businessRes.Thumbnail, BlurHash: businessRes.BlurHash, ToPickUp: businessRes.ToPickUp, DeliveryPriceCup: businessRes.DeliveryPriceCup, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.Coords()[1], Longitude: businessRes.Coordinates.Coords()[0]}, HighQualityPhotoUrl: highQualityPhotoUrl, LowQualityPhotoUrl: lowQualityPhotoUrl, ThumbnailUrl: thumbnailUrl, BusinessCollections: itemsCategoryResponse}, nil
+	return &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, LowQualityPhoto: businessRes.LowQualityPhoto, Thumbnail: businessRes.Thumbnail, BlurHash: businessRes.BlurHash, ToPickUp: businessRes.ToPickUp, DeliveryPriceCup: businessRes.DeliveryPriceCup, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.Coords()[1], Longitude: businessRes.Coordinates.Coords()[0]}, HighQualityPhotoUrl: highQualityPhotoUrl, LowQualityPhotoUrl: lowQualityPhotoUrl, ThumbnailUrl: thumbnailUrl, BusinessCollections: itemsCategoryResponse, BusinessSchedule: &pb.BusinessSchedule{
+		Id:                         schedule.ID.String(),
+		FirstOpeningTimeSunday:     timestamppb.New(schedule.FirstOpeningTimeSunday),
+		FirstClosingTimeSunday:     timestamppb.New(schedule.FirstClosingTimeSunday),
+		FirstOpeningTimeMonday:     timestamppb.New(schedule.FirstOpeningTimeMonday),
+		FirstClosingTimeMonday:     timestamppb.New(schedule.FirstClosingTimeMonday),
+		FirstOpeningTimeTuesday:    timestamppb.New(schedule.FirstOpeningTimeTuesday),
+		FirstClosingTimeTuesday:    timestamppb.New(schedule.FirstClosingTimeTuesday),
+		FirstOpeningTimeWednesday:  timestamppb.New(schedule.FirstOpeningTimeWednesday),
+		FirstClosingTimeWednesday:  timestamppb.New(schedule.FirstClosingTimeWednesday),
+		FirstOpeningTimeThursday:   timestamppb.New(schedule.FirstOpeningTimeThursday),
+		FirstClosingTimeThursday:   timestamppb.New(schedule.FirstClosingTimeThursday),
+		FirstOpeningTimeFriday:     timestamppb.New(schedule.FirstOpeningTimeFriday),
+		FirstClosingTimeFriday:     timestamppb.New(schedule.FirstClosingTimeFriday),
+		FirstOpeningTimeSaturday:   timestamppb.New(schedule.FirstOpeningTimeSaturday),
+		FirstClosingTimeSaturday:   timestamppb.New(schedule.FirstClosingTimeSaturday),
+		SecondOpeningTimeSunday:    timestamppb.New(schedule.SecondOpeningTimeSunday),
+		SecondClosingTimeSunday:    timestamppb.New(schedule.SecondClosingTimeSunday),
+		SecondOpeningTimeMonday:    timestamppb.New(schedule.SecondOpeningTimeMonday),
+		SecondClosingTimeMonday:    timestamppb.New(schedule.SecondClosingTimeMonday),
+		SecondOpeningTimeTuesday:   timestamppb.New(schedule.SecondOpeningTimeTuesday),
+		SecondClosingTimeTuesday:   timestamppb.New(schedule.SecondClosingTimeTuesday),
+		SecondOpeningTimeWednesday: timestamppb.New(schedule.SecondOpeningTimeWednesday),
+		SecondClosingTimeWednesday: timestamppb.New(schedule.SecondClosingTimeWednesday),
+		SecondOpeningTimeThursday:  timestamppb.New(schedule.SecondOpeningTimeThursday),
+		SecondClosingTimeThursday:  timestamppb.New(schedule.SecondClosingTimeThursday),
+		SecondOpeningTimeFriday:    timestamppb.New(schedule.SecondOpeningTimeFriday),
+		SecondClosingTimeFriday:    timestamppb.New(schedule.SecondClosingTimeFriday),
+		SecondOpeningTimeSaturday:  timestamppb.New(schedule.SecondOpeningTimeSaturday),
+		SecondClosingTimeSaturday:  timestamppb.New(schedule.SecondClosingTimeSaturday),
+	}}, nil
 }
 
 func (v *businessService) GetBusinessWithDistance(ctx context.Context, req *pb.GetBusinessWithDistanceRequest, md *utils.ClientMetadata) (*pb.Business, error) {

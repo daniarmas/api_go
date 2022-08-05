@@ -16,6 +16,7 @@ import (
 type BusinessRepository interface {
 	Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceId string, municipalityId string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]entity.Business, error)
 	CreateBusiness(tx *gorm.DB, data *entity.Business) (*entity.Business, error)
+	GetBusinessPreloadSchedule(tx *gorm.DB, where *entity.Business, fields *[]string) (*entity.Business, error)
 	GetBusiness(tx *gorm.DB, where *entity.Business, fields *[]string) (*entity.Business, error)
 	GetBusinessWithDistance(tx *gorm.DB, where *entity.Business) (*entity.Business, error)
 	UpdateBusiness(tx *gorm.DB, data *entity.Business, where *entity.Business) (*entity.Business, error)
@@ -98,6 +99,14 @@ func (b *businessRepository) GetBusinessWithDistance(tx *gorm.DB, where *entity.
 
 func (b *businessRepository) GetBusiness(tx *gorm.DB, where *entity.Business, fields *[]string) (*entity.Business, error) {
 	result, err := Datasource.NewBusinessDatasource().GetBusiness(tx, where, fields)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (i *businessRepository) GetBusinessPreloadSchedule(tx *gorm.DB, where *entity.Business, fields *[]string) (*entity.Business, error) {
+	result, err := Datasource.NewBusinessDatasource().GetBusinessPreloadSchedule(tx, where, fields)
 	if err != nil {
 		return nil, err
 	}

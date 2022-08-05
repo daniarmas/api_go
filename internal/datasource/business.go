@@ -15,6 +15,7 @@ import (
 type BusinessDatasource interface {
 	Feed(tx *gorm.DB, coordinates ewkb.Point, limit int32, provinceId string, municipalityId string, cursor int32, municipalityNotEqual bool, homeDelivery bool, toPickUp bool) (*[]entity.Business, error)
 	GetBusiness(tx *gorm.DB, where *entity.Business, fields *[]string) (*entity.Business, error)
+	GetBusinessPreloadSchedule(tx *gorm.DB, where *entity.Business, fields *[]string) (*entity.Business, error)
 	CreateBusiness(tx *gorm.DB, data *entity.Business) (*entity.Business, error)
 	UpdateBusiness(tx *gorm.DB, data *entity.Business, where *entity.Business) (*entity.Business, error)
 	UpdateBusinessCoordinate(tx *gorm.DB, data *entity.Business, where *entity.Business) error
@@ -23,6 +24,25 @@ type BusinessDatasource interface {
 }
 
 type businessDatasource struct{}
+
+func (b *businessDatasource) GetBusinessPreloadSchedule(tx *gorm.DB, where *entity.Business, fields *[]string) (*entity.Business, error) {
+	var res *entity.Business
+	var selectField *[]string
+	if fields == nil {
+		selectField = &[]string{"id", "name", "address", "high_quality_photo", "low_quality_photo", "thumbnail", "blurhash", "time_margin_order_month", "time_margin_order_day", "time_margin_order_hour", "time_margin_order_minute", "delivery_price_cup", "to_pick_up", "home_delivery", "ST_AsEWKB(coordinates) AS coordinates", "province_id", "municipality_id", "business_brand_id", "enabled_flag", "create_time", "update_time", "cursor"}
+	} else {
+		selectField = fields
+	}
+	result := tx.Preload("BusinessSchedule").Select(*selectField).Where(where).Take(&res)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("record not found")
+		} else {
+			return nil, result.Error
+		}
+	}
+	return res, nil
+}
 
 func (b *businessDatasource) BusinessIsInRange(tx *gorm.DB, coordinates ewkb.Point, businessId *uuid.UUID) (*bool, error) {
 	type IsInRange struct {
