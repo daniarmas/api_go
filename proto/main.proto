@@ -413,7 +413,8 @@ message CreateOrderRequest {
 	string address = 3;
   string instructions = 4;           
 	Point location = 5;    
-	google.protobuf.Timestamp orderTime = 6;       
+	google.protobuf.Timestamp startOrderTime = 6;    
+	google.protobuf.Timestamp endOrderTime = 7;     
 }
 
 message ListOrderRequest {
@@ -705,9 +706,10 @@ message Order {
   string businessThumbnail = 14;
   int32 itemsQuantity = 15;
   repeated OrderedItem orderedItems = 16;
-  google.protobuf.Timestamp orderTime = 17;
-  google.protobuf.Timestamp createTime = 18;
-  google.protobuf.Timestamp updateTime = 19;
+  google.protobuf.Timestamp startOrderTime = 17;
+  google.protobuf.Timestamp endOrderTime = 18;
+  google.protobuf.Timestamp createTime = 19;
+  google.protobuf.Timestamp updateTime = 20;
 }
 
 message User {
@@ -786,8 +788,9 @@ message Business {
   bool isInRange = 27;
   repeated BusinessCollection businessCollections = 28;
   string businessCategory = 29;
-  google.protobuf.Timestamp createTime = 30;
-  google.protobuf.Timestamp updateTime = 31;
+  BusinessSchedule businessSchedule = 30;
+  google.protobuf.Timestamp createTime = 31;
+  google.protobuf.Timestamp updateTime = 32;
 }
 
 message Item {
@@ -1135,37 +1138,37 @@ enum PaymentMethodType {
 
 // 'Sign_In', 'Sign_Up', 'Change_User_Email'
 
-// message BusinessSchedule {
-//   string id = 1;
-//   google.protobuf.Timestamp opening_time_sunday = 2;
-//   google.protobuf.Timestamp closing_time_sunday = 3;
-//   google.protobuf.Timestamp opening_time_monday = 4;
-//   google.protobuf.Timestamp closing_time_monday = 5;
-//   google.protobuf.Timestamp opening_time_tuesday = 6;
-//   google.protobuf.Timestamp closing_time_tuesday = 7;
-//   google.protobuf.Timestamp opening_time_wednesday = 8;
-//   google.protobuf.Timestamp closing_time_wednesday = 9;
-//   google.protobuf.Timestamp opening_time_thursday = 10;
-//   google.protobuf.Timestamp closing_time_thursday = 11;
-//   google.protobuf.Timestamp opening_time_friday = 12;
-//   google.protobuf.Timestamp closing_time_friday = 13;
-//   google.protobuf.Timestamp opening_time_saturday = 14;
-//   google.protobuf.Timestamp closing_time_saturday = 15;
-//   google.protobuf.Timestamp opening_time_delivery_sunday = 16;
-//   google.protobuf.Timestamp closing_time_delivery_sunday = 17;
-//   google.protobuf.Timestamp opening_time_delivery_monday = 18;
-//   google.protobuf.Timestamp closing_time_delivery_monday = 19;
-//   google.protobuf.Timestamp opening_time_delivery_tuesday = 20;
-//   google.protobuf.Timestamp closing_time_deliveryTuesday = 21;
-//   google.protobuf.Timestamp opening_time_delivery_wednesday = 22;
-//   google.protobuf.Timestamp closing_time_delivery_wednesday = 23;
-//   google.protobuf.Timestamp opening_time_delivery_thursday = 24;
-//   google.protobuf.Timestamp closing_time_delivery_thursday = 25;
-//   google.protobuf.Timestamp opening_time_delivery_friday = 26;
-//   google.protobuf.Timestamp closing_time_delivery_friday = 27;
-//   google.protobuf.Timestamp opening_time_delivery_saturday = 28;
-//   google.protobuf.Timestamp closing_time_delivery_saturday = 29;
-// }
+message BusinessSchedule {
+  string id = 1;
+  google.protobuf.Timestamp first_opening_time_sunday = 2;
+  google.protobuf.Timestamp first_closing_time_sunday = 3;
+  google.protobuf.Timestamp first_opening_time_monday = 4;
+  google.protobuf.Timestamp first_closing_time_monday = 5;
+  google.protobuf.Timestamp first_opening_time_tuesday = 6;
+  google.protobuf.Timestamp first_closing_time_tuesday = 7;
+  google.protobuf.Timestamp first_opening_time_wednesday = 8;
+  google.protobuf.Timestamp first_closing_time_wednesday = 9;
+  google.protobuf.Timestamp first_opening_time_thursday = 10;
+  google.protobuf.Timestamp first_closing_time_thursday = 11;
+  google.protobuf.Timestamp first_opening_time_friday = 12;
+  google.protobuf.Timestamp first_closing_time_friday = 13;
+  google.protobuf.Timestamp first_opening_time_saturday = 14;
+  google.protobuf.Timestamp first_closing_time_saturday = 15;
+  google.protobuf.Timestamp second_opening_time_sunday = 16;
+  google.protobuf.Timestamp second_closing_time_sunday = 17;
+  google.protobuf.Timestamp second_opening_time_monday = 18;
+  google.protobuf.Timestamp second_closing_time_monday = 19;
+  google.protobuf.Timestamp second_opening_time_tuesday = 20;
+  google.protobuf.Timestamp second_closing_time_tuesday = 21;
+  google.protobuf.Timestamp second_opening_time_wednesday = 22;
+  google.protobuf.Timestamp second_closing_time_wednesday = 23;
+  google.protobuf.Timestamp second_opening_time_thursday = 24;
+  google.protobuf.Timestamp second_closing_time_thursday = 25;
+  google.protobuf.Timestamp second_opening_time_friday = 26;
+  google.protobuf.Timestamp second_closing_time_friday = 27;
+  google.protobuf.Timestamp second_opening_time_saturday = 28;
+  google.protobuf.Timestamp second_closing_time_saturday = 29;
+}
 
 message Point {
   double latitude = 1;

@@ -3,13 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
-	"fmt"
-	"strconv"
-	"strings"
 
-	// "fmt"
-	// "strconv"
-	// "strings"
 	"time"
 
 	"github.com/daniarmas/api_go/config"
@@ -120,7 +114,8 @@ func (i *orderService) GetOrder(ctx context.Context, req *pb.GetOrderRequest, md
 			OrderedItems:      orderedItems,
 			CreateTime:        timestamppb.New(order.CreateTime),
 			UpdateTime:        timestamppb.New(order.UpdateTime),
-			OrderTime:         timestamppb.New(order.OrderTime),
+			StartOrderTime:    timestamppb.New(order.StartOrderTime),
+			EndOrderTime:      timestamppb.New(order.EndOrderTime),
 		}
 		return nil
 	})
@@ -280,7 +275,7 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 		if createOrderLcErr != nil {
 			return createOrderLcErr
 		}
-		res = &pb.Order{Id: updateOrderRes.ID.String(), BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + updateOrderRes.BusinessThumbnail, Status: *utils.ParseOrderStatusType(&updateOrderRes.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.OrderType), PriceCup: updateOrderRes.PriceCup, BusinessId: updateOrderRes.BusinessId.String(), UserId: updateOrderRes.UserId.String(), Coordinates: &pb.Point{Latitude: updateOrderRes.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Coordinates.FlatCoords()[1]}, OrderTime: timestamppb.New(updateOrderRes.OrderTime), CreateTime: timestamppb.New(updateOrderRes.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.UpdateTime), Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions, ShortId: updateOrderRes.ShortId, CancelReasons: updateOrderRes.CancelReasons, BusinessName: updateOrderRes.BusinessName, ItemsQuantity: updateOrderRes.ItemsQuantity}
+		res = &pb.Order{Id: updateOrderRes.ID.String(), BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + updateOrderRes.BusinessThumbnail, Status: *utils.ParseOrderStatusType(&updateOrderRes.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.OrderType), PriceCup: updateOrderRes.PriceCup, BusinessId: updateOrderRes.BusinessId.String(), UserId: updateOrderRes.UserId.String(), Coordinates: &pb.Point{Latitude: updateOrderRes.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Coordinates.FlatCoords()[1]}, StartOrderTime: timestamppb.New(updateOrderRes.StartOrderTime), EndOrderTime: timestamppb.New(updateOrderRes.EndOrderTime), CreateTime: timestamppb.New(updateOrderRes.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.UpdateTime), Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions, ShortId: updateOrderRes.ShortId, CancelReasons: updateOrderRes.CancelReasons, BusinessName: updateOrderRes.BusinessName, ItemsQuantity: updateOrderRes.ItemsQuantity}
 		return nil
 	})
 	if err != nil {
@@ -318,13 +313,13 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		createTime := time.Now().UTC()
-		orderTimeWeekday := req.OrderTime.AsTime()
-		orderTimeWeekdayHour, _, _ := orderTimeWeekday.Clock()
-		if orderTimeWeekdayHour >= 0 && orderTimeWeekdayHour <= 4 {
-			orderTimeWeekday = orderTimeWeekday.AddDate(0, 0, 1)
+		startOrderTimeWeekday := req.StartOrderTime.AsTime()
+		endOrderTimeWeekday := req.EndOrderTime.AsTime()
+		startOrderTimeWeekdayHour, _, _ := startOrderTimeWeekday.Clock()
+		if startOrderTimeWeekdayHour >= 0 && startOrderTimeWeekdayHour <= 4 {
+			startOrderTimeWeekday = startOrderTimeWeekday.AddDate(0, 0, 1)
 		}
-		weekday := orderTimeWeekday.Local().Weekday().String()
+		weekday := startOrderTimeWeekday.Local().Weekday().String()
 		listCartItemRes, listCartItemErr := i.dao.NewCartItemRepository().ListCartItemAll(tx, &entity.CartItem{UserId: authorizationTokenRes.UserId}, &[]string{"id", "business_id", "price_cup", "item_id", "user_id", "quantity", "name"})
 		if listCartItemErr != nil {
 			return listCartItemErr
@@ -354,221 +349,204 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		if businessErr != nil {
 			return businessErr
 		}
-		orderTime := req.OrderTime.AsTime()
-		orderTimeHour, _, _ := orderTime.Clock()
-		if orderTimeHour >= 0 && orderTimeHour <= 4 {
-			orderTime = orderTime.AddDate(0, 0, 1)
-		}
+		// Check if the time when the order is placed is between the choseen interval.
+		createTime := time.Now().UTC()
 		previousTime := createTime
 		previousTime = previousTime.AddDate(0, int(businessRes.TimeMarginOrderMonth), int(businessRes.TimeMarginOrderDay))
 		previousTime = previousTime.Add(time.Duration(businessRes.TimeMarginOrderHour) * time.Hour)
 		previousTime = previousTime.Add(time.Duration(businessRes.TimeMarginOrderMinute) * time.Minute)
-		fmt.Printf("ordertime: %s\n", orderTime)
-		fmt.Printf("previoustime: %s", previousTime)
-		if orderTime.Before(previousTime) {
-			return errors.New("invalid schedule")
+		// Add 10 minutes for payments.
+		previousTime = previousTime.Add(10 * time.Minute)
+		if previousTime.After(req.EndOrderTime.AsTime()) {
+			return errors.New("not fulfilled the previous time of the business")
 		}
+		// If the order is for delivery, check if the location is in the delivery range of the business
+		if req.OrderType == pb.OrderType_OrderTypeHomeDelivery {
+			isInRange, err := i.dao.NewBusinessRepository().BusinessIsInRange(tx, location, businessRes.ID)
+			if err != nil {
+				return err
+			}
+			if !*isInRange {
+				return errors.New("business not in range")
+			}
+		}
+		var zeroTime time.Time
 		switch weekday {
 		case "Sunday":
-			splitOpening := strings.Split(businessScheduleRes.FirstOpeningTimeSunday, ":")
-			splitClosing := strings.Split(businessScheduleRes.FirstClosingTimeSunday, ":")
-			openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-			if openingHourErr != nil {
-				return openingHourErr
-			}
-			openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-			if openingMinutesErr != nil {
-				return openingMinutesErr
-			}
-			closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-			if closingHourErr != nil {
-				return closingHourErr
-			}
-			closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-			if closingMinutesErr != nil {
-				return closingMinutesErr
-			}
-			openingTimeSunday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-			closingTimeSunday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+			openingHour, openingMinutes, _ := businessScheduleRes.FirstOpeningTimeSunday.Clock()
+			closingHour, closingMinutes, _ := businessScheduleRes.FirstClosingTimeSunday.Clock()
+			openingTimeSunday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+			closingTimeSunday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
 			if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
 				closingTimeSunday = closingTimeSunday.AddDate(0, 0, 1)
 			}
-			if orderTimeWeekday.Before(openingTimeSunday) || orderTimeWeekday.After(closingTimeSunday) {
-				return errors.New("business closed")
+			if businessScheduleRes.SecondOpeningTimeSunday == zeroTime {
+				if startOrderTimeWeekday.Before(openingTimeSunday) || endOrderTimeWeekday.After(closingTimeSunday) {
+					return errors.New("business closed")
+				}
+			} else {
+				openingHour, openingMinutes, _ := businessScheduleRes.FirstOpeningTimeSunday.Clock()
+				closingHour, closingMinutes, _ := businessScheduleRes.FirstClosingTimeSunday.Clock()
+				secondOpeningTimeSunday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				secondClosingTimeSunday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					secondClosingTimeSunday = secondClosingTimeSunday.AddDate(0, 0, 1)
+				}
+				if (startOrderTimeWeekday.Before(openingTimeSunday) || (endOrderTimeWeekday.After(closingTimeSunday) && startOrderTimeWeekday.Before(secondOpeningTimeSunday))) || (startOrderTimeWeekday.After(secondClosingTimeSunday) || endOrderTimeWeekday.After(secondClosingTimeSunday)) {
+					return errors.New("business closed")
+				}
 			}
 		case "Monday":
-			splitOpening := strings.Split(businessScheduleRes.FirstOpeningTimeMonday, ":")
-			splitClosing := strings.Split(businessScheduleRes.FirstClosingTimeMonday, ":")
-			openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-			if openingHourErr != nil {
-				return openingHourErr
-			}
-			openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-			if openingMinutesErr != nil {
-				return openingMinutesErr
-			}
-			closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-			if closingHourErr != nil {
-				return closingHourErr
-			}
-			closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-			if closingMinutesErr != nil {
-				return closingMinutesErr
-			}
-			openingTimeMonday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-			closingTimeMonday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+			openingHour, openingMinutes, _ := businessScheduleRes.FirstOpeningTimeMonday.Clock()
+			closingHour, closingMinutes, _ := businessScheduleRes.FirstClosingTimeMonday.Clock()
+			openingTimeMonday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+			closingTimeMonday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
 			if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
 				closingTimeMonday = closingTimeMonday.AddDate(0, 0, 1)
 			}
-			if orderTimeWeekday.Before(openingTimeMonday) || orderTimeWeekday.After(closingTimeMonday) {
-				return errors.New("business closed")
+			if businessScheduleRes.SecondOpeningTimeMonday == zeroTime {
+				if startOrderTimeWeekday.Before(openingTimeMonday) || endOrderTimeWeekday.After(closingTimeMonday) {
+					return errors.New("business closed")
+				}
+			} else {
+				openingHour, openingMinutes, _ := businessScheduleRes.FirstOpeningTimeMonday.Clock()
+				closingHour, closingMinutes, _ := businessScheduleRes.FirstClosingTimeMonday.Clock()
+				secondOpeningTimeMonday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				secondClosingTimeMonday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					secondClosingTimeMonday = secondClosingTimeMonday.AddDate(0, 0, 1)
+				}
+				if (startOrderTimeWeekday.Before(openingTimeMonday) || (endOrderTimeWeekday.After(closingTimeMonday) && startOrderTimeWeekday.Before(secondOpeningTimeMonday))) || (startOrderTimeWeekday.After(secondClosingTimeMonday) || endOrderTimeWeekday.After(secondClosingTimeMonday)) {
+					return errors.New("business closed")
+				}
 			}
 		case "Tuesday":
-			splitOpening := strings.Split(businessScheduleRes.FirstOpeningTimeTuesday, ":")
-			splitClosing := strings.Split(businessScheduleRes.FirstClosingTimeTuesday, ":")
-			openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-			if openingHourErr != nil {
-				return openingHourErr
-			}
-			openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-			if openingMinutesErr != nil {
-				return openingMinutesErr
-			}
-			closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-			if closingHourErr != nil {
-				return closingHourErr
-			}
-			closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-			if closingMinutesErr != nil {
-				return closingMinutesErr
-			}
-			openingTimeTuesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-			closingTimeTuesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+			openingHour, openingMinutes, _ := businessScheduleRes.FirstOpeningTimeTuesday.Clock()
+			closingHour, closingMinutes, _ := businessScheduleRes.FirstClosingTimeTuesday.Clock()
+			openingTimeTuesday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+			closingTimeTuesday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
 			if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
 				closingTimeTuesday = closingTimeTuesday.AddDate(0, 0, 1)
 			}
-			if orderTimeWeekday.Before(openingTimeTuesday) || orderTimeWeekday.After(closingTimeTuesday) {
-				return errors.New("business closed")
+			if businessScheduleRes.SecondOpeningTimeTuesday.String() == "" {
+				if startOrderTimeWeekday.Before(openingTimeTuesday) || endOrderTimeWeekday.After(closingTimeTuesday) {
+					return errors.New("business closed")
+				}
+			} else {
+				openingHour, openingMinutes, _ := businessScheduleRes.FirstOpeningTimeTuesday.Clock()
+				closingHour, closingMinutes, _ := businessScheduleRes.FirstClosingTimeTuesday.Clock()
+				secondOpeningTimeTuesday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				secondClosingTimeTuesday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					secondClosingTimeTuesday = secondClosingTimeTuesday.AddDate(0, 0, 1)
+				}
+				if (startOrderTimeWeekday.Before(openingTimeTuesday) || (endOrderTimeWeekday.After(closingTimeTuesday) && startOrderTimeWeekday.Before(secondOpeningTimeTuesday))) || (startOrderTimeWeekday.After(secondClosingTimeTuesday) || endOrderTimeWeekday.After(secondClosingTimeTuesday)) {
+					return errors.New("business closed")
+				}
 			}
 		case "Wednesday":
-			splitOpening := strings.Split(businessScheduleRes.FirstOpeningTimeWednesday, ":")
-			splitClosing := strings.Split(businessScheduleRes.FirstClosingTimeWednesday, ":")
-			openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-			if openingHourErr != nil {
-				return openingHourErr
-			}
-			openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-			if openingMinutesErr != nil {
-				return openingMinutesErr
-			}
-			closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-			if closingHourErr != nil {
-				return closingHourErr
-			}
-			closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-			if closingMinutesErr != nil {
-				return closingMinutesErr
-			}
-			var openingTimeDay, closingTimeDay int
-			openingTimeDay = time.Now().Day()
-			if closingHour >= 0 && closingHour <= 4 {
-				closingTimeDay = orderTimeWeekday.Add(time.Duration(24) * time.Hour).Day()
-			}
-			openingTimeWednesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), openingTimeDay, openingHour, openingMinutes, 0, 0, time.UTC)
-			closingTimeWednesday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), closingTimeDay, closingHour, closingMinutes, 0, 0, time.UTC)
+			openingHour, openingMinutes, _ := businessScheduleRes.FirstOpeningTimeWednesday.Clock()
+			closingHour, closingMinutes, _ := businessScheduleRes.FirstClosingTimeWednesday.Clock()
+			openingTimeWednesday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+			closingTimeWednesday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
 			if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
 				closingTimeWednesday = closingTimeWednesday.AddDate(0, 0, 1)
 			}
-			if orderTimeWeekday.Before(openingTimeWednesday) || orderTimeWeekday.After(closingTimeWednesday) {
-				return errors.New("business closed")
+			if businessScheduleRes.SecondOpeningTimeWednesday == zeroTime {
+				if startOrderTimeWeekday.Before(openingTimeWednesday) || endOrderTimeWeekday.After(closingTimeWednesday) {
+					return errors.New("business closed")
+				}
+			} else {
+				openingHour, openingMinutes, _ := businessScheduleRes.FirstOpeningTimeWednesday.Clock()
+				closingHour, closingMinutes, _ := businessScheduleRes.FirstClosingTimeWednesday.Clock()
+				secondOpeningTimeWednesday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				secondClosingTimeWednesday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					secondClosingTimeWednesday = secondClosingTimeWednesday.AddDate(0, 0, 1)
+				}
+				if (startOrderTimeWeekday.Before(openingTimeWednesday) || (endOrderTimeWeekday.After(closingTimeWednesday) && startOrderTimeWeekday.Before(secondOpeningTimeWednesday))) || (startOrderTimeWeekday.After(secondClosingTimeWednesday) || endOrderTimeWeekday.After(secondClosingTimeWednesday)) {
+					return errors.New("business closed")
+				}
 			}
 		case "Thursday":
-			splitOpening := strings.Split(businessScheduleRes.FirstOpeningTimeThursday, ":")
-			splitClosing := strings.Split(businessScheduleRes.FirstClosingTimeThursday, ":")
-			openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-			if openingHourErr != nil {
-				return openingHourErr
-			}
-			openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-			if openingMinutesErr != nil {
-				return openingMinutesErr
-			}
-			closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-			if closingHourErr != nil {
-				return closingHourErr
-			}
-			closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-			if closingMinutesErr != nil {
-				return closingMinutesErr
-			}
-			openingTimeThursday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-			closingTimeThursday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+			openingHour, openingMinutes, _ := businessScheduleRes.FirstOpeningTimeThursday.Clock()
+			closingHour, closingMinutes, _ := businessScheduleRes.FirstClosingTimeThursday.Clock()
+			openingTimeThursday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+			closingTimeThursday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
 			if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
 				closingTimeThursday = closingTimeThursday.AddDate(0, 0, 1)
 			}
-			if orderTimeWeekday.Before(openingTimeThursday) || orderTimeWeekday.After(closingTimeThursday) {
-				return errors.New("business closed")
+			if businessScheduleRes.SecondOpeningTimeThursday == zeroTime {
+				if startOrderTimeWeekday.Before(openingTimeThursday) || endOrderTimeWeekday.After(closingTimeThursday) {
+					return errors.New("business closed")
+				}
+			} else {
+				openingHour, openingMinutes, _ := businessScheduleRes.FirstOpeningTimeThursday.Clock()
+				closingHour, closingMinutes, _ := businessScheduleRes.FirstClosingTimeThursday.Clock()
+				secondOpeningTimeThursday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				secondClosingTimeThursday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					secondClosingTimeThursday = secondClosingTimeThursday.AddDate(0, 0, 1)
+				}
+				if (startOrderTimeWeekday.Before(openingTimeThursday) || (endOrderTimeWeekday.After(closingTimeThursday) && startOrderTimeWeekday.Before(secondOpeningTimeThursday))) || (startOrderTimeWeekday.After(secondClosingTimeThursday) || endOrderTimeWeekday.After(secondClosingTimeThursday)) {
+					return errors.New("business closed")
+				}
 			}
 		case "Friday":
-			splitOpening := strings.Split(businessScheduleRes.FirstOpeningTimeFriday, ":")
-			splitClosing := strings.Split(businessScheduleRes.FirstClosingTimeFriday, ":")
-			openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-			if openingHourErr != nil {
-				return openingHourErr
-			}
-			openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-			if openingMinutesErr != nil {
-				return openingMinutesErr
-			}
-			closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-			if closingHourErr != nil {
-				return closingHourErr
-			}
-			closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-			if closingMinutesErr != nil {
-				return closingMinutesErr
-			}
-			openingTimeFriday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-			closingTimeFriday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+			openingHour, openingMinutes, _ := businessScheduleRes.FirstOpeningTimeFriday.Clock()
+			closingHour, closingMinutes, _ := businessScheduleRes.FirstClosingTimeFriday.Clock()
+			openingTimeFriday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+			closingTimeFriday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
 			if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
 				closingTimeFriday = closingTimeFriday.AddDate(0, 0, 1)
 			}
-			if orderTimeWeekday.Before(openingTimeFriday) || orderTimeWeekday.After(closingTimeFriday) {
-				return errors.New("business closed")
+			if businessScheduleRes.SecondOpeningTimeFriday == zeroTime {
+				if startOrderTimeWeekday.Before(openingTimeFriday) || endOrderTimeWeekday.After(closingTimeFriday) {
+					return errors.New("business closed")
+				}
+			} else {
+				openingHour, openingMinutes, _ := businessScheduleRes.SecondOpeningTimeFriday.Clock()
+				closingHour, closingMinutes, _ := businessScheduleRes.SecondClosingTimeFriday.Clock()
+				secondOpeningTimeFriday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				secondClosingTimeFriday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					secondClosingTimeFriday = secondClosingTimeFriday.AddDate(0, 0, 1)
+				}
+				if (startOrderTimeWeekday.Before(openingTimeFriday) || (endOrderTimeWeekday.After(closingTimeFriday) && startOrderTimeWeekday.Before(secondOpeningTimeFriday))) || (startOrderTimeWeekday.After(secondClosingTimeFriday) || endOrderTimeWeekday.After(secondClosingTimeFriday)) {
+					return errors.New("business closed")
+				}
 			}
 		case "Saturday":
-			splitOpening := strings.Split(businessScheduleRes.FirstOpeningTimeSaturday, ":")
-			splitClosing := strings.Split(businessScheduleRes.FirstClosingTimeSaturday, ":")
-			openingHour, openingHourErr := strconv.Atoi(splitOpening[0])
-			if openingHourErr != nil {
-				return openingHourErr
-			}
-			openingMinutes, openingMinutesErr := strconv.Atoi(splitOpening[1])
-			if openingMinutesErr != nil {
-				return openingMinutesErr
-			}
-			closingHour, closingHourErr := strconv.Atoi(splitClosing[0])
-			if closingHourErr != nil {
-				return closingHourErr
-			}
-			closingMinutes, closingMinutesErr := strconv.Atoi(splitClosing[1])
-			if closingMinutesErr != nil {
-				return closingMinutesErr
-			}
-			openingTimeSaturday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
-			closingTimeSaturday := time.Date(orderTimeWeekday.Year(), orderTimeWeekday.Month(), orderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+			openingHour, openingMinutes, _ := businessScheduleRes.FirstOpeningTimeSaturday.Clock()
+			closingHour, closingMinutes, _ := businessScheduleRes.FirstClosingTimeSaturday.Clock()
+			openingTimeSaturday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+			closingTimeSaturday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
 			if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
 				closingTimeSaturday = closingTimeSaturday.AddDate(0, 0, 1)
 			}
-			if orderTimeWeekday.Before(openingTimeSaturday) || orderTimeWeekday.After(closingTimeSaturday) {
-				return errors.New("business closed")
+			if businessScheduleRes.SecondOpeningTimeSaturday == zeroTime {
+				if startOrderTimeWeekday.Before(openingTimeSaturday) || endOrderTimeWeekday.After(closingTimeSaturday) {
+					return errors.New("business closed")
+				}
+			} else {
+				openingHour, openingMinutes, _ := businessScheduleRes.FirstOpeningTimeSaturday.Clock()
+				closingHour, closingMinutes, _ := businessScheduleRes.FirstClosingTimeSaturday.Clock()
+				secondOpeningTimeSaturday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), openingHour, openingMinutes, 0, 0, time.UTC)
+				secondClosingTimeSaturday := time.Date(startOrderTimeWeekday.Year(), startOrderTimeWeekday.Month(), startOrderTimeWeekday.Day(), closingHour, closingMinutes, 0, 0, time.UTC)
+				if openingHour > closingHour && closingHour >= 0 && closingHour <= 4 {
+					secondClosingTimeSaturday = secondClosingTimeSaturday.AddDate(0, 0, 1)
+				}
+				if (startOrderTimeWeekday.Before(openingTimeSaturday) || (endOrderTimeWeekday.After(closingTimeSaturday) && startOrderTimeWeekday.Before(secondOpeningTimeSaturday))) || (startOrderTimeWeekday.After(secondClosingTimeSaturday) || endOrderTimeWeekday.After(secondClosingTimeSaturday)) {
+					return errors.New("business closed")
+				}
 			}
+
 		}
 		_, createOrderedItemsErr := i.dao.NewOrderedRepository().BatchCreateOrderedItem(tx, &orderedItems)
 		if createOrderedItemsErr != nil {
 			return createOrderedItemsErr
 		}
-		createOrderRes, createOrderErr := i.dao.NewOrderRepository().CreateOrder(tx, &entity.Order{ItemsQuantity: quantity, BusinessThumbnail: businessRes.Thumbnail, OrderType: req.OrderType.String(), UserId: authorizationTokenRes.UserId, OrderTime: req.OrderTime.AsTime().UTC(), Coordinates: location, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: (*listCartItemRes)[0].BusinessId, PriceCup: price_cup.String(), CreateTime: createTime, UpdateTime: createTime, Number: req.Number, Address: req.Address, Instructions: req.Instructions, BusinessName: businessRes.Name, Status: "OrderStatusTypeOrdered"})
+		createOrderRes, createOrderErr := i.dao.NewOrderRepository().CreateOrder(tx, &entity.Order{ItemsQuantity: quantity, BusinessThumbnail: businessRes.Thumbnail, OrderType: req.OrderType.String(), UserId: authorizationTokenRes.UserId, StartOrderTime: req.StartOrderTime.AsTime().UTC(), EndOrderTime: req.EndOrderTime.AsTime().UTC(), Coordinates: location, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: (*listCartItemRes)[0].BusinessId, PriceCup: price_cup.String(), CreateTime: createTime, UpdateTime: createTime, Number: req.Number, Address: req.Address, Instructions: req.Instructions, BusinessName: businessRes.Name, Status: "OrderStatusTypeOrdered"})
 		if createOrderErr != nil {
 			return createOrderErr
 		}
@@ -588,7 +566,7 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		if err != nil {
 			return err
 		}
-		res = &pb.Order{BusinessName: businessRes.Name, BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + createOrderRes.BusinessThumbnail, ItemsQuantity: quantity, Status: *utils.ParseOrderStatusType(&createOrderRes.Status), OrderType: *utils.ParseOrderType(&createOrderRes.OrderType), Number: createOrderRes.Number, BusinessId: createOrderRes.BusinessId.String(), UserId: createOrderRes.UserId.String(), OrderTime: timestamppb.New(createOrderRes.OrderTime), Coordinates: &pb.Point{Latitude: createOrderRes.Coordinates.FlatCoords()[0], Longitude: createOrderRes.Coordinates.FlatCoords()[1]}, PriceCup: price_cup.String(), CreateTime: timestamppb.New(createOrderRes.CreateTime), UpdateTime: timestamppb.New(createOrderRes.UpdateTime), Address: createOrderRes.Address, Instructions: createOrderRes.Instructions, Id: createOrderRes.ID.String(), ShortId: createOrderRes.ShortId}
+		res = &pb.Order{BusinessName: businessRes.Name, BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + createOrderRes.BusinessThumbnail, ItemsQuantity: quantity, Status: *utils.ParseOrderStatusType(&createOrderRes.Status), OrderType: *utils.ParseOrderType(&createOrderRes.OrderType), Number: createOrderRes.Number, BusinessId: createOrderRes.BusinessId.String(), UserId: createOrderRes.UserId.String(), StartOrderTime: timestamppb.New(createOrderRes.StartOrderTime), EndOrderTime: timestamppb.New(createOrderRes.EndOrderTime), Coordinates: &pb.Point{Latitude: createOrderRes.Coordinates.FlatCoords()[0], Longitude: createOrderRes.Coordinates.FlatCoords()[1]}, PriceCup: price_cup.String(), CreateTime: timestamppb.New(createOrderRes.CreateTime), UpdateTime: timestamppb.New(createOrderRes.UpdateTime), Address: createOrderRes.Address, Instructions: createOrderRes.Instructions, Id: createOrderRes.ID.String(), ShortId: createOrderRes.ShortId}
 		return nil
 	})
 	if err != nil {
@@ -661,7 +639,8 @@ func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, 
 			Number:        item.Number, Address: item.Address,
 			Instructions:      item.Instructions,
 			UserId:            item.UserId.String(),
-			OrderTime:         timestamppb.New(item.OrderTime),
+			StartOrderTime:    timestamppb.New(item.StartOrderTime),
+			EndOrderTime:      timestamppb.New(item.EndOrderTime),
 			Status:            *utils.ParseOrderStatusType(&item.Status),
 			OrderType:         *utils.ParseOrderType(&item.OrderType),
 			Coordinates:       &pb.Point{Latitude: item.Coordinates.Coords()[1], Longitude: item.Coordinates.Coords()[0]},
