@@ -108,7 +108,7 @@ func serviceRegister(sv *grpc.Server) {
 	businessService := usecase.NewBusinessService(repository, cfg, stDb, sqlDb)
 	userService := usecase.NewUserService(repository, cfg, rdb, sqlDb)
 	cartItemService := usecase.NewCartItemService(repository, cfg, sqlDb)
-	orderService := usecase.NewOrderService(repository, sqlDb)
+	orderService := usecase.NewOrderService(repository, sqlDb, cfg)
 	objectStorageService := usecase.NewObjectStorageService(repository, sqlDb, cfg)
 	applicationService := usecase.NewApplicationService(repository, sqlDb)
 	paymentMethodService := usecase.NewPaymentMethodService(repository, cfg, rdb, sqlDb)

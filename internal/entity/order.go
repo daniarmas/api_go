@@ -21,7 +21,7 @@ type Order struct {
 	Status               string         `gorm:"column:status"`
 	ItemsQuantity        int32          `gorm:"column:items_quantity;not null"`
 	OrderType            string         `gorm:"column:order_type;not null"`
-	PriceCup                string         `gorm:"column:price_cup;not null"`
+	PriceCup             string         `gorm:"column:price_cup;not null"`
 	Number               string         `gorm:"column:number;not null"`
 	Address              string         `gorm:"column:address;not null"`
 	Instructions         string         `gorm:"column:instructions"`
@@ -31,9 +31,11 @@ type Order struct {
 	UserId               *uuid.UUID     `gorm:"column:user_id;not null"`
 	User                 User           `gorm:"foreignKey:UserId"`
 	BusinessId           *uuid.UUID     `gorm:"column:business_id;not null"`
+	BusinessThumbnail    string         `gorm:"column:business_thumbnail;not null"`
 	BusinessName         string         `gorm:"column:business_name;not null"`
 	Business             Business       `gorm:"foreignKey:BusinessId"`
-	OrderTime            time.Time      `gorm:"column:order_time;not null"`
+	StartOrderTime       time.Time      `gorm:"column:start_order_time;not null"`
+	EndOrderTime         time.Time      `gorm:"column:end_order_time;not null"`
 	CreateTime           time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime           time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime           gorm.DeletedAt `gorm:"index;column:delete_time"`
@@ -45,7 +47,7 @@ type OrderBusiness struct {
 	Status               string         `gorm:"column:status"`
 	ItemsQuantity        int32          `gorm:"column:items_quantity;not null"`
 	OrderType            string         `gorm:"column:order_type;not null"`
-	PriceCup                string         `gorm:"column:price_cup;not null"`
+	PriceCup             string         `gorm:"column:price_cup;not null"`
 	Number               string         `gorm:"column:number;not null"`
 	Address              string         `gorm:"column:address;not null"`
 	Instructions         string         `gorm:"column:instructions"`
@@ -55,8 +57,10 @@ type OrderBusiness struct {
 	UserId               *uuid.UUID     `gorm:"column:user_id;not null"`
 	User                 User           `gorm:"foreignKey:UserId"`
 	BusinessId           *uuid.UUID     `gorm:"column:business_id;not null"`
+	BusinessThumbnail    string         `gorm:"column:business_thumbnail;not null"`
 	Business             Business       `gorm:"foreignKey:BusinessId"`
-	OrderTime            time.Time      `gorm:"column:order_time;not null"`
+	StartOrderTime       time.Time      `gorm:"column:start_order_time;not null"`
+	EndOrderTime         time.Time      `gorm:"column:end_order_time;not null"`
 	CreateTime           time.Time      `gorm:"column:create_time;not null"`
 	UpdateTime           time.Time      `gorm:"column:update_time;not null"`
 	DeleteTime           gorm.DeletedAt `gorm:"index;column:delete_time"`

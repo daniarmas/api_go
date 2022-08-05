@@ -14,39 +14,39 @@ func (BusinessSchedule) TableName() string {
 }
 
 type BusinessSchedule struct {
-	ID                           *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
-	OpeningTimeSunday            string         `gorm:"column:opening_time_sunday"`
-	OpeningTimeMonday            string         `gorm:"column:opening_time_monday"`
-	OpeningTimeTuesday           string         `gorm:"column:opening_time_tuesday"`
-	OpeningTimeWednesday         string         `gorm:"column:opening_time_wednesday"`
-	OpeningTimeThursday          string         `gorm:"column:opening_time_thursday"`
-	OpeningTimeFriday            string         `gorm:"column:opening_time_friday"`
-	OpeningTimeSaturday          string         `gorm:"column:opening_time_saturday"`
-	ClosingTimeSunday            string         `gorm:"column:closing_time_sunday"`
-	ClosingTimeMonday            string         `gorm:"column:closing_time_monday"`
-	ClosingTimeTuesday           string         `gorm:"column:closing_time_tuesday"`
-	ClosingTimeWednesday         string         `gorm:"column:closing_time_wednesday"`
-	ClosingTimeThursday          string         `gorm:"column:closing_time_thursday"`
-	ClosingTimeFriday            string         `gorm:"column:closing_time_friday"`
-	ClosingTimeSaturday          string         `gorm:"column:closing_time_saturday"`
-	OpeningTimeDeliverySunday    string         `gorm:"column:opening_time_delivery_sunday"`
-	OpeningTimeDeliveryMonday    string         `gorm:"column:opening_time_delivery_monday"`
-	OpeningTimeDeliveryTuesday   string         `gorm:"column:opening_time_delivery_tuesday"`
-	OpeningTimeDeliveryWednesday string         `gorm:"column:opening_time_delivery_wednesday"`
-	OpeningTimeDeliveryThursday  string         `gorm:"column:opening_time_delivery_thursday"`
-	OpeningTimeDeliveryFriday    string         `gorm:"column:opening_time_delivery_friday"`
-	OpeningTimeDeliverySaturday  string         `gorm:"column:opening_time_delivery_saturday"`
-	ClosingTimeDeliverySunday    string         `gorm:"column:closing_time_delivery_sunday"`
-	ClosingTimeDeliveryMonday    string         `gorm:"column:closing_time_delivery_monday"`
-	ClosingTimeDeliveryTuesday   string         `gorm:"column:closing_time_delivery_tuesday"`
-	ClosingTimeDeliveryWednesday string         `gorm:"column:closing_time_delivery_wednesday"`
-	ClosingTimeDeliveryThursday  string         `gorm:"column:closing_time_delivery_thursday"`
-	ClosingTimeDeliveryFriday    string         `gorm:"column:closing_time_delivery_friday"`
-	ClosingTimeDeliverySaturday  string         `gorm:"column:closing_time_delivery_saturday"`
-	BusinessId                   *uuid.UUID     `gorm:"column:business_id;not null"`
-	CreateTime                   time.Time      `gorm:"column:create_time;not null"`
-	UpdateTime                   time.Time      `gorm:"column:update_time;not null"`
-	DeleteTime                   gorm.DeletedAt `gorm:"index;column:delete_time"`
+	ID                         *uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()"`
+	FirstOpeningTimeSunday     time.Time      `gorm:"column:first_opening_time_sunday"`
+	SecondOpeningTimeSunday    time.Time      `gorm:"column:second_opening_time_sunday"`
+	FirstOpeningTimeMonday     time.Time      `gorm:"column:first_opening_time_monday"`
+	SecondOpeningTimeMonday    time.Time      `gorm:"column:second_opening_time_monday"`
+	FirstOpeningTimeTuesday    time.Time      `gorm:"column:first_opening_time_tuesday"`
+	SecondOpeningTimeTuesday   time.Time      `gorm:"column:second_opening_time_tuesday"`
+	FirstOpeningTimeWednesday  time.Time      `gorm:"column:first_opening_time_wednesday"`
+	SecondOpeningTimeWednesday time.Time      `gorm:"column:second_opening_time_wednesday"`
+	FirstOpeningTimeThursday   time.Time      `gorm:"column:first_opening_time_thursday"`
+	SecondOpeningTimeThursday  time.Time      `gorm:"column:second_opening_time_thursday"`
+	FirstOpeningTimeFriday     time.Time      `gorm:"column:first_opening_time_friday"`
+	SecondOpeningTimeFriday    time.Time      `gorm:"column:second_opening_time_friday"`
+	FirstOpeningTimeSaturday   time.Time      `gorm:"column:first_opening_time_saturday"`
+	SecondOpeningTimeSaturday  time.Time      `gorm:"column:second_opening_time_saturday"`
+	FirstClosingTimeSunday     time.Time      `gorm:"column:first_closing_time_sunday"`
+	SecondClosingTimeSunday    time.Time      `gorm:"column:second_closing_time_sunday"`
+	FirstClosingTimeMonday     time.Time      `gorm:"column:first_closing_time_monday"`
+	SecondClosingTimeMonday    time.Time      `gorm:"column:second_closing_time_monday"`
+	FirstClosingTimeTuesday    time.Time      `gorm:"column:first_closing_time_tuesday"`
+	SecondClosingTimeTuesday   time.Time      `gorm:"column:second_closing_time_tuesday"`
+	FirstClosingTimeWednesday  time.Time      `gorm:"column:first_closing_time_wednesday"`
+	SecondClosingTimeWednesday time.Time      `gorm:"column:second_closing_time_wednesday"`
+	FirstClosingTimeThursday   time.Time      `gorm:"column:first_closing_time_thursday"`
+	SecondClosingTimeThursday  time.Time      `gorm:"column:second_closing_time_thursday"`
+	FirstClosingTimeFriday     time.Time      `gorm:"column:first_closing_time_friday"`
+	SecondClosingTimeFriday    time.Time      `gorm:"column:second_closing_time_friday"`
+	FirstClosingTimeSaturday   time.Time      `gorm:"column:first_closing_time_saturday"`
+	SecondClosingTimeSaturday  time.Time      `gorm:"column:second_closing_time_saturday"`
+	BusinessId                 *uuid.UUID     `gorm:"column:business_id;not null"`
+	CreateTime                 time.Time      `gorm:"column:create_time;not null"`
+	UpdateTime                 time.Time      `gorm:"column:update_time;not null"`
+	DeleteTime                 gorm.DeletedAt `gorm:"index;column:delete_time"`
 }
 
 func (i *BusinessSchedule) BeforeCreate(tx *gorm.DB) (err error) {
