@@ -10,6 +10,87 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+func (m *OrderServer) GetCheckoutInfo(ctx context.Context, req *pb.GetCheckoutInfoRequest) (*pb.GetCheckoutInfoResponse, error) {
+	var invalidId, invalidLocation *epb.BadRequest_FieldViolation
+	var invalidArgs bool
+	var st *status.Status
+	md := utils.GetMetadata(ctx)
+	if req.BusinessId == "" {
+		invalidArgs = true
+		invalidId = &epb.BadRequest_FieldViolation{
+			Field:       "businessId",
+			Description: "The businessId field is required",
+		}
+	} else if req.BusinessId != "" {
+		if !utils.IsValidUUID(&req.BusinessId) {
+			invalidArgs = true
+			invalidId = &epb.BadRequest_FieldViolation{
+				Field:       "businessId",
+				Description: "The businessId field is not a valid uuid v4",
+			}
+		}
+	}
+	if req.Coordinates == nil {
+		invalidArgs = true
+		invalidLocation = &epb.BadRequest_FieldViolation{
+			Field:       "coordinates",
+			Description: "The coordinates field is required",
+		}
+	} else if req.Coordinates != nil {
+		if req.Coordinates.Latitude == 0 {
+			invalidArgs = true
+			invalidLocation = &epb.BadRequest_FieldViolation{
+				Field:       "coordinates.latitude",
+				Description: "The coordinates.latitude field is required",
+			}
+		} else if req.Coordinates.Longitude == 0 {
+			invalidArgs = true
+			invalidLocation = &epb.BadRequest_FieldViolation{
+				Field:       "coordinates.longitude",
+				Description: "The coordinates.longitude field is required",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidId != nil {
+			st, _ = st.WithDetails(
+				invalidId,
+			)
+		}
+		if invalidLocation != nil {
+			st, _ = st.WithDetails(
+				invalidLocation,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.orderService.GetCheckoutInfo(ctx, req, md)
+	if err != nil {
+		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
+		case "banned user":
+			st = status.New(codes.PermissionDenied, "User banned")
+		case "banned device":
+			st = status.New(codes.PermissionDenied, "Device banned")
+		case "business not found":
+			st = status.New(codes.NotFound, "Business not found")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 func (m *OrderServer) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.Order, error) {
 	var invalidId *epb.BadRequest_FieldViolation
 	var invalidArgs bool

@@ -78,6 +78,7 @@ service OrderService {
   rpc CreateOrder (CreateOrderRequest) returns (Order) {}
   rpc UpdateOrder (UpdateOrderRequest) returns (Order) {}
   rpc ListOrderedItem (ListOrderedItemRequest) returns (ListOrderedItemResponse) {}
+  rpc GetCheckoutInfo (GetCheckoutInfoRequest) returns (GetCheckoutInfoResponse) {}
 }
 
 service CartItemService {
@@ -112,6 +113,28 @@ service ObjectStorageService {
 // }
 
 // Request & Response Message
+
+message GetCheckoutInfoRequest {
+  string businessId = 1;
+  Point coordinates = 2;
+}
+
+message GetCheckoutInfoResponse {
+  google.protobuf.Timestamp serverTimeNow = 1;
+  repeated BusinessPaymentMethod businessPaymentMethods = 2;
+  bool delivery = 3;
+  bool pickUp = 4;
+  string businessAddress = 5;
+  string deliveryPriceCup = 6;
+  Point businessCoordinates = 7;
+  int32 timeMarginOrderMonth = 8;
+  int32 timeMarginOrderDay = 9;
+  int32 timeMarginOrderHour = 10;
+  int32 timeMarginOrderMinute = 11;
+  double distance = 12;
+  bool isInRange = 13;
+  BusinessSchedule businessSchedule = 14;
+}
 
 message ListBusinessPaymentMethodRequest {
   string businessId = 1;

@@ -1720,6 +1720,7 @@ type OrderServiceClient interface {
 	CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*Order, error)
 	UpdateOrder(ctx context.Context, in *UpdateOrderRequest, opts ...grpc.CallOption) (*Order, error)
 	ListOrderedItem(ctx context.Context, in *ListOrderedItemRequest, opts ...grpc.CallOption) (*ListOrderedItemResponse, error)
+	GetCheckoutInfo(ctx context.Context, in *GetCheckoutInfoRequest, opts ...grpc.CallOption) (*GetCheckoutInfoResponse, error)
 }
 
 type orderServiceClient struct {
@@ -1775,6 +1776,15 @@ func (c *orderServiceClient) ListOrderedItem(ctx context.Context, in *ListOrdere
 	return out, nil
 }
 
+func (c *orderServiceClient) GetCheckoutInfo(ctx context.Context, in *GetCheckoutInfoRequest, opts ...grpc.CallOption) (*GetCheckoutInfoResponse, error) {
+	out := new(GetCheckoutInfoResponse)
+	err := c.cc.Invoke(ctx, "/main.OrderService/GetCheckoutInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrderServiceServer is the server API for OrderService service.
 // All implementations must embed UnimplementedOrderServiceServer
 // for forward compatibility
@@ -1784,6 +1794,7 @@ type OrderServiceServer interface {
 	CreateOrder(context.Context, *CreateOrderRequest) (*Order, error)
 	UpdateOrder(context.Context, *UpdateOrderRequest) (*Order, error)
 	ListOrderedItem(context.Context, *ListOrderedItemRequest) (*ListOrderedItemResponse, error)
+	GetCheckoutInfo(context.Context, *GetCheckoutInfoRequest) (*GetCheckoutInfoResponse, error)
 	mustEmbedUnimplementedOrderServiceServer()
 }
 
@@ -1805,6 +1816,9 @@ func (UnimplementedOrderServiceServer) UpdateOrder(context.Context, *UpdateOrder
 }
 func (UnimplementedOrderServiceServer) ListOrderedItem(context.Context, *ListOrderedItemRequest) (*ListOrderedItemResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrderedItem not implemented")
+}
+func (UnimplementedOrderServiceServer) GetCheckoutInfo(context.Context, *GetCheckoutInfoRequest) (*GetCheckoutInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCheckoutInfo not implemented")
 }
 func (UnimplementedOrderServiceServer) mustEmbedUnimplementedOrderServiceServer() {}
 
@@ -1909,6 +1923,24 @@ func _OrderService_ListOrderedItem_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderService_GetCheckoutInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCheckoutInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).GetCheckoutInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.OrderService/GetCheckoutInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).GetCheckoutInfo(ctx, req.(*GetCheckoutInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrderService_ServiceDesc is the grpc.ServiceDesc for OrderService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1935,6 +1967,10 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListOrderedItem",
 			Handler:    _OrderService_ListOrderedItem_Handler,
+		},
+		{
+			MethodName: "GetCheckoutInfo",
+			Handler:    _OrderService_GetCheckoutInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

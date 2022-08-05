@@ -1051,7 +1051,7 @@ func (v *businessService) GetBusinessWithDistance(ctx context.Context, req *pb.G
 			return appErr
 		}
 		businessId := uuid.MustParse(req.Id)
-		businessRes, businessErr = v.dao.NewBusinessRepository().GetBusinessWithDistance(tx, &entity.Business{ID: &businessId, Coordinates: ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}})
+		businessRes, businessErr = v.dao.NewBusinessRepository().GetBusinessWithDistance(tx, &entity.Business{ID: &businessId}, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)})
 		if businessErr != nil && businessErr.Error() == "record not found" {
 			return errors.New("business not found")
 		} else if businessErr != nil {
