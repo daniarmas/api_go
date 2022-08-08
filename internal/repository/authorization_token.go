@@ -95,21 +95,24 @@ func (v *authorizationTokenRepository) GetAuthorizationToken(ctx context.Context
 		if dbErr != nil {
 			return nil, dbErr
 		}
-		cacheErr := Rdb.HSet(ctx, cacheId, []string{
-			"id", dbRes.ID.String(),
-			"refresh_token_id", dbRes.RefreshTokenId.String(),
-			"user_id", dbRes.UserId.String(),
-			"device_id", dbRes.DeviceId.String(),
-			"app", *dbRes.App,
-			"app_version", *dbRes.AppVersion,
-			"create_time", dbRes.CreateTime.Format(time.RFC3339),
-			"update_time", dbRes.UpdateTime.Format(time.RFC3339),
-		}).Err()
-		if cacheErr != nil {
-			log.Error(cacheErr)
-		} else {
-			Rdb.Expire(ctx, cacheId, time.Minute*15)
-		}
+		// Store in cache
+		go func() {
+			cacheErr := Rdb.HSet(ctx, cacheId, []string{
+				"id", dbRes.ID.String(),
+				"refresh_token_id", dbRes.RefreshTokenId.String(),
+				"user_id", dbRes.UserId.String(),
+				"device_id", dbRes.DeviceId.String(),
+				"app", *dbRes.App,
+				"app_version", *dbRes.AppVersion,
+				"create_time", dbRes.CreateTime.Format(time.RFC3339),
+				"update_time", dbRes.UpdateTime.Format(time.RFC3339),
+			}).Err()
+			if cacheErr != nil {
+				log.Error(cacheErr)
+			} else {
+				Rdb.Expire(ctx, cacheId, time.Minute*15)
+			}
+		}()
 		return dbRes, nil
 	} else {
 		id := uuid.MustParse(cacheRes["id"])
