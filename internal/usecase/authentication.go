@@ -97,7 +97,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 	var cartItems *[]entity.CartItem
 	var configuration *entity.UserConfiguration
 	var deviceRes *entity.Device
-	var verificationCodeErr, userErr, deviceErr, refreshTokenErr, authorizationTokenErr, jwtRefreshTokenErr, jwtAuthorizationTokenErr error
+	var verificationCodeErr, userErr, refreshTokenErr, authorizationTokenErr, jwtRefreshTokenErr, jwtAuthorizationTokenErr error
 	var refreshTokenRes *entity.RefreshToken
 	var authorizationTokenRes *entity.AuthorizationToken
 	var app *entity.Application
@@ -106,21 +106,22 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		jwtAuthorizationToken *datasource.JsonWebTokenMetadata
 	)
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		deviceRes, deviceErr = v.dao.NewDeviceRepository().GetDevice(tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
-		if deviceErr != nil && deviceErr.Error() != "record not found" {
-			return deviceErr
+		var err error
+		deviceRes, err = v.dao.NewDeviceRepository().GetDevice(tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
+		if err != nil && err.Error() != "record not found" {
+			return err
 		} else if deviceRes == nil {
-			deviceRes, deviceErr = v.dao.NewDeviceRepository().CreateDevice(tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
-			if deviceErr != nil {
-				return deviceErr
+			deviceRes, err = v.dao.NewDeviceRepository().CreateDevice(tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+			if err != nil {
+				return err
 			}
 		} else {
-			_, deviceErr := v.dao.NewDeviceRepository().UpdateDevice(tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
-			if deviceErr != nil {
-				return deviceErr
+			_, err = v.dao.NewDeviceRepository().UpdateDevice(tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+			if err != nil {
+				return err
 			}
 		}
-		app, err := v.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		app, err = v.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -203,7 +204,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 	}
 	userAddress := make([]*pb.UserAddress, 0, len(userRes.UserAddress))
 	permissions := make([]*pb.UserPermission, 0, len(userRes.UserPermissions))
-	if app.Name == "Business" {
+	if app.Name == "Mool for business" {
 		for _, item := range userRes.UserPermissions {
 			permissions = append(permissions, &pb.UserPermission{
 				Id:         item.ID.String(),

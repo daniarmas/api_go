@@ -24,6 +24,7 @@ import (
 
 type BusinessService interface {
 	Feed(ctx context.Context, req *pb.FeedRequest, meta *utils.ClientMetadata) (*pb.FeedResponse, error)
+	BusinessIsInRange(ctx context.Context, req *pb.BusinessIsInRangeRequest, meta *utils.ClientMetadata) error
 	GetBusiness(ctx context.Context, req *pb.GetBusinessRequest, meta *utils.ClientMetadata) (*pb.Business, error)
 	GetBusinessWithDistance(ctx context.Context, req *pb.GetBusinessWithDistanceRequest, md *utils.ClientMetadata) (*pb.Business, error)
 	CreateBusiness(ctx context.Context, req *pb.CreateBusinessRequest, md *utils.ClientMetadata) (*pb.CreateBusinessResponse, error)
@@ -47,6 +48,48 @@ type businessService struct {
 
 func NewBusinessService(dao repository.Repository, config *config.Config, stDb *sql.DB, sqldb *sqldb.Sql) BusinessService {
 	return &businessService{dao: dao, config: config, stDb: stDb, sqldb: sqldb}
+}
+
+func (i *businessService) BusinessIsInRange(ctx context.Context, req *pb.BusinessIsInRangeRequest, meta *utils.ClientMetadata) error {
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
+		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *meta.AccessToken)
+		if err != nil {
+			return err
+		}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: meta.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if authorizationTokenParseErr != nil {
+			switch authorizationTokenParseErr.Error() {
+			case "Token is expired":
+				return errors.New("authorization token expired")
+			case "signature is invalid":
+				return errors.New("authorization token signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("authorization token contains an invalid number of segments")
+			default:
+				return authorizationTokenParseErr
+			}
+		}
+		_, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
+			return errors.New("unauthenticated")
+		} else if authorizationTokenErr != nil {
+			return authorizationTokenErr
+		}
+		businessId := uuid.MustParse(req.BusinessId)
+		businessIsInRange, err := i.dao.NewBusinessRepository().BusinessIsInRange(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Coordinates.Latitude, req.Coordinates.Longitude}).SetSRID(4326)}, &businessId)
+		if err != nil {
+			return err
+		}
+		if !*businessIsInRange {
+			return errors.New("business is not in range")
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (i *businessService) ModifyBusinessRolePermission(ctx context.Context, req *pb.ModifyBusinessRolePermissionRequest, md *utils.ClientMetadata) (*gp.Empty, error) {

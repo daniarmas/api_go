@@ -525,6 +525,7 @@ type BusinessServiceClient interface {
 	CreateBusiness(ctx context.Context, in *CreateBusinessRequest, opts ...grpc.CallOption) (*CreateBusinessResponse, error)
 	// rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
 	UpdateBusiness(ctx context.Context, in *UpdateBusinessRequest, opts ...grpc.CallOption) (*Business, error)
+	BusinessIsInRange(ctx context.Context, in *BusinessIsInRangeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	CreatePartnerApplication(ctx context.Context, in *CreatePartnerApplicationRequest, opts ...grpc.CallOption) (*PartnerApplication, error)
 	ListPartnerApplication(ctx context.Context, in *ListPartnerApplicationRequest, opts ...grpc.CallOption) (*ListPartnerApplicationResponse, error)
 	UpdatePartnerApplication(ctx context.Context, in *UpdatePartnerApplicationRequest, opts ...grpc.CallOption) (*PartnerApplication, error)
@@ -582,6 +583,15 @@ func (c *businessServiceClient) CreateBusiness(ctx context.Context, in *CreateBu
 func (c *businessServiceClient) UpdateBusiness(ctx context.Context, in *UpdateBusinessRequest, opts ...grpc.CallOption) (*Business, error) {
 	out := new(Business)
 	err := c.cc.Invoke(ctx, "/main.BusinessService/UpdateBusiness", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *businessServiceClient) BusinessIsInRange(ctx context.Context, in *BusinessIsInRangeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/main.BusinessService/BusinessIsInRange", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -670,6 +680,7 @@ type BusinessServiceServer interface {
 	CreateBusiness(context.Context, *CreateBusinessRequest) (*CreateBusinessResponse, error)
 	// rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
 	UpdateBusiness(context.Context, *UpdateBusinessRequest) (*Business, error)
+	BusinessIsInRange(context.Context, *BusinessIsInRangeRequest) (*emptypb.Empty, error)
 	CreatePartnerApplication(context.Context, *CreatePartnerApplicationRequest) (*PartnerApplication, error)
 	ListPartnerApplication(context.Context, *ListPartnerApplicationRequest) (*ListPartnerApplicationResponse, error)
 	UpdatePartnerApplication(context.Context, *UpdatePartnerApplicationRequest) (*PartnerApplication, error)
@@ -699,6 +710,9 @@ func (UnimplementedBusinessServiceServer) CreateBusiness(context.Context, *Creat
 }
 func (UnimplementedBusinessServiceServer) UpdateBusiness(context.Context, *UpdateBusinessRequest) (*Business, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBusiness not implemented")
+}
+func (UnimplementedBusinessServiceServer) BusinessIsInRange(context.Context, *BusinessIsInRangeRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BusinessIsInRange not implemented")
 }
 func (UnimplementedBusinessServiceServer) CreatePartnerApplication(context.Context, *CreatePartnerApplicationRequest) (*PartnerApplication, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePartnerApplication not implemented")
@@ -823,6 +837,24 @@ func _BusinessService_UpdateBusiness_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BusinessServiceServer).UpdateBusiness(ctx, req.(*UpdateBusinessRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BusinessService_BusinessIsInRange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BusinessIsInRangeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusinessServiceServer).BusinessIsInRange(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.BusinessService/BusinessIsInRange",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusinessServiceServer).BusinessIsInRange(ctx, req.(*BusinessIsInRangeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -997,6 +1029,10 @@ var BusinessService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateBusiness",
 			Handler:    _BusinessService_UpdateBusiness_Handler,
+		},
+		{
+			MethodName: "BusinessIsInRange",
+			Handler:    _BusinessService_BusinessIsInRange_Handler,
 		},
 		{
 			MethodName: "CreatePartnerApplication",

@@ -37,6 +37,8 @@ service BusinessService {
   // rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
   rpc UpdateBusiness (UpdateBusinessRequest) returns (Business) {}
 
+  rpc BusinessIsInRange (BusinessIsInRangeRequest) returns (google.protobuf.Empty) {}
+
   rpc CreatePartnerApplication (CreatePartnerApplicationRequest) returns (PartnerApplication) {}
   rpc ListPartnerApplication (ListPartnerApplicationRequest) returns (ListPartnerApplicationResponse) {}
   rpc UpdatePartnerApplication (UpdatePartnerApplicationRequest) returns (PartnerApplication) {}
@@ -113,6 +115,11 @@ service ObjectStorageService {
 // }
 
 // Request & Response Message
+
+message BusinessIsInRangeRequest {
+  string businessId = 1;
+  Point coordinates = 2;
+}
 
 message GetCheckoutInfoRequest {
   string businessId = 1;
@@ -442,6 +449,8 @@ message CreateOrderRequest {
 
 message ListOrderRequest {
   google.protobuf.Timestamp nextPage = 1;
+  bool upcoming = 2;
+  bool history = 3;
 }
 
 message ListOrderResponse {

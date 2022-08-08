@@ -11,6 +11,89 @@ import (
 	gp "google.golang.org/protobuf/types/known/emptypb"
 )
 
+func (m *BusinessServer) BusinessIsInRange(ctx context.Context, req *pb.BusinessIsInRangeRequest) (*gp.Empty, error) {
+	var invalidBusinessId, invalidLocation *epb.BadRequest_FieldViolation
+	var invalidArgs bool
+	var st *status.Status
+	md := utils.GetMetadata(ctx)
+	if req.BusinessId == "" {
+		invalidArgs = true
+		invalidBusinessId = &epb.BadRequest_FieldViolation{
+			Field:       "businessId",
+			Description: "The businessId field is required",
+		}
+	} else if req.BusinessId != "" {
+		if !utils.IsValidUUID(&req.BusinessId) {
+			invalidArgs = true
+			invalidBusinessId = &epb.BadRequest_FieldViolation{
+				Field:       "businessId",
+				Description: "The businessId field is not a valid uuid v4",
+			}
+		}
+	}
+	if req.Coordinates == nil {
+		invalidArgs = true
+		invalidLocation = &epb.BadRequest_FieldViolation{
+			Field:       "coordinates",
+			Description: "The coordinates field is required",
+		}
+	} else if req.Coordinates != nil {
+		if req.Coordinates.Latitude == 0 {
+			invalidArgs = true
+			invalidLocation = &epb.BadRequest_FieldViolation{
+				Field:       "coordinates.latitude",
+				Description: "The coordinates.latitude field is required",
+			}
+		} else if req.Coordinates.Longitude == 0 {
+			invalidArgs = true
+			invalidLocation = &epb.BadRequest_FieldViolation{
+				Field:       "coordinates.longitude",
+				Description: "The coordinates.longitude field is required",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidBusinessId != nil {
+			st, _ = st.WithDetails(
+				invalidBusinessId,
+			)
+		}
+		if invalidLocation != nil {
+			st, _ = st.WithDetails(
+				invalidLocation,
+			)
+		}
+		return nil, st.Err()
+	}
+	err := m.businessService.BusinessIsInRange(ctx, req, md)
+	if err != nil {
+		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
+		case "banned user":
+			st = status.New(codes.PermissionDenied, "User banned")
+		case "banned device":
+			st = status.New(codes.PermissionDenied, "Device banned")
+		case "business not found":
+			st = status.New(codes.NotFound, "Business not found")
+		case "business is not in range":
+			st = status.New(codes.OK, "Business is not in range")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &gp.Empty{}, nil
+}
+
 func (m *BusinessServer) ModifyBusinessRolePermission(ctx context.Context, req *pb.ModifyBusinessRolePermissionRequest) (*gp.Empty, error) {
 	var invalidBusinessRoleId, invalidPermissionId *epb.BadRequest_FieldViolation
 	var invalidArgs bool

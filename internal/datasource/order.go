@@ -13,6 +13,7 @@ import (
 
 type OrderDatasource interface {
 	ListOrder(tx *gorm.DB, where *entity.Order, fields *[]string) (*[]entity.Order, error)
+	ListOrderFilter(tx *gorm.DB, where *entity.OrderBusiness, upcoming bool) (*[]entity.OrderBusiness, error)
 	ListOrderWithBusiness(tx *gorm.DB, where *entity.OrderBusiness) (*[]entity.OrderBusiness, error)
 	CreateOrder(tx *gorm.DB, data *entity.Order) (*entity.Order, error)
 	UpdateOrder(tx *gorm.DB, where *entity.Order, data *entity.Order) (*entity.Order, error)
@@ -72,6 +73,22 @@ func (i *orderDatasource) ListOrder(tx *gorm.DB, where *entity.Order, fields *[]
 	result := tx.Limit(11).Select(*selectFields).Where("user_id = ? AND create_time < ?", where.UserId, where.CreateTime).Order("create_time desc").Find(&res)
 	if result.Error != nil {
 		return nil, result.Error
+	}
+	return &res, nil
+}
+
+func (i *orderDatasource) ListOrderFilter(tx *gorm.DB, where *entity.OrderBusiness, upcoming bool) (*[]entity.OrderBusiness, error) {
+	var res []entity.OrderBusiness
+	if upcoming {
+		result := tx.Model(&entity.Order{}).Limit(11).Select(`"order"."id", "order"."business_thumbnail", "order"."cancel_reasons", "order"."short_id", "order"."status", "order"."order_type", "order"."price_cup", "order"."number", "order"."address", "order"."instructions", "order"."business_id", "order"."user_id", "order"."start_order_time", "order"."end_order_time", "order"."create_time", "order"."update_time", "order"."delete_time", ST_AsEWKB("order"."coordinates") AS "coordinates", "order"."business_name", "order"."items_quantity"`).Where(`"order"."user_id" = ? AND "order"."create_time" < ? AND (status = 'OrderStatusTypePendingPayment' OR status = 'OrderStatusTypeOrdered' OR status = 'OrderStatusTypeAccepted' OR status = 'OrderStatusTypeReady' OR status = 'OrderStatusTypeAssignedMessenger')`, where.UserId, where.CreateTime).Order(`"order"."create_time" desc`).Scan(&res)
+		if result.Error != nil {
+			return nil, result.Error
+		}
+	} else {
+		result := tx.Model(&entity.Order{}).Limit(11).Select(`"order"."id", "order"."business_thumbnail", "order"."cancel_reasons", "order"."short_id", "order"."status", "order"."order_type", "order"."price_cup", "order"."number", "order"."address", "order"."instructions", "order"."business_id", "order"."user_id", "order"."start_order_time", "order"."end_order_time", "order"."create_time", "order"."update_time", "order"."delete_time", ST_AsEWKB("order"."coordinates") AS "coordinates", "order"."business_name", "order"."items_quantity"`).Where(`"order"."user_id" = ? AND "order"."create_time" < ? AND (status != 'OrderStatusTypePendingPayment' OR status != 'OrderStatusTypeOrdered' OR status != 'OrderStatusTypeAccepted' OR status != 'OrderStatusTypeReady' OR status != 'OrderStatusTypeAssignedMessenger')`, where.UserId, where.CreateTime).Order(`"order"."create_time" desc`).Scan(&res)
+		if result.Error != nil {
+			return nil, result.Error
+		}
 	}
 	return &res, nil
 }
