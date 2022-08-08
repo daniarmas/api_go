@@ -183,7 +183,8 @@ func (i *applicationService) CreateApplication(ctx context.Context, req *pb.Crea
 			return appErr
 		}
 		jwtAcessToken := datasource.JsonWebTokenMetadata{TokenId: appRes.ID}
-		jwtAcessTokenErr := i.dao.NewJwtTokenRepository().CreateJwtAuthorizationToken(&jwtAcessToken)
+		expirationTime := req.Application.ExpirationTime.AsTime()
+		jwtAcessTokenErr := i.dao.NewJwtTokenRepository().CreateJwtAccessToken(&jwtAcessToken, &expirationTime)
 		if jwtAcessTokenErr != nil {
 			return jwtAcessTokenErr
 		}
