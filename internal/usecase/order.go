@@ -728,7 +728,7 @@ func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, 
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		if req.Upcoming == false && req.History == false {
+		if !req.Upcoming && !req.History {
 			ordersRes, ordersErr = i.dao.NewOrderRepository().ListOrderWithBusiness(tx, &entity.OrderBusiness{CreateTime: nextPage, UserId: authorizationTokenRes.UserId})
 		} else {
 			ordersRes, ordersErr = i.dao.NewOrderRepository().ListOrderFilter(tx, &entity.OrderBusiness{CreateTime: nextPage, UserId: authorizationTokenRes.UserId}, req.Upcoming)
