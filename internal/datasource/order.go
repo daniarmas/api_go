@@ -26,7 +26,7 @@ type orderDatasource struct{}
 func (i *orderDatasource) ExistsUpcomingOrders(tx *gorm.DB, userId uuid.UUID) (*bool, error) {
 	var res []entity.OrderBusiness
 	var ret bool
-	result := tx.Model(&entity.Order{}).Limit(11).Select(`"order"."id"`).Where(`"order"."user_id" = ? AND (status = 'OrderStatusTypePendingPayment' OR status = 'OrderStatusTypeOrdered' OR status = 'OrderStatusTypeAccepted' OR status = 'OrderStatusTypeReady' OR status = 'OrderStatusTypeAssignedMessenger')`, userId).Limit(1).Scan(&res)
+	result := tx.Model(&entity.Order{}).Select(`"order"."id"`).Where(`"order"."user_id" = ? AND (status = 'OrderStatusTypePendingPayment' OR status = 'OrderStatusTypeOrdered' OR status = 'OrderStatusTypeAccepted' OR status = 'OrderStatusTypeReady' OR status = 'OrderStatusTypeAssignedMessenger')`, userId).Limit(1).Scan(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}
