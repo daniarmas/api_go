@@ -306,6 +306,8 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
+		case "not fulfilled the previous time of the business":
+			st = status.New(codes.InvalidArgument, "Not fulfilled the previous time of the business")
 		case "cart items not found":
 			st = status.New(codes.InvalidArgument, "Cart items not found")
 		case "business closed":

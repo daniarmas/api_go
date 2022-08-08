@@ -18,9 +18,32 @@ type OrderDatasource interface {
 	CreateOrder(tx *gorm.DB, data *entity.Order) (*entity.Order, error)
 	UpdateOrder(tx *gorm.DB, where *entity.Order, data *entity.Order) (*entity.Order, error)
 	GetOrder(tx *gorm.DB, where *entity.Order) (*entity.Order, error)
+	ExistsUpcomingOrders(tx *gorm.DB, userId uuid.UUID) (*bool, error)
 }
 
 type orderDatasource struct{}
+
+func (i *orderDatasource) ExistsUpcomingOrders(tx *gorm.DB, userId uuid.UUID) (*bool, error) {
+	var res []entity.OrderBusiness
+	var ret bool
+	result := tx.Model(&entity.Order{}).Limit(11).Select(`"order"."id"`).Where(`"order"."user_id" = ? AND (status = 'OrderStatusTypePendingPayment' OR status = 'OrderStatusTypeOrdered' OR status = 'OrderStatusTypeAccepted' OR status = 'OrderStatusTypeReady' OR status = 'OrderStatusTypeAssignedMessenger')`, userId).Limit(1).Scan(&res)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return &ret, nil
+		} else {
+			return nil, result.Error
+		}
+	}
+	if len(res) != 0 {
+		ret = true
+		return &ret, nil
+	} else {
+		return &ret, nil
+	}
+}
 
 func (i *orderDatasource) GetOrder(tx *gorm.DB, where *entity.Order) (*entity.Order, error) {
 	var res entity.Order

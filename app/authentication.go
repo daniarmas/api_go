@@ -454,7 +454,7 @@ func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest
 func (m *AuthenticationServer) CheckSession(ctx context.Context, req *gp.Empty) (*pb.CheckSessionResponse, error) {
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
-	result, err := m.authenticationService.CheckSession(ctx, md)
+	res, err := m.authenticationService.CheckSession(ctx, md)
 	if err != nil {
 		switch err.Error() {
 		case "unauthenticated application":
@@ -484,7 +484,7 @@ func (m *AuthenticationServer) CheckSession(ctx context.Context, req *gp.Empty) 
 		}
 		return nil, st.Err()
 	}
-	return &pb.CheckSessionResponse{IpAddresses: *result}, nil
+	return res, nil
 }
 
 func (m *AuthenticationServer) SignOut(ctx context.Context, req *pb.SignOutRequest) (*gp.Empty, error) {

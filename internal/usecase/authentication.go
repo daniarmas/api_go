@@ -29,7 +29,7 @@ type AuthenticationService interface {
 	SignIn(ctx context.Context, req *pb.SignInRequest, md *utils.ClientMetadata) (*pb.SignInResponse, error)
 	SignUp(ctx context.Context, req *pb.SignUpRequest, md *utils.ClientMetadata) (*pb.SignUpResponse, error)
 	SignOut(ctx context.Context, req *pb.SignOutRequest, md *utils.ClientMetadata) (*gp.Empty, error)
-	CheckSession(ctx context.Context, md *utils.ClientMetadata) (*[]string, error)
+	CheckSession(ctx context.Context, md *utils.ClientMetadata) (*pb.CheckSessionResponse, error)
 	ListSession(ctx context.Context, md *utils.ClientMetadata) (*pb.ListSessionResponse, error)
 	RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest, md *utils.ClientMetadata) (*pb.RefreshTokenResponse, error)
 }
@@ -399,12 +399,13 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 	}}, nil
 }
 
-func (v *authenticationService) CheckSession(ctx context.Context, md *utils.ClientMetadata) (*[]string, error) {
+func (v *authenticationService) CheckSession(ctx context.Context, md *utils.ClientMetadata) (*pb.CheckSessionResponse, error) {
 	var userRes *entity.User
 	var deviceRes *entity.Device
 	var deviceErr, userErr error
+	var res pb.CheckSessionResponse
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := v.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		app, err := v.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -449,11 +450,104 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 			} else if refreshTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			userRes, userErr = v.dao.NewUserRepository().GetUser(tx, &entity.User{ID: authorizationTokenRes.UserId}, &[]string{"id"})
+			userRes, userErr = v.dao.NewUserRepository().GetUserWithAddress(tx, &entity.User{ID: authorizationTokenRes.UserId}, nil)
 			if userErr != nil {
 				return userErr
 			} else if userRes == nil {
 				return errors.New("user not found")
+			}
+			cartItems, err := v.dao.NewCartItemRepository().ListCartItemAll(tx, &entity.CartItem{UserId: authorizationTokenRes.UserId}, nil)
+			if err != nil {
+				return err
+			}
+			configuration, err := v.dao.NewUserConfigurationRepository().GetUserConfiguration(tx, &entity.UserConfiguration{UserId: userRes.ID})
+			if err != nil {
+				return err
+			}
+			itemsResponse := make([]*pb.CartItem, 0, len(*cartItems))
+			for _, item := range *cartItems {
+				itemsResponse = append(itemsResponse, &pb.CartItem{
+					Id:                   item.ID.String(),
+					Name:                 item.Name,
+					PriceCup:             item.PriceCup,
+					ItemId:               item.ItemId.String(),
+					BusinessId:           item.BusinessId.String(),
+					AuthorizationTokenId: item.AuthorizationTokenId.String(),
+					Quantity:             item.Quantity,
+					Thumbnail:            item.Thumbnail,
+					ThumbnailUrl:         v.config.ItemsBulkName + "/" + item.Thumbnail,
+					BlurHash:             item.BlurHash,
+					CreateTime:           timestamppb.New(item.CreateTime),
+					UpdateTime:           timestamppb.New(item.UpdateTime),
+				})
+			}
+			userAddress := make([]*pb.UserAddress, 0, len(userRes.UserAddress))
+			permissions := make([]*pb.UserPermission, 0, len(userRes.UserPermissions))
+			if app.Name == "Mool for business" {
+				for _, item := range userRes.UserPermissions {
+					permissions = append(permissions, &pb.UserPermission{
+						Id:         item.ID.String(),
+						Name:       item.Name,
+						UserId:     item.UserId.String(),
+						BusinessId: item.BusinessId.String(),
+						CreateTime: timestamppb.New(item.CreateTime),
+						UpdateTime: timestamppb.New(item.UpdateTime),
+					})
+				}
+			}
+			for _, item := range userRes.UserAddress {
+				userAddress = append(userAddress, &pb.UserAddress{
+					Id:             item.ID.String(),
+					Name:           item.Name,
+					Selected:       item.Selected,
+					Number:         item.Number,
+					Address:        item.Address,
+					Instructions:   item.Instructions,
+					ProvinceId:     item.ProvinceId.String(),
+					MunicipalityId: item.MunicipalityId.String(),
+					Coordinates:    &pb.Point{Latitude: item.Coordinates.Coords()[0], Longitude: item.Coordinates.Coords()[1]},
+					UserId:         item.UserId.String(),
+					CreateTime:     timestamppb.New(item.CreateTime),
+					UpdateTime:     timestamppb.New(item.UpdateTime),
+				})
+			}
+			var highQualityPhotoUrl, lowQualityPhotoUrl, thumbnailUrl string
+			if userRes.HighQualityPhoto != "" {
+				highQualityPhotoUrl = v.config.UsersBulkName + "/" + userRes.HighQualityPhoto
+				lowQualityPhotoUrl = v.config.UsersBulkName + "/" + userRes.LowQualityPhoto
+				thumbnailUrl = v.config.UsersBulkName + "/" + userRes.Thumbnail
+			}
+			existsUpcomingOrders, err := v.dao.NewOrderRepository().ExistsUpcomingOrders(tx, *userRes.ID)
+			if err != nil {
+				return err
+			}
+			res.User = &pb.User{
+				Id:                   userRes.ID.String(),
+				FullName:             userRes.FullName,
+				Email:                userRes.Email,
+				HighQualityPhotoUrl:  highQualityPhotoUrl,
+				HighQualityPhoto:     userRes.HighQualityPhoto,
+				LowQualityPhotoUrl:   lowQualityPhotoUrl,
+				LowQualityPhoto:      userRes.LowQualityPhoto,
+				ThumbnailUrl:         thumbnailUrl,
+				Thumbnail:            userRes.Thumbnail,
+				BlurHash:             userRes.BlurHash,
+				Permissions:          permissions,
+				UserAddress:          userAddress,
+				CartItems:            itemsResponse,
+				ExistsUpcomingOrders: *existsUpcomingOrders,
+				Configuration: &pb.UserConfiguration{
+					Id:                    configuration.ID.String(),
+					DataSaving:            *configuration.DataSaving,
+					HighQualityImagesWifi: *configuration.HighQualityImagesWifi,
+					HighQualityImagesData: *configuration.HighQualityImagesData,
+					UserId:                configuration.UserId.String(),
+					PaymentMethod:         *utils.ParsePaymentMethodType(&configuration.PaymentMethod),
+					CreateTime:            timestamppb.New(configuration.CreateTime),
+					UpdateTime:            timestamppb.New(configuration.UpdateTime),
+				},
+				CreateTime: timestamppb.New(userRes.CreateTime),
+				UpdateTime: timestamppb.New(userRes.UpdateTime),
 			}
 		}
 		return nil
@@ -461,7 +555,7 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 	if err != nil {
 		return nil, err
 	}
-	return &[]string{}, nil
+	return &res, nil
 }
 
 func (v *authenticationService) SignOut(ctx context.Context, req *pb.SignOutRequest, md *utils.ClientMetadata) (*gp.Empty, error) {

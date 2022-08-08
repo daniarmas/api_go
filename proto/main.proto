@@ -658,6 +658,7 @@ message UserExistsRequest {
 
 message CheckSessionResponse {
   repeated string ipAddresses = 1;
+  User user = 2;
 }
 
 message CreateVerificationCodeRequest {
@@ -759,8 +760,9 @@ message User {
   repeated UserPermission permissions = 12;
   repeated CartItem cartItems = 13;
   UserConfiguration configuration = 14;
-  google.protobuf.Timestamp createTime = 15;
-  google.protobuf.Timestamp updateTime = 16;
+  bool existsUpcomingOrders = 15;
+  google.protobuf.Timestamp createTime = 16;
+  google.protobuf.Timestamp updateTime = 17;
 }
 
 message Municipality {
