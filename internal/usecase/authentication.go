@@ -108,16 +108,16 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 	)
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		var err error
-		deviceRes, err = v.dao.NewDeviceRepository().GetDevice(tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
+		deviceRes, err = v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
 		if err != nil && err.Error() != "record not found" {
 			return err
 		} else if deviceRes == nil {
-			deviceRes, err = v.dao.NewDeviceRepository().CreateDevice(tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+			deviceRes, err = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
 			if err != nil {
 				return err
 			}
 		} else {
-			_, err = v.dao.NewDeviceRepository().UpdateDevice(tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+			_, err = v.dao.NewDeviceRepository().UpdateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
 			if err != nil {
 				return err
 			}
@@ -309,16 +309,16 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 		if err != nil {
 			return err
 		}
-		deviceRes, deviceErr = v.dao.NewDeviceRepository().GetDevice(tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
+		deviceRes, deviceErr = v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
 		if deviceErr != nil && deviceErr.Error() != "record not found" {
 			return deviceErr
 		} else if deviceRes == nil {
-			deviceRes, deviceErr = v.dao.NewDeviceRepository().CreateDevice(tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+			deviceRes, deviceErr = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
 			if deviceErr != nil {
 				return deviceErr
 			}
 		} else if deviceRes != nil {
-			_, deviceErr := v.dao.NewDeviceRepository().UpdateDevice(tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+			_, deviceErr := v.dao.NewDeviceRepository().UpdateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
 			if deviceErr != nil {
 				return deviceErr
 			}
@@ -415,16 +415,16 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 		if err != nil {
 			return err
 		}
-		deviceRes, deviceErr = v.dao.NewDeviceRepository().GetDevice(tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
+		deviceRes, deviceErr = v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
 		if deviceErr != nil {
 			return deviceErr
 		} else if deviceRes == nil {
-			deviceRes, deviceErr = v.dao.NewDeviceRepository().CreateDevice(tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+			deviceRes, deviceErr = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
 			if deviceErr != nil {
 				return deviceErr
 			}
 		} else if deviceRes != nil {
-			_, deviceErr := v.dao.NewDeviceRepository().UpdateDevice(tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId})
+			_, deviceErr := v.dao.NewDeviceRepository().UpdateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId})
 			if deviceErr != nil {
 				return deviceErr
 			}
@@ -715,16 +715,16 @@ func (v *authenticationService) RefreshToken(ctx context.Context, req *pb.Refres
 		if err != nil {
 			return err
 		}
-		deviceRes, deviceErr := v.dao.NewDeviceRepository().GetDevice(tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
+		deviceRes, deviceErr := v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &[]string{"id"})
 		if deviceErr != nil {
 			return deviceErr
 		} else if *deviceRes == (entity.Device{}) {
-			deviceRes, deviceErr = v.dao.NewDeviceRepository().CreateDevice(tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+			deviceRes, deviceErr = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
 			if deviceErr != nil {
 				return deviceErr
 			}
 		} else if *deviceRes != (entity.Device{}) {
-			_, deviceErr := v.dao.NewDeviceRepository().UpdateDevice(tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId})
+			_, deviceErr := v.dao.NewDeviceRepository().UpdateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId})
 			if deviceErr != nil {
 				return deviceErr
 			}

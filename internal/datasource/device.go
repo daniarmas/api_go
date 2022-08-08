@@ -5,6 +5,7 @@ import (
 
 	"github.com/daniarmas/api_go/internal/entity"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type DeviceDatasource interface {
@@ -41,7 +42,7 @@ func (v *deviceDatasource) CreateDevice(tx *gorm.DB, data *entity.Device) (*enti
 }
 
 func (v *deviceDatasource) UpdateDevice(tx *gorm.DB, where *entity.Device, data *entity.Device) (*entity.Device, error) {
-	result := tx.Where(where).Updates(&data)
+	result := tx.Clauses(clause.Returning{}).Where(where).Updates(&data)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
