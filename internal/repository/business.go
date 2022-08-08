@@ -18,7 +18,8 @@ type BusinessRepository interface {
 	CreateBusiness(tx *gorm.DB, data *entity.Business) (*entity.Business, error)
 	GetBusinessPreloadSchedule(tx *gorm.DB, where *entity.Business, fields *[]string) (*entity.Business, error)
 	GetBusiness(tx *gorm.DB, where *entity.Business, fields *[]string) (*entity.Business, error)
-	GetBusinessWithDistance(tx *gorm.DB, where *entity.Business) (*entity.Business, error)
+	GetBusinessWithDistance(tx *gorm.DB, where *entity.Business, userCoordinates ewkb.Point) (*entity.Business, error)
+	GetBusinessDistance(tx *gorm.DB, where *entity.Business, userCoordinates ewkb.Point) (*entity.Business, error)
 	UpdateBusiness(tx *gorm.DB, data *entity.Business, where *entity.Business) (*entity.Business, error)
 	UpdateBusinessCoordinate(tx *gorm.DB, data *entity.Business, where *entity.Business) error
 	BusinessIsInRange(tx *gorm.DB, coordinates ewkb.Point, businessId *uuid.UUID) (*bool, error)
@@ -89,8 +90,16 @@ func (b *businessRepository) Feed(tx *gorm.DB, coordinates ewkb.Point, limit int
 	return result, nil
 }
 
-func (b *businessRepository) GetBusinessWithDistance(tx *gorm.DB, where *entity.Business) (*entity.Business, error) {
-	result, err := Datasource.NewBusinessDatasource().GetBusinessWithDistance(tx, where)
+func (b *businessRepository) GetBusinessWithDistance(tx *gorm.DB, where *entity.Business, userCoordinates ewkb.Point) (*entity.Business, error) {
+	result, err := Datasource.NewBusinessDatasource().GetBusinessWithDistance(tx, where, userCoordinates)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (b *businessRepository) GetBusinessDistance(tx *gorm.DB, where *entity.Business, userCoordinates ewkb.Point) (*entity.Business, error) {
+	result, err := Datasource.NewBusinessDatasource().GetBusinessDistance(tx, where, userCoordinates)
 	if err != nil {
 		return nil, err
 	}

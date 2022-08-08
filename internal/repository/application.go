@@ -17,7 +17,7 @@ type ApplicationRepository interface {
 	CreateApplication(tx *gorm.DB, data *entity.Application) (*entity.Application, error)
 	GetApplication(tx *gorm.DB, where *entity.Application, fields *[]string) (*entity.Application, error)
 	ListApplication(tx *gorm.DB, where *entity.Application, cursor *time.Time, fields *[]string) (*[]entity.Application, error)
-	CheckApplication(tx *gorm.DB, accessToken string) error
+	CheckApplication(tx *gorm.DB, accessToken string) (*entity.Application, error)
 	DeleteApplication(tx *gorm.DB, where *entity.Application, ids *[]uuid.UUID) (*[]entity.Application, error)
 }
 
@@ -55,19 +55,19 @@ func (i *applicationRepository) ListApplication(tx *gorm.DB, where *entity.Appli
 	return res, nil
 }
 
-func (i *applicationRepository) CheckApplication(tx *gorm.DB, accessToken string) error {
+func (i *applicationRepository) CheckApplication(tx *gorm.DB, accessToken string) (*entity.Application, error) {
 	jwtAccessToken := datasource.JsonWebTokenMetadata{Token: &accessToken}
 	accessTokenParseErr := Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&jwtAccessToken)
 	if accessTokenParseErr != nil {
 		switch accessTokenParseErr.Error() {
 		case "Token is expired":
-			return errors.New("access token expired")
+			return nil, errors.New("access token expired")
 		case "signature is invalid":
-			return errors.New("access token signature is invalid")
+			return nil, errors.New("access token signature is invalid")
 		case "token contains an invalid number of segments":
-			return errors.New("access token contains an invalid number of segments")
+			return nil, errors.New("access token contains an invalid number of segments")
 		default:
-			return accessTokenParseErr
+			return nil, accessTokenParseErr
 		}
 	}
 	ctx := context.Background()
@@ -77,14 +77,14 @@ func (i *applicationRepository) CheckApplication(tx *gorm.DB, accessToken string
 	if len(cacheRes) == 0 || cacheErr == redis.Nil {
 		dbRes, dbErr := Datasource.NewApplicationDatasource().GetApplication(tx, &entity.Application{ID: jwtAccessToken.TokenId}, nil)
 		if dbErr != nil && dbErr.Error() == "record not found" {
-			return errors.New("unauthenticated application")
+			return nil, errors.New("unauthenticated application")
 		} else if dbErr != nil {
-			return dbErr
+			return nil, dbErr
 		}
 		if dbRes != nil && !dbRes.ExpirationTime.IsZero() {
 			timeNow := time.Now().UTC()
 			if timeNow.After(dbRes.ExpirationTime) {
-				return errors.New("access token expired")
+				return nil, errors.New("access token expired")
 			}
 		}
 		go func() {
@@ -103,14 +103,27 @@ func (i *applicationRepository) CheckApplication(tx *gorm.DB, accessToken string
 				Rdb.Expire(ctx, cacheId, time.Hour*24)
 			}
 		}()
+		return dbRes, nil
 	} else {
 		timeExp, _ := time.Parse(time.RFC3339, cacheRes["expiration_time"])
 		if !timeExp.IsZero() {
 			timeNow := time.Now().UTC()
 			if timeNow.After(timeExp) {
-				return errors.New("access token expired")
+				return nil, errors.New("access token expired")
 			}
 		}
 	}
-	return nil
+	id := uuid.MustParse(cacheRes["id"])
+	expirationTime, _ := time.Parse(time.RFC3339, cacheRes["expiration_time"])
+	createTime, _ := time.Parse(time.RFC3339, cacheRes["create_time"])
+	updateTime, _ := time.Parse(time.RFC3339, cacheRes["update_time"])
+	return &entity.Application{
+		ID:             &id,
+		Name:           cacheRes["name"],
+		Version:        cacheRes["version"],
+		Description:    cacheRes["version"],
+		ExpirationTime: expirationTime,
+		CreateTime:     createTime,
+		UpdateTime:     updateTime,
+	}, nil
 }

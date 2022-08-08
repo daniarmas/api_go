@@ -19,7 +19,8 @@ type BusinessDatasource interface {
 	CreateBusiness(tx *gorm.DB, data *entity.Business) (*entity.Business, error)
 	UpdateBusiness(tx *gorm.DB, data *entity.Business, where *entity.Business) (*entity.Business, error)
 	UpdateBusinessCoordinate(tx *gorm.DB, data *entity.Business, where *entity.Business) error
-	GetBusinessWithDistance(tx *gorm.DB, where *entity.Business) (*entity.Business, error)
+	GetBusinessWithDistance(tx *gorm.DB, where *entity.Business, userCoordinates ewkb.Point) (*entity.Business, error)
+	GetBusinessDistance(tx *gorm.DB, where *entity.Business, userCoordinates ewkb.Point) (*entity.Business, error)
 	BusinessIsInRange(tx *gorm.DB, coordinates ewkb.Point, businessId *uuid.UUID) (*bool, error)
 }
 
@@ -138,10 +139,23 @@ func (b *businessDatasource) Feed(tx *gorm.DB, coordinates ewkb.Point, limit int
 	return businessResult, nil
 }
 
-func (b *businessDatasource) GetBusinessWithDistance(tx *gorm.DB, where *entity.Business) (*entity.Business, error) {
+func (b *businessDatasource) GetBusinessWithDistance(tx *gorm.DB, where *entity.Business, userCoordinates ewkb.Point) (*entity.Business, error) {
 	var businessResult *entity.Business
-	distance := fmt.Sprintf(`ST_Distance("coordinates", ST_GeomFromText('POINT(%v %v)', 4326)) AS "distance"`, where.Coordinates.Point.Coords()[1], where.Coordinates.Point.Coords()[0])
+	distance := fmt.Sprintf(`ST_Distance("coordinates", ST_GeomFromText('POINT(%v %v)', 4326)) AS "distance"`, userCoordinates.Point.Coords()[1], userCoordinates.Point.Coords()[0])
 	query := fmt.Sprintf("SELECT business.id, business.name, business_category.name as business_category, business.business_brand_id, business.municipality_id, business.province_id, business.thumbnail, business.blurhash, business.address, business.high_quality_photo, business.time_margin_order_month, business.time_margin_order_day, business.time_margin_order_hour, business.time_margin_order_minute, business.low_quality_photo, business.delivery_price_cup, business.home_delivery, business.to_pick_up, business.cursor, ST_AsEWKB(business.coordinates) AS coordinates, %v FROM business INNER JOIN business_category ON business.business_category_id=business_category.id WHERE business.id = '%v' ORDER BY business.cursor asc LIMIT 1;", distance, where.ID)
+	err := tx.Raw(query).Scan(&businessResult).Error
+	if err != nil {
+		return nil, err
+	} else if businessResult == nil {
+		return nil, errors.New("record not found")
+	}
+	return businessResult, nil
+}
+
+func (b *businessDatasource) GetBusinessDistance(tx *gorm.DB, where *entity.Business, userCoordinates ewkb.Point) (*entity.Business, error) {
+	var businessResult *entity.Business
+	distance := fmt.Sprintf(`ST_Distance("coordinates", ST_GeomFromText('POINT(%v %v)', 4326)) AS "distance"`, userCoordinates.Point.Coords()[1], userCoordinates.Point.Coords()[0])
+	query := fmt.Sprintf("SELECT %v FROM business WHERE business.id = '%v' LIMIT 1;", distance, where.ID)
 	err := tx.Raw(query).Scan(&businessResult).Error
 	if err != nil {
 		return nil, err

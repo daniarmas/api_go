@@ -47,9 +47,9 @@ func NewUserService(dao repository.Repository, config *config.Config, rdb *redis
 func (i *userService) UpdateUserConfiguration(ctx context.Context, req *pb.UpdateUserConfigurationRequest, md *utils.ClientMetadata) (*pb.UserConfiguration, error) {
 	var res pb.UserConfiguration
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
@@ -107,9 +107,9 @@ func (i *userService) UpdateUserConfiguration(ctx context.Context, req *pb.Updat
 func (i *userService) GetUserAddress(ctx context.Context, req *pb.GetUserAddressRequest, md *utils.ClientMetadata) (*pb.UserAddress, error) {
 	var res pb.UserAddress
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
@@ -165,9 +165,9 @@ func (i *userService) GetUserAddress(ctx context.Context, req *pb.GetUserAddress
 func (i *userService) UpdateUserAddress(ctx context.Context, req *pb.UpdateUserAddressRequest, md *utils.ClientMetadata) (*pb.UserAddress, error) {
 	var res pb.UserAddress
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
@@ -259,9 +259,9 @@ func (i *userService) UpdateUserAddress(ctx context.Context, req *pb.UpdateUserA
 
 func (i *userService) DeleteUserAddress(ctx context.Context, req *pb.DeleteUserAddressRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
@@ -277,7 +277,7 @@ func (i *userService) DeleteUserAddress(ctx context.Context, req *pb.DeleteUserA
 				return authorizationTokenParseErr
 			}
 		}
-		_, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		_, err = i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("authorization token not found")
 		} else if err != nil && err.Error() != "record not found" {
@@ -301,9 +301,9 @@ func (i *userService) DeleteUserAddress(ctx context.Context, req *pb.DeleteUserA
 func (i *userService) CreateUserAddress(ctx context.Context, req *pb.CreateUserAddressRequest, md *utils.ClientMetadata) (*pb.UserAddress, error) {
 	var res pb.UserAddress
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
@@ -368,9 +368,9 @@ func (i *userService) CreateUserAddress(ctx context.Context, req *pb.CreateUserA
 func (i *userService) ListUserAddress(ctx context.Context, req *gp.Empty, md *utils.ClientMetadata) (*pb.ListUserAddressResponse, error) {
 	var res pb.ListUserAddressResponse
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
@@ -427,9 +427,9 @@ func (i *userService) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfo
 	var res pb.GetAddressInfoResponse
 	location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		muncipalityRes, err := i.dao.NewMunicipalityRepository().GetMunicipalityByCoordinate(tx, location)
 		if err != nil && err.Error() == "record not found" {
@@ -456,9 +456,9 @@ func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*p
 	var userRes *entity.User
 	var userErr error
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
@@ -547,9 +547,9 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 	var updatedUserErr error
 	var userId uuid.UUID
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
 		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)

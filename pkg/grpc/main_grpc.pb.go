@@ -525,6 +525,7 @@ type BusinessServiceClient interface {
 	CreateBusiness(ctx context.Context, in *CreateBusinessRequest, opts ...grpc.CallOption) (*CreateBusinessResponse, error)
 	// rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
 	UpdateBusiness(ctx context.Context, in *UpdateBusinessRequest, opts ...grpc.CallOption) (*Business, error)
+	BusinessIsInRange(ctx context.Context, in *BusinessIsInRangeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	CreatePartnerApplication(ctx context.Context, in *CreatePartnerApplicationRequest, opts ...grpc.CallOption) (*PartnerApplication, error)
 	ListPartnerApplication(ctx context.Context, in *ListPartnerApplicationRequest, opts ...grpc.CallOption) (*ListPartnerApplicationResponse, error)
 	UpdatePartnerApplication(ctx context.Context, in *UpdatePartnerApplicationRequest, opts ...grpc.CallOption) (*PartnerApplication, error)
@@ -582,6 +583,15 @@ func (c *businessServiceClient) CreateBusiness(ctx context.Context, in *CreateBu
 func (c *businessServiceClient) UpdateBusiness(ctx context.Context, in *UpdateBusinessRequest, opts ...grpc.CallOption) (*Business, error) {
 	out := new(Business)
 	err := c.cc.Invoke(ctx, "/main.BusinessService/UpdateBusiness", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *businessServiceClient) BusinessIsInRange(ctx context.Context, in *BusinessIsInRangeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/main.BusinessService/BusinessIsInRange", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -670,6 +680,7 @@ type BusinessServiceServer interface {
 	CreateBusiness(context.Context, *CreateBusinessRequest) (*CreateBusinessResponse, error)
 	// rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
 	UpdateBusiness(context.Context, *UpdateBusinessRequest) (*Business, error)
+	BusinessIsInRange(context.Context, *BusinessIsInRangeRequest) (*emptypb.Empty, error)
 	CreatePartnerApplication(context.Context, *CreatePartnerApplicationRequest) (*PartnerApplication, error)
 	ListPartnerApplication(context.Context, *ListPartnerApplicationRequest) (*ListPartnerApplicationResponse, error)
 	UpdatePartnerApplication(context.Context, *UpdatePartnerApplicationRequest) (*PartnerApplication, error)
@@ -699,6 +710,9 @@ func (UnimplementedBusinessServiceServer) CreateBusiness(context.Context, *Creat
 }
 func (UnimplementedBusinessServiceServer) UpdateBusiness(context.Context, *UpdateBusinessRequest) (*Business, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBusiness not implemented")
+}
+func (UnimplementedBusinessServiceServer) BusinessIsInRange(context.Context, *BusinessIsInRangeRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BusinessIsInRange not implemented")
 }
 func (UnimplementedBusinessServiceServer) CreatePartnerApplication(context.Context, *CreatePartnerApplicationRequest) (*PartnerApplication, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePartnerApplication not implemented")
@@ -823,6 +837,24 @@ func _BusinessService_UpdateBusiness_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BusinessServiceServer).UpdateBusiness(ctx, req.(*UpdateBusinessRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BusinessService_BusinessIsInRange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BusinessIsInRangeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusinessServiceServer).BusinessIsInRange(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.BusinessService/BusinessIsInRange",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusinessServiceServer).BusinessIsInRange(ctx, req.(*BusinessIsInRangeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -997,6 +1029,10 @@ var BusinessService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateBusiness",
 			Handler:    _BusinessService_UpdateBusiness_Handler,
+		},
+		{
+			MethodName: "BusinessIsInRange",
+			Handler:    _BusinessService_BusinessIsInRange_Handler,
 		},
 		{
 			MethodName: "CreatePartnerApplication",
@@ -1720,6 +1756,7 @@ type OrderServiceClient interface {
 	CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*Order, error)
 	UpdateOrder(ctx context.Context, in *UpdateOrderRequest, opts ...grpc.CallOption) (*Order, error)
 	ListOrderedItem(ctx context.Context, in *ListOrderedItemRequest, opts ...grpc.CallOption) (*ListOrderedItemResponse, error)
+	GetCheckoutInfo(ctx context.Context, in *GetCheckoutInfoRequest, opts ...grpc.CallOption) (*GetCheckoutInfoResponse, error)
 }
 
 type orderServiceClient struct {
@@ -1775,6 +1812,15 @@ func (c *orderServiceClient) ListOrderedItem(ctx context.Context, in *ListOrdere
 	return out, nil
 }
 
+func (c *orderServiceClient) GetCheckoutInfo(ctx context.Context, in *GetCheckoutInfoRequest, opts ...grpc.CallOption) (*GetCheckoutInfoResponse, error) {
+	out := new(GetCheckoutInfoResponse)
+	err := c.cc.Invoke(ctx, "/main.OrderService/GetCheckoutInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrderServiceServer is the server API for OrderService service.
 // All implementations must embed UnimplementedOrderServiceServer
 // for forward compatibility
@@ -1784,6 +1830,7 @@ type OrderServiceServer interface {
 	CreateOrder(context.Context, *CreateOrderRequest) (*Order, error)
 	UpdateOrder(context.Context, *UpdateOrderRequest) (*Order, error)
 	ListOrderedItem(context.Context, *ListOrderedItemRequest) (*ListOrderedItemResponse, error)
+	GetCheckoutInfo(context.Context, *GetCheckoutInfoRequest) (*GetCheckoutInfoResponse, error)
 	mustEmbedUnimplementedOrderServiceServer()
 }
 
@@ -1805,6 +1852,9 @@ func (UnimplementedOrderServiceServer) UpdateOrder(context.Context, *UpdateOrder
 }
 func (UnimplementedOrderServiceServer) ListOrderedItem(context.Context, *ListOrderedItemRequest) (*ListOrderedItemResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrderedItem not implemented")
+}
+func (UnimplementedOrderServiceServer) GetCheckoutInfo(context.Context, *GetCheckoutInfoRequest) (*GetCheckoutInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCheckoutInfo not implemented")
 }
 func (UnimplementedOrderServiceServer) mustEmbedUnimplementedOrderServiceServer() {}
 
@@ -1909,6 +1959,24 @@ func _OrderService_ListOrderedItem_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderService_GetCheckoutInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCheckoutInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).GetCheckoutInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.OrderService/GetCheckoutInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).GetCheckoutInfo(ctx, req.(*GetCheckoutInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrderService_ServiceDesc is the grpc.ServiceDesc for OrderService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1935,6 +2003,10 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListOrderedItem",
 			Handler:    _OrderService_ListOrderedItem_Handler,
+		},
+		{
+			MethodName: "GetCheckoutInfo",
+			Handler:    _OrderService_GetCheckoutInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -27,11 +27,9 @@ func UnaryMetadataRequestInterceptor() grpc.UnaryServerInterceptor {
 		handler grpc.UnaryHandler) (_ interface{}, err error) {
 		var (
 			invalidAuthorizationToken       *epb.ErrorInfo
-			invalidApp                      *epb.ErrorInfo
 			invalidFirebaseCloudMessagingId *epb.ErrorInfo
 			invalidDeviceId                 *epb.ErrorInfo
 			invalidAccessToken              *epb.ErrorInfo
-			invalidAppVersion               *epb.ErrorInfo
 			invalidPlatform                 *epb.ErrorInfo
 			invalidSystemVersion            *epb.ErrorInfo
 			invalidModel                    *epb.ErrorInfo
@@ -39,12 +37,6 @@ func UnaryMetadataRequestInterceptor() grpc.UnaryServerInterceptor {
 		var invalidArgs bool
 		var st = status.New(codes.Unauthenticated, "Incorrect metadata")
 		md, _ := metadata.FromIncomingContext(ctx)
-		if len(md.Get("App")) == 0 {
-			invalidArgs = true
-			invalidApp = &epb.ErrorInfo{
-				Reason: "app metadata missing",
-			}
-		}
 		if len(md.Get("Authorization")) != 0 {
 			splitValue := strings.Split(md.Get("Authorization")[0], " ")
 			if splitValue[0] != "Bearer" {
@@ -90,12 +82,6 @@ func UnaryMetadataRequestInterceptor() grpc.UnaryServerInterceptor {
 				Reason: "model metadata missing",
 			}
 		}
-		if len(md.Get("App-Version")) == 0 {
-			invalidArgs = true
-			invalidAppVersion = &epb.ErrorInfo{
-				Reason: "app-version metadata missing",
-			}
-		}
 		if invalidArgs {
 			if invalidDeviceId != nil {
 				st, _ = st.WithDetails(
@@ -107,19 +93,9 @@ func UnaryMetadataRequestInterceptor() grpc.UnaryServerInterceptor {
 					invalidAuthorizationToken,
 				)
 			}
-			if invalidApp != nil {
-				st, _ = st.WithDetails(
-					invalidApp,
-				)
-			}
 			if invalidAccessToken != nil {
 				st, _ = st.WithDetails(
 					invalidAccessToken,
-				)
-			}
-			if invalidAppVersion != nil {
-				st, _ = st.WithDetails(
-					invalidAppVersion,
 				)
 			}
 			if invalidPlatform != nil {

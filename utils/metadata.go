@@ -14,9 +14,7 @@ type ClientMetadata struct {
 	Platform                 *string
 	DeviceIdentifier         *string
 	SystemVersion            *string
-	AppVersion               *string
 	Model                    *string
-	App                      *string
 }
 
 func GetMetadata(ctx context.Context) *ClientMetadata {
@@ -28,8 +26,6 @@ func GetMetadata(ctx context.Context) *ClientMetadata {
 			authorization = &splitValue[1]
 		}
 	}
-	app := md.Get("App")[0]
-	appVersion := md.Get("App-Version")[0]
 	firebaseCloudMessagingId := md.Get("Firebase-Cloud-Messaging-Id")[0]
 	accessToken := md.Get("Access-Token")[0]
 	platform := md.Get("Platform")[0]
@@ -37,10 +33,8 @@ func GetMetadata(ctx context.Context) *ClientMetadata {
 	systemVersion := md.Get("System-Version")[0]
 	model := md.Get("Model")[0]
 	resMetadata := ClientMetadata{
-		App:                      &app,
 		Authorization:            authorization,
 		FirebaseCloudMessagingId: &firebaseCloudMessagingId,
-		AppVersion:               &appVersion,
 		AccessToken:              &accessToken,
 		Platform:                 &platform,
 		DeviceIdentifier:         &deviceIdentifier,

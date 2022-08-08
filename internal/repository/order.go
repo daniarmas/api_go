@@ -8,12 +8,21 @@ import (
 type OrderRepository interface {
 	ListOrder(tx *gorm.DB, where *entity.Order, fields *[]string) (*[]entity.Order, error)
 	ListOrderWithBusiness(tx *gorm.DB, where *entity.OrderBusiness) (*[]entity.OrderBusiness, error)
+	ListOrderFilter(tx *gorm.DB, where *entity.OrderBusiness, upcoming bool) (*[]entity.OrderBusiness, error)
 	CreateOrder(tx *gorm.DB, data *entity.Order) (*entity.Order, error)
 	UpdateOrder(tx *gorm.DB, where *entity.Order, data *entity.Order) (*entity.Order, error)
 	GetOrder(tx *gorm.DB, where *entity.Order) (*entity.Order, error)
 }
 
 type orderRepository struct{}
+
+func (i *orderRepository) ListOrderFilter(tx *gorm.DB, where *entity.OrderBusiness, upcoming bool) (*[]entity.OrderBusiness, error) {
+	result, err := Datasource.NewOrderDatasource().ListOrderFilter(tx, where, upcoming)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
 
 func (i *orderRepository) ListOrder(tx *gorm.DB, where *entity.Order, fields *[]string) (*[]entity.Order, error) {
 	result, err := Datasource.NewOrderDatasource().ListOrder(tx, where, fields)
