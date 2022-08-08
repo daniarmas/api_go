@@ -101,6 +101,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 	var refreshTokenRes *entity.RefreshToken
 	var authorizationTokenRes *entity.AuthorizationToken
 	var app *entity.Application
+	var existsUpcomingOrders *bool
 	var (
 		jwtRefreshToken       *datasource.JsonWebTokenMetadata
 		jwtAuthorizationToken *datasource.JsonWebTokenMetadata
@@ -180,6 +181,10 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		if err != nil {
 			return err
 		}
+		existsUpcomingOrders, err = v.dao.NewOrderRepository().ExistsUpcomingOrders(tx, *userRes.ID)
+		if err != nil {
+			return err
+		}
 		return nil
 	})
 	if err != nil {
@@ -241,19 +246,20 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 
 	}
 	return &pb.SignInResponse{AuthorizationToken: *jwtAuthorizationToken.Token, RefreshToken: *jwtRefreshToken.Token, User: &pb.User{
-		Id:                  userRes.ID.String(),
-		FullName:            userRes.FullName,
-		Email:               userRes.Email,
-		HighQualityPhoto:    userRes.HighQualityPhoto,
-		HighQualityPhotoUrl: highQualityPhotoUrl,
-		LowQualityPhoto:     userRes.LowQualityPhoto,
-		LowQualityPhotoUrl:  lowQualityPhotoUrl,
-		Thumbnail:           userRes.Thumbnail,
-		ThumbnailUrl:        thumbnailUrl,
-		BlurHash:            userRes.BlurHash,
-		Permissions:         permissions,
-		UserAddress:         userAddress,
-		CartItems:           itemsResponse,
+		Id:                   userRes.ID.String(),
+		FullName:             userRes.FullName,
+		Email:                userRes.Email,
+		HighQualityPhoto:     userRes.HighQualityPhoto,
+		HighQualityPhotoUrl:  highQualityPhotoUrl,
+		LowQualityPhoto:      userRes.LowQualityPhoto,
+		LowQualityPhotoUrl:   lowQualityPhotoUrl,
+		Thumbnail:            userRes.Thumbnail,
+		ThumbnailUrl:         thumbnailUrl,
+		BlurHash:             userRes.BlurHash,
+		Permissions:          permissions,
+		UserAddress:          userAddress,
+		CartItems:            itemsResponse,
+		ExistsUpcomingOrders: *existsUpcomingOrders,
 		Configuration: &pb.UserConfiguration{
 			Id:                    configuration.ID.String(),
 			DataSaving:            *configuration.DataSaving,
@@ -438,11 +444,11 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 					return authorizationTokenParseErr
 				}
 			}
-			authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
-			if authorizationTokenErr != nil {
-				return authorizationTokenErr
-			} else if authorizationTokenRes == nil {
+			authorizationTokenRes, err := v.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+			if err != nil && err.Error() == "record not found" {
 				return errors.New("unauthenticated")
+			} else if err != nil {
+				return err
 			}
 			refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenRepository().GetRefreshToken(tx, &entity.RefreshToken{ID: authorizationTokenRes.RefreshTokenId}, &[]string{"id"})
 			if refreshTokenErr != nil {
