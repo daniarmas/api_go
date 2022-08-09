@@ -177,7 +177,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		if err != nil {
 			return err
 		}
-		configuration, err = v.dao.NewUserConfigurationRepository().GetUserConfiguration(tx, &entity.UserConfiguration{UserId: userRes.ID})
+		configuration, err = v.dao.NewUserConfigurationRepository().GetUserConfiguration(ctx, tx, &entity.UserConfiguration{UserId: userRes.ID})
 		if err != nil {
 			return err
 		}
@@ -466,7 +466,7 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 			if err != nil {
 				return err
 			}
-			configuration, err := v.dao.NewUserConfigurationRepository().GetUserConfiguration(tx, &entity.UserConfiguration{UserId: userRes.ID})
+			configuration, err := v.dao.NewUserConfigurationRepository().GetUserConfiguration(ctx, tx, &entity.UserConfiguration{UserId: userRes.ID})
 			if err != nil {
 				return err
 			}

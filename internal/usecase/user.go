@@ -83,7 +83,7 @@ func (i *userService) UpdateUserConfiguration(ctx context.Context, req *pb.Updat
 		if req.UserConfiguration.PaymentMethod == pb.PaymentMethodType_PaymentMethodTypeUnspecified {
 			data.PaymentMethod = ""
 		}
-		userConfigurationRes, err := i.dao.NewUserConfigurationRepository().UpdateUserConfiguration(tx, &entity.UserConfiguration{UserId: authorizationTokenRes.UserId}, &data)
+		userConfigurationRes, err := i.dao.NewUserConfigurationRepository().UpdateUserConfiguration(ctx, tx, &entity.UserConfiguration{UserId: authorizationTokenRes.UserId}, &data)
 		if err != nil {
 			return err
 		}
