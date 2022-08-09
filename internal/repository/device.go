@@ -65,11 +65,32 @@ func (i *deviceRepository) GetDevice(ctx context.Context, tx *gorm.DB, where *en
 }
 
 func (v *deviceRepository) CreateDevice(ctx context.Context, tx *gorm.DB, data *entity.Device) (*entity.Device, error) {
-	res, err := Datasource.NewDeviceDatasource().CreateDevice(tx, data)
-	if err != nil {
-		return nil, err
+	// Store in the database
+	dbRes, dbErr := Datasource.NewDeviceDatasource().CreateDevice(tx, data)
+	if dbErr != nil {
+		return nil, dbErr
+	} else {
+		// Store in cache
+		go func() {
+			cacheId := "device:" + dbRes.ID.String()
+			cacheErr := Rdb.HSet(ctx, cacheId, []string{
+				"id", dbRes.ID.String(),
+				"platform", dbRes.Platform,
+				"system_version", dbRes.SystemVersion,
+				"device_identifier", dbRes.DeviceIdentifier,
+				"firebase_cloud_messaging_id", dbRes.FirebaseCloudMessagingId,
+				"model", dbRes.Model,
+				"create_time", dbRes.CreateTime.Format(time.RFC3339),
+				"update_time", dbRes.UpdateTime.Format(time.RFC3339),
+			}).Err()
+			if cacheErr != nil {
+				log.Error(cacheErr)
+			} else {
+				Rdb.Expire(ctx, cacheId, time.Minute*15)
+			}
+		}()
 	}
-	return res, err
+	return dbRes, nil
 }
 
 func (v *deviceRepository) UpdateDevice(ctx context.Context, tx *gorm.DB, where *entity.Device, data *entity.Device) (*entity.Device, error) {
