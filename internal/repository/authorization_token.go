@@ -56,21 +56,18 @@ func (r *authorizationTokenRepository) DeleteAuthorizationToken(ctx context.Cont
 		return nil, dbErr
 	} else {
 		// Delete in cache
-		go func() {
-			ctx := context.Background()
-			rdbPipe := Rdb.Pipeline()
-			for _, item := range *dbRes {
-				cacheId := "authorization_token:" + item.ID.String()
-				cacheErr := rdbPipe.Del(ctx, cacheId).Err()
-				if cacheErr != nil {
-					log.Error(cacheErr)
-				}
+		rdbPipe := Rdb.Pipeline()
+		for _, item := range *dbRes {
+			cacheId := "authorization_token:" + item.ID.String()
+			cacheErr := rdbPipe.Del(ctx, cacheId).Err()
+			if cacheErr != nil {
+				log.Error(cacheErr)
 			}
-			_, err := rdbPipe.Exec(ctx)
-			if err != nil {
-				log.Error(err)
-			}
-		}()
+		}
+		_, err := rdbPipe.Exec(ctx)
+		if err != nil {
+			log.Error(err)
+		}
 	}
 	return dbRes, nil
 }
@@ -82,21 +79,18 @@ func (r *authorizationTokenRepository) DeleteAuthorizationTokenByRefreshTokenIds
 		return nil, err
 	} else {
 		// Delete in cache
-		go func() {
-			ctx := context.Background()
-			rdbPipe := Rdb.Pipeline()
-			for _, item := range *res {
-				cacheId := "authorization_token:" + item.ID.String()
-				cacheErr := rdbPipe.Del(ctx, cacheId).Err()
-				if cacheErr != nil {
-					log.Error(cacheErr)
-				}
+		rdbPipe := Rdb.Pipeline()
+		for _, item := range *res {
+			cacheId := "authorization_token:" + item.ID.String()
+			cacheErr := rdbPipe.Del(ctx, cacheId).Err()
+			if cacheErr != nil {
+				log.Error(cacheErr)
 			}
-			_, err := rdbPipe.Exec(ctx)
-			if err != nil {
-				log.Error(err)
-			}
-		}()
+		}
+		_, err := rdbPipe.Exec(ctx)
+		if err != nil {
+			log.Error(err)
+		}
 	}
 	return res, nil
 }
@@ -112,7 +106,7 @@ func (v *authorizationTokenRepository) GetAuthorizationToken(ctx context.Context
 		}
 		// Store in cache
 		go func() {
-			cacheErr := Rdb.HSet(ctx, cacheId, []string{
+			cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
 				"id", dbRes.ID.String(),
 				"refresh_token_id", dbRes.RefreshTokenId.String(),
 				"user_id", dbRes.UserId.String(),

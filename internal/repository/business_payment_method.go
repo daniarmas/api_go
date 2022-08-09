@@ -45,21 +45,18 @@ func (i *businessPaymentMethodRepository) DeleteBusinessPaymentMethod(ctx contex
 		return nil, err
 	}
 	// Delete in cache
-	go func() {
-		ctx := context.Background()
-		rdbPipe := Rdb.Pipeline()
-		for _, item := range *res {
-			cacheId := "business_payment_method:" + item.ID.String()
-			cacheErr := rdbPipe.Del(ctx, cacheId).Err()
-			if cacheErr != nil {
-				log.Error(cacheErr)
-			}
+	rdbPipe := Rdb.Pipeline()
+	for _, item := range *res {
+		cacheId := "business_payment_method:" + item.ID.String()
+		cacheErr := rdbPipe.Del(ctx, cacheId).Err()
+		if cacheErr != nil {
+			log.Error(cacheErr)
 		}
-		_, err := rdbPipe.Exec(ctx)
-		if err != nil {
-			log.Error(err)
-		}
-	}()
+	}
+	_, err = rdbPipe.Exec(ctx)
+	if err != nil {
+		log.Error(err)
+	}
 	return res, nil
 }
 
@@ -74,7 +71,7 @@ func (i *businessPaymentMethodRepository) GetBusinessPaymentMethod(ctx context.C
 		}
 		// Store in cache
 		go func() {
-			cacheErr := Rdb.HSet(ctx, cacheId, []string{
+			cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
 				"id", dbRes.ID.String(),
 				"type", dbRes.Type,
 				"address", dbRes.Address,
@@ -142,22 +139,20 @@ func (i *businessPaymentMethodRepository) UpdateBusinessPaymentMethod(ctx contex
 		return nil, dbErr
 	}
 	// Store in cache
-	go func() {
-		cacheId := "business_payment_method:" + dbRes.ID.String()
-		cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
-			"id", dbRes.ID.String(),
-			"type", dbRes.Type,
-			"address", dbRes.Address,
-			"business_id", dbRes.BusinessId.String(),
-			"payment_method_id", dbRes.PaymentMethodId.String(),
-			"create_time", dbRes.CreateTime.Format(time.RFC3339),
-			"update_time", dbRes.UpdateTime.Format(time.RFC3339),
-		}).Err()
-		if cacheErr != nil {
-			log.Error(cacheErr)
-		} else {
-			Rdb.Expire(ctx, cacheId, time.Minute*15)
-		}
-	}()
+	cacheId := "business_payment_method:" + dbRes.ID.String()
+	cacheErr := Rdb.HSet(ctx, cacheId, []string{
+		"id", dbRes.ID.String(),
+		"type", dbRes.Type,
+		"address", dbRes.Address,
+		"business_id", dbRes.BusinessId.String(),
+		"payment_method_id", dbRes.PaymentMethodId.String(),
+		"create_time", dbRes.CreateTime.Format(time.RFC3339),
+		"update_time", dbRes.UpdateTime.Format(time.RFC3339),
+	}).Err()
+	if cacheErr != nil {
+		log.Error(cacheErr)
+	} else {
+		Rdb.Expire(ctx, cacheId, time.Minute*15)
+	}
 	return dbRes, nil
 }

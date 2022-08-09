@@ -94,21 +94,18 @@ func (v *businessUserRepository) DeleteBusinessUser(ctx context.Context, tx *gor
 		return nil, err
 	} else {
 		// Delete in cache
-		go func() {
-			ctx := context.Background()
-			rdbPipe := Rdb.Pipeline()
-			for _, item := range *res {
-				cacheId := "business_user:" + item.ID.String()
-				cacheErr := rdbPipe.Del(ctx, cacheId).Err()
-				if cacheErr != nil {
-					log.Error(cacheErr)
-				}
+		rdbPipe := Rdb.Pipeline()
+		for _, item := range *res {
+			cacheId := "business_user:" + item.ID.String()
+			cacheErr := rdbPipe.Del(ctx, cacheId).Err()
+			if cacheErr != nil {
+				log.Error(cacheErr)
 			}
-			_, err := rdbPipe.Exec(ctx)
-			if err != nil {
-				log.Error(err)
-			}
-		}()
+		}
+		_, err := rdbPipe.Exec(ctx)
+		if err != nil {
+			log.Error(err)
+		}
 	}
 	return res, nil
 }

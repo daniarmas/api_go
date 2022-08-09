@@ -46,21 +46,18 @@ func (i *applicationRepository) DeleteApplication(ctx context.Context, tx *gorm.
 		return nil, dbErr
 	} else {
 		// Delete in cache
-		go func() {
-			ctx := context.Background()
-			rdbPipe := Rdb.Pipeline()
-			for _, item := range *dbRes {
-				cacheId := "application:" + item.ID.String()
-				cacheErr := rdbPipe.Del(ctx, cacheId).Err()
-				if cacheErr != nil {
-					log.Error(cacheErr)
-				}
+		rdbPipe := Rdb.Pipeline()
+		for _, item := range *dbRes {
+			cacheId := "application:" + item.ID.String()
+			cacheErr := rdbPipe.Del(ctx, cacheId).Err()
+			if cacheErr != nil {
+				log.Error(cacheErr)
 			}
-			_, err := rdbPipe.Exec(ctx)
-			if err != nil {
-				log.Error(err)
-			}
-		}()
+		}
+		_, err := rdbPipe.Exec(ctx)
+		if err != nil {
+			log.Error(err)
+		}
 	}
 	return dbRes, nil
 }
@@ -105,7 +102,7 @@ func (i *applicationRepository) CheckApplication(ctx context.Context, tx *gorm.D
 			}
 		}
 		go func() {
-			cacheErr := Rdb.HSet(ctx, cacheId, []string{
+			cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
 				"id", dbRes.ID.String(),
 				"name", dbRes.Name,
 				"version", dbRes.Version,
