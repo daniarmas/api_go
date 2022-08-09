@@ -27,7 +27,7 @@ func (v *verificationCodeRepository) CreateVerificationCode(ctx context.Context,
 	}
 	// Store in cache
 	go func() {
-		cacheId := "verification_code:" + dbRes.Code
+		cacheId := "verification_code:" + dbRes.ID.String()
 		cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
 			"id", dbRes.ID.String(),
 			"code", dbRes.Code,
@@ -91,9 +91,20 @@ func (v *verificationCodeRepository) GetVerificationCode(ctx context.Context, tx
 }
 
 func (v *verificationCodeRepository) DeleteVerificationCode(ctx context.Context, tx *gorm.DB, where *entity.VerificationCode, ids *[]uuid.UUID) (*[]entity.VerificationCode, error) {
-	res, err := Datasource.NewVerificationCodeDatasource().DeleteVerificationCode(tx, where, ids)
-	if err != nil {
-		return nil, err
+	// Delete in database
+	dbRes, dbErr := Datasource.NewVerificationCodeDatasource().DeleteVerificationCode(tx, where, ids)
+	if dbErr != nil {
+		return nil, dbErr
 	}
-	return res, nil
+	// Delete in cache
+	go func() {
+		for _, item := range *dbRes {
+			cacheId := "verification_code:" + item.ID.String()
+			cacheErr := Rdb.Del(ctx, cacheId).Err()
+			if cacheErr != nil {
+				log.Error(cacheErr)
+			}
+		}
+	}()
+	return dbRes, nil
 }
