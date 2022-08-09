@@ -19,18 +19,25 @@ type ItemDatasource interface {
 	SearchItemByBusiness(tx *gorm.DB, name string, cursor int64, businessId string, fields *[]string) (*[]entity.Item, error)
 	UpdateItem(tx *gorm.DB, where *entity.Item, data *entity.Item) (*entity.Item, error)
 	UpdateItems(tx *gorm.DB, data *[]entity.Item) (*[]entity.Item, error)
-	DeleteItem(tx *gorm.DB, where *entity.Item) error
+	DeleteItem(tx *gorm.DB, where *entity.Item, ids *[]uuid.UUID) (*[]entity.Item, error)
 }
 
 type itemDatasource struct{}
 
-func (v *itemDatasource) DeleteItem(tx *gorm.DB, where *entity.Item) error {
-	var itemResult *[]entity.Item
-	result := tx.Where(where).Delete(&itemResult)
-	if result.Error != nil {
-		return result.Error
+func (v *itemDatasource) DeleteItem(tx *gorm.DB, where *entity.Item, ids *[]uuid.UUID) (*[]entity.Item, error) {
+	var res *[]entity.Item
+	var result *gorm.DB
+	if ids != nil {
+		result = tx.Clauses(clause.Returning{}).Where(`id IN ?`, ids).Delete(&res)
+	} else {
+		result = tx.Clauses(clause.Returning{}).Where(where).Delete(&res)
 	}
-	return nil
+	if result.Error != nil {
+		return nil, result.Error
+	} else if result.RowsAffected == 0 {
+		return nil, errors.New("record not found")
+	}
+	return res, nil
 }
 
 func (v *itemDatasource) CreateItem(tx *gorm.DB, data *entity.Item) (*entity.Item, error) {
