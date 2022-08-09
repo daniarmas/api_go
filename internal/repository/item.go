@@ -96,7 +96,7 @@ func (v *itemRepository) CreateItem(ctx context.Context, tx *gorm.DB, data *enti
 }
 
 func (i *itemRepository) ListItem(ctx context.Context, tx *gorm.DB, where *entity.Item, cursor time.Time, fields *[]string) (*[]entity.Item, error) {
-	// Delete in database
+	// Get from database
 	dbRes, dbErr := Datasource.NewItemDatasource().ListItem(tx, where, cursor, fields)
 	if dbErr != nil {
 		return nil, dbErr
