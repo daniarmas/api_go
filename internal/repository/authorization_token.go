@@ -28,8 +28,9 @@ func (v *authorizationTokenRepository) CreateAuthorizationToken(ctx context.Cont
 	} else {
 		// Store in cache
 		go func() {
+			ctx := context.Background()
 			cacheId := "authorization_token:" + dbRes.ID.String()
-			cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
+			cacheErr := Rdb.HSet(ctx, cacheId, []string{
 				"id", dbRes.ID.String(),
 				"refresh_token_id", dbRes.RefreshTokenId.String(),
 				"user_id", dbRes.UserId.String(),
@@ -106,7 +107,8 @@ func (v *authorizationTokenRepository) GetAuthorizationToken(ctx context.Context
 		}
 		// Store in cache
 		go func() {
-			cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
+			ctx := context.Background()
+			cacheErr := Rdb.HSet(ctx, cacheId, []string{
 				"id", dbRes.ID.String(),
 				"refresh_token_id", dbRes.RefreshTokenId.String(),
 				"user_id", dbRes.UserId.String(),

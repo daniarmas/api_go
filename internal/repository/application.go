@@ -102,7 +102,8 @@ func (i *applicationRepository) CheckApplication(ctx context.Context, tx *gorm.D
 			}
 		}
 		go func() {
-			cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
+			ctx := context.Background()
+			cacheErr := Rdb.HSet(ctx, cacheId, []string{
 				"id", dbRes.ID.String(),
 				"name", dbRes.Name,
 				"version", dbRes.Version,

@@ -71,7 +71,8 @@ func (i *businessPaymentMethodRepository) GetBusinessPaymentMethod(ctx context.C
 		}
 		// Store in cache
 		go func() {
-			cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
+			ctx := context.Background()
+			cacheErr := Rdb.HSet(ctx, cacheId, []string{
 				"id", dbRes.ID.String(),
 				"type", dbRes.Type,
 				"address", dbRes.Address,
@@ -113,8 +114,9 @@ func (i *businessPaymentMethodRepository) CreateBusinessPaymentMethod(ctx contex
 	}
 	// Store in cache
 	go func() {
+		ctx := context.Background()
 		cacheId := "business_payment_method:" + dbRes.ID.String()
-		cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
+		cacheErr := Rdb.HSet(ctx, cacheId, []string{
 			"id", dbRes.ID.String(),
 			"type", dbRes.Type,
 			"address", dbRes.Address,

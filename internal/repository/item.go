@@ -57,9 +57,8 @@ func (v *itemRepository) CreateItem(ctx context.Context, tx *gorm.DB, data *enti
 	} else {
 		// Store in cache
 		go func() {
-			ctx = context.Background()
 			cacheId := "item:" + dbRes.ID.String()
-			cacheErr := Rdb.HSet(ctx, cacheId, []string{
+			cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
 				"id", dbRes.ID.String(),
 				"name", dbRes.Name,
 				"business_name", dbRes.BusinessName,
@@ -103,11 +102,10 @@ func (i *itemRepository) ListItem(ctx context.Context, tx *gorm.DB, where *entit
 	} else {
 		// Delete in cache
 		go func() {
-			ctx := context.Background()
 			rdbPipe := Rdb.Pipeline()
 			for _, item := range *dbRes {
 				cacheId := "item:" + item.ID.String()
-				cacheErr := rdbPipe.HSet(ctx, cacheId, []string{
+				cacheErr := rdbPipe.HSet(context.Background(), cacheId, []string{
 					"id", item.ID.String(),
 					"name", item.Name,
 					"business_name", item.BusinessName,
@@ -212,7 +210,7 @@ func (i *itemRepository) GetItem(ctx context.Context, tx *gorm.DB, where *entity
 		}
 		// Store in cache
 		go func() {
-			cacheErr := Rdb.HSet(ctx, cacheId, []string{
+			cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
 				"id", dbRes.ID.String(),
 				"name", dbRes.Name,
 				"business_name", dbRes.BusinessName,

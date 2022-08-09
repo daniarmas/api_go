@@ -28,8 +28,9 @@ func (v *businessUserRepository) CreateBusinessUser(ctx context.Context, tx *gor
 	} else {
 		// Store in cache
 		go func() {
+			ctx := context.Background()
 			cacheId := "business_user:" + dbRes.ID.String()
-			cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
+			cacheErr := Rdb.HSet(ctx, cacheId, []string{
 				"id", dbRes.ID.String(),
 				"is_business_owner", strconv.FormatBool(dbRes.IsBusinessOwner),
 				"user_id", dbRes.UserId.String(),
@@ -57,7 +58,8 @@ func (v *businessUserRepository) GetBusinessUser(ctx context.Context, tx *gorm.D
 		}
 		// Store in cache
 		go func() {
-			cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
+			ctx := context.Background()
+			cacheErr := Rdb.HSet(ctx, cacheId, []string{
 				"id", dbRes.ID.String(),
 				"is_business_owner", strconv.FormatBool(dbRes.IsBusinessOwner),
 				"user_id", dbRes.UserId.String(),
