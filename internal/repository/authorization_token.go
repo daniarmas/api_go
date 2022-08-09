@@ -25,26 +25,27 @@ func (v *authorizationTokenRepository) CreateAuthorizationToken(ctx context.Cont
 	dbRes, dbErr := Datasource.NewAuthorizationTokenDatasource().CreateAuthorizationToken(tx, data)
 	if dbErr != nil {
 		return nil, dbErr
+	} else {
+		// Store in cache
+		go func() {
+			cacheId := "authorization_token:" + dbRes.ID.String()
+			cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
+				"id", dbRes.ID.String(),
+				"refresh_token_id", dbRes.RefreshTokenId.String(),
+				"user_id", dbRes.UserId.String(),
+				"device_id", dbRes.DeviceId.String(),
+				"app", *dbRes.App,
+				"app_version", *dbRes.AppVersion,
+				"create_time", dbRes.CreateTime.Format(time.RFC3339),
+				"update_time", dbRes.UpdateTime.Format(time.RFC3339),
+			}).Err()
+			if cacheErr != nil {
+				log.Error(cacheErr)
+			} else {
+				Rdb.Expire(ctx, cacheId, time.Minute*15)
+			}
+		}()
 	}
-	// Store in cache
-	go func() {
-		cacheId := "authorization_token:" + dbRes.ID.String()
-		cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
-			"id", dbRes.ID.String(),
-			"refresh_token_id", dbRes.RefreshTokenId.String(),
-			"user_id", dbRes.UserId.String(),
-			"device_id", dbRes.DeviceId.String(),
-			"app", *dbRes.App,
-			"app_version", *dbRes.AppVersion,
-			"create_time", dbRes.CreateTime.Format(time.RFC3339),
-			"update_time", dbRes.UpdateTime.Format(time.RFC3339),
-		}).Err()
-		if cacheErr != nil {
-			log.Error(cacheErr)
-		} else {
-			Rdb.Expire(ctx, cacheId, time.Minute*15)
-		}
-	}()
 	return dbRes, nil
 }
 
@@ -53,35 +54,49 @@ func (r *authorizationTokenRepository) DeleteAuthorizationToken(ctx context.Cont
 	dbRes, dbErr := Datasource.NewAuthorizationTokenDatasource().DeleteAuthorizationToken(tx, where, ids)
 	if dbErr != nil {
 		return nil, dbErr
-	}
-	// Delete in cache
-	go func() {
-		for _, item := range *dbRes {
-			cacheId := "authorization_token:" + item.ID.String()
-			cacheErr := Rdb.Del(ctx, cacheId).Err()
-			if cacheErr != nil {
-				log.Error(cacheErr)
+	} else {
+		// Delete in cache
+		go func() {
+			ctx := context.Background()
+			rdbPipe := Rdb.Pipeline()
+			for _, item := range *dbRes {
+				cacheId := "authorization_token:" + item.ID.String()
+				cacheErr := rdbPipe.Del(ctx, cacheId).Err()
+				if cacheErr != nil {
+					log.Error(cacheErr)
+				}
 			}
-		}
-	}()
+			_, err := rdbPipe.Exec(ctx)
+			if err != nil {
+				log.Error(err)
+			}
+		}()
+	}
 	return dbRes, nil
 }
 
 func (r *authorizationTokenRepository) DeleteAuthorizationTokenByRefreshTokenIds(ctx context.Context, tx *gorm.DB, ids *[]uuid.UUID) (*[]entity.AuthorizationToken, error) {
-	// Delete in cache
-	go func() {
-		for _, i := range *ids {
-			cacheId := "authorization_token:" + i.String()
-			cacheErr := Rdb.Del(ctx, cacheId).Err()
-			if cacheErr != nil {
-				log.Error(cacheErr)
-			}
-		}
-	}()
 	// Delete in database
 	res, err := Datasource.NewAuthorizationTokenDatasource().DeleteAuthorizationTokenByRefreshTokenIds(tx, ids)
 	if err != nil {
 		return nil, err
+	} else {
+		// Delete in cache
+		go func() {
+			ctx := context.Background()
+			rdbPipe := Rdb.Pipeline()
+			for _, item := range *res {
+				cacheId := "authorization_token:" + item.ID.String()
+				cacheErr := rdbPipe.Del(ctx, cacheId).Err()
+				if cacheErr != nil {
+					log.Error(cacheErr)
+				}
+			}
+			_, err := rdbPipe.Exec(ctx)
+			if err != nil {
+				log.Error(err)
+			}
+		}()
 	}
 	return res, nil
 }

@@ -14,16 +14,16 @@ import (
 )
 
 type ApplicationRepository interface {
-	CreateApplication(tx *gorm.DB, data *entity.Application) (*entity.Application, error)
-	GetApplication(tx *gorm.DB, where *entity.Application, fields *[]string) (*entity.Application, error)
-	ListApplication(tx *gorm.DB, where *entity.Application, cursor *time.Time, fields *[]string) (*[]entity.Application, error)
-	CheckApplication(tx *gorm.DB, accessToken string) (*entity.Application, error)
-	DeleteApplication(tx *gorm.DB, where *entity.Application, ids *[]uuid.UUID) (*[]entity.Application, error)
+	CreateApplication(ctx context.Context, tx *gorm.DB, data *entity.Application) (*entity.Application, error)
+	GetApplication(ctx context.Context, tx *gorm.DB, where *entity.Application, fields *[]string) (*entity.Application, error)
+	ListApplication(ctx context.Context, tx *gorm.DB, where *entity.Application, cursor *time.Time, fields *[]string) (*[]entity.Application, error)
+	CheckApplication(ctx context.Context, tx *gorm.DB, accessToken string) (*entity.Application, error)
+	DeleteApplication(ctx context.Context, tx *gorm.DB, where *entity.Application, ids *[]uuid.UUID) (*[]entity.Application, error)
 }
 
 type applicationRepository struct{}
 
-func (i *applicationRepository) GetApplication(tx *gorm.DB, where *entity.Application, fields *[]string) (*entity.Application, error) {
+func (i *applicationRepository) GetApplication(ctx context.Context, tx *gorm.DB, where *entity.Application, fields *[]string) (*entity.Application, error) {
 	res, err := Datasource.NewApplicationDatasource().GetApplication(tx, where, fields)
 	if err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func (i *applicationRepository) GetApplication(tx *gorm.DB, where *entity.Applic
 	return res, nil
 }
 
-func (i *applicationRepository) CreateApplication(tx *gorm.DB, data *entity.Application) (*entity.Application, error) {
+func (i *applicationRepository) CreateApplication(ctx context.Context, tx *gorm.DB, data *entity.Application) (*entity.Application, error) {
 	res, err := Datasource.NewApplicationDatasource().CreateApplication(tx, data)
 	if err != nil {
 		return nil, err
@@ -39,15 +39,33 @@ func (i *applicationRepository) CreateApplication(tx *gorm.DB, data *entity.Appl
 	return res, nil
 }
 
-func (i *applicationRepository) DeleteApplication(tx *gorm.DB, where *entity.Application, ids *[]uuid.UUID) (*[]entity.Application, error) {
-	res, err := Datasource.NewApplicationDatasource().DeleteApplication(tx, where, ids)
-	if err != nil {
-		return nil, err
+func (i *applicationRepository) DeleteApplication(ctx context.Context, tx *gorm.DB, where *entity.Application, ids *[]uuid.UUID) (*[]entity.Application, error) {
+	// Delete in database
+	dbRes, dbErr := Datasource.NewApplicationDatasource().DeleteApplication(tx, where, ids)
+	if dbErr != nil {
+		return nil, dbErr
+	} else {
+		// Delete in cache
+		go func() {
+			ctx := context.Background()
+			rdbPipe := Rdb.Pipeline()
+			for _, item := range *dbRes {
+				cacheId := "application:" + item.ID.String()
+				cacheErr := rdbPipe.Del(ctx, cacheId).Err()
+				if cacheErr != nil {
+					log.Error(cacheErr)
+				}
+			}
+			_, err := rdbPipe.Exec(ctx)
+			if err != nil {
+				log.Error(err)
+			}
+		}()
 	}
-	return res, nil
+	return dbRes, nil
 }
 
-func (i *applicationRepository) ListApplication(tx *gorm.DB, where *entity.Application, cursor *time.Time, fields *[]string) (*[]entity.Application, error) {
+func (i *applicationRepository) ListApplication(ctx context.Context, tx *gorm.DB, where *entity.Application, cursor *time.Time, fields *[]string) (*[]entity.Application, error) {
 	res, err := Datasource.NewApplicationDatasource().ListApplication(tx, where, cursor, fields)
 	if err != nil {
 		return nil, err
@@ -55,7 +73,7 @@ func (i *applicationRepository) ListApplication(tx *gorm.DB, where *entity.Appli
 	return res, nil
 }
 
-func (i *applicationRepository) CheckApplication(tx *gorm.DB, accessToken string) (*entity.Application, error) {
+func (i *applicationRepository) CheckApplication(ctx context.Context, tx *gorm.DB, accessToken string) (*entity.Application, error) {
 	jwtAccessToken := datasource.JsonWebTokenMetadata{Token: &accessToken}
 	accessTokenParseErr := Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(&jwtAccessToken)
 	if accessTokenParseErr != nil {
@@ -70,7 +88,6 @@ func (i *applicationRepository) CheckApplication(tx *gorm.DB, accessToken string
 			return nil, accessTokenParseErr
 		}
 	}
-	ctx := context.Background()
 	cacheId := "application:" + jwtAccessToken.TokenId.String()
 	cacheRes, cacheErr := Rdb.HGetAll(ctx, cacheId).Result()
 	// Check if exists in cache

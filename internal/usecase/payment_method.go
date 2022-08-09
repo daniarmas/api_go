@@ -40,7 +40,7 @@ func NewPaymentMethodService(dao repository.Repository, config *config.Config, r
 func (i *paymentMethodService) ListBusinessPaymentMethod(ctx context.Context, req *pb.ListBusinessPaymentMethodRequest, md *utils.ClientMetadata) (*pb.ListBusinessPaymentMethodResponse, error) {
 	var res pb.ListBusinessPaymentMethodResponse
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -65,7 +65,7 @@ func (i *paymentMethodService) ListBusinessPaymentMethod(ctx context.Context, re
 			return err
 		}
 		businessId := uuid.MustParse(req.BusinessId)
-		result, err := i.dao.NewBusinessPaymentMethodRepository().ListBusinessPaymentMethodWithEnabled(tx, &entity.BusinessPaymentMethod{BusinessId: &businessId})
+		result, err := i.dao.NewBusinessPaymentMethodRepository().ListBusinessPaymentMethodWithEnabled(ctx, tx, &entity.BusinessPaymentMethod{BusinessId: &businessId})
 		if err != nil {
 			return err
 		}
@@ -93,7 +93,7 @@ func (i *paymentMethodService) ListBusinessPaymentMethod(ctx context.Context, re
 
 func (i *paymentMethodService) DeletePaymentMethod(ctx context.Context, req *pb.DeletePaymentMethodRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -139,7 +139,7 @@ func (i *paymentMethodService) DeletePaymentMethod(ctx context.Context, req *pb.
 func (i *paymentMethodService) UpdatePaymentMethod(ctx context.Context, req *pb.UpdatePaymentMethodRequest, md *utils.ClientMetadata) (*pb.PaymentMethod, error) {
 	var res pb.PaymentMethod
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -193,7 +193,7 @@ func (i *paymentMethodService) UpdatePaymentMethod(ctx context.Context, req *pb.
 func (i *paymentMethodService) ListPaymentMethod(ctx context.Context, req *pb.ListPaymentMethodRequest, md *utils.ClientMetadata) (*pb.ListPaymentMethodResponse, error) {
 	var res pb.ListPaymentMethodResponse
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -248,7 +248,7 @@ func (i *paymentMethodService) ListPaymentMethod(ctx context.Context, req *pb.Li
 func (i *paymentMethodService) CreatePaymentMethod(ctx context.Context, req *pb.CreatePaymentMethodRequest, md *utils.ClientMetadata) (*pb.PaymentMethod, error) {
 	var res pb.PaymentMethod
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
