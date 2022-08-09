@@ -27,8 +27,9 @@ func (v *verificationCodeRepository) CreateVerificationCode(ctx context.Context,
 	}
 	// Store in cache
 	go func() {
+		ctx := context.Background()
 		cacheId := "verification_code:" + dbRes.ID.String()
-		cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
+		cacheErr := Rdb.HSet(ctx, cacheId, []string{
 			"id", dbRes.ID.String(),
 			"code", dbRes.Code,
 			"email", dbRes.Email,
@@ -57,8 +58,9 @@ func (v *verificationCodeRepository) GetVerificationCode(ctx context.Context, tx
 		}
 		// Store in cache
 		go func() {
+			ctx := context.Background()
 			cacheId := "verification_code:" + dbRes.ID.String()
-			cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
+			cacheErr := Rdb.HSet(ctx, cacheId, []string{
 				"id", dbRes.ID.String(),
 				"code", dbRes.Code,
 				"email", dbRes.Email,
@@ -95,16 +97,20 @@ func (v *verificationCodeRepository) DeleteVerificationCode(ctx context.Context,
 	dbRes, dbErr := Datasource.NewVerificationCodeDatasource().DeleteVerificationCode(tx, where, ids)
 	if dbErr != nil {
 		return nil, dbErr
-	}
-	// Delete in cache
-	go func() {
+	} else {
+		// Delete in cache
+		rdbPipe := Rdb.Pipeline()
 		for _, item := range *dbRes {
 			cacheId := "verification_code:" + item.ID.String()
-			cacheErr := Rdb.Del(ctx, cacheId).Err()
+			cacheErr := rdbPipe.Del(ctx, cacheId).Err()
 			if cacheErr != nil {
 				log.Error(cacheErr)
 			}
 		}
-	}()
+		_, err := rdbPipe.Exec(ctx)
+		if err != nil {
+			log.Error(err)
+		}
+	}
 	return dbRes, nil
 }

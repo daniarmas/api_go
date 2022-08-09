@@ -122,7 +122,7 @@ func (i *paymentMethodService) DeletePaymentMethod(ctx context.Context, req *pb.
 		// 	return errors.New("permission denied")
 		// }
 		id := uuid.MustParse(req.Id)
-		_, err = i.dao.NewPaymentMethodRepository().DeletePaymentMethod(tx, &entity.PaymentMethod{ID: &id}, nil)
+		_, err = i.dao.NewPaymentMethodRepository().DeletePaymentMethod(ctx, tx, &entity.PaymentMethod{ID: &id}, nil)
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("payment method not found")
 		} else if err != nil {
@@ -168,7 +168,7 @@ func (i *paymentMethodService) UpdatePaymentMethod(ctx context.Context, req *pb.
 			return errors.New("permission denied")
 		}
 		id := uuid.MustParse(req.Id)
-		result, err := i.dao.NewPaymentMethodRepository().UpdatePaymentMethod(tx, &entity.PaymentMethod{ID: &id}, &entity.PaymentMethod{Enabled: req.PaymentMethod.Enabled, Address: req.PaymentMethod.Address, Type: req.PaymentMethod.Type.String()})
+		result, err := i.dao.NewPaymentMethodRepository().UpdatePaymentMethod(ctx, tx, &entity.PaymentMethod{ID: &id}, &entity.PaymentMethod{Enabled: req.PaymentMethod.Enabled, Address: req.PaymentMethod.Address, Type: req.PaymentMethod.Type.String()})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("payment method not found")
 		} else if err != nil {
@@ -221,7 +221,7 @@ func (i *paymentMethodService) ListPaymentMethod(ctx context.Context, req *pb.Li
 		// if permissionErr != nil && permissionErr.Error() == "record not found" {
 		// 	return errors.New("permission denied")
 		// }
-		result, err := i.dao.NewPaymentMethodRepository().ListPaymentMethod(tx, &entity.PaymentMethod{})
+		result, err := i.dao.NewPaymentMethodRepository().ListPaymentMethod(ctx, tx, &entity.PaymentMethod{})
 		if err != nil {
 			return err
 		}
@@ -276,7 +276,7 @@ func (i *paymentMethodService) CreatePaymentMethod(ctx context.Context, req *pb.
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
-		result, err := i.dao.NewPaymentMethodRepository().CreatePaymentMethod(tx, &entity.PaymentMethod{Enabled: req.PaymentMethod.Enabled, Address: req.PaymentMethod.Address, Type: req.PaymentMethod.Type.String()})
+		result, err := i.dao.NewPaymentMethodRepository().CreatePaymentMethod(ctx, tx, &entity.PaymentMethod{Enabled: req.PaymentMethod.Enabled, Address: req.PaymentMethod.Address, Type: req.PaymentMethod.Type.String()})
 		if err != nil {
 			return err
 		}

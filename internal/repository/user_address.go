@@ -50,14 +50,6 @@ func (i *userAddressRepository) CreateUserAddress(tx *gorm.DB, data *entity.User
 	return res, nil
 }
 
-func (i *userAddressRepository) UserAddress(tx *gorm.DB, data *entity.UserAddress) (*entity.UserAddress, error) {
-	res, err := Datasource.NewUserAddressDatasource().CreateUserAddress(tx, data)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
-}
-
 func (i *userAddressRepository) UpdateUserAddressByUserId(tx *gorm.DB, where *entity.UserAddress, data *entity.UserAddress) (*entity.UserAddress, error) {
 	res, err := Datasource.NewUserAddressDatasource().UpdateUserAddressByUserId(tx, where, data)
 	if err != nil {
