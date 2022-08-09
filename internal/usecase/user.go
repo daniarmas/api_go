@@ -593,13 +593,13 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 			if req.Code == "" {
 				return errors.New("missing code")
 			}
-			verificationCode, verificationCodeErr := i.dao.NewVerificationCodeRepository().GetVerificationCode(tx, &entity.VerificationCode{Email: userRes.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "ChangeUserEmail"}, &[]string{"id"})
+			verificationCode, verificationCodeErr := i.dao.NewVerificationCodeRepository().GetVerificationCode(ctx, tx, &entity.VerificationCode{Email: userRes.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "ChangeUserEmail"}, &[]string{"id"})
 			if verificationCodeErr != nil && verificationCodeErr.Error() == "record not found" {
 				return errors.New("verification code not found")
 			} else if verificationCodeErr != nil {
 				return verificationCodeErr
 			}
-			_, err := i.dao.NewVerificationCodeRepository().DeleteVerificationCode(tx, &entity.VerificationCode{ID: verificationCode.ID}, nil)
+			_, err := i.dao.NewVerificationCodeRepository().DeleteVerificationCode(ctx, tx, &entity.VerificationCode{ID: verificationCode.ID}, nil)
 			if err != nil {
 				return err
 			}
