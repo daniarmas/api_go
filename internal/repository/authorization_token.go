@@ -49,21 +49,21 @@ func (v *authorizationTokenRepository) CreateAuthorizationToken(ctx context.Cont
 }
 
 func (r *authorizationTokenRepository) DeleteAuthorizationToken(ctx context.Context, tx *gorm.DB, where *entity.AuthorizationToken, ids *[]uuid.UUID) (*[]entity.AuthorizationToken, error) {
-	// Delete in cache
-	if where.ID != nil {
-		go func() {
-			cacheId := "authorization_token:" + where.ID.String()
-			cacheErr := Rdb.Del(ctx, cacheId).Err()
-			if cacheErr != nil {
-				log.Error(cacheErr)
-			}
-		}()
-	}
 	// Delete in database
 	dbRes, dbErr := Datasource.NewAuthorizationTokenDatasource().DeleteAuthorizationToken(tx, where, ids)
 	if dbErr != nil {
 		return nil, dbErr
 	}
+	// Delete in cache
+	go func() {
+		for _, item := range *dbRes {
+			cacheId := "authorization_token:" + item.ID.String()
+			cacheErr := Rdb.Del(ctx, cacheId).Err()
+			if cacheErr != nil {
+				log.Error(cacheErr)
+			}
+		}
+	}()
 	return dbRes, nil
 }
 
