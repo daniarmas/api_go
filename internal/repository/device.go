@@ -30,7 +30,8 @@ func (i *deviceRepository) GetDevice(ctx context.Context, tx *gorm.DB, where *en
 		}
 		// Store in the cache
 		go func() {
-			cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
+			ctx := context.Background()
+			cacheErr := Rdb.HSet(ctx, cacheId, []string{
 				"id", dbRes.ID.String(),
 				"platform", dbRes.Platform,
 				"system_version", dbRes.SystemVersion,
@@ -72,8 +73,9 @@ func (v *deviceRepository) CreateDevice(ctx context.Context, tx *gorm.DB, data *
 	} else {
 		// Store in cache
 		go func() {
+			ctx := context.Background()
 			cacheId := "device:" + dbRes.ID.String()
-			cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
+			cacheErr := Rdb.HSet(ctx, cacheId, []string{
 				"id", dbRes.ID.String(),
 				"platform", dbRes.Platform,
 				"system_version", dbRes.SystemVersion,
