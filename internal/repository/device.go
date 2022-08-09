@@ -30,7 +30,7 @@ func (i *deviceRepository) GetDevice(ctx context.Context, tx *gorm.DB, where *en
 		}
 		// Store in the cache
 		go func() {
-			cacheErr := Rdb.HSet(ctx, cacheId, []string{
+			cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
 				"id", dbRes.ID.String(),
 				"platform", dbRes.Platform,
 				"system_version", dbRes.SystemVersion,
@@ -73,7 +73,7 @@ func (v *deviceRepository) CreateDevice(ctx context.Context, tx *gorm.DB, data *
 		// Store in cache
 		go func() {
 			cacheId := "device:" + dbRes.ID.String()
-			cacheErr := Rdb.HSet(ctx, cacheId, []string{
+			cacheErr := Rdb.HSet(context.Background(), cacheId, []string{
 				"id", dbRes.ID.String(),
 				"platform", dbRes.Platform,
 				"system_version", dbRes.SystemVersion,
@@ -100,23 +100,21 @@ func (v *deviceRepository) UpdateDevice(ctx context.Context, tx *gorm.DB, where 
 		return nil, dbErr
 	}
 	// Store in cache
-	go func() {
-		cacheId := "device:" + dbRes.DeviceIdentifier
-		cacheErr := Rdb.HSet(ctx, cacheId, []string{
-			"id", dbRes.ID.String(),
-			"platform", dbRes.Platform,
-			"system_version", dbRes.SystemVersion,
-			"device_identifier", dbRes.DeviceIdentifier,
-			"firebase_cloud_messaging_id", dbRes.FirebaseCloudMessagingId,
-			"model", dbRes.Model,
-			"create_time", dbRes.CreateTime.Format(time.RFC3339),
-			"update_time", dbRes.UpdateTime.Format(time.RFC3339),
-		}).Err()
-		if cacheErr != nil {
-			log.Error(cacheErr)
-		} else {
-			Rdb.Expire(ctx, cacheId, time.Minute*15)
-		}
-	}()
+	cacheId := "device:" + dbRes.DeviceIdentifier
+	cacheErr := Rdb.HSet(ctx, cacheId, []string{
+		"id", dbRes.ID.String(),
+		"platform", dbRes.Platform,
+		"system_version", dbRes.SystemVersion,
+		"device_identifier", dbRes.DeviceIdentifier,
+		"firebase_cloud_messaging_id", dbRes.FirebaseCloudMessagingId,
+		"model", dbRes.Model,
+		"create_time", dbRes.CreateTime.Format(time.RFC3339),
+		"update_time", dbRes.UpdateTime.Format(time.RFC3339),
+	}).Err()
+	if cacheErr != nil {
+		log.Error(cacheErr)
+	} else {
+		Rdb.Expire(ctx, cacheId, time.Minute*15)
+	}
 	return dbRes, nil
 }
