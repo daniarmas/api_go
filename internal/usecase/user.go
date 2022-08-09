@@ -132,7 +132,7 @@ func (i *userService) GetUserAddress(ctx context.Context, req *pb.GetUserAddress
 		} else if err != nil && err.Error() != "record not found" {
 			return err
 		}
-		userRes, userErr := i.dao.NewUserRepository().GetUser(tx, &entity.User{ID: authorizationTokenRes.UserId}, &[]string{"id"})
+		userRes, userErr := i.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId}, &[]string{"id"})
 		if userErr != nil {
 			return userErr
 		}
@@ -190,7 +190,7 @@ func (i *userService) UpdateUserAddress(ctx context.Context, req *pb.UpdateUserA
 		} else if err != nil && err.Error() != "record not found" {
 			return err
 		}
-		userRes, userErr := i.dao.NewUserRepository().GetUser(tx, &entity.User{ID: authorizationTokenRes.UserId}, &[]string{"id"})
+		userRes, userErr := i.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId}, &[]string{"id"})
 		if userErr != nil {
 			return userErr
 		}
@@ -326,7 +326,7 @@ func (i *userService) CreateUserAddress(ctx context.Context, req *pb.CreateUserA
 		} else if err != nil && err.Error() != "record not found" {
 			return err
 		}
-		userRes, userErr := i.dao.NewUserRepository().GetUser(tx, &entity.User{ID: authorizationTokenRes.UserId}, &[]string{"id"})
+		userRes, userErr := i.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId}, &[]string{"id"})
 		if userErr != nil {
 			return userErr
 		}
@@ -481,7 +481,7 @@ func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*p
 		} else if err != nil && err.Error() != "record not found" {
 			return err
 		}
-		userRes, userErr = i.dao.NewUserRepository().GetUserWithAddress(tx, &entity.User{ID: authorizationTokenRes.UserId}, nil)
+		userRes, userErr = i.dao.NewUserRepository().GetUserWithAddress(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId}, nil)
 		if userErr != nil {
 			return userErr
 		}
@@ -581,7 +581,7 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 				return err
 			}
 		}
-		userRes, userErr := i.dao.NewUserRepository().GetUser(tx, &entity.User{ID: authorizationTokenRes.UserId}, &[]string{"id", "high_quality_photo", "low_quality_photo", "thumbnail"})
+		userRes, userErr := i.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId}, &[]string{"id", "high_quality_photo", "low_quality_photo", "thumbnail"})
 		if userErr != nil {
 			return userErr
 		}
@@ -604,7 +604,7 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 			if err != nil {
 				return err
 			}
-			updatedUserRes, updatedUserErr = i.dao.NewUserRepository().UpdateUser(tx, &entity.User{ID: &userId}, &entity.User{Email: req.User.Email})
+			updatedUserRes, updatedUserErr = i.dao.NewUserRepository().UpdateUser(ctx, tx, &entity.User{ID: &userId}, &entity.User{Email: req.User.Email})
 			if updatedUserErr != nil {
 				return updatedUserErr
 			}
@@ -658,12 +658,12 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 					return rmThErr
 				}
 			}
-			updatedUserRes, updatedUserErr = i.dao.NewUserRepository().UpdateUser(tx, &entity.User{ID: &userId}, &entity.User{HighQualityPhoto: req.User.HighQualityPhoto, LowQualityPhoto: req.User.LowQualityPhoto, Thumbnail: req.User.Thumbnail, BlurHash: req.User.BlurHash})
+			updatedUserRes, updatedUserErr = i.dao.NewUserRepository().UpdateUser(ctx, tx, &entity.User{ID: &userId}, &entity.User{HighQualityPhoto: req.User.HighQualityPhoto, LowQualityPhoto: req.User.LowQualityPhoto, Thumbnail: req.User.Thumbnail, BlurHash: req.User.BlurHash})
 			if updatedUserErr != nil {
 				return updatedUserErr
 			}
 		} else if req.User.FullName != "" {
-			updatedUserRes, updatedUserErr = i.dao.NewUserRepository().UpdateUser(tx, &entity.User{ID: &userId}, &entity.User{FullName: req.User.FullName})
+			updatedUserRes, updatedUserErr = i.dao.NewUserRepository().UpdateUser(ctx, tx, &entity.User{ID: &userId}, &entity.User{FullName: req.User.FullName})
 			if updatedUserErr != nil {
 				return updatedUserErr
 			}

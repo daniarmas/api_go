@@ -50,7 +50,7 @@ func (v *authenticationService) CreateVerificationCode(ctx context.Context, req 
 		if err != nil {
 			return err
 		}
-		user, err := v.dao.NewUserRepository().GetUser(tx, &entity.User{Email: req.Email}, &[]string{"id"})
+		user, err := v.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{Email: req.Email}, &[]string{"id"})
 		if err != nil {
 			if err.Error() == "record not found" && (req.Type.String() == "SignIn") {
 				return errors.New("user not found")
@@ -132,7 +132,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		} else if verificationCodeRes == nil {
 			return verificationCodeErr
 		}
-		userRes, userErr = v.dao.NewUserRepository().GetUserWithAddress(tx, &entity.User{Email: req.Email}, nil)
+		userRes, userErr = v.dao.NewUserRepository().GetUserWithAddress(ctx, tx, &entity.User{Email: req.Email}, nil)
 		if userErr != nil {
 			switch userErr.Error() {
 			case "record not found":
@@ -299,7 +299,7 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 		} else if verificationCodeErr != nil {
 			return verificationCodeErr
 		}
-		userRes, userErr = v.dao.NewUserRepository().GetUser(tx, &entity.User{Email: req.Email}, &[]string{"id"})
+		userRes, userErr = v.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{Email: req.Email}, &[]string{"id"})
 		if userErr != nil && userErr.Error() != "record not found" {
 			return userErr
 		} else if userRes != nil {
@@ -328,7 +328,7 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 		municipalityId := uuid.MustParse(req.UserAddress.MunicipalityId)
 		provinceId := uuid.MustParse(req.UserAddress.ProvinceId)
 		coordinates := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.UserAddress.Coordinates.Latitude, req.UserAddress.Coordinates.Longitude}).SetSRID(4326)}
-		createUserRes, createUserErr = v.dao.NewUserRepository().CreateUser(tx, &entity.User{Email: req.Email, IsLegalAge: true, FullName: req.FullName, UserConfiguration: entity.UserConfiguration{PaymentMethod: "PaymentMethodTypeCash", DataSaving: &falseValue, HighQualityImagesWifi: &trueValue, HighQualityImagesData: &trueValue}})
+		createUserRes, createUserErr = v.dao.NewUserRepository().CreateUser(ctx, tx, &entity.User{Email: req.Email, IsLegalAge: true, FullName: req.FullName, UserConfiguration: entity.UserConfiguration{PaymentMethod: "PaymentMethodTypeCash", DataSaving: &falseValue, HighQualityImagesWifi: &trueValue, HighQualityImagesData: &trueValue}})
 		if createUserErr != nil {
 			return createUserErr
 		}
@@ -456,7 +456,7 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 			} else if refreshTokenRes == nil {
 				return errors.New("unauthenticated")
 			}
-			userRes, userErr = v.dao.NewUserRepository().GetUserWithAddress(tx, &entity.User{ID: authorizationTokenRes.UserId}, nil)
+			userRes, userErr = v.dao.NewUserRepository().GetUserWithAddress(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId}, nil)
 			if userErr != nil {
 				return userErr
 			} else if userRes == nil {
@@ -749,7 +749,7 @@ func (v *authenticationService) RefreshToken(ctx context.Context, req *pb.Refres
 		} else if refreshTokenErr != nil {
 			return refreshTokenErr
 		}
-		userRes, userErr := v.dao.NewUserRepository().GetUser(tx, &entity.User{ID: refreshTokenRes.UserId}, &[]string{"id"})
+		userRes, userErr := v.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{ID: refreshTokenRes.UserId}, &[]string{"id"})
 		if userErr != nil {
 			return userErr
 		} else if userRes == nil {
