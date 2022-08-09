@@ -468,7 +468,7 @@ func (i *businessService) UpdatePartnerApplication(ctx context.Context, req *pb.
 			}
 			if req.PartnerApplication.Status == pb.PartnerApplicationStatus_PartnerApplicationStatusApproved {
 				userId := uuid.MustParse(req.PartnerApplication.UserId)
-				_, businessUserErr := i.dao.NewBusinessUserRepository().CreateBusinessUser(tx, &entity.BusinessUser{IsBusinessOwner: true, UserId: &userId})
+				_, businessUserErr := i.dao.NewBusinessUserRepository().CreateBusinessUser(ctx, tx, &entity.BusinessUser{IsBusinessOwner: true, UserId: &userId})
 				if businessUserErr != nil {
 					return businessUserErr
 				}
@@ -601,7 +601,7 @@ func (i *businessService) CreatePartnerApplication(ctx context.Context, req *pb.
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		businessUserRes, businessUserErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &entity.BusinessUser{UserId: authorizationTokenRes.UserId}, &[]string{"id"})
+		businessUserRes, businessUserErr := i.dao.NewBusinessUserRepository().GetBusinessUser(ctx, tx, &entity.BusinessUser{UserId: authorizationTokenRes.UserId}, &[]string{"id"})
 		if businessUserErr != nil && businessUserErr.Error() != "record not found" {
 			return businessUserErr
 		}
@@ -671,7 +671,7 @@ func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusi
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &entity.BusinessUser{UserId: authorizationTokenRes.UserId}, nil)
+		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(ctx, tx, &entity.BusinessUser{UserId: authorizationTokenRes.UserId}, nil)
 		if businessOwnerErr != nil {
 			return businessOwnerErr
 		}
@@ -809,7 +809,7 @@ func (i *businessService) CreateBusiness(ctx context.Context, req *pb.CreateBusi
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &entity.BusinessUser{UserId: authorizationTokenRes.UserId}, nil)
+		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(ctx, tx, &entity.BusinessUser{UserId: authorizationTokenRes.UserId}, nil)
 		if businessOwnerErr != nil {
 			return businessOwnerErr
 		}

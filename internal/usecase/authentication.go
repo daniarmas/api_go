@@ -359,7 +359,7 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 			isBusinessOwner = true
 		}
 		if req.SignUpType.String() == "SignUpBusiness" {
-			_, createBusinessUserErr := v.dao.NewBusinessUserRepository().CreateBusinessUser(tx, &entity.BusinessUser{IsBusinessOwner: isBusinessOwner, UserId: createUserRes.ID})
+			_, createBusinessUserErr := v.dao.NewBusinessUserRepository().CreateBusinessUser(ctx, tx, &entity.BusinessUser{IsBusinessOwner: isBusinessOwner, UserId: createUserRes.ID})
 			if createBusinessUserErr != nil {
 				return createBusinessUserErr
 			}
