@@ -1,7 +1,7 @@
 {
-  "nextPage": 0,
-  "name": "cuadro",
+  "name": "a",
   "provinceId": "fdd8d920-af20-40e8-bb4f-6c1194a1b756",
   "municipalityId": "42aa4a78-4f77-4190-977e-a9b751879711",
-  "searchMunicipalityType": "More"
+  "searchMunicipalityType": "More",
+  "nextPage": 40
 }
