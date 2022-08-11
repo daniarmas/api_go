@@ -8,20 +8,16 @@ import (
 )
 
 type UnionBusinessAndMunicipalityDatasource interface {
-	GetUnionBusinessAndMunicipality(tx *gorm.DB, where *entity.UnionBusinessAndMunicipality, fields *[]string) (*entity.UnionBusinessAndMunicipality, error)
+	GetUnionBusinessAndMunicipality(tx *gorm.DB, where *entity.UnionBusinessAndMunicipality) (*entity.UnionBusinessAndMunicipality, error)
 	BatchCreateUnionBusinessAndMunicipality(tx *gorm.DB, data []*entity.UnionBusinessAndMunicipality) ([]*entity.UnionBusinessAndMunicipality, error)
 	ListUnionBusinessAndMunicipalityWithMunicipality(tx *gorm.DB, ids []string) (*[]entity.UnionBusinessAndMunicipalityWithMunicipality, error)
 }
 
 type unionBusinessAndMunicipalityDatasource struct{}
 
-func (v *unionBusinessAndMunicipalityDatasource) GetUnionBusinessAndMunicipality(tx *gorm.DB, where *entity.UnionBusinessAndMunicipality, fields *[]string) (*entity.UnionBusinessAndMunicipality, error) {
+func (v *unionBusinessAndMunicipalityDatasource) GetUnionBusinessAndMunicipality(tx *gorm.DB, where *entity.UnionBusinessAndMunicipality) (*entity.UnionBusinessAndMunicipality, error) {
 	var res *entity.UnionBusinessAndMunicipality
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Where(where).Select(*selectFields).Take(&res)
+	result := tx.Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("refreshtoken not found")

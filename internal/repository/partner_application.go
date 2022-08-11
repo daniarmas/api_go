@@ -9,17 +9,17 @@ import (
 )
 
 type PartnerApplicationRepository interface {
-	ListPartnerApplication(tx *gorm.DB, where *entity.PartnerApplication, cursor *time.Time, fields *[]string) (*[]entity.PartnerApplication, error)
+	ListPartnerApplication(tx *gorm.DB, where *entity.PartnerApplication, cursor *time.Time) (*[]entity.PartnerApplication, error)
 	CreatePartnerApplication(tx *gorm.DB, where *entity.PartnerApplication) (*entity.PartnerApplication, error)
 	UpdatePartnerApplication(tx *gorm.DB, where *entity.PartnerApplication, data *entity.PartnerApplication) (*entity.PartnerApplication, error)
-	GetPartnerApplication(tx *gorm.DB, where *entity.PartnerApplication, fields *[]string) (*entity.PartnerApplication, error)
+	GetPartnerApplication(tx *gorm.DB, where *entity.PartnerApplication) (*entity.PartnerApplication, error)
 	DeletePartnerApplication(tx *gorm.DB, where *entity.PartnerApplication, ids *[]uuid.UUID) (*[]entity.PartnerApplication, error)
 }
 
 type partnerApplicationRepository struct{}
 
-func (i *partnerApplicationRepository) ListPartnerApplication(tx *gorm.DB, where *entity.PartnerApplication, cursor *time.Time, fields *[]string) (*[]entity.PartnerApplication, error) {
-	res, err := Datasource.NewPartnerApplicationDatasource().ListPartnerApplication(tx, where, fields, cursor)
+func (i *partnerApplicationRepository) ListPartnerApplication(tx *gorm.DB, where *entity.PartnerApplication, cursor *time.Time) (*[]entity.PartnerApplication, error) {
+	res, err := Datasource.NewPartnerApplicationDatasource().ListPartnerApplication(tx, where, cursor)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (i *partnerApplicationRepository) UpdatePartnerApplication(tx *gorm.DB, whe
 	return res, nil
 }
 
-func (i *partnerApplicationRepository) GetPartnerApplication(tx *gorm.DB, where *entity.PartnerApplication, fields *[]string) (*entity.PartnerApplication, error) {
+func (i *partnerApplicationRepository) GetPartnerApplication(tx *gorm.DB, where *entity.PartnerApplication) (*entity.PartnerApplication, error) {
 	res, err := Datasource.NewPartnerApplicationDatasource().GetPartnerApplication(tx, where)
 	if err != nil {
 		return nil, err

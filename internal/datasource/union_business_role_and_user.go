@@ -11,9 +11,9 @@ import (
 )
 
 type UnionBusinessRoleAndUserDatasource interface {
-	ListUnionBusinessRoleAndUser(tx *gorm.DB, where *entity.UnionBusinessRoleAndUser, cursor *time.Time, fields *[]string) (*[]entity.UnionBusinessRoleAndUser, error)
+	ListUnionBusinessRoleAndUser(tx *gorm.DB, where *entity.UnionBusinessRoleAndUser, cursor *time.Time) (*[]entity.UnionBusinessRoleAndUser, error)
 	ListUnionBusinessRoleAndUserAll(tx *gorm.DB, where *entity.UnionBusinessRoleAndUser) (*[]entity.UnionBusinessRoleAndUser, error)
-	ListUnionBusinessRoleAndUserInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.UnionBusinessRoleAndUser, error)
+	ListUnionBusinessRoleAndUserInIds(tx *gorm.DB, ids []uuid.UUID) (*[]entity.UnionBusinessRoleAndUser, error)
 	CreateUnionBusinessRoleAndUser(tx *gorm.DB, where *[]entity.UnionBusinessRoleAndUser) (*[]entity.UnionBusinessRoleAndUser, error)
 	DeleteUnionBusinessRoleAndUser(tx *gorm.DB, where *entity.UnionBusinessRoleAndUser, ids *[]uuid.UUID) (*[]entity.UnionBusinessRoleAndUser, error)
 	GetUnionBusinessRoleAndUser(tx *gorm.DB, where *entity.UnionBusinessRoleAndUser) (*entity.UnionBusinessRoleAndUser, error)
@@ -34,26 +34,18 @@ func (i *unionBusinessRoleAndUserDatasource) GetUnionBusinessRoleAndUser(tx *gor
 	return res, nil
 }
 
-func (i *unionBusinessRoleAndUserDatasource) ListUnionBusinessRoleAndUserInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.UnionBusinessRoleAndUser, error) {
+func (i *unionBusinessRoleAndUserDatasource) ListUnionBusinessRoleAndUserInIds(tx *gorm.DB, ids []uuid.UUID) (*[]entity.UnionBusinessRoleAndUser, error) {
 	var UnionBusinessRoleAndUsers []entity.UnionBusinessRoleAndUser
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Where("id IN ?", ids).Select(*selectFields).Find(&UnionBusinessRoleAndUsers)
+	result := tx.Where("id IN ?", ids).Find(&UnionBusinessRoleAndUsers)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return &UnionBusinessRoleAndUsers, nil
 }
 
-func (i *unionBusinessRoleAndUserDatasource) ListUnionBusinessRoleAndUser(tx *gorm.DB, where *entity.UnionBusinessRoleAndUser, cursor *time.Time, fields *[]string) (*[]entity.UnionBusinessRoleAndUser, error) {
+func (i *unionBusinessRoleAndUserDatasource) ListUnionBusinessRoleAndUser(tx *gorm.DB, where *entity.UnionBusinessRoleAndUser, cursor *time.Time) (*[]entity.UnionBusinessRoleAndUser, error) {
 	var res []entity.UnionBusinessRoleAndUser
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Model(&entity.UnionBusinessRoleAndUser{}).Select(*selectFields).Limit(11).Where("create_time < ?", cursor).Order("create_time desc").Scan(&res)
+	result := tx.Model(&entity.UnionBusinessRoleAndUser{}).Limit(11).Where("create_time < ?", cursor).Order("create_time desc").Scan(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}

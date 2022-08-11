@@ -10,7 +10,7 @@ import (
 )
 
 type RefreshTokenDatasource interface {
-	GetRefreshToken(tx *gorm.DB, where *entity.RefreshToken, fields *[]string) (*entity.RefreshToken, error)
+	GetRefreshToken(tx *gorm.DB, where *entity.RefreshToken) (*entity.RefreshToken, error)
 	CreateRefreshToken(tx *gorm.DB, data *entity.RefreshToken) (*entity.RefreshToken, error)
 	DeleteRefreshToken(tx *gorm.DB, where *entity.RefreshToken, ids *[]uuid.UUID) (*[]entity.RefreshToken, error)
 	DeleteRefreshTokenDeviceIdNotEqual(tx *gorm.DB, where *entity.RefreshToken, ids *[]uuid.UUID) (*[]entity.RefreshToken, error)
@@ -58,13 +58,9 @@ func (r *refreshTokenDatasource) DeleteRefreshTokenDeviceIdNotEqual(tx *gorm.DB,
 	return res, nil
 }
 
-func (v *refreshTokenDatasource) GetRefreshToken(tx *gorm.DB, where *entity.RefreshToken, fields *[]string) (*entity.RefreshToken, error) {
+func (v *refreshTokenDatasource) GetRefreshToken(tx *gorm.DB, where *entity.RefreshToken) (*entity.RefreshToken, error) {
 	var res *entity.RefreshToken
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Where(where).Select(*selectFields).Take(&res)
+	result := tx.Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("refreshtoken not found")

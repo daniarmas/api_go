@@ -52,7 +52,7 @@ func NewBusinessService(dao repository.Repository, config *config.Config, stDb *
 
 func (i *businessService) BusinessIsInRange(ctx context.Context, req *pb.BusinessIsInRangeRequest, meta *utils.ClientMetadata) error {
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *meta.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *meta.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -70,7 +70,7 @@ func (i *businessService) BusinessIsInRange(ctx context.Context, req *pb.Busines
 				return authorizationTokenParseErr
 			}
 		}
-		_, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		_, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if authorizationTokenErr != nil {
@@ -95,7 +95,7 @@ func (i *businessService) BusinessIsInRange(ctx context.Context, req *pb.Busines
 func (i *businessService) ModifyBusinessRolePermission(ctx context.Context, req *pb.ModifyBusinessRolePermissionRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
 	var res gp.Empty
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -113,18 +113,18 @@ func (i *businessService) ModifyBusinessRolePermission(ctx context.Context, req 
 				return err
 			}
 		}
-		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if err != nil {
 			return err
 		}
 		businessRoleId := uuid.MustParse(req.BusinessRoleId)
-		businessRoleRes, err := i.dao.NewBusinessRoleRepository().GetBusinessRole(tx, &entity.BusinessRole{ID: &businessRoleId}, nil)
+		businessRoleRes, err := i.dao.NewBusinessRoleRepository().GetBusinessRole(ctx, tx, &entity.BusinessRole{ID: &businessRoleId})
 		if err != nil {
 			return err
 		}
-		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_role", BusinessId: businessRoleRes.BusinessId}, &[]string{"id"})
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_role", BusinessId: businessRoleRes.BusinessId})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
@@ -138,7 +138,7 @@ func (i *businessService) ModifyBusinessRolePermission(ctx context.Context, req 
 			})
 			permissionIds = append(permissionIds, permissionId)
 		}
-		permissionsRes, err := i.dao.NewPermissionRepository().ListPermissionByIdAll(tx, &entity.Permission{}, &permissionIds)
+		permissionsRes, err := i.dao.NewPermissionRepository().ListPermissionByIdAll(ctx, tx, &entity.Permission{}, &permissionIds)
 		if err != nil {
 			return err
 		}
@@ -168,7 +168,7 @@ func (i *businessService) ModifyBusinessRolePermission(ctx context.Context, req 
 		} else if err != nil {
 			return err
 		}
-		_, err = i.dao.NewUserPermissionRepository().DeleteUserPermissionByBusinessRoleId(tx, &entity.UserPermission{BusinessRoleId: &businessRoleId})
+		_, err = i.dao.NewUserPermissionRepository().DeleteUserPermissionByBusinessRoleId(ctx, tx, &entity.UserPermission{BusinessRoleId: &businessRoleId})
 		if err != nil {
 			return err
 		}
@@ -176,7 +176,7 @@ func (i *businessService) ModifyBusinessRolePermission(ctx context.Context, req 
 		if err != nil {
 			return err
 		}
-		_, err = i.dao.NewUserPermissionRepository().CreateUserPermission(tx, &userPermissions)
+		_, err = i.dao.NewUserPermissionRepository().CreateUserPermission(ctx, tx, &userPermissions)
 		if err != nil {
 			return err
 		}
@@ -191,7 +191,7 @@ func (i *businessService) ModifyBusinessRolePermission(ctx context.Context, req 
 func (i *businessService) UpdateBusinessRole(ctx context.Context, req *pb.UpdateBusinessRoleRequest, md *utils.ClientMetadata) (*pb.BusinessRole, error) {
 	var res pb.BusinessRole
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -209,20 +209,20 @@ func (i *businessService) UpdateBusinessRole(ctx context.Context, req *pb.Update
 				return err
 			}
 		}
-		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if err != nil {
 			return err
 		}
 		id := uuid.MustParse(req.Id)
-		businessRolesRes, err := i.dao.NewBusinessRoleRepository().UpdateBusinessRole(tx, &entity.BusinessRole{ID: &id}, &entity.BusinessRole{Name: req.BusinessRole.Name})
+		businessRolesRes, err := i.dao.NewBusinessRoleRepository().UpdateBusinessRole(ctx, tx, &entity.BusinessRole{ID: &id}, &entity.BusinessRole{Name: req.BusinessRole.Name})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("business role not found")
 		} else if err != nil {
 			return err
 		}
-		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_role", BusinessId: businessRolesRes.BusinessId}, &[]string{"id"})
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_role", BusinessId: businessRolesRes.BusinessId})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
@@ -243,7 +243,7 @@ func (i *businessService) UpdateBusinessRole(ctx context.Context, req *pb.Update
 
 func (i *businessService) DeleteBusinessRole(ctx context.Context, req *pb.DeleteBusinessRoleRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -261,18 +261,18 @@ func (i *businessService) DeleteBusinessRole(ctx context.Context, req *pb.Delete
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
 		id := uuid.MustParse(req.Id)
-		businessRolesRes, err := i.dao.NewBusinessRoleRepository().DeleteBusinessRole(tx, &entity.BusinessRole{ID: &id}, nil)
+		businessRolesRes, err := i.dao.NewBusinessRoleRepository().DeleteBusinessRole(ctx, tx, &entity.BusinessRole{ID: &id}, nil)
 		if err != nil {
 			return err
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "delete_role", BusinessId: (*businessRolesRes)[0].BusinessId}, &[]string{"id"})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "delete_role", BusinessId: (*businessRolesRes)[0].BusinessId})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
@@ -284,7 +284,7 @@ func (i *businessService) DeleteBusinessRole(ctx context.Context, req *pb.Delete
 		for _, i := range *unionBusinessRoleAndPermRes {
 			userPermissionIds = append(userPermissionIds, *i.PermissionId)
 		}
-		_, err = i.dao.NewUserPermissionRepository().DeleteUserPermissionByPermissionId(tx, &userPermissionIds)
+		_, err = i.dao.NewUserPermissionRepository().DeleteUserPermissionByPermissionId(ctx, tx, &userPermissionIds)
 		if err != nil {
 			return err
 		}
@@ -299,7 +299,7 @@ func (i *businessService) DeleteBusinessRole(ctx context.Context, req *pb.Delete
 func (i *businessService) CreateBusinessRole(ctx context.Context, req *pb.CreateBusinessRoleRequest, md *utils.ClientMetadata) (*pb.BusinessRole, error) {
 	var res pb.BusinessRole
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -317,18 +317,18 @@ func (i *businessService) CreateBusinessRole(ctx context.Context, req *pb.Create
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
 		businessId := uuid.MustParse(req.BusinessRole.BusinessId)
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_role", BusinessId: &businessId}, &[]string{"id"})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_role", BusinessId: &businessId})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
-		businessRolesRes, err := i.dao.NewBusinessRoleRepository().CreateBusinessRole(tx, &entity.BusinessRole{Name: req.BusinessRole.Name, BusinessId: &businessId})
+		businessRolesRes, err := i.dao.NewBusinessRoleRepository().CreateBusinessRole(ctx, tx, &entity.BusinessRole{Name: req.BusinessRole.Name, BusinessId: &businessId})
 		if err != nil {
 			return err
 		}
@@ -368,7 +368,7 @@ func (i *businessService) ListBusinessRole(ctx context.Context, req *pb.ListBusi
 		nextPage = req.NextPage.AsTime()
 	}
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -386,18 +386,18 @@ func (i *businessService) ListBusinessRole(ctx context.Context, req *pb.ListBusi
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
 		businessId := uuid.MustParse(req.BusinessId)
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_role", BusinessId: &businessId}, &[]string{"id"})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_role", BusinessId: &businessId})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
-		businessRolesRes, err := i.dao.NewBusinessRoleRepository().ListBusinessRole(tx, &entity.BusinessRole{}, &nextPage, nil)
+		businessRolesRes, err := i.dao.NewBusinessRoleRepository().ListBusinessRole(ctx, tx, &entity.BusinessRole{}, &nextPage)
 		if err != nil {
 			return err
 		} else if len(*businessRolesRes) > 10 {
@@ -430,7 +430,7 @@ func (i *businessService) ListBusinessRole(ctx context.Context, req *pb.ListBusi
 func (i *businessService) UpdatePartnerApplication(ctx context.Context, req *pb.UpdatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error) {
 	var res pb.PartnerApplication
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -448,27 +448,27 @@ func (i *businessService) UpdatePartnerApplication(ctx context.Context, req *pb.
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
 		id := uuid.MustParse(req.Id)
-		getPartnerAppRes, getPartnerAppErr := i.dao.NewPartnerApplicationRepository().GetPartnerApplication(tx, &entity.PartnerApplication{ID: &id}, &[]string{"user_id"})
+		getPartnerAppRes, getPartnerAppErr := i.dao.NewPartnerApplicationRepository().GetPartnerApplication(tx, &entity.PartnerApplication{ID: &id})
 		if getPartnerAppErr != nil && getPartnerAppErr.Error() == "record not found" {
 			return errors.New("partner application not found")
 		} else if getPartnerAppErr != nil {
 			return getPartnerAppErr
 		}
 		if req.PartnerApplication.Status == pb.PartnerApplicationStatus_PartnerApplicationStatusApproved || req.PartnerApplication.Status == pb.PartnerApplicationStatus_PartnerApplicationStatusRejected {
-			_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_partner_application"}, &[]string{"id"})
+			_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_partner_application"})
 			if permissionErr != nil && permissionErr.Error() == "record not found" {
 				return errors.New("permission denied")
 			}
 			if req.PartnerApplication.Status == pb.PartnerApplicationStatus_PartnerApplicationStatusApproved {
 				userId := uuid.MustParse(req.PartnerApplication.UserId)
-				_, businessUserErr := i.dao.NewBusinessUserRepository().CreateBusinessUser(tx, &entity.BusinessUser{IsBusinessOwner: true, UserId: &userId})
+				_, businessUserErr := i.dao.NewBusinessUserRepository().CreateBusinessUser(ctx, tx, &entity.BusinessUser{IsBusinessOwner: true, UserId: &userId})
 				if businessUserErr != nil {
 					return businessUserErr
 				}
@@ -511,7 +511,7 @@ func (i *businessService) ListPartnerApplication(ctx context.Context, req *pb.Li
 		nextPage = req.NextPage.AsTime()
 	}
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -529,17 +529,17 @@ func (i *businessService) ListPartnerApplication(ctx context.Context, req *pb.Li
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_partner_application"}, &[]string{"id"})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_partner_application"})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("not permission")
 		}
-		partnerApplicationsRes, partnerApplicationsErr := i.dao.NewPartnerApplicationRepository().ListPartnerApplication(tx, nil, &nextPage, nil)
+		partnerApplicationsRes, partnerApplicationsErr := i.dao.NewPartnerApplicationRepository().ListPartnerApplication(tx, nil, &nextPage)
 		if partnerApplicationsErr != nil {
 			return partnerApplicationsErr
 		} else if len(*partnerApplicationsRes) > 10 {
@@ -577,7 +577,7 @@ func (i *businessService) ListPartnerApplication(ctx context.Context, req *pb.Li
 func (i *businessService) CreatePartnerApplication(ctx context.Context, req *pb.CreatePartnerApplicationRequest, md *utils.ClientMetadata) (*pb.PartnerApplication, error) {
 	var res pb.PartnerApplication
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -595,20 +595,20 @@ func (i *businessService) CreatePartnerApplication(ctx context.Context, req *pb.
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		businessUserRes, businessUserErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &entity.BusinessUser{UserId: authorizationTokenRes.UserId}, &[]string{"id"})
+		businessUserRes, businessUserErr := i.dao.NewBusinessUserRepository().GetBusinessUser(ctx, tx, &entity.BusinessUser{UserId: authorizationTokenRes.UserId})
 		if businessUserErr != nil && businessUserErr.Error() != "record not found" {
 			return businessUserErr
 		}
 		if businessUserRes != nil {
 			return errors.New("already register as business user")
 		}
-		businessRes, businessErr := i.dao.NewBusinessRepository().GetBusiness(tx, &entity.Business{Name: req.PartnerApplication.BusinessName}, &[]string{"id"})
+		businessRes, businessErr := i.dao.NewBusinessRepository().GetBusiness(tx, &entity.Business{Name: req.PartnerApplication.BusinessName})
 		if businessErr != nil && businessErr.Error() != "record not found" {
 			return businessErr
 		}
@@ -647,7 +647,7 @@ func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusi
 	var businessErr error
 	id := uuid.MustParse(req.Id)
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -665,13 +665,13 @@ func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusi
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &entity.BusinessUser{UserId: authorizationTokenRes.UserId}, nil)
+		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(ctx, tx, &entity.BusinessUser{UserId: authorizationTokenRes.UserId})
 		if businessOwnerErr != nil {
 			return businessOwnerErr
 		}
@@ -690,13 +690,13 @@ func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusi
 		} else if businessHomeDeliveryRes {
 			return errors.New("business is open")
 		}
-		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &entity.CartItem{BusinessId: &id}, nil)
+		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &entity.CartItem{BusinessId: &id})
 		if getCartItemErr != nil && getCartItemErr.Error() != "record not found" {
 			return getCartItemErr
 		} else if getCartItemRes != nil {
 			return errors.New("item in the cart")
 		}
-		getBusinessRes, getBusinessErr := i.dao.NewBusinessRepository().GetBusiness(tx, &entity.Business{ID: &id}, nil)
+		getBusinessRes, getBusinessErr := i.dao.NewBusinessRepository().GetBusiness(tx, &entity.Business{ID: &id})
 		if getBusinessErr != nil {
 			return getBusinessErr
 		}
@@ -785,7 +785,7 @@ func (i *businessService) CreateBusiness(ctx context.Context, req *pb.CreateBusi
 	var businessErr error
 	var response pb.CreateBusinessResponse
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -803,13 +803,13 @@ func (i *businessService) CreateBusiness(ctx context.Context, req *pb.CreateBusi
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(tx, &entity.BusinessUser{UserId: authorizationTokenRes.UserId}, nil)
+		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(ctx, tx, &entity.BusinessUser{UserId: authorizationTokenRes.UserId})
 		if businessOwnerErr != nil {
 			return businessOwnerErr
 		}
@@ -897,7 +897,7 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 	var businessCategories []*pb.BusinessCategory
 	provinceId := uuid.MustParse(req.ProvinceId)
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := v.dao.NewApplicationRepository().CheckApplication(tx, *meta.AccessToken)
+		_, err := v.dao.NewApplicationRepository().CheckApplication(ctx, tx, *meta.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -980,7 +980,7 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 			response.Businesses = businessResponse
 		}
 		if req.Categories {
-			res, err := v.dao.NewBusinessCategoryRepository().ListBusinessCategory(tx, &entity.BusinessCategory{ProvinceId: &provinceId}, nil)
+			res, err := v.dao.NewBusinessCategoryRepository().ListBusinessCategory(tx, &entity.BusinessCategory{ProvinceId: &provinceId})
 			if err != nil {
 				return err
 			}
@@ -1011,22 +1011,22 @@ func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRe
 	var itemsCategoryResponse []*pb.BusinessCollection
 	var schedule *entity.BusinessSchedule
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := v.dao.NewApplicationRepository().CheckApplication(tx, *meta.AccessToken)
+		_, err := v.dao.NewApplicationRepository().CheckApplication(ctx, tx, *meta.AccessToken)
 		if err != nil {
 			return err
 		}
 		businessId := uuid.MustParse(req.Id)
-		businessRes, businessErr = v.dao.NewBusinessRepository().GetBusiness(tx, &entity.Business{ID: &businessId}, nil)
+		businessRes, businessErr = v.dao.NewBusinessRepository().GetBusiness(tx, &entity.Business{ID: &businessId})
 		if businessErr != nil && businessErr.Error() == "record not found" {
 			return errors.New("business not found")
 		} else if businessErr != nil {
 			return businessErr
 		}
-		schedule, err = v.dao.NewBusinessScheduleRepository().GetBusinessSchedule(tx, &entity.BusinessSchedule{BusinessId: businessRes.ID}, nil)
+		schedule, err = v.dao.NewBusinessScheduleRepository().GetBusinessSchedule(tx, &entity.BusinessSchedule{BusinessId: businessRes.ID})
 		if err != nil {
 			return err
 		}
-		businessCollectionRes, businessCollectionErr = v.dao.NewBusinessCollectionRepository().ListBusinessCollection(tx, &entity.BusinessCollection{BusinessId: &businessId}, nil)
+		businessCollectionRes, businessCollectionErr = v.dao.NewBusinessCollectionRepository().ListBusinessCollection(tx, &entity.BusinessCollection{BusinessId: &businessId})
 		if businessCollectionErr != nil {
 			return businessCollectionErr
 		}
@@ -1089,7 +1089,7 @@ func (v *businessService) GetBusinessWithDistance(ctx context.Context, req *pb.G
 	var businessErr, businessCollectionErr error
 	var businessCollectionResponse []*pb.BusinessCollection
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := v.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := v.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -1100,7 +1100,7 @@ func (v *businessService) GetBusinessWithDistance(ctx context.Context, req *pb.G
 		} else if businessErr != nil {
 			return businessErr
 		}
-		businessCollectionRes, businessCollectionErr = v.dao.NewBusinessCollectionRepository().ListBusinessCollection(tx, &entity.BusinessCollection{BusinessId: &businessId}, nil)
+		businessCollectionRes, businessCollectionErr = v.dao.NewBusinessCollectionRepository().ListBusinessCollection(tx, &entity.BusinessCollection{BusinessId: &businessId})
 		if businessCollectionErr != nil {
 			return businessCollectionErr
 		}

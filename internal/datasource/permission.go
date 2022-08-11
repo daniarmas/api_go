@@ -9,7 +9,7 @@ import (
 )
 
 type PermissionDatasource interface {
-	GetPermission(tx *gorm.DB, where *entity.Permission, fields *[]string) (*entity.Permission, error)
+	GetPermission(tx *gorm.DB, where *entity.Permission) (*entity.Permission, error)
 	ListPermissionAll(tx *gorm.DB, where *entity.Permission) (*[]entity.Permission, error)
 	ListPermissionByIdAll(tx *gorm.DB, where *entity.Permission, ids *[]uuid.UUID) (*[]entity.Permission, error)
 }
@@ -34,13 +34,9 @@ func (i *permissionDatasource) ListPermissionByIdAll(tx *gorm.DB, where *entity.
 	return &res, nil
 }
 
-func (i *permissionDatasource) GetPermission(tx *gorm.DB, where *entity.Permission, fields *[]string) (*entity.Permission, error) {
+func (i *permissionDatasource) GetPermission(tx *gorm.DB, where *entity.Permission) (*entity.Permission, error) {
 	var res *entity.Permission
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Where(where).Select(*selectFields).Take(&res)
+	result := tx.Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

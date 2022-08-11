@@ -8,7 +8,7 @@
       },
       {
         "key": "Access-Token",
-        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTk5OTUwNDQsInN1YiI6ImM4OGIyZjkwLTY1MjktNGMyOS1hZGQxLWFiNGYxNzJlOTc1OCJ9.Hf9h10vNsQql-xVo0R27AOZMYyTGGgLlHit7SECdaX8"
+        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjAzMTAzNjAsInN1YiI6IjhiNWIxOThhLWRmMjMtNDJmZi1iM2VkLWFhYTUzNTI5MDc3YiJ9.eQWkAXeFf2hCvAIbg_J02eA0W1ZNA-p7TgGAQdr2DRA"
       },
       {
         "key": "Platform",
@@ -16,7 +16,7 @@
       },
       {
         "key": "System-Version",
-        "value": "14"
+        "value": "14.1"
       },
       {
         "key": "Model",

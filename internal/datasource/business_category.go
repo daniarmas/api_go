@@ -10,21 +10,17 @@ import (
 )
 
 type BusinessCategoryDatasource interface {
-	GetBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory, fields *[]string) (*entity.BusinessCategory, error)
+	GetBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory) (*entity.BusinessCategory, error)
 	CreateBusinessCategory(tx *gorm.DB, data *entity.BusinessCategory) (*entity.BusinessCategory, error)
 	DeleteBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory, ids *[]uuid.UUID) (*[]entity.BusinessCategory, error)
-	ListBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory, fields *[]string) (*[]entity.BusinessCategory, error)
+	ListBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory) (*[]entity.BusinessCategory, error)
 }
 
 type businessCategoryDatasource struct{}
 
-func (i *businessCategoryDatasource) ListBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory, fields *[]string) (*[]entity.BusinessCategory, error) {
+func (i *businessCategoryDatasource) ListBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory) (*[]entity.BusinessCategory, error) {
 	var res []entity.BusinessCategory
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Where(where).Select(*selectFields).Find(&res)
+	result := tx.Where(where).Find(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -48,13 +44,9 @@ func (v *businessCategoryDatasource) CreateBusinessCategory(tx *gorm.DB, data *e
 	return data, nil
 }
 
-func (v *businessCategoryDatasource) GetBusinessCategory(tx *gorm.DB, BusinessCategory *entity.BusinessCategory, fields *[]string) (*entity.BusinessCategory, error) {
+func (v *businessCategoryDatasource) GetBusinessCategory(tx *gorm.DB, BusinessCategory *entity.BusinessCategory) (*entity.BusinessCategory, error) {
 	var res *entity.BusinessCategory
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Where(BusinessCategory).Select(*selectFields).Take(&res)
+	result := tx.Where(BusinessCategory).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

@@ -10,15 +10,15 @@ import (
 )
 
 type UserDatasource interface {
-	GetUser(tx *gorm.DB, user *entity.User, fields *[]string) (*entity.User, error)
-	GetUserWithAddress(tx *gorm.DB, user *entity.User, fields *[]string) (*entity.User, error)
+	GetUser(tx *gorm.DB, user *entity.User) (*entity.User, error)
+	GetUserWithAddress(tx *gorm.DB, user *entity.User) (*entity.User, error)
 	CreateUser(tx *gorm.DB, data *entity.User) (*entity.User, error)
 	UpdateUser(tx *gorm.DB, where *entity.User, data *entity.User) (*entity.User, error)
 }
 
 type userDatasource struct{}
 
-func (u *userDatasource) GetUserWithAddress(tx *gorm.DB, where *entity.User, fields *[]string) (*entity.User, error) {
+func (u *userDatasource) GetUserWithAddress(tx *gorm.DB, where *entity.User) (*entity.User, error) {
 	var res *entity.User
 	var userAddressResult []entity.UserAddress
 	var userAddressErr error
@@ -39,13 +39,9 @@ func (u *userDatasource) GetUserWithAddress(tx *gorm.DB, where *entity.User, fie
 	return res, nil
 }
 
-func (u *userDatasource) GetUser(tx *gorm.DB, where *entity.User, fields *[]string) (*entity.User, error) {
+func (u *userDatasource) GetUser(tx *gorm.DB, where *entity.User) (*entity.User, error) {
 	var res *entity.User
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Where(where).Select(*selectFields).Take(&res)
+	result := tx.Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

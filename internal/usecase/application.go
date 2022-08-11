@@ -41,7 +41,7 @@ func (i *applicationService) ListApplication(ctx context.Context, req *pb.ListAp
 		nextPage = req.NextPage.AsTime()
 	}
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -59,17 +59,17 @@ func (i *applicationService) ListApplication(ctx context.Context, req *pb.ListAp
 				return err
 			}
 		}
-		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if err != nil {
 			return err
 		}
-		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_application"}, &[]string{"id"})
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_application"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
-		apps, err := i.dao.NewApplicationRepository().ListApplication(tx, &entity.Application{}, &nextPage, nil)
+		apps, err := i.dao.NewApplicationRepository().ListApplication(ctx, tx, &entity.Application{}, &nextPage)
 		if err != nil {
 			return err
 		} else if len(*apps) > 10 {
@@ -104,7 +104,7 @@ func (i *applicationService) ListApplication(ctx context.Context, req *pb.ListAp
 func (i *applicationService) DeleteApplication(ctx context.Context, req *pb.DeleteApplicationRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
 	var res gp.Empty
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -122,18 +122,18 @@ func (i *applicationService) DeleteApplication(ctx context.Context, req *pb.Dele
 				return err
 			}
 		}
-		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if err != nil {
 			return err
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "delete_application"}, &[]string{"id"})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "delete_application"})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
 		id := uuid.MustParse(req.Id)
-		_, err = i.dao.NewApplicationRepository().DeleteApplication(tx, &entity.Application{ID: &id}, nil)
+		_, err = i.dao.NewApplicationRepository().DeleteApplication(ctx, tx, &entity.Application{ID: &id}, nil)
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("application not found")
 		} else if err != nil {
@@ -150,7 +150,7 @@ func (i *applicationService) DeleteApplication(ctx context.Context, req *pb.Dele
 func (i *applicationService) CreateApplication(ctx context.Context, req *pb.CreateApplicationRequest, md *utils.ClientMetadata) (*pb.Application, error) {
 	var res pb.Application
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
@@ -168,17 +168,17 @@ func (i *applicationService) CreateApplication(ctx context.Context, req *pb.Crea
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_application"}, &[]string{"id"})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_application"})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
-		appRes, appErr := i.dao.NewApplicationRepository().CreateApplication(tx, &entity.Application{Name: req.Application.Name, Version: req.Application.Version, Description: req.Application.Description, ExpirationTime: req.Application.ExpirationTime.AsTime()})
+		appRes, appErr := i.dao.NewApplicationRepository().CreateApplication(ctx, tx, &entity.Application{Name: req.Application.Name, Version: req.Application.Version, Description: req.Application.Description, ExpirationTime: req.Application.ExpirationTime.AsTime()})
 		if appErr != nil {
 			return appErr
 		}

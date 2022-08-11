@@ -10,7 +10,7 @@ import (
 )
 
 type AuthorizationTokenDatasource interface {
-	GetAuthorizationToken(tx *gorm.DB, where *entity.AuthorizationToken, fields *[]string) (*entity.AuthorizationToken, error)
+	GetAuthorizationToken(tx *gorm.DB, where *entity.AuthorizationToken) (*entity.AuthorizationToken, error)
 	CreateAuthorizationToken(tx *gorm.DB, data *entity.AuthorizationToken) (*entity.AuthorizationToken, error)
 	DeleteAuthorizationToken(tx *gorm.DB, where *entity.AuthorizationToken, ids *[]uuid.UUID) (*[]entity.AuthorizationToken, error)
 	DeleteAuthorizationTokenByRefreshTokenIds(tx *gorm.DB, ids *[]uuid.UUID) (*[]entity.AuthorizationToken, error)
@@ -53,13 +53,9 @@ func (r *authorizationTokenDatasource) DeleteAuthorizationTokenByRefreshTokenIds
 	return res, nil
 }
 
-func (v *authorizationTokenDatasource) GetAuthorizationToken(tx *gorm.DB, where *entity.AuthorizationToken, fields *[]string) (*entity.AuthorizationToken, error) {
+func (v *authorizationTokenDatasource) GetAuthorizationToken(tx *gorm.DB, where *entity.AuthorizationToken) (*entity.AuthorizationToken, error) {
 	var res *entity.AuthorizationToken
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Where(where).Select(*selectFields).Take(&res)
+	result := tx.Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

@@ -7,16 +7,16 @@ import (
 )
 
 type BusinessCategoryRepository interface {
-	GetBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory, fields *[]string) (*entity.BusinessCategory, error)
+	GetBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory) (*entity.BusinessCategory, error)
 	CreateBusinessCategory(tx *gorm.DB, data *entity.BusinessCategory) (*entity.BusinessCategory, error)
 	DeleteBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory, ids *[]uuid.UUID) (*[]entity.BusinessCategory, error)
-	ListBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory, fields *[]string) (*[]entity.BusinessCategory, error)
+	ListBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory) (*[]entity.BusinessCategory, error)
 }
 
 type businessCategoryRepository struct{}
 
-func (i *businessCategoryRepository) ListBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory, fields *[]string) (*[]entity.BusinessCategory, error) {
-	res, err := Datasource.NewBusinessCategoryDatasource().ListBusinessCategory(tx, where, fields)
+func (i *businessCategoryRepository) ListBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory) (*[]entity.BusinessCategory, error) {
+	res, err := Datasource.NewBusinessCategoryDatasource().ListBusinessCategory(tx, where)
 	if err != nil {
 		return nil, err
 	}
@@ -31,8 +31,8 @@ func (v *businessCategoryRepository) CreateBusinessCategory(tx *gorm.DB, data *e
 	return res, nil
 }
 
-func (v *businessCategoryRepository) GetBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory, fields *[]string) (*entity.BusinessCategory, error) {
-	res, err := Datasource.NewBusinessCategoryDatasource().GetBusinessCategory(tx, where, fields)
+func (v *businessCategoryRepository) GetBusinessCategory(tx *gorm.DB, where *entity.BusinessCategory) (*entity.BusinessCategory, error) {
+	res, err := Datasource.NewBusinessCategoryDatasource().GetBusinessCategory(tx, where)
 	if err != nil {
 		return nil, err
 	}
