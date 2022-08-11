@@ -29,6 +29,7 @@ type AuthenticationServiceClient interface {
 	SignUp(ctx context.Context, in *SignUpRequest, opts ...grpc.CallOption) (*SignUpResponse, error)
 	SignOut(ctx context.Context, in *SignOutRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	CheckSession(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CheckSessionResponse, error)
+	SessionExists(ctx context.Context, in *SessionExistsRequest, opts ...grpc.CallOption) (*SessionExistsResponse, error)
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
 	ListSession(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListSessionResponse, error)
 }
@@ -95,6 +96,15 @@ func (c *authenticationServiceClient) CheckSession(ctx context.Context, in *empt
 	return out, nil
 }
 
+func (c *authenticationServiceClient) SessionExists(ctx context.Context, in *SessionExistsRequest, opts ...grpc.CallOption) (*SessionExistsResponse, error) {
+	out := new(SessionExistsResponse)
+	err := c.cc.Invoke(ctx, "/main.AuthenticationService/SessionExists", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authenticationServiceClient) RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error) {
 	out := new(RefreshTokenResponse)
 	err := c.cc.Invoke(ctx, "/main.AuthenticationService/RefreshToken", in, out, opts...)
@@ -123,6 +133,7 @@ type AuthenticationServiceServer interface {
 	SignUp(context.Context, *SignUpRequest) (*SignUpResponse, error)
 	SignOut(context.Context, *SignOutRequest) (*emptypb.Empty, error)
 	CheckSession(context.Context, *emptypb.Empty) (*CheckSessionResponse, error)
+	SessionExists(context.Context, *SessionExistsRequest) (*SessionExistsResponse, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 	ListSession(context.Context, *emptypb.Empty) (*ListSessionResponse, error)
 	mustEmbedUnimplementedAuthenticationServiceServer()
@@ -149,6 +160,9 @@ func (UnimplementedAuthenticationServiceServer) SignOut(context.Context, *SignOu
 }
 func (UnimplementedAuthenticationServiceServer) CheckSession(context.Context, *emptypb.Empty) (*CheckSessionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckSession not implemented")
+}
+func (UnimplementedAuthenticationServiceServer) SessionExists(context.Context, *SessionExistsRequest) (*SessionExistsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SessionExists not implemented")
 }
 func (UnimplementedAuthenticationServiceServer) RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RefreshToken not implemented")
@@ -277,6 +291,24 @@ func _AuthenticationService_CheckSession_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthenticationService_SessionExists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SessionExistsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationServiceServer).SessionExists(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.AuthenticationService/SessionExists",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationServiceServer).SessionExists(ctx, req.(*SessionExistsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AuthenticationService_RefreshToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RefreshTokenRequest)
 	if err := dec(in); err != nil {
@@ -343,6 +375,10 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckSession",
 			Handler:    _AuthenticationService_CheckSession_Handler,
+		},
+		{
+			MethodName: "SessionExists",
+			Handler:    _AuthenticationService_SessionExists_Handler,
 		},
 		{
 			MethodName: "RefreshToken",

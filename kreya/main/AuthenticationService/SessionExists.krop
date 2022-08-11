@@ -1,0 +1,38 @@
+{
+  "details": {
+    "methodFqn": "main.AuthenticationService.SessionExists",
+    "metadata": [
+      {
+        "key": "Device-Id",
+        "value": "10"
+      },
+      {
+        "key": "Access-Token",
+        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjAzMTAzNjAsInN1YiI6IjhiNWIxOThhLWRmMjMtNDJmZi1iM2VkLWFhYTUzNTI5MDc3YiJ9.eQWkAXeFf2hCvAIbg_J02eA0W1ZNA-p7TgGAQdr2DRA"
+      },
+      {
+        "key": "Platform",
+        "value": "IOS"
+      },
+      {
+        "key": "System-Version",
+        "value": "14.1"
+      },
+      {
+        "key": "Model",
+        "value": "iPhone 11"
+      },
+      {
+        "key": "Firebase-Cloud-Messaging-Id",
+        "value": "1"
+      }
+    ]
+  },
+  "requests": [
+    {
+      "location": "SessionExists-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

@@ -97,7 +97,12 @@ func (r *authorizationTokenRepository) DeleteAuthorizationTokenByRefreshTokenIds
 }
 
 func (v *authorizationTokenRepository) GetAuthorizationToken(ctx context.Context, tx *gorm.DB, where *entity.AuthorizationToken) (*entity.AuthorizationToken, error) {
-	cacheId := "authorization_token:" + where.ID.String()
+	var cacheId string
+	if where.ID != nil {
+		cacheId = "authorization_token:" + where.ID.String()
+	} else {
+		cacheId = "authorization_token:" + where.UserId.String()
+	}
 	cacheRes, cacheErr := Rdb.HGetAll(ctx, cacheId).Result()
 	// Check if exists in cache
 	if len(cacheRes) == 0 || cacheErr == redis.Nil {

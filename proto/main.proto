@@ -17,6 +17,7 @@ service AuthenticationService {
   rpc SignOut (SignOutRequest) returns (google.protobuf.Empty) {}
 
   rpc CheckSession (google.protobuf.Empty) returns (CheckSessionResponse) {}
+  rpc SessionExists (SessionExistsRequest) returns (SessionExistsResponse) {}
 
   rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse) {}
 
@@ -115,6 +116,15 @@ service ObjectStorageService {
 // }
 
 // Request & Response Message
+
+message SessionExistsRequest {
+  string email = 1;
+  string code = 2;
+}
+
+message SessionExistsResponse {
+  string authorizationTokenId = 1;
+}
 
 message BusinessIsInRangeRequest {
   string businessId = 1;

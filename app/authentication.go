@@ -13,6 +13,88 @@ import (
 	gp "google.golang.org/protobuf/types/known/emptypb"
 )
 
+func (m *AuthenticationServer) SessionExists(ctx context.Context, req *pb.SessionExistsRequest) (*pb.SessionExistsResponse, error) {
+	var (
+		invalidEmail *epb.BadRequest_FieldViolation
+		invalidCode  *epb.BadRequest_FieldViolation
+	)
+	var invalidArgs bool
+	var st *status.Status
+	md := utils.GetMetadata(ctx)
+	if req.Email == "" {
+		invalidArgs = true
+		invalidEmail = &epb.BadRequest_FieldViolation{
+			Field:       "Email",
+			Description: "The email field is required",
+		}
+	} else {
+		_, err := mail.ParseAddress(req.Email)
+		if err != nil {
+			invalidArgs = true
+			invalidEmail = &epb.BadRequest_FieldViolation{
+				Field:       "Email",
+				Description: "The email field is invalid",
+			}
+		}
+	}
+	if req.Code == "" {
+		invalidArgs = true
+		invalidCode = &epb.BadRequest_FieldViolation{
+			Field:       "Code",
+			Description: "The code field is required",
+		}
+	} else {
+		if _, err := strconv.Atoi(req.Code); err != nil {
+			invalidArgs = true
+			invalidCode = &epb.BadRequest_FieldViolation{
+				Field:       "Code",
+				Description: "The code field is invalid",
+			}
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidEmail != nil {
+			st, _ = st.WithDetails(
+				invalidEmail,
+			)
+		}
+		if invalidCode != nil {
+			st, _ = st.WithDetails(
+				invalidCode,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.authenticationService.SessionExists(ctx, req, md)
+	if err != nil {
+		switch err.Error() {
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
+		case "verification code not found":
+			st = status.New(codes.NotFound, "VerificationCode Not found")
+		case "user not found":
+			st = status.New(codes.NotFound, "User not found")
+		case "user banned":
+			st = status.New(codes.PermissionDenied, "User banned")
+		case "device banned":
+			st = status.New(codes.PermissionDenied, "Device banned")
+		case "app banned":
+			st = status.New(codes.PermissionDenied, "App banned")
+		case "session not exists":
+			st = status.New(codes.PermissionDenied, "Session not exists")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return res, nil
+}
+
 func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest) (*gp.Empty, error) {
 	var (
 		invalidEmail *epb.BadRequest_FieldViolation

@@ -31,6 +31,7 @@ type AuthenticationService interface {
 	CheckSession(ctx context.Context, md *utils.ClientMetadata) (*pb.CheckSessionResponse, error)
 	ListSession(ctx context.Context, md *utils.ClientMetadata) (*pb.ListSessionResponse, error)
 	RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest, md *utils.ClientMetadata) (*pb.RefreshTokenResponse, error)
+	SessionExists(ctx context.Context, req *pb.SessionExistsRequest, md *utils.ClientMetadata) (*pb.SessionExistsResponse, error)
 }
 
 type authenticationService struct {
@@ -41,6 +42,57 @@ type authenticationService struct {
 
 func NewAuthenticationService(dao repository.Repository, config *config.Config, sqldb *sqldb.Sql) AuthenticationService {
 	return &authenticationService{dao: dao, config: config, sqldb: sqldb}
+}
+
+func (v *authenticationService) SessionExists(ctx context.Context, req *pb.SessionExistsRequest, md *utils.ClientMetadata) (*pb.SessionExistsResponse, error) {
+	var verificationCodeRes *entity.VerificationCode
+	var deviceRes *entity.Device
+	var verificationCodeErr error
+	var authorizationToken *entity.AuthorizationToken
+	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
+		var err error
+		deviceRes, err = v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier})
+		if err != nil && err.Error() != "record not found" {
+			return err
+		} else if deviceRes == nil {
+			deviceRes, err = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+			if err != nil {
+				return err
+			}
+		} else {
+			_, err = v.dao.NewDeviceRepository().UpdateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+			if err != nil {
+				return err
+			}
+		}
+		_, err = v.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
+		if err != nil {
+			return err
+		}
+		verificationCodeRes, verificationCodeErr = v.dao.NewVerificationCodeRepository().GetVerificationCode(ctx, tx, &entity.VerificationCode{Email: req.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "SignIn"})
+		if verificationCodeErr != nil && verificationCodeErr.Error() == "record not found" {
+			return errors.New("verification code not found")
+		} else if verificationCodeRes == nil {
+			return verificationCodeErr
+		}
+		user, err := v.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{Email: req.Email})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("user not found")
+		} else if err != nil {
+			return err
+		}
+		authorizationToken, err = v.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{UserId: user.ID})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("session not exists")
+		} else if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &pb.SessionExistsResponse{AuthorizationTokenId: authorizationToken.ID.String()}, nil
 }
 
 func (v *authenticationService) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
@@ -111,12 +163,10 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		if err != nil && err.Error() != "record not found" {
 			return err
 		} else if deviceRes == nil {
-			// Limit session to one by device
-			return errors.New("session limit reached")
-			// deviceRes, err = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
-			// if err != nil {
-			// 	return err
-			// }
+			deviceRes, err = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+			if err != nil {
+				return err
+			}
 		} else {
 			_, err = v.dao.NewDeviceRepository().UpdateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
 			if err != nil {
@@ -142,6 +192,15 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 				return userErr
 			}
 		}
+		// Limit session to one by device
+		authorizationToken, err := v.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{UserId: userRes.ID})
+		if err != nil && err.Error() != "record not found" {
+			return err
+		}
+		if authorizationToken != nil {
+			return errors.New("session limit reached")
+		}
+		//
 		_, err = v.dao.NewVerificationCodeRepository().DeleteVerificationCode(ctx, tx, &entity.VerificationCode{Email: req.Email, Type: "SignIn", DeviceIdentifier: *md.DeviceIdentifier}, nil)
 		if err != nil {
 			return err
