@@ -120,11 +120,11 @@ func (i *businessService) ModifyBusinessRolePermission(ctx context.Context, req 
 			return err
 		}
 		businessRoleId := uuid.MustParse(req.BusinessRoleId)
-		businessRoleRes, err := i.dao.NewBusinessRoleRepository().GetBusinessRole(tx, &entity.BusinessRole{ID: &businessRoleId})
+		businessRoleRes, err := i.dao.NewBusinessRoleRepository().GetBusinessRole(ctx, tx, &entity.BusinessRole{ID: &businessRoleId})
 		if err != nil {
 			return err
 		}
-		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_role", BusinessId: businessRoleRes.BusinessId})
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_role", BusinessId: businessRoleRes.BusinessId})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
@@ -138,7 +138,7 @@ func (i *businessService) ModifyBusinessRolePermission(ctx context.Context, req 
 			})
 			permissionIds = append(permissionIds, permissionId)
 		}
-		permissionsRes, err := i.dao.NewPermissionRepository().ListPermissionByIdAll(tx, &entity.Permission{}, &permissionIds)
+		permissionsRes, err := i.dao.NewPermissionRepository().ListPermissionByIdAll(ctx, tx, &entity.Permission{}, &permissionIds)
 		if err != nil {
 			return err
 		}
@@ -168,7 +168,7 @@ func (i *businessService) ModifyBusinessRolePermission(ctx context.Context, req 
 		} else if err != nil {
 			return err
 		}
-		_, err = i.dao.NewUserPermissionRepository().DeleteUserPermissionByBusinessRoleId(tx, &entity.UserPermission{BusinessRoleId: &businessRoleId})
+		_, err = i.dao.NewUserPermissionRepository().DeleteUserPermissionByBusinessRoleId(ctx, tx, &entity.UserPermission{BusinessRoleId: &businessRoleId})
 		if err != nil {
 			return err
 		}
@@ -176,7 +176,7 @@ func (i *businessService) ModifyBusinessRolePermission(ctx context.Context, req 
 		if err != nil {
 			return err
 		}
-		_, err = i.dao.NewUserPermissionRepository().CreateUserPermission(tx, &userPermissions)
+		_, err = i.dao.NewUserPermissionRepository().CreateUserPermission(ctx, tx, &userPermissions)
 		if err != nil {
 			return err
 		}
@@ -216,13 +216,13 @@ func (i *businessService) UpdateBusinessRole(ctx context.Context, req *pb.Update
 			return err
 		}
 		id := uuid.MustParse(req.Id)
-		businessRolesRes, err := i.dao.NewBusinessRoleRepository().UpdateBusinessRole(tx, &entity.BusinessRole{ID: &id}, &entity.BusinessRole{Name: req.BusinessRole.Name})
+		businessRolesRes, err := i.dao.NewBusinessRoleRepository().UpdateBusinessRole(ctx, tx, &entity.BusinessRole{ID: &id}, &entity.BusinessRole{Name: req.BusinessRole.Name})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("business role not found")
 		} else if err != nil {
 			return err
 		}
-		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_role", BusinessId: businessRolesRes.BusinessId})
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_role", BusinessId: businessRolesRes.BusinessId})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
@@ -268,11 +268,11 @@ func (i *businessService) DeleteBusinessRole(ctx context.Context, req *pb.Delete
 			return authorizationTokenErr
 		}
 		id := uuid.MustParse(req.Id)
-		businessRolesRes, err := i.dao.NewBusinessRoleRepository().DeleteBusinessRole(tx, &entity.BusinessRole{ID: &id}, nil)
+		businessRolesRes, err := i.dao.NewBusinessRoleRepository().DeleteBusinessRole(ctx, tx, &entity.BusinessRole{ID: &id}, nil)
 		if err != nil {
 			return err
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "delete_role", BusinessId: (*businessRolesRes)[0].BusinessId})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "delete_role", BusinessId: (*businessRolesRes)[0].BusinessId})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
@@ -284,7 +284,7 @@ func (i *businessService) DeleteBusinessRole(ctx context.Context, req *pb.Delete
 		for _, i := range *unionBusinessRoleAndPermRes {
 			userPermissionIds = append(userPermissionIds, *i.PermissionId)
 		}
-		_, err = i.dao.NewUserPermissionRepository().DeleteUserPermissionByPermissionId(tx, &userPermissionIds)
+		_, err = i.dao.NewUserPermissionRepository().DeleteUserPermissionByPermissionId(ctx, tx, &userPermissionIds)
 		if err != nil {
 			return err
 		}
@@ -324,11 +324,11 @@ func (i *businessService) CreateBusinessRole(ctx context.Context, req *pb.Create
 			return authorizationTokenErr
 		}
 		businessId := uuid.MustParse(req.BusinessRole.BusinessId)
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_role", BusinessId: &businessId})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_role", BusinessId: &businessId})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
-		businessRolesRes, err := i.dao.NewBusinessRoleRepository().CreateBusinessRole(tx, &entity.BusinessRole{Name: req.BusinessRole.Name, BusinessId: &businessId})
+		businessRolesRes, err := i.dao.NewBusinessRoleRepository().CreateBusinessRole(ctx, tx, &entity.BusinessRole{Name: req.BusinessRole.Name, BusinessId: &businessId})
 		if err != nil {
 			return err
 		}
@@ -393,11 +393,11 @@ func (i *businessService) ListBusinessRole(ctx context.Context, req *pb.ListBusi
 			return authorizationTokenErr
 		}
 		businessId := uuid.MustParse(req.BusinessId)
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_role", BusinessId: &businessId})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_role", BusinessId: &businessId})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
-		businessRolesRes, err := i.dao.NewBusinessRoleRepository().ListBusinessRole(tx, &entity.BusinessRole{}, &nextPage)
+		businessRolesRes, err := i.dao.NewBusinessRoleRepository().ListBusinessRole(ctx, tx, &entity.BusinessRole{}, &nextPage)
 		if err != nil {
 			return err
 		} else if len(*businessRolesRes) > 10 {
@@ -462,7 +462,7 @@ func (i *businessService) UpdatePartnerApplication(ctx context.Context, req *pb.
 			return getPartnerAppErr
 		}
 		if req.PartnerApplication.Status == pb.PartnerApplicationStatus_PartnerApplicationStatusApproved || req.PartnerApplication.Status == pb.PartnerApplicationStatus_PartnerApplicationStatusRejected {
-			_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_partner_application"})
+			_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_partner_application"})
 			if permissionErr != nil && permissionErr.Error() == "record not found" {
 				return errors.New("permission denied")
 			}
@@ -535,7 +535,7 @@ func (i *businessService) ListPartnerApplication(ctx context.Context, req *pb.Li
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_partner_application"})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_partner_application"})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("not permission")
 		}

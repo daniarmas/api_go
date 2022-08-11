@@ -574,7 +574,7 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 		}
 		// chech if is the user or if have permission
 		if req.User.Id != "" && authorizationTokenRes.UserId.String() != req.User.Id {
-			_, err := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{Name: "admin"})
+			_, err := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{Name: "admin"})
 			if err != nil && err.Error() == "record not found" {
 				return errors.New("not have permission")
 			} else if err != nil && err.Error() != "record not found" {

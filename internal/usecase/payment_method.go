@@ -163,7 +163,7 @@ func (i *paymentMethodService) UpdatePaymentMethod(ctx context.Context, req *pb.
 		} else if err != nil && err.Error() != "record not found" {
 			return err
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_payment_method"})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_payment_method"})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
@@ -272,7 +272,7 @@ func (i *paymentMethodService) CreatePaymentMethod(ctx context.Context, req *pb.
 		} else if err != nil && err.Error() != "record not found" {
 			return err
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_payment_method"})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_payment_method"})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		}

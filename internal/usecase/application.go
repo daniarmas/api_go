@@ -65,7 +65,7 @@ func (i *applicationService) ListApplication(ctx context.Context, req *pb.ListAp
 		} else if err != nil {
 			return err
 		}
-		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_application"})
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_application"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
@@ -128,7 +128,7 @@ func (i *applicationService) DeleteApplication(ctx context.Context, req *pb.Dele
 		} else if err != nil {
 			return err
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "delete_application"})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "delete_application"})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
@@ -174,7 +174,7 @@ func (i *applicationService) CreateApplication(ctx context.Context, req *pb.Crea
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_application"})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_application"})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		}

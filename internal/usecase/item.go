@@ -75,7 +75,7 @@ func (i *itemService) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest,
 		if getItemErr != nil {
 			return getItemErr
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_item", BusinessId: getItemRes.BusinessId})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_item", BusinessId: getItemRes.BusinessId})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
@@ -190,7 +190,7 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 		} else if getItemErr != nil {
 			return getItemErr
 		}
-		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{Name: "delete_item", UserId: authorizationTokenRes.UserId, BusinessId: getItemRes.BusinessId})
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{Name: "delete_item", UserId: authorizationTokenRes.UserId, BusinessId: getItemRes.BusinessId})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		} else if err != nil {
@@ -283,7 +283,7 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 		if businessErr != nil {
 			return businessErr
 		}
-		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{Name: "create_item", UserId: authorizationTokenRes.UserId, BusinessId: &businessId})
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{Name: "create_item", UserId: authorizationTokenRes.UserId, BusinessId: &businessId})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		} else if err != nil {

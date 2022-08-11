@@ -13,40 +13,25 @@ import (
 )
 
 type UserPermissionRepository interface {
-	CreateUserPermission(tx *gorm.DB, data *[]entity.UserPermission) (*[]entity.UserPermission, error)
-	GetUserPermission(tx *gorm.DB, where *entity.UserPermission) (*entity.UserPermission, error)
-	DeleteUserPermission(tx *gorm.DB, where *entity.UserPermission, ids *[]uuid.UUID) (*[]entity.UserPermission, error)
-	DeleteUserPermissionByBusinessRoleId(tx *gorm.DB, where *entity.UserPermission) (*[]entity.UserPermission, error)
-	DeleteUserPermissionByPermissionId(tx *gorm.DB, permissionIds *[]uuid.UUID) (*[]entity.UserPermission, error)
+	CreateUserPermission(ctx context.Context, tx *gorm.DB, data *[]entity.UserPermission) (*[]entity.UserPermission, error)
+	GetUserPermission(ctx context.Context, tx *gorm.DB, where *entity.UserPermission) (*entity.UserPermission, error)
+	DeleteUserPermission(ctx context.Context, tx *gorm.DB, where *entity.UserPermission, ids *[]uuid.UUID) (*[]entity.UserPermission, error)
+	DeleteUserPermissionByBusinessRoleId(ctx context.Context, tx *gorm.DB, where *entity.UserPermission) (*[]entity.UserPermission, error)
+	DeleteUserPermissionByPermissionId(ctx context.Context, tx *gorm.DB, permissionIds *[]uuid.UUID) (*[]entity.UserPermission, error)
 }
 
 type userPermissionRepository struct{}
 
-func (v *userPermissionRepository) DeleteUserPermissionByBusinessRoleId(tx *gorm.DB, where *entity.UserPermission) (*[]entity.UserPermission, error) {
-	res, err := Datasource.NewUserPermissionDatasource().DeleteUserPermissionByBusinessRoleId(tx, where)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
-}
-
-func (v *userPermissionRepository) CreateUserPermission(tx *gorm.DB, data *[]entity.UserPermission) (*[]entity.UserPermission, error) {
-	res, err := Datasource.NewUserPermissionDatasource().CreateUserPermission(tx, data)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
-}
-
-func (v *userPermissionRepository) DeleteUserPermissionByPermissionId(tx *gorm.DB, permission_ids *[]uuid.UUID) (*[]entity.UserPermission, error) {
-	res, err := Datasource.NewUserPermissionDatasource().DeleteUserPermissionByPermissionId(tx, permission_ids)
-	if err != nil {
-		return nil, err
+func (v *userPermissionRepository) DeleteUserPermissionByBusinessRoleId(ctx context.Context, tx *gorm.DB, where *entity.UserPermission) (*[]entity.UserPermission, error) {
+	// Delete in database
+	dbRes, dbErr := Datasource.NewUserPermissionDatasource().DeleteUserPermissionByBusinessRoleId(tx, where)
+	if dbErr != nil {
+		return nil, dbErr
 	} else {
-		ctx := context.Background()
+		// Delete in cache
 		rdbPipe := Rdb.Pipeline()
-		for _, i := range *res {
-			cacheId := "user_permission:" + i.ID.String()
+		for _, item := range *dbRes {
+			cacheId := "user_permission:" + item.ID.String()
 			cacheErr := rdbPipe.Del(ctx, cacheId).Err()
 			if cacheErr != nil {
 				log.Error(cacheErr)
@@ -54,20 +39,50 @@ func (v *userPermissionRepository) DeleteUserPermissionByPermissionId(tx *gorm.D
 		}
 		_, err := rdbPipe.Exec(ctx)
 		if err != nil {
-			return nil, err
+			log.Error(err)
 		}
+	}
+	return dbRes, nil
+}
+
+func (v *userPermissionRepository) CreateUserPermission(ctx context.Context, tx *gorm.DB, data *[]entity.UserPermission) (*[]entity.UserPermission, error) {
+	res, err := Datasource.NewUserPermissionDatasource().CreateUserPermission(tx, data)
+	if err != nil {
+		return nil, err
 	}
 	return res, nil
 }
 
-func (v *userPermissionRepository) GetUserPermission(tx *gorm.DB, where *entity.UserPermission) (*entity.UserPermission, error) {
+func (v *userPermissionRepository) DeleteUserPermissionByPermissionId(ctx context.Context, tx *gorm.DB, permission_ids *[]uuid.UUID) (*[]entity.UserPermission, error) {
+	// Delete in database
+	dbRes, dbErr := Datasource.NewUserPermissionDatasource().DeleteUserPermissionByPermissionId(tx, permission_ids)
+	if dbErr != nil {
+		return nil, dbErr
+	} else {
+		// Delete in cache
+		rdbPipe := Rdb.Pipeline()
+		for _, item := range *dbRes {
+			cacheId := "user_permission:" + item.ID.String()
+			cacheErr := rdbPipe.Del(ctx, cacheId).Err()
+			if cacheErr != nil {
+				log.Error(cacheErr)
+			}
+		}
+		_, err := rdbPipe.Exec(ctx)
+		if err != nil {
+			log.Error(err)
+		}
+	}
+	return dbRes, nil
+}
+
+func (v *userPermissionRepository) GetUserPermission(ctx context.Context, tx *gorm.DB, where *entity.UserPermission) (*entity.UserPermission, error) {
 	var cacheId string
 	if where.BusinessId != nil {
 		cacheId = "user_permission:" + where.Name + ":" + where.BusinessId.String() + ":" + where.UserId.String()
 	} else {
 		cacheId = "user_permission:" + where.Name + ":" + where.UserId.String()
 	}
-	ctx := context.Background()
 	cacheRes, cacheErr := Rdb.HGetAll(ctx, cacheId).Result()
 	// Check if exists in cache
 	if len(cacheRes) == 0 || cacheErr == redis.Nil {
@@ -118,16 +133,25 @@ func (v *userPermissionRepository) GetUserPermission(tx *gorm.DB, where *entity.
 	}
 }
 
-func (v *userPermissionRepository) DeleteUserPermission(tx *gorm.DB, where *entity.UserPermission, ids *[]uuid.UUID) (*[]entity.UserPermission, error) {
-	ctx := context.Background()
-	cacheId := "user_permission:" + where.ID.String()
-	cacheErr := Rdb.Del(ctx, cacheId).Err()
-	if cacheErr != nil {
-		log.Error(cacheErr)
+func (v *userPermissionRepository) DeleteUserPermission(ctx context.Context, tx *gorm.DB, where *entity.UserPermission, ids *[]uuid.UUID) (*[]entity.UserPermission, error) {
+	// Delete in database
+	dbRes, dbErr := Datasource.NewUserPermissionDatasource().DeleteUserPermission(tx, where, ids)
+	if dbErr != nil {
+		return nil, dbErr
+	} else {
+		// Delete in cache
+		rdbPipe := Rdb.Pipeline()
+		for _, item := range *dbRes {
+			cacheId := "user_permission:" + item.ID.String()
+			cacheErr := rdbPipe.Del(ctx, cacheId).Err()
+			if cacheErr != nil {
+				log.Error(cacheErr)
+			}
+		}
+		_, err := rdbPipe.Exec(ctx)
+		if err != nil {
+			log.Error(err)
+		}
 	}
-	res, err := Datasource.NewUserPermissionDatasource().DeleteUserPermission(tx, where, ids)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
+	return dbRes, nil
 }

@@ -145,7 +145,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		if err != nil {
 			return err
 		}
-		deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenRepository().DeleteRefreshToken(tx, &entity.RefreshToken{UserId: userRes.ID, DeviceId: deviceRes.ID}, nil)
+		deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenRepository().DeleteRefreshToken(ctx, tx, &entity.RefreshToken{UserId: userRes.ID, DeviceId: deviceRes.ID}, nil)
 		if deleteRefreshTokenErr != nil && deleteRefreshTokenErr.Error() != "record not found" {
 			return deleteRefreshTokenErr
 		}
@@ -155,7 +155,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 				return deleteAuthorizationTokenErr
 			}
 		}
-		refreshTokenRes, refreshTokenErr = v.dao.NewRefreshTokenRepository().CreateRefreshToken(tx, &entity.RefreshToken{UserId: userRes.ID, DeviceId: deviceRes.ID})
+		refreshTokenRes, refreshTokenErr = v.dao.NewRefreshTokenRepository().CreateRefreshToken(ctx, tx, &entity.RefreshToken{UserId: userRes.ID, DeviceId: deviceRes.ID})
 		if refreshTokenErr != nil {
 			return refreshTokenErr
 		}
@@ -336,7 +336,7 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 		if err != nil {
 			return err
 		}
-		refreshTokenRes, refreshTokenErr = v.dao.NewRefreshTokenRepository().CreateRefreshToken(tx, &entity.RefreshToken{UserId: createUserRes.ID, DeviceId: deviceRes.ID})
+		refreshTokenRes, refreshTokenErr = v.dao.NewRefreshTokenRepository().CreateRefreshToken(ctx, tx, &entity.RefreshToken{UserId: createUserRes.ID, DeviceId: deviceRes.ID})
 		if refreshTokenErr != nil {
 			return refreshTokenErr
 		}
@@ -450,7 +450,7 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 			} else if err != nil {
 				return err
 			}
-			refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenRepository().GetRefreshToken(tx, &entity.RefreshToken{ID: authorizationTokenRes.RefreshTokenId})
+			refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenRepository().GetRefreshToken(ctx, tx, &entity.RefreshToken{ID: authorizationTokenRes.RefreshTokenId})
 			if refreshTokenErr != nil {
 				return refreshTokenErr
 			} else if refreshTokenRes == nil {
@@ -596,7 +596,7 @@ func (v *authenticationService) SignOut(ctx context.Context, req *pb.SignOutRequ
 		}
 		if req.All {
 			var refreshTokenIds []uuid.UUID
-			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenRepository().DeleteRefreshTokenDeviceIdNotEqual(tx, &entity.RefreshToken{DeviceId: authorizationTokenRes.DeviceId}, nil)
+			deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenRepository().DeleteRefreshTokenDeviceIdNotEqual(ctx, tx, &entity.RefreshToken{DeviceId: authorizationTokenRes.DeviceId}, nil)
 			if deleteRefreshTokenErr != nil {
 				return deleteRefreshTokenErr
 			}
@@ -613,7 +613,7 @@ func (v *authenticationService) SignOut(ctx context.Context, req *pb.SignOutRequ
 			if authorizationTokenByReqErr != nil {
 				return authorizationTokenByReqErr
 			}
-			_, deleteRefreshTokenErr := v.dao.NewRefreshTokenRepository().DeleteRefreshToken(tx, &entity.RefreshToken{ID: authorizationTokenByReqRes.RefreshTokenId}, nil)
+			_, deleteRefreshTokenErr := v.dao.NewRefreshTokenRepository().DeleteRefreshToken(ctx, tx, &entity.RefreshToken{ID: authorizationTokenByReqRes.RefreshTokenId}, nil)
 			if deleteRefreshTokenErr != nil {
 				return deleteRefreshTokenErr
 			}
@@ -623,7 +623,7 @@ func (v *authenticationService) SignOut(ctx context.Context, req *pb.SignOutRequ
 			}
 			return nil
 		} else {
-			_, deleteRefreshTokenErr := v.dao.NewRefreshTokenRepository().DeleteRefreshToken(tx, &entity.RefreshToken{UserId: authorizationTokenRes.UserId, DeviceId: authorizationTokenRes.DeviceId}, nil)
+			_, deleteRefreshTokenErr := v.dao.NewRefreshTokenRepository().DeleteRefreshToken(ctx, tx, &entity.RefreshToken{UserId: authorizationTokenRes.UserId, DeviceId: authorizationTokenRes.DeviceId}, nil)
 			if deleteRefreshTokenErr != nil {
 				return deleteRefreshTokenErr
 			}
@@ -743,7 +743,7 @@ func (v *authenticationService) RefreshToken(ctx context.Context, req *pb.Refres
 				return refreshTokenParseErr
 			}
 		}
-		refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenRepository().GetRefreshToken(tx, &entity.RefreshToken{ID: jwtRefreshToken.TokenId})
+		refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenRepository().GetRefreshToken(ctx, tx, &entity.RefreshToken{ID: jwtRefreshToken.TokenId})
 		if refreshTokenErr != nil && refreshTokenErr.Error() == "record not found" {
 			return errors.New("refresh token not found")
 		} else if refreshTokenErr != nil {
@@ -755,7 +755,7 @@ func (v *authenticationService) RefreshToken(ctx context.Context, req *pb.Refres
 		} else if userRes == nil {
 			return errors.New("user not found")
 		}
-		deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenRepository().DeleteRefreshToken(tx, &entity.RefreshToken{ID: refreshTokenRes.ID}, nil)
+		deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenRepository().DeleteRefreshToken(ctx, tx, &entity.RefreshToken{ID: refreshTokenRes.ID}, nil)
 		if deleteRefreshTokenErr != nil {
 			return deleteRefreshTokenErr
 		}
@@ -763,7 +763,7 @@ func (v *authenticationService) RefreshToken(ctx context.Context, req *pb.Refres
 		if deleteAuthorizationTokenErr != nil {
 			return deleteAuthorizationTokenErr
 		}
-		refreshTokenRes, refreshTokenErr = v.dao.NewRefreshTokenRepository().CreateRefreshToken(tx, &entity.RefreshToken{UserId: userRes.ID, DeviceId: deviceRes.ID})
+		refreshTokenRes, refreshTokenErr = v.dao.NewRefreshTokenRepository().CreateRefreshToken(ctx, tx, &entity.RefreshToken{UserId: userRes.ID, DeviceId: deviceRes.ID})
 		if refreshTokenErr != nil {
 			return refreshTokenErr
 		}
