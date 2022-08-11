@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	// "fmt"
 
 	"errors"
 	"time"
@@ -112,10 +111,12 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		if err != nil && err.Error() != "record not found" {
 			return err
 		} else if deviceRes == nil {
-			deviceRes, err = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
-			if err != nil {
-				return err
-			}
+			// Limit session to one by device
+			return errors.New("session limit reached")
+			// deviceRes, err = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+			// if err != nil {
+			// 	return err
+			// }
 		} else {
 			_, err = v.dao.NewDeviceRepository().UpdateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
 			if err != nil {

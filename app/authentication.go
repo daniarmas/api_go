@@ -242,6 +242,8 @@ func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest
 			st = status.New(codes.PermissionDenied, "Device banned")
 		case "app banned":
 			st = status.New(codes.PermissionDenied, "App banned")
+		case "session limit reached":
+			st = status.New(codes.PermissionDenied, "Session limit reached")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
