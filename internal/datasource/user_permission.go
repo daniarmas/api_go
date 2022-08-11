@@ -11,7 +11,7 @@ import (
 
 type UserPermissionDatasource interface {
 	CreateUserPermission(tx *gorm.DB, data *[]entity.UserPermission) (*[]entity.UserPermission, error)
-	GetUserPermission(tx *gorm.DB, where *entity.UserPermission, fields *[]string) (*entity.UserPermission, error)
+	GetUserPermission(tx *gorm.DB, where *entity.UserPermission) (*entity.UserPermission, error)
 	DeleteUserPermission(tx *gorm.DB, where *entity.UserPermission, ids *[]uuid.UUID) (*[]entity.UserPermission, error)
 	DeleteUserPermissionByPermissionId(tx *gorm.DB, permissionIds *[]uuid.UUID) (*[]entity.UserPermission, error)
 	DeleteUserPermissionByBusinessRoleId(tx *gorm.DB, where *entity.UserPermission) (*[]entity.UserPermission, error)
@@ -38,13 +38,9 @@ func (i *userPermissionDatasource) CreateUserPermission(tx *gorm.DB, data *[]ent
 	return data, nil
 }
 
-func (i *userPermissionDatasource) GetUserPermission(tx *gorm.DB, where *entity.UserPermission, fields *[]string) (*entity.UserPermission, error) {
+func (i *userPermissionDatasource) GetUserPermission(tx *gorm.DB, where *entity.UserPermission) (*entity.UserPermission, error) {
 	var res *entity.UserPermission
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Where(where).Select(*selectFields).Take(&res)
+	result := tx.Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

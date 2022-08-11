@@ -11,8 +11,8 @@ import (
 type BusinessRoleRepository interface {
 	CreateBusinessRole(tx *gorm.DB, data *entity.BusinessRole) (*entity.BusinessRole, error)
 	UpdateBusinessRole(tx *gorm.DB, where *entity.BusinessRole, data *entity.BusinessRole) (*entity.BusinessRole, error)
-	GetBusinessRole(tx *gorm.DB, where *entity.BusinessRole, fields *[]string) (*entity.BusinessRole, error)
-	ListBusinessRole(tx *gorm.DB, where *entity.BusinessRole, cursor *time.Time, fields *[]string) (*[]entity.BusinessRole, error)
+	GetBusinessRole(tx *gorm.DB, where *entity.BusinessRole) (*entity.BusinessRole, error)
+	ListBusinessRole(tx *gorm.DB, where *entity.BusinessRole, cursor *time.Time) (*[]entity.BusinessRole, error)
 	DeleteBusinessRole(tx *gorm.DB, where *entity.BusinessRole, ids *[]uuid.UUID) (*[]entity.BusinessRole, error)
 }
 
@@ -42,16 +42,16 @@ func (v *businessRoleRepository) DeleteBusinessRole(tx *gorm.DB, where *entity.B
 	return res, nil
 }
 
-func (i *businessRoleRepository) ListBusinessRole(tx *gorm.DB, where *entity.BusinessRole, cursor *time.Time, fields *[]string) (*[]entity.BusinessRole, error) {
-	res, err := Datasource.NewBusinessRoleDatasource().ListBusinessRole(tx, where, cursor, fields)
+func (i *businessRoleRepository) ListBusinessRole(tx *gorm.DB, where *entity.BusinessRole, cursor *time.Time) (*[]entity.BusinessRole, error) {
+	res, err := Datasource.NewBusinessRoleDatasource().ListBusinessRole(tx, where, cursor)
 	if err != nil {
 		return nil, err
 	}
 	return res, nil
 }
 
-func (i *businessRoleRepository) GetBusinessRole(tx *gorm.DB, where *entity.BusinessRole, fields *[]string) (*entity.BusinessRole, error) {
-	res, err := Datasource.NewBusinessRoleDatasource().GetBusinessRole(tx, where, fields)
+func (i *businessRoleRepository) GetBusinessRole(tx *gorm.DB, where *entity.BusinessRole) (*entity.BusinessRole, error) {
+	res, err := Datasource.NewBusinessRoleDatasource().GetBusinessRole(tx, where)
 	if err != nil {
 		return nil, err
 	}

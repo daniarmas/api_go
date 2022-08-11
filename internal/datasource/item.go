@@ -11,12 +11,12 @@ import (
 )
 
 type ItemDatasource interface {
-	GetItem(tx *gorm.DB, where *entity.Item, fields *[]string) (*entity.Item, error)
-	ListItem(tx *gorm.DB, where *entity.Item, cursor time.Time, fields *[]string) (*[]entity.Item, error)
-	ListItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.Item, error)
+	GetItem(tx *gorm.DB, where *entity.Item) (*entity.Item, error)
+	ListItem(tx *gorm.DB, where *entity.Item, cursor time.Time) (*[]entity.Item, error)
+	ListItemInIds(tx *gorm.DB, ids []uuid.UUID) (*[]entity.Item, error)
 	CreateItem(tx *gorm.DB, data *entity.Item) (*entity.Item, error)
-	SearchItem(tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64, fields *[]string) (*[]entity.Item, error)
-	SearchItemByBusiness(tx *gorm.DB, name string, cursor int64, businessId string, fields *[]string) (*[]entity.Item, error)
+	SearchItem(tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64) (*[]entity.Item, error)
+	SearchItemByBusiness(tx *gorm.DB, name string, cursor int64, businessId string) (*[]entity.Item, error)
 	UpdateItem(tx *gorm.DB, where *entity.Item, data *entity.Item) (*entity.Item, error)
 	UpdateItems(tx *gorm.DB, data *[]entity.Item) (*[]entity.Item, error)
 	DeleteItem(tx *gorm.DB, where *entity.Item, ids *[]uuid.UUID) (*[]entity.Item, error)
@@ -48,39 +48,27 @@ func (v *itemDatasource) CreateItem(tx *gorm.DB, data *entity.Item) (*entity.Ite
 	return data, nil
 }
 
-func (i *itemDatasource) ListItem(tx *gorm.DB, where *entity.Item, cursor time.Time, fields *[]string) (*[]entity.Item, error) {
+func (i *itemDatasource) ListItem(tx *gorm.DB, where *entity.Item, cursor time.Time) (*[]entity.Item, error) {
 	var res []entity.Item
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Limit(11).Select(*selectFields).Where(where).Where("create_time < ?", cursor).Order("create_time desc").Find(&res)
+	result := tx.Limit(11).Where(where).Where("create_time < ?", cursor).Order("create_time desc").Find(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return &res, nil
 }
 
-func (i *itemDatasource) ListItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.Item, error) {
+func (i *itemDatasource) ListItemInIds(tx *gorm.DB, ids []uuid.UUID) (*[]entity.Item, error) {
 	var res []entity.Item
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Where("id IN ? ", ids).Select(*selectFields).Find(&res)
+	result := tx.Where("id IN ? ", ids).Find(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return &res, nil
 }
 
-func (i *itemDatasource) GetItem(tx *gorm.DB, where *entity.Item, fields *[]string) (*entity.Item, error) {
+func (i *itemDatasource) GetItem(tx *gorm.DB, where *entity.Item) (*entity.Item, error) {
 	var res *entity.Item
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Where(where).Select(*selectFields).Take(&res)
+	result := tx.Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
@@ -91,18 +79,14 @@ func (i *itemDatasource) GetItem(tx *gorm.DB, where *entity.Item, fields *[]stri
 	return res, nil
 }
 
-func (i *itemDatasource) SearchItem(tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64, fields *[]string) (*[]entity.Item, error) {
+func (i *itemDatasource) SearchItem(tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64) (*[]entity.Item, error) {
 	var items []entity.Item
 	var result *gorm.DB
 	where := "%" + name + "%"
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
 	if municipalityNotEqual {
-		result = tx.Limit(int(limit+1)).Select(*selectFields).Where("LOWER(unaccent(item.name)) LIKE LOWER(unaccent(?)) AND municipality_id != ? AND province_id = ? AND cursor > ?", where, municipalityId, provinceId, cursor).Order("cursor asc").Find(&items)
+		result = tx.Limit(int(limit+1)).Where("LOWER(unaccent(item.name)) LIKE LOWER(unaccent(?)) AND municipality_id != ? AND province_id = ? AND cursor > ?", where, municipalityId, provinceId, cursor).Order("cursor asc").Find(&items)
 	} else {
-		result = tx.Limit(int(limit+1)).Select(*selectFields).Where("LOWER(unaccent(item.name)) LIKE LOWER(unaccent(?)) AND municipality_id = ? AND province_id = ? AND cursor > ?", where, municipalityId, provinceId, cursor).Order("cursor asc").Find(&items)
+		result = tx.Limit(int(limit+1)).Where("LOWER(unaccent(item.name)) LIKE LOWER(unaccent(?)) AND municipality_id = ? AND province_id = ? AND cursor > ?", where, municipalityId, provinceId, cursor).Order("cursor asc").Find(&items)
 	}
 	if result.Error != nil {
 		return nil, result.Error
@@ -110,15 +94,11 @@ func (i *itemDatasource) SearchItem(tx *gorm.DB, name string, provinceId string,
 	return &items, nil
 }
 
-func (i *itemDatasource) SearchItemByBusiness(tx *gorm.DB, name string, cursor int64, businessId string, fields *[]string) (*[]entity.Item, error) {
+func (i *itemDatasource) SearchItemByBusiness(tx *gorm.DB, name string, cursor int64, businessId string) (*[]entity.Item, error) {
 	var items []entity.Item
 	var result *gorm.DB
 	where := "%" + name + "%"
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result = tx.Limit(10).Select(*selectFields).Where("LOWER(unaccent(item.name)) LIKE LOWER(unaccent(?)) AND cursor > ? AND business_id = ?", where, cursor, businessId).Order("cursor asc").Find(&items)
+	result = tx.Limit(10).Where("LOWER(unaccent(item.name)) LIKE LOWER(unaccent(?)) AND cursor > ? AND business_id = ?", where, cursor, businessId).Order("cursor asc").Find(&items)
 	if result.Error != nil {
 		return nil, result.Error
 	}

@@ -13,28 +13,33 @@ import (
 )
 
 type UserRepository interface {
-	GetUser(ctx context.Context, tx *gorm.DB, where *entity.User, fields *[]string) (*entity.User, error)
-	GetUserWithAddress(ctx context.Context, tx *gorm.DB, where *entity.User, fields *[]string) (*entity.User, error)
+	GetUser(ctx context.Context, tx *gorm.DB, where *entity.User) (*entity.User, error)
+	GetUserWithAddress(ctx context.Context, tx *gorm.DB, where *entity.User) (*entity.User, error)
 	CreateUser(ctx context.Context, tx *gorm.DB, data *entity.User) (*entity.User, error)
 	UpdateUser(ctx context.Context, tx *gorm.DB, where *entity.User, data *entity.User) (*entity.User, error)
 }
 
 type userRepository struct{}
 
-func (u *userRepository) GetUserWithAddress(ctx context.Context, tx *gorm.DB, where *entity.User, fields *[]string) (*entity.User, error) {
-	res, err := Datasource.NewUserDatasource().GetUserWithAddress(tx, where, fields)
+func (u *userRepository) GetUserWithAddress(ctx context.Context, tx *gorm.DB, where *entity.User) (*entity.User, error) {
+	res, err := Datasource.NewUserDatasource().GetUserWithAddress(tx, where)
 	if err != nil {
 		return nil, err
 	}
 	return res, nil
 }
 
-func (u *userRepository) GetUser(ctx context.Context, tx *gorm.DB, where *entity.User, fields *[]string) (*entity.User, error) {
-	cacheId := "user:" + where.ID.String()
+func (u *userRepository) GetUser(ctx context.Context, tx *gorm.DB, where *entity.User) (*entity.User, error) {
+	var cacheId string
+	if where.ID != nil {
+		cacheId = "user:" + where.ID.String()
+	} else {
+		cacheId = "user:" + where.Email
+	}
 	cacheRes, cacheErr := Rdb.HGetAll(ctx, cacheId).Result()
 	// Check if exists in cache
 	if len(cacheRes) == 0 || cacheErr == redis.Nil {
-		dbRes, dbErr := Datasource.NewUserDatasource().GetUser(tx, where, fields)
+		dbRes, dbErr := Datasource.NewUserDatasource().GetUser(tx, where)
 		if dbErr != nil {
 			return nil, dbErr
 		}

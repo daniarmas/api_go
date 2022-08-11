@@ -12,19 +12,19 @@ import (
 )
 
 type DeviceRepository interface {
-	GetDevice(ctx context.Context, tx *gorm.DB, where *entity.Device, fields *[]string) (*entity.Device, error)
+	GetDevice(ctx context.Context, tx *gorm.DB, where *entity.Device) (*entity.Device, error)
 	CreateDevice(ctx context.Context, tx *gorm.DB, data *entity.Device) (*entity.Device, error)
 	UpdateDevice(ctx context.Context, tx *gorm.DB, where *entity.Device, data *entity.Device) (*entity.Device, error)
 }
 
 type deviceRepository struct{}
 
-func (i *deviceRepository) GetDevice(ctx context.Context, tx *gorm.DB, where *entity.Device, fields *[]string) (*entity.Device, error) {
+func (i *deviceRepository) GetDevice(ctx context.Context, tx *gorm.DB, where *entity.Device) (*entity.Device, error) {
 	cacheId := "device:" + where.DeviceIdentifier
 	cacheRes, cacheErr := Rdb.HGetAll(ctx, cacheId).Result()
 	// Check if exists in cache
 	if len(cacheRes) == 0 || cacheErr == redis.Nil {
-		dbRes, dbErr := Datasource.NewDeviceDatasource().GetDevice(tx, where, nil)
+		dbRes, dbErr := Datasource.NewDeviceDatasource().GetDevice(tx, where)
 		if dbErr != nil {
 			return nil, dbErr
 		}

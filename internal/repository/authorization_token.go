@@ -12,7 +12,7 @@ import (
 )
 
 type AuthorizationTokenRepository interface {
-	GetAuthorizationToken(ctx context.Context, tx *gorm.DB, where *entity.AuthorizationToken, fields *[]string) (*entity.AuthorizationToken, error)
+	GetAuthorizationToken(ctx context.Context, tx *gorm.DB, where *entity.AuthorizationToken) (*entity.AuthorizationToken, error)
 	CreateAuthorizationToken(ctx context.Context, tx *gorm.DB, data *entity.AuthorizationToken) (*entity.AuthorizationToken, error)
 	DeleteAuthorizationToken(ctx context.Context, tx *gorm.DB, where *entity.AuthorizationToken, ids *[]uuid.UUID) (*[]entity.AuthorizationToken, error)
 	DeleteAuthorizationTokenByRefreshTokenIds(ctx context.Context, tx *gorm.DB, ids *[]uuid.UUID) (*[]entity.AuthorizationToken, error)
@@ -96,12 +96,12 @@ func (r *authorizationTokenRepository) DeleteAuthorizationTokenByRefreshTokenIds
 	return res, nil
 }
 
-func (v *authorizationTokenRepository) GetAuthorizationToken(ctx context.Context, tx *gorm.DB, where *entity.AuthorizationToken, fields *[]string) (*entity.AuthorizationToken, error) {
+func (v *authorizationTokenRepository) GetAuthorizationToken(ctx context.Context, tx *gorm.DB, where *entity.AuthorizationToken) (*entity.AuthorizationToken, error) {
 	cacheId := "authorization_token:" + where.ID.String()
 	cacheRes, cacheErr := Rdb.HGetAll(ctx, cacheId).Result()
 	// Check if exists in cache
 	if len(cacheRes) == 0 || cacheErr == redis.Nil {
-		dbRes, dbErr := Datasource.NewAuthorizationTokenDatasource().GetAuthorizationToken(tx, where, fields)
+		dbRes, dbErr := Datasource.NewAuthorizationTokenDatasource().GetAuthorizationToken(tx, where)
 		if dbErr != nil {
 			return nil, dbErr
 		}

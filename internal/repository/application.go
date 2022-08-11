@@ -15,16 +15,16 @@ import (
 
 type ApplicationRepository interface {
 	CreateApplication(ctx context.Context, tx *gorm.DB, data *entity.Application) (*entity.Application, error)
-	GetApplication(ctx context.Context, tx *gorm.DB, where *entity.Application, fields *[]string) (*entity.Application, error)
-	ListApplication(ctx context.Context, tx *gorm.DB, where *entity.Application, cursor *time.Time, fields *[]string) (*[]entity.Application, error)
+	GetApplication(ctx context.Context, tx *gorm.DB, where *entity.Application) (*entity.Application, error)
+	ListApplication(ctx context.Context, tx *gorm.DB, where *entity.Application, cursor *time.Time) (*[]entity.Application, error)
 	CheckApplication(ctx context.Context, tx *gorm.DB, accessToken string) (*entity.Application, error)
 	DeleteApplication(ctx context.Context, tx *gorm.DB, where *entity.Application, ids *[]uuid.UUID) (*[]entity.Application, error)
 }
 
 type applicationRepository struct{}
 
-func (i *applicationRepository) GetApplication(ctx context.Context, tx *gorm.DB, where *entity.Application, fields *[]string) (*entity.Application, error) {
-	res, err := Datasource.NewApplicationDatasource().GetApplication(tx, where, fields)
+func (i *applicationRepository) GetApplication(ctx context.Context, tx *gorm.DB, where *entity.Application) (*entity.Application, error) {
+	res, err := Datasource.NewApplicationDatasource().GetApplication(tx, where)
 	if err != nil {
 		return nil, err
 	}
@@ -62,8 +62,8 @@ func (i *applicationRepository) DeleteApplication(ctx context.Context, tx *gorm.
 	return dbRes, nil
 }
 
-func (i *applicationRepository) ListApplication(ctx context.Context, tx *gorm.DB, where *entity.Application, cursor *time.Time, fields *[]string) (*[]entity.Application, error) {
-	res, err := Datasource.NewApplicationDatasource().ListApplication(tx, where, cursor, fields)
+func (i *applicationRepository) ListApplication(ctx context.Context, tx *gorm.DB, where *entity.Application, cursor *time.Time) (*[]entity.Application, error) {
+	res, err := Datasource.NewApplicationDatasource().ListApplication(tx, where, cursor)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (i *applicationRepository) CheckApplication(ctx context.Context, tx *gorm.D
 	cacheRes, cacheErr := Rdb.HGetAll(ctx, cacheId).Result()
 	// Check if exists in cache
 	if len(cacheRes) == 0 || cacheErr == redis.Nil {
-		dbRes, dbErr := Datasource.NewApplicationDatasource().GetApplication(tx, &entity.Application{ID: jwtAccessToken.TokenId}, nil)
+		dbRes, dbErr := Datasource.NewApplicationDatasource().GetApplication(tx, &entity.Application{ID: jwtAccessToken.TokenId})
 		if dbErr != nil && dbErr.Error() == "record not found" {
 			return nil, errors.New("unauthenticated application")
 		} else if dbErr != nil {

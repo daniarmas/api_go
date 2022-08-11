@@ -6,13 +6,13 @@ import (
 )
 
 type ProvinceRepository interface {
-	GetProvince(tx *gorm.DB, where *entity.Province, fields *[]string) (*entity.Province, error)
+	GetProvince(tx *gorm.DB, where *entity.Province) (*entity.Province, error)
 }
 
 type provinceRepository struct{}
 
-func (v *provinceRepository) GetProvince(tx *gorm.DB, where *entity.Province, fields *[]string) (*entity.Province, error) {
-	res, err := Datasource.NewProvinceDatasource().GetProvince(tx, where, fields)
+func (v *provinceRepository) GetProvince(tx *gorm.DB, where *entity.Province) (*entity.Province, error) {
+	res, err := Datasource.NewProvinceDatasource().GetProvince(tx, where)
 	if err != nil {
 		return nil, err
 	}

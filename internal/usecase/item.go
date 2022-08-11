@@ -64,22 +64,22 @@ func (i *itemService) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest,
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
 		id := uuid.MustParse(req.Item.Id)
-		getItemRes, getItemErr := i.dao.NewItemRepository().GetItem(ctx, tx, &entity.Item{ID: &id}, nil)
+		getItemRes, getItemErr := i.dao.NewItemRepository().GetItem(ctx, tx, &entity.Item{ID: &id})
 		if getItemErr != nil {
 			return getItemErr
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_item", BusinessId: getItemRes.BusinessId}, &[]string{"id"})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_item", BusinessId: getItemRes.BusinessId})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
-		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &entity.CartItem{ItemId: &id}, nil)
+		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &entity.CartItem{ItemId: &id})
 		if getCartItemErr != nil && getCartItemErr.Error() != "record not found" {
 			return getCartItemErr
 		} else if getCartItemRes != nil {
@@ -177,20 +177,20 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
 		id := uuid.MustParse(req.Id)
-		getItemRes, getItemErr := i.dao.NewItemRepository().GetItem(ctx, tx, &entity.Item{ID: &id}, nil)
+		getItemRes, getItemErr := i.dao.NewItemRepository().GetItem(ctx, tx, &entity.Item{ID: &id})
 		if getItemErr != nil && getItemErr.Error() == "record not found" {
 			return errors.New("item not found")
 		} else if getItemErr != nil {
 			return getItemErr
 		}
-		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{Name: "delete_item", UserId: authorizationTokenRes.UserId, BusinessId: getItemRes.BusinessId}, &[]string{"id"})
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{Name: "delete_item", UserId: authorizationTokenRes.UserId, BusinessId: getItemRes.BusinessId})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		} else if err != nil {
@@ -208,7 +208,7 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 		} else if businessHomeDeliveryRes {
 			return errors.New("business is open")
 		}
-		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &entity.CartItem{ItemId: &id}, nil)
+		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &entity.CartItem{ItemId: &id})
 		if getCartItemErr != nil && getCartItemErr.Error() != "record not found" {
 			return getCartItemErr
 		} else if getCartItemRes != nil {
@@ -272,18 +272,18 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
 		businessId := uuid.MustParse(req.Item.BusinessId)
-		businessRes, businessErr := i.dao.NewBusinessRepository().GetBusiness(tx, &entity.Business{ID: &businessId}, &[]string{"province_id", "municipality_id"})
+		businessRes, businessErr := i.dao.NewBusinessRepository().GetBusiness(tx, &entity.Business{ID: &businessId})
 		if businessErr != nil {
 			return businessErr
 		}
-		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{Name: "create_item", UserId: authorizationTokenRes.UserId, BusinessId: &businessId}, &[]string{"id"})
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{Name: "create_item", UserId: authorizationTokenRes.UserId, BusinessId: &businessId})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		} else if err != nil {
@@ -345,7 +345,7 @@ func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md 
 		if err != nil {
 			return err
 		}
-		items, itemsErr = i.dao.NewItemRepository().ListItem(ctx, tx, &where, nextPage, nil)
+		items, itemsErr = i.dao.NewItemRepository().ListItem(ctx, tx, &where, nextPage)
 		if itemsErr != nil {
 			return itemsErr
 		} else if len(*items) > 10 {
@@ -400,7 +400,7 @@ func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *u
 			return err
 		}
 		id := uuid.MustParse(req.Id)
-		item, itemErr = i.dao.NewItemRepository().GetItem(ctx, tx, &entity.Item{ID: &id}, nil)
+		item, itemErr = i.dao.NewItemRepository().GetItem(ctx, tx, &entity.Item{ID: &id})
 		if itemErr != nil {
 			return itemErr
 		}
@@ -447,7 +447,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 			return err
 		}
 		if req.SearchMunicipalityType.String() == "More" {
-			response, responseErr = i.dao.NewItemRepository().SearchItem(ctx, tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), false, 10, &[]string{"id", "name", "price_cup", "thumbnail", "blurhash", "cursor", "business_id"})
+			response, responseErr = i.dao.NewItemRepository().SearchItem(ctx, tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), false, 10)
 			if responseErr != nil {
 				return responseErr
 			}
@@ -457,7 +457,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_More
 			} else if len(*response) <= 10 && len(*response) != 0 {
 				length := 10 - len(*response)
-				responseAdd, responseErr := i.dao.NewItemRepository().SearchItem(ctx, tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, int64(length), &[]string{"id", "name", "price_cup", "thumbnail", "blurhash", "cursor", "business_id"})
+				responseAdd, responseErr := i.dao.NewItemRepository().SearchItem(ctx, tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, int64(length))
 				if responseErr != nil {
 					return responseErr
 				}
@@ -468,7 +468,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 				searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
 				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
 			} else if len(*response) == 0 {
-				response, responseErr = i.dao.NewItemRepository().SearchItem(ctx, tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10, &[]string{"id", "name", "price_cup", "thumbnail", "blurhash", "cursor", "business_id"})
+				response, responseErr = i.dao.NewItemRepository().SearchItem(ctx, tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10)
 				if responseErr != nil {
 					return responseErr
 				}
@@ -481,7 +481,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
 			}
 		} else {
-			response, responseErr = i.dao.NewItemRepository().SearchItem(ctx, tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10, &[]string{"id", "name", "price_cup", "thumbnail", "thumbnail_blurhash", "cursor", "business_id"})
+			response, responseErr = i.dao.NewItemRepository().SearchItem(ctx, tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10)
 			if responseErr != nil {
 				return responseErr
 			}
@@ -526,7 +526,7 @@ func (i *itemService) SearchItemByBusiness(ctx context.Context, req *pb.SearchIt
 		if err != nil {
 			return err
 		}
-		response, responseErr = i.dao.NewItemRepository().SearchItemByBusiness(ctx, tx, req.Name, int64(req.NextPage), req.BusinessId, &[]string{"id", "name", "price_cup", "thumbnail", "blurhash", "cursor", "business_id"})
+		response, responseErr = i.dao.NewItemRepository().SearchItemByBusiness(ctx, tx, req.Name, int64(req.NextPage), req.BusinessId)
 		if responseErr != nil {
 			return responseErr
 		}

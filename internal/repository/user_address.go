@@ -7,7 +7,7 @@ import (
 )
 
 type UserAddressRepository interface {
-	ListUserAddress(tx *gorm.DB, where *entity.UserAddress, fields *[]string) (*[]entity.UserAddress, error)
+	ListUserAddress(tx *gorm.DB, where *entity.UserAddress) (*[]entity.UserAddress, error)
 	CreateUserAddress(tx *gorm.DB, data *entity.UserAddress) (*entity.UserAddress, error)
 	UpdateUserAddress(tx *gorm.DB, where *entity.UserAddress, data *entity.UserAddress) (*entity.UserAddress, error)
 	UpdateUserAddressByUserId(tx *gorm.DB, where *entity.UserAddress, data *entity.UserAddress) (*entity.UserAddress, error)
@@ -18,8 +18,8 @@ type UserAddressRepository interface {
 
 type userAddressRepository struct{}
 
-func (i *userAddressRepository) ListUserAddress(tx *gorm.DB, where *entity.UserAddress, fields *[]string) (*[]entity.UserAddress, error) {
-	result, err := Datasource.NewUserAddressDatasource().ListUserAddress(tx, where, fields)
+func (i *userAddressRepository) ListUserAddress(tx *gorm.DB, where *entity.UserAddress) (*[]entity.UserAddress, error) {
+	result, err := Datasource.NewUserAddressDatasource().ListUserAddress(tx, where)
 	if err != nil {
 		return nil, err
 	}

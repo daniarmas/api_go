@@ -7,7 +7,7 @@ import (
 
 type UnionOrderAndOrderedItemRepository interface {
 	BatchCreateUnionOrderAndOrderedItem(tx *gorm.DB, data *[]entity.UnionOrderAndOrderedItem) (*[]entity.UnionOrderAndOrderedItem, error)
-	ListUnionOrderAndOrderedItem(tx *gorm.DB, where *entity.UnionOrderAndOrderedItem, fields *[]string) (*[]entity.UnionOrderAndOrderedItem, error)
+	ListUnionOrderAndOrderedItem(tx *gorm.DB, where *entity.UnionOrderAndOrderedItem) (*[]entity.UnionOrderAndOrderedItem, error)
 }
 
 type unionOrderAndOrderedItemRepository struct{}
@@ -20,8 +20,8 @@ func (i *unionOrderAndOrderedItemRepository) BatchCreateUnionOrderAndOrderedItem
 	return res, nil
 }
 
-func (i *unionOrderAndOrderedItemRepository) ListUnionOrderAndOrderedItem(tx *gorm.DB, where *entity.UnionOrderAndOrderedItem, fields *[]string) (*[]entity.UnionOrderAndOrderedItem, error) {
-	res, err := Datasource.NewUnionOrderAndOrderedItemDatasource().ListUnionOrderAndOrderedItem(tx, where, fields)
+func (i *unionOrderAndOrderedItemRepository) ListUnionOrderAndOrderedItem(tx *gorm.DB, where *entity.UnionOrderAndOrderedItem) (*[]entity.UnionOrderAndOrderedItem, error) {
+	res, err := Datasource.NewUnionOrderAndOrderedItemDatasource().ListUnionOrderAndOrderedItem(tx, where)
 	if err != nil {
 		return nil, err
 	}

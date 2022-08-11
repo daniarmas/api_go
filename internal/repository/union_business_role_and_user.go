@@ -9,8 +9,8 @@ import (
 )
 
 type UnionBusinessRoleAndUserRepository interface {
-	ListUnionBusinessRoleAndUser(tx *gorm.DB, where *entity.UnionBusinessRoleAndUser, cursor *time.Time, fields *[]string) (*[]entity.UnionBusinessRoleAndUser, error)
-	ListUnionBusinessRoleAndUserInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.UnionBusinessRoleAndUser, error)
+	ListUnionBusinessRoleAndUser(tx *gorm.DB, where *entity.UnionBusinessRoleAndUser, cursor *time.Time) (*[]entity.UnionBusinessRoleAndUser, error)
+	ListUnionBusinessRoleAndUserInIds(tx *gorm.DB, ids []uuid.UUID) (*[]entity.UnionBusinessRoleAndUser, error)
 	ListUnionBusinessRoleAndUserAll(tx *gorm.DB, where *entity.UnionBusinessRoleAndUser) (*[]entity.UnionBusinessRoleAndUser, error)
 	CreateUnionBusinessRoleAndUser(tx *gorm.DB, data *[]entity.UnionBusinessRoleAndUser) (*[]entity.UnionBusinessRoleAndUser, error)
 	DeleteUnionBusinessRoleAndUser(tx *gorm.DB, where *entity.UnionBusinessRoleAndUser, ids *[]uuid.UUID) (*[]entity.UnionBusinessRoleAndUser, error)
@@ -27,16 +27,16 @@ func (i *unionBusinessRoleAndUserRepository) ListUnionBusinessRoleAndUserAll(tx 
 	return res, nil
 }
 
-func (i *unionBusinessRoleAndUserRepository) ListUnionBusinessRoleAndUserInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.UnionBusinessRoleAndUser, error) {
-	res, err := Datasource.NewUnionBusinessRoleAndUserDatasource().ListUnionBusinessRoleAndUserInIds(tx, ids, fields)
+func (i *unionBusinessRoleAndUserRepository) ListUnionBusinessRoleAndUserInIds(tx *gorm.DB, ids []uuid.UUID) (*[]entity.UnionBusinessRoleAndUser, error) {
+	res, err := Datasource.NewUnionBusinessRoleAndUserDatasource().ListUnionBusinessRoleAndUserInIds(tx, ids)
 	if err != nil {
 		return nil, err
 	}
 	return res, nil
 }
 
-func (i *unionBusinessRoleAndUserRepository) ListUnionBusinessRoleAndUser(tx *gorm.DB, where *entity.UnionBusinessRoleAndUser, cursor *time.Time, fields *[]string) (*[]entity.UnionBusinessRoleAndUser, error) {
-	res, err := Datasource.NewUnionBusinessRoleAndUserDatasource().ListUnionBusinessRoleAndUser(tx, where, cursor, fields)
+func (i *unionBusinessRoleAndUserRepository) ListUnionBusinessRoleAndUser(tx *gorm.DB, where *entity.UnionBusinessRoleAndUser, cursor *time.Time) (*[]entity.UnionBusinessRoleAndUser, error) {
+	res, err := Datasource.NewUnionBusinessRoleAndUserDatasource().ListUnionBusinessRoleAndUser(tx, where, cursor)
 	if err != nil {
 		return nil, err
 	}

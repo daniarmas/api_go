@@ -14,7 +14,7 @@ import (
 
 type UserPermissionRepository interface {
 	CreateUserPermission(tx *gorm.DB, data *[]entity.UserPermission) (*[]entity.UserPermission, error)
-	GetUserPermission(tx *gorm.DB, where *entity.UserPermission, fields *[]string) (*entity.UserPermission, error)
+	GetUserPermission(tx *gorm.DB, where *entity.UserPermission) (*entity.UserPermission, error)
 	DeleteUserPermission(tx *gorm.DB, where *entity.UserPermission, ids *[]uuid.UUID) (*[]entity.UserPermission, error)
 	DeleteUserPermissionByBusinessRoleId(tx *gorm.DB, where *entity.UserPermission) (*[]entity.UserPermission, error)
 	DeleteUserPermissionByPermissionId(tx *gorm.DB, permissionIds *[]uuid.UUID) (*[]entity.UserPermission, error)
@@ -60,7 +60,7 @@ func (v *userPermissionRepository) DeleteUserPermissionByPermissionId(tx *gorm.D
 	return res, nil
 }
 
-func (v *userPermissionRepository) GetUserPermission(tx *gorm.DB, where *entity.UserPermission, fields *[]string) (*entity.UserPermission, error) {
+func (v *userPermissionRepository) GetUserPermission(tx *gorm.DB, where *entity.UserPermission) (*entity.UserPermission, error) {
 	var cacheId string
 	if where.BusinessId != nil {
 		cacheId = "user_permission:" + where.Name + ":" + where.BusinessId.String() + ":" + where.UserId.String()
@@ -71,7 +71,7 @@ func (v *userPermissionRepository) GetUserPermission(tx *gorm.DB, where *entity.
 	cacheRes, cacheErr := Rdb.HGetAll(ctx, cacheId).Result()
 	// Check if exists in cache
 	if len(cacheRes) == 0 || cacheErr == redis.Nil {
-		dbRes, dbErr := Datasource.NewUserPermissionDatasource().GetUserPermission(tx, where, nil)
+		dbRes, dbErr := Datasource.NewUserPermissionDatasource().GetUserPermission(tx, where)
 		if dbErr != nil {
 			return nil, dbErr
 		}

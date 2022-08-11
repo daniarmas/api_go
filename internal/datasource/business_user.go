@@ -10,7 +10,7 @@ import (
 )
 
 type BusinessUserDatasource interface {
-	GetBusinessUser(tx *gorm.DB, where *entity.BusinessUser, fields *[]string) (*entity.BusinessUser, error)
+	GetBusinessUser(tx *gorm.DB, where *entity.BusinessUser) (*entity.BusinessUser, error)
 	CreateBusinessUser(tx *gorm.DB, data *entity.BusinessUser) (*entity.BusinessUser, error)
 	DeleteBusinessUser(tx *gorm.DB, where *entity.BusinessUser, ids *[]uuid.UUID) (*[]entity.BusinessUser, error)
 }
@@ -25,13 +25,9 @@ func (v *businessUserDatasource) CreateBusinessUser(tx *gorm.DB, data *entity.Bu
 	return data, nil
 }
 
-func (v *businessUserDatasource) GetBusinessUser(tx *gorm.DB, where *entity.BusinessUser, fields *[]string) (*entity.BusinessUser, error) {
+func (v *businessUserDatasource) GetBusinessUser(tx *gorm.DB, where *entity.BusinessUser) (*entity.BusinessUser, error) {
 	var res *entity.BusinessUser
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Where(where).Select(*selectFields).Take(&res)
+	result := tx.Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

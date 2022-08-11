@@ -83,7 +83,12 @@ func (i *userConfigurationRepository) DeleteUserConfiguration(ctx context.Contex
 }
 
 func (i *userConfigurationRepository) GetUserConfiguration(ctx context.Context, tx *gorm.DB, where *entity.UserConfiguration) (*entity.UserConfiguration, error) {
-	cacheId := "user_configuration:" + where.ID.String()
+	var cacheId string
+	if where.ID != nil {
+		cacheId = "user_configuration:" + where.ID.String()
+	} else {
+		cacheId = "user_configuration:" + where.UserId.String()
+	}
 	cacheRes, cacheErr := Rdb.HGetAll(ctx, cacheId).Result()
 	// Check if exists in cache
 	if len(cacheRes) == 0 || cacheErr == redis.Nil {

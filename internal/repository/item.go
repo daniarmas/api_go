@@ -13,12 +13,12 @@ import (
 )
 
 type ItemRepository interface {
-	GetItem(ctx context.Context, tx *gorm.DB, where *entity.Item, fields *[]string) (*entity.Item, error)
-	ListItem(ctx context.Context, tx *gorm.DB, where *entity.Item, cursor time.Time, fields *[]string) (*[]entity.Item, error)
-	ListItemInIds(ctx context.Context, tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.Item, error)
+	GetItem(ctx context.Context, tx *gorm.DB, where *entity.Item) (*entity.Item, error)
+	ListItem(ctx context.Context, tx *gorm.DB, where *entity.Item, cursor time.Time) (*[]entity.Item, error)
+	ListItemInIds(ctx context.Context, tx *gorm.DB, ids []uuid.UUID) (*[]entity.Item, error)
 	CreateItem(ctx context.Context, tx *gorm.DB, data *entity.Item) (*entity.Item, error)
-	SearchItem(ctx context.Context, tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64, fields *[]string) (*[]entity.Item, error)
-	SearchItemByBusiness(ctx context.Context, tx *gorm.DB, name string, cursor int64, businessId string, fields *[]string) (*[]entity.Item, error)
+	SearchItem(ctx context.Context, tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64) (*[]entity.Item, error)
+	SearchItemByBusiness(ctx context.Context, tx *gorm.DB, name string, cursor int64, businessId string) (*[]entity.Item, error)
 	UpdateItem(ctx context.Context, tx *gorm.DB, where *entity.Item, data *entity.Item) (*entity.Item, error)
 	UpdateItems(ctx context.Context, tx *gorm.DB, data *[]entity.Item) (*[]entity.Item, error)
 	DeleteItem(ctx context.Context, tx *gorm.DB, where *entity.Item, ids *[]uuid.UUID) (*[]entity.Item, error)
@@ -95,9 +95,9 @@ func (v *itemRepository) CreateItem(ctx context.Context, tx *gorm.DB, data *enti
 	return dbRes, nil
 }
 
-func (i *itemRepository) ListItem(ctx context.Context, tx *gorm.DB, where *entity.Item, cursor time.Time, fields *[]string) (*[]entity.Item, error) {
+func (i *itemRepository) ListItem(ctx context.Context, tx *gorm.DB, where *entity.Item, cursor time.Time) (*[]entity.Item, error) {
 	// Get from database
-	dbRes, dbErr := Datasource.NewItemDatasource().ListItem(tx, where, cursor, fields)
+	dbRes, dbErr := Datasource.NewItemDatasource().ListItem(tx, where, cursor)
 	if dbErr != nil {
 		return nil, dbErr
 	} else {
@@ -148,9 +148,9 @@ func (i *itemRepository) ListItem(ctx context.Context, tx *gorm.DB, where *entit
 	return dbRes, nil
 }
 
-func (i *itemRepository) ListItemInIds(ctx context.Context, tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.Item, error) {
+func (i *itemRepository) ListItemInIds(ctx context.Context, tx *gorm.DB, ids []uuid.UUID) (*[]entity.Item, error) {
 	// Delete in database
-	dbRes, dbErr := Datasource.NewItemDatasource().ListItemInIds(tx, ids, fields)
+	dbRes, dbErr := Datasource.NewItemDatasource().ListItemInIds(tx, ids)
 	if dbErr != nil {
 		return nil, dbErr
 	} else {
@@ -201,12 +201,12 @@ func (i *itemRepository) ListItemInIds(ctx context.Context, tx *gorm.DB, ids []u
 	return dbRes, nil
 }
 
-func (i *itemRepository) GetItem(ctx context.Context, tx *gorm.DB, where *entity.Item, fields *[]string) (*entity.Item, error) {
+func (i *itemRepository) GetItem(ctx context.Context, tx *gorm.DB, where *entity.Item) (*entity.Item, error) {
 	cacheId := "item:" + where.ID.String()
 	cacheRes, cacheErr := Rdb.HGetAll(ctx, cacheId).Result()
 	// Check if exists in cache
 	if len(cacheRes) == 0 || cacheErr == redis.Nil {
-		dbRes, dbErr := Datasource.NewItemDatasource().GetItem(tx, where, fields)
+		dbRes, dbErr := Datasource.NewItemDatasource().GetItem(tx, where)
 		if dbErr != nil {
 			return nil, dbErr
 		}
@@ -380,16 +380,16 @@ func (i *itemRepository) UpdateItems(ctx context.Context, tx *gorm.DB, data *[]e
 	return dbRes, nil
 }
 
-func (i *itemRepository) SearchItem(ctx context.Context, tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64, fields *[]string) (*[]entity.Item, error) {
-	res, err := Datasource.NewItemDatasource().SearchItem(tx, name, provinceId, municipalityId, cursor, municipalityNotEqual, limit, fields)
+func (i *itemRepository) SearchItem(ctx context.Context, tx *gorm.DB, name string, provinceId string, municipalityId string, cursor int64, municipalityNotEqual bool, limit int64) (*[]entity.Item, error) {
+	res, err := Datasource.NewItemDatasource().SearchItem(tx, name, provinceId, municipalityId, cursor, municipalityNotEqual, limit)
 	if err != nil {
 		return nil, err
 	}
 	return res, nil
 }
 
-func (i *itemRepository) SearchItemByBusiness(ctx context.Context, tx *gorm.DB, name string, cursor int64, businessId string, fields *[]string) (*[]entity.Item, error) {
-	res, err := Datasource.NewItemDatasource().SearchItemByBusiness(tx, name, cursor, businessId, fields)
+func (i *itemRepository) SearchItemByBusiness(ctx context.Context, tx *gorm.DB, name string, cursor int64, businessId string) (*[]entity.Item, error) {
+	res, err := Datasource.NewItemDatasource().SearchItemByBusiness(tx, name, cursor, businessId)
 	if err != nil {
 		return nil, err
 	}

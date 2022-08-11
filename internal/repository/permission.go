@@ -7,15 +7,15 @@ import (
 )
 
 type PermissionRepository interface {
-	GetPermission(tx *gorm.DB, where *entity.Permission, fields *[]string) (*entity.Permission, error)
+	GetPermission(tx *gorm.DB, where *entity.Permission) (*entity.Permission, error)
 	ListPermissionAll(tx *gorm.DB, where *entity.Permission) (*[]entity.Permission, error)
 	ListPermissionByIdAll(tx *gorm.DB, where *entity.Permission, ids *[]uuid.UUID) (*[]entity.Permission, error)
 }
 
 type permissionRepository struct{}
 
-func (i *permissionRepository) GetPermission(tx *gorm.DB, where *entity.Permission, fields *[]string) (*entity.Permission, error) {
-	res, err := Datasource.NewPermissionDatasource().GetPermission(tx, where, fields)
+func (i *permissionRepository) GetPermission(tx *gorm.DB, where *entity.Permission) (*entity.Permission, error) {
+	res, err := Datasource.NewPermissionDatasource().GetPermission(tx, where)
 	if err != nil {
 		return nil, err
 	}

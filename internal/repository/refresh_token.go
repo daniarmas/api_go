@@ -7,7 +7,7 @@ import (
 )
 
 type RefreshTokenRepository interface {
-	GetRefreshToken(tx *gorm.DB, where *entity.RefreshToken, fields *[]string) (*entity.RefreshToken, error)
+	GetRefreshToken(tx *gorm.DB, where *entity.RefreshToken) (*entity.RefreshToken, error)
 	CreateRefreshToken(tx *gorm.DB, data *entity.RefreshToken) (*entity.RefreshToken, error)
 	DeleteRefreshToken(tx *gorm.DB, where *entity.RefreshToken, ids *[]uuid.UUID) (*[]entity.RefreshToken, error)
 	DeleteRefreshTokenDeviceIdNotEqual(tx *gorm.DB, where *entity.RefreshToken, ids *[]uuid.UUID) (*[]entity.RefreshToken, error)
@@ -39,8 +39,8 @@ func (r *refreshTokenRepository) DeleteRefreshTokenDeviceIdNotEqual(tx *gorm.DB,
 	return res, nil
 }
 
-func (r *refreshTokenRepository) GetRefreshToken(tx *gorm.DB, where *entity.RefreshToken, fields *[]string) (*entity.RefreshToken, error) {
-	res, err := Datasource.NewRefreshTokenDatasource().GetRefreshToken(tx, where, fields)
+func (r *refreshTokenRepository) GetRefreshToken(tx *gorm.DB, where *entity.RefreshToken) (*entity.RefreshToken, error) {
+	res, err := Datasource.NewRefreshTokenDatasource().GetRefreshToken(tx, where)
 	if err != nil {
 		return nil, err
 	}

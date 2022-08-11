@@ -12,7 +12,7 @@ import (
 )
 
 type VerificationCodeRepository interface {
-	GetVerificationCode(ctx context.Context, tx *gorm.DB, where *entity.VerificationCode, fields *[]string) (*entity.VerificationCode, error)
+	GetVerificationCode(ctx context.Context, tx *gorm.DB, where *entity.VerificationCode) (*entity.VerificationCode, error)
 	CreateVerificationCode(ctx context.Context, tx *gorm.DB, data *entity.VerificationCode) (*entity.VerificationCode, error)
 	DeleteVerificationCode(ctx context.Context, tx *gorm.DB, where *entity.VerificationCode, ids *[]uuid.UUID) (*[]entity.VerificationCode, error)
 }
@@ -47,12 +47,12 @@ func (v *verificationCodeRepository) CreateVerificationCode(ctx context.Context,
 	return dbRes, nil
 }
 
-func (v *verificationCodeRepository) GetVerificationCode(ctx context.Context, tx *gorm.DB, where *entity.VerificationCode, fields *[]string) (*entity.VerificationCode, error) {
+func (v *verificationCodeRepository) GetVerificationCode(ctx context.Context, tx *gorm.DB, where *entity.VerificationCode) (*entity.VerificationCode, error) {
 	cacheId := "verification_code:" + where.Code
 	cacheRes, cacheErr := Rdb.HGetAll(ctx, cacheId).Result()
 	// Check if exists in cache
 	if len(cacheRes) == 0 || cacheErr == redis.Nil {
-		dbRes, dbErr := Datasource.NewVerificationCodeDatasource().GetVerificationCode(tx, where, nil)
+		dbRes, dbErr := Datasource.NewVerificationCodeDatasource().GetVerificationCode(tx, where)
 		if dbErr != nil {
 			return nil, dbErr
 		}

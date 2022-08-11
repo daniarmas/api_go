@@ -11,25 +11,21 @@ import (
 )
 
 type CartItemDatasource interface {
-	ListCartItem(tx *gorm.DB, where *entity.CartItem, cursor *time.Time, fields *[]string) (*[]entity.CartItem, error)
-	ListCartItemAll(tx *gorm.DB, where *entity.CartItem, fields *[]string) (*[]entity.CartItem, error)
-	ListCartItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.CartItem, error)
+	ListCartItem(tx *gorm.DB, where *entity.CartItem, cursor *time.Time) (*[]entity.CartItem, error)
+	ListCartItemAll(tx *gorm.DB, where *entity.CartItem) (*[]entity.CartItem, error)
+	ListCartItemInIds(tx *gorm.DB, ids []uuid.UUID) (*[]entity.CartItem, error)
 	CreateCartItem(tx *gorm.DB, where *entity.CartItem) (*entity.CartItem, error)
 	UpdateCartItem(tx *gorm.DB, where *entity.CartItem, data *entity.CartItem) (*entity.CartItem, error)
-	GetCartItem(tx *gorm.DB, where *entity.CartItem, fields *[]string) (*entity.CartItem, error)
+	GetCartItem(tx *gorm.DB, where *entity.CartItem) (*entity.CartItem, error)
 	DeleteCartItem(tx *gorm.DB, where *entity.CartItem, ids *[]uuid.UUID) (*[]entity.CartItem, error)
 	CartItemIsEmpty(tx *gorm.DB, where *entity.CartItem) (*bool, error)
 }
 
 type cartItemDatasource struct{}
 
-func (i *cartItemDatasource) ListCartItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.CartItem, error) {
+func (i *cartItemDatasource) ListCartItemInIds(tx *gorm.DB, ids []uuid.UUID) (*[]entity.CartItem, error) {
 	var cartItems []entity.CartItem
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Where("id IN ?", ids).Select(*selectFields).Find(&cartItems)
+	result := tx.Where("id IN ?", ids).Find(&cartItems)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -50,26 +46,18 @@ func (i *cartItemDatasource) CartItemIsEmpty(tx *gorm.DB, where *entity.CartItem
 	return &res, nil
 }
 
-func (i *cartItemDatasource) ListCartItem(tx *gorm.DB, where *entity.CartItem, cursor *time.Time, fields *[]string) (*[]entity.CartItem, error) {
+func (i *cartItemDatasource) ListCartItem(tx *gorm.DB, where *entity.CartItem, cursor *time.Time) (*[]entity.CartItem, error) {
 	var res []entity.CartItem
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Model(&entity.CartItem{}).Select(*selectFields).Limit(11).Where("cart_item.user_id = ? AND cart_item.create_time < ?", where.UserId, cursor).Order("cart_item.create_time desc").Scan(&res)
+	result := tx.Model(&entity.CartItem{}).Limit(11).Where("cart_item.user_id = ? AND cart_item.create_time < ?", where.UserId, cursor).Order("cart_item.create_time desc").Scan(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return &res, nil
 }
 
-func (i *cartItemDatasource) ListCartItemAll(tx *gorm.DB, where *entity.CartItem, fields *[]string) (*[]entity.CartItem, error) {
+func (i *cartItemDatasource) ListCartItemAll(tx *gorm.DB, where *entity.CartItem) (*[]entity.CartItem, error) {
 	var res []entity.CartItem
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Where("cart_item.user_id = ?", where.UserId).Select(*selectFields).Order("cart_item.create_time desc").Find(&res)
+	result := tx.Where("cart_item.user_id = ?", where.UserId).Order("cart_item.create_time desc").Find(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -112,13 +100,9 @@ func (v *cartItemDatasource) DeleteCartItem(tx *gorm.DB, where *entity.CartItem,
 	return res, nil
 }
 
-func (v *cartItemDatasource) GetCartItem(tx *gorm.DB, where *entity.CartItem, fields *[]string) (*entity.CartItem, error) {
+func (v *cartItemDatasource) GetCartItem(tx *gorm.DB, where *entity.CartItem) (*entity.CartItem, error) {
 	var res *entity.CartItem
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Where(where).Select(*selectFields).Take(&res)
+	result := tx.Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

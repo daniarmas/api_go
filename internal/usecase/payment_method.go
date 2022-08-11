@@ -58,7 +58,7 @@ func (i *paymentMethodService) ListBusinessPaymentMethod(ctx context.Context, re
 				return authorizationTokenParseErr
 			}
 		}
-		_, err = i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		_, err = i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("authorization token not found")
 		} else if err != nil && err.Error() != "record not found" {
@@ -111,7 +111,7 @@ func (i *paymentMethodService) DeletePaymentMethod(ctx context.Context, req *pb.
 				return authorizationTokenParseErr
 			}
 		}
-		_, err = i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		_, err = i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("authorization token not found")
 		} else if err != nil && err.Error() != "record not found" {
@@ -157,13 +157,13 @@ func (i *paymentMethodService) UpdatePaymentMethod(ctx context.Context, req *pb.
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("authorization token not found")
 		} else if err != nil && err.Error() != "record not found" {
 			return err
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_payment_method"}, &[]string{"id"})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_payment_method"})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
@@ -211,7 +211,7 @@ func (i *paymentMethodService) ListPaymentMethod(ctx context.Context, req *pb.Li
 				return authorizationTokenParseErr
 			}
 		}
-		_, err = i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		_, err = i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("authorization token not found")
 		} else if err != nil && err.Error() != "record not found" {
@@ -266,13 +266,13 @@ func (i *paymentMethodService) CreatePaymentMethod(ctx context.Context, req *pb.
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("authorization token not found")
 		} else if err != nil && err.Error() != "record not found" {
 			return err
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_payment_method"}, &[]string{"id"})
+		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_payment_method"})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
 			return errors.New("permission denied")
 		}

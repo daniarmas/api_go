@@ -49,7 +49,7 @@ func (i *objectStorageService) GetPresignedPutObject(ctx context.Context, req *p
 				return authorizationTokenParseErr
 			}
 		}
-		_, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		_, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
 			return errors.New("unauthenticated")
 		} else if authorizationTokenErr != nil {

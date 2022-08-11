@@ -13,7 +13,7 @@ import (
 )
 
 type BusinessUserRepository interface {
-	GetBusinessUser(ctx context.Context, tx *gorm.DB, where *entity.BusinessUser, fields *[]string) (*entity.BusinessUser, error)
+	GetBusinessUser(ctx context.Context, tx *gorm.DB, where *entity.BusinessUser) (*entity.BusinessUser, error)
 	CreateBusinessUser(ctx context.Context, tx *gorm.DB, data *entity.BusinessUser) (*entity.BusinessUser, error)
 	DeleteBusinessUser(ctx context.Context, tx *gorm.DB, where *entity.BusinessUser, ids *[]uuid.UUID) (*[]entity.BusinessUser, error)
 }
@@ -47,12 +47,12 @@ func (v *businessUserRepository) CreateBusinessUser(ctx context.Context, tx *gor
 	return dbRes, nil
 }
 
-func (v *businessUserRepository) GetBusinessUser(ctx context.Context, tx *gorm.DB, where *entity.BusinessUser, fields *[]string) (*entity.BusinessUser, error) {
+func (v *businessUserRepository) GetBusinessUser(ctx context.Context, tx *gorm.DB, where *entity.BusinessUser) (*entity.BusinessUser, error) {
 	cacheId := "business_user:" + where.ID.String()
 	cacheRes, cacheErr := Rdb.HGetAll(ctx, cacheId).Result()
 	// Check if exists in cache
 	if len(cacheRes) == 0 || cacheErr == redis.Nil {
-		dbRes, dbErr := Datasource.NewBusinessUserDatasource().GetBusinessUser(tx, where, fields)
+		dbRes, dbErr := Datasource.NewBusinessUserDatasource().GetBusinessUser(tx, where)
 		if dbErr != nil {
 			return nil, dbErr
 		}
