@@ -274,8 +274,8 @@ func (i *businessService) DeleteBusinessRole(ctx context.Context, req *pb.Delete
 		} else if err != nil {
 			return err
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "delete_role", BusinessId: (*businessRolesRes)[0].BusinessId})
-		if permissionErr != nil && permissionErr.Error() == "record not found" {
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "delete_role", BusinessId: (*businessRolesRes)[0].BusinessId})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
 		unionBusinessRoleAndPermRes, err := i.dao.NewUnionBusinessRoleAndPermissionRepository().DeleteUnionBusinessRoleAndPermission(tx, &entity.UnionBusinessRoleAndPermission{BusinessRoleId: (*businessRolesRes)[0].ID}, nil)
@@ -306,9 +306,9 @@ func (i *businessService) CreateBusinessRole(ctx context.Context, req *pb.Create
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -316,18 +316,18 @@ func (i *businessService) CreateBusinessRole(ctx context.Context, req *pb.Create
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
 		}
 		businessId := uuid.MustParse(req.BusinessRole.BusinessId)
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_role", BusinessId: &businessId})
-		if permissionErr != nil && permissionErr.Error() == "record not found" {
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_role", BusinessId: &businessId})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
 		businessRolesRes, err := i.dao.NewBusinessRoleRepository().CreateBusinessRole(ctx, tx, &entity.BusinessRole{Name: req.BusinessRole.Name, BusinessId: &businessId})
