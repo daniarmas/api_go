@@ -59,13 +59,13 @@ func (i *applicationService) ListApplication(ctx context.Context, req *pb.ListAp
 				return err
 			}
 		}
-		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		authToken, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("unauthenticated user")
 		} else if err != nil {
 			return err
 		}
-		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_application"})
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authToken.UserId, Name: "read_application"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
@@ -122,14 +122,14 @@ func (i *applicationService) DeleteApplication(ctx context.Context, req *pb.Dele
 				return err
 			}
 		}
-		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		authToken, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("unauthenticated user")
 		} else if err != nil {
 			return err
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "delete_application"})
-		if permissionErr != nil && permissionErr.Error() == "record not found" {
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authToken.UserId, Name: "delete_application"})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
 		id := uuid.MustParse(req.Id)
@@ -155,9 +155,9 @@ func (i *applicationService) CreateApplication(ctx context.Context, req *pb.Crea
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -165,38 +165,38 @@ func (i *applicationService) CreateApplication(ctx context.Context, req *pb.Crea
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
+		authToken, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("unauthenticated user")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		} else if err != nil {
+			return err
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_application"})
-		if permissionErr != nil && permissionErr.Error() == "record not found" {
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authToken.UserId, Name: "create_application"})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
-		appRes, appErr := i.dao.NewApplicationRepository().CreateApplication(ctx, tx, &entity.Application{Name: req.Application.Name, Version: req.Application.Version, Description: req.Application.Description, ExpirationTime: req.Application.ExpirationTime.AsTime()})
-		if appErr != nil {
-			return appErr
+		app, err := i.dao.NewApplicationRepository().CreateApplication(ctx, tx, &entity.Application{Name: req.Application.Name, Version: req.Application.Version, Description: req.Application.Description, ExpirationTime: req.Application.ExpirationTime.AsTime()})
+		if err != nil {
+			return err
 		}
-		jwtAcessToken := datasource.JsonWebTokenMetadata{TokenId: appRes.ID}
+		jwtAcessToken := datasource.JsonWebTokenMetadata{TokenId: app.ID}
 		expirationTime := req.Application.ExpirationTime.AsTime()
-		jwtAcessTokenErr := i.dao.NewJwtTokenRepository().CreateJwtAccessToken(&jwtAcessToken, &expirationTime)
-		if jwtAcessTokenErr != nil {
-			return jwtAcessTokenErr
+		err = i.dao.NewJwtTokenRepository().CreateJwtAccessToken(&jwtAcessToken, &expirationTime)
+		if err != nil {
+			return err
 		}
 		res = pb.Application{
-			Id:             appRes.ID.String(),
-			Name:           appRes.Name,
+			Id:             app.ID.String(),
+			Name:           app.Name,
 			AccessToken:    *jwtAcessToken.Token,
-			Version:        appRes.Version,
-			Description:    appRes.Description,
-			ExpirationTime: timestamppb.New(appRes.ExpirationTime),
-			CreateTime:     timestamppb.New(appRes.CreateTime),
-			UpdateTime:     timestamppb.New(appRes.UpdateTime),
+			Version:        app.Version,
+			Description:    app.Description,
+			ExpirationTime: timestamppb.New(app.ExpirationTime),
+			CreateTime:     timestamppb.New(app.CreateTime),
+			UpdateTime:     timestamppb.New(app.UpdateTime),
 		}
 		return nil
 	})
