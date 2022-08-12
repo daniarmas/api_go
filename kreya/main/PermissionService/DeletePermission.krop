@@ -1,0 +1,42 @@
+{
+  "details": {
+    "methodFqn": "main.PermissionService.DeletePermission",
+    "metadata": [
+      {
+        "key": "Device-Id",
+        "value": "10"
+      },
+      {
+        "key": "Access-Token",
+        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjAzOTYyNzQsInN1YiI6IjczZWVjNzEzLTcyMjItNGQ2My05NjhhLTBhMDQ0ZDljMDdlMCJ9.dTNMIYVOKjP4U-37ZMMeJqhctrVdFf2OlEqQoRmaYUE"
+      },
+      {
+        "key": "Platform",
+        "value": "IOS"
+      },
+      {
+        "key": "System-Version",
+        "value": "14.1"
+      },
+      {
+        "key": "Model",
+        "value": "iPhone 11"
+      },
+      {
+        "key": "Firebase-Cloud-Messaging-Id",
+        "value": "1"
+      },
+      {
+        "key": "Authorization",
+        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjAzOTYzNjYsInN1YiI6IjI2NzcyZWE4LTVjODUtNDIzMy1hZTQ5LTc5ZmM5NGE5ZjBkNiJ9.CfOMYhWssNJr-lj2j_On_nloaPJ9E33DB8xp1ZQP5Y4"
+      }
+    ]
+  },
+  "requests": [
+    {
+      "location": "DeletePermission-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

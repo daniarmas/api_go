@@ -13,7 +13,7 @@ import (
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
 
-	// gp "google.golang.org/protobuf/types/known/emptypb"
+	gp "google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 )
@@ -22,7 +22,7 @@ type PermissionService interface {
 	ListPermission(ctx context.Context, req *pb.ListPermissionRequest, md *utils.ClientMetadata) (*pb.ListPermissionResponse, error)
 	CreatePermission(ctx context.Context, req *pb.CreatePermissionRequest, md *utils.ClientMetadata) (*pb.Permission, error)
 	GetPermission(ctx context.Context, req *pb.GetPermissionRequest, md *utils.ClientMetadata) (*pb.Permission, error)
-	// DeletePermission(ctx context.Context, req *pb.DeletePermissionRequest, md *utils.ClientMetadata) (*gp.Empty, error)
+	DeletePermission(ctx context.Context, req *pb.DeletePermissionRequest, md *utils.ClientMetadata) (*gp.Empty, error)
 }
 
 type permissionService struct {
@@ -152,51 +152,51 @@ func (i *permissionService) ListPermission(ctx context.Context, req *pb.ListPerm
 	return &res, nil
 }
 
-// func (i *permissionService) DeletePermission(ctx context.Context, req *pb.DeletePermissionRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
-// 	var res gp.Empty
-// 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-// 		_, err := i.dao.NewPermissionRepository().CheckPermission(ctx, tx, *md.AccessToken)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-// 		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-// 		if err != nil {
-// 			switch err.Error() {
-// 			case "Token is expired":
-// 				return errors.New("authorization token expired")
-// 			case "signature is invalid":
-// 				return errors.New("authorization token signature is invalid")
-// 			case "token contains an invalid number of segments":
-// 				return errors.New("authorization token contains an invalid number of segments")
-// 			default:
-// 				return err
-// 			}
-// 		}
-// 		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
-// 		if err != nil && err.Error() == "record not found" {
-// 			return errors.New("unauthenticated")
-// 		} else if err != nil {
-// 			return err
-// 		}
-// 		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "delete_Permission"})
-// 		if permissionErr != nil && permissionErr.Error() == "record not found" {
-// 			return errors.New("permission denied")
-// 		}
-// 		id := uuid.MustParse(req.Id)
-// 		_, err = i.dao.NewPermissionRepository().DeletePermission(ctx, tx, &entity.Permission{ID: &id}, nil)
-// 		if err != nil && err.Error() == "record not found" {
-// 			return errors.New("Permission not found")
-// 		} else if err != nil {
-// 			return err
-// 		}
-// 		return nil
-// 	})
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return &res, nil
-// }
+func (i *permissionService) DeletePermission(ctx context.Context, req *pb.DeletePermissionRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
+	var res gp.Empty
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
+		if err != nil {
+			return err
+		}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
+			case "Token is expired":
+				return errors.New("authorization token expired")
+			case "signature is invalid":
+				return errors.New("authorization token signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("authorization token contains an invalid number of segments")
+			default:
+				return err
+			}
+		}
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated")
+		} else if err != nil {
+			return err
+		}
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "delete_permission"})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("permission denied")
+		}
+		id := uuid.MustParse(req.Id)
+		_, err = i.dao.NewPermissionRepository().DeletePermission(ctx, tx, &entity.Permission{ID: &id}, nil)
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("permission not found")
+		} else if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
 
 func (i *permissionService) CreatePermission(ctx context.Context, req *pb.CreatePermissionRequest, md *utils.ClientMetadata) (*pb.Permission, error) {
 	var res pb.Permission

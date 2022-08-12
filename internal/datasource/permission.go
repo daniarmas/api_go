@@ -7,6 +7,7 @@ import (
 	"github.com/daniarmas/api_go/internal/entity"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type PermissionDatasource interface {
@@ -15,6 +16,7 @@ type PermissionDatasource interface {
 	GetPermission(tx *gorm.DB, where *entity.Permission) (*entity.Permission, error)
 	ListPermissionAll(tx *gorm.DB, where *entity.Permission) (*[]entity.Permission, error)
 	ListPermissionByIdAll(tx *gorm.DB, where *entity.Permission, ids *[]uuid.UUID) (*[]entity.Permission, error)
+	DeletePermission(tx *gorm.DB, where *entity.Permission, ids *[]uuid.UUID) (*[]entity.Permission, error)
 }
 
 type permissionDatasource struct{}
@@ -63,6 +65,22 @@ func (i *permissionDatasource) GetPermission(tx *gorm.DB, where *entity.Permissi
 		} else {
 			return nil, result.Error
 		}
+	}
+	return res, nil
+}
+
+func (i *permissionDatasource) DeletePermission(tx *gorm.DB, where *entity.Permission, ids *[]uuid.UUID) (*[]entity.Permission, error) {
+	var res *[]entity.Permission
+	var result *gorm.DB
+	if ids != nil {
+		result = tx.Clauses(clause.Returning{}).Where(`id IN ?`, ids).Delete(&res)
+	} else {
+		result = tx.Clauses(clause.Returning{}).Where(where).Delete(&res)
+	}
+	if result.Error != nil {
+		return nil, result.Error
+	} else if result.RowsAffected == 0 {
+		return nil, errors.New("record not found")
 	}
 	return res, nil
 }

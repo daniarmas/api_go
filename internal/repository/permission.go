@@ -17,6 +17,7 @@ type PermissionRepository interface {
 	GetPermission(ctx context.Context, tx *gorm.DB, where *entity.Permission) (*entity.Permission, error)
 	ListPermissionAll(ctx context.Context, tx *gorm.DB, where *entity.Permission) (*[]entity.Permission, error)
 	ListPermissionByIdAll(ctx context.Context, tx *gorm.DB, where *entity.Permission, ids *[]uuid.UUID) (*[]entity.Permission, error)
+	DeletePermission(ctx context.Context, tx *gorm.DB, where *entity.Permission, ids *[]uuid.UUID) (*[]entity.Permission, error)
 }
 
 type permissionRepository struct{}
@@ -180,6 +181,29 @@ func (i *permissionRepository) ListPermissionByIdAll(ctx context.Context, tx *go
 				log.Error(err)
 			}
 		}()
+	}
+	return dbRes, nil
+}
+
+func (i *permissionRepository) DeletePermission(ctx context.Context, tx *gorm.DB, where *entity.Permission, ids *[]uuid.UUID) (*[]entity.Permission, error) {
+	// Delete in database
+	dbRes, dbErr := Datasource.NewPermissionDatasource().DeletePermission(tx, where, ids)
+	if dbErr != nil {
+		return nil, dbErr
+	} else {
+		// Delete in cache
+		rdbPipe := Rdb.Pipeline()
+		for _, item := range *dbRes {
+			cacheId := "permission:" + item.ID.String()
+			cacheErr := rdbPipe.Del(ctx, cacheId).Err()
+			if cacheErr != nil {
+				log.Error(cacheErr)
+			}
+		}
+		_, err := rdbPipe.Exec(ctx)
+		if err != nil {
+			log.Error(err)
+		}
 	}
 	return dbRes, nil
 }
