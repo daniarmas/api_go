@@ -691,7 +691,6 @@ func (v *authenticationService) SignOut(ctx context.Context, req *pb.SignOutRequ
 func (v *authenticationService) ListSession(ctx context.Context, md *utils.ClientMetadata) (*pb.ListSessionResponse, error) {
 	var listSessionRes *[]entity.Session
 	var authorizationTokenRes *entity.AuthorizationToken
-	var authorizationTokenErr error
 	var listSessionErr error
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		_, err := v.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
@@ -703,20 +702,20 @@ func (v *authenticationService) ListSession(ctx context.Context, md *utils.Clien
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
 			case "Token is expired":
-				return errors.New("authorizationtoken expired")
+				return errors.New("authorization token expired")
 			case "signature is invalid":
-				return errors.New("signature is invalid")
+				return errors.New("authorization token signature is invalid")
 			case "token contains an invalid number of segments":
-				return errors.New("token contains an invalid number of segments")
+				return errors.New("authorization token contains an invalid number of segments")
 			default:
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
-		if authorizationTokenErr != nil {
-			return authorizationTokenErr
-		} else if authorizationTokenRes == nil {
-			return errors.New("unauthenticated")
+		authorizationTokenRes, err := v.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
 		}
 		listSessionRes, listSessionErr = v.dao.NewSessionRepository().ListSession(tx, &entity.Session{UserId: authorizationTokenRes.UserId})
 		if listSessionErr != nil {
