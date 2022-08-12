@@ -422,30 +422,20 @@ func (m *BusinessServer) ListBusinessRole(ctx context.Context, req *pb.ListBusin
 	res, err := m.businessService.ListBusinessRole(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "unauthenticated application":
-			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "access token contains an invalid number of segments", "access token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
-		case "partner application not found":
-			st = status.New(codes.NotFound, "Partner application not found")
-		case "already register as business user":
-			st = status.New(codes.AlreadyExists, "Already register as business user")
 		case "permission denied":
-			st = status.New(codes.AlreadyExists, "Permission denied")
-		case "already exists a business with that name":
-			st = status.New(codes.AlreadyExists, "Already exists a business with that name")
-		case "user not found":
-			st = status.New(codes.NotFound, "User not found")
+			st = status.New(codes.PermissionDenied, "Permission denied")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
