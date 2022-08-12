@@ -16,6 +16,10 @@ func (m *BusinessServer) BusinessIsInRange(ctx context.Context, req *pb.Business
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
+		return nil, st.Err()
+	}
 	if req.BusinessId == "" {
 		invalidArgs = true
 		invalidBusinessId = &epb.BadRequest_FieldViolation{
@@ -102,7 +106,7 @@ func (m *BusinessServer) ModifyBusinessRolePermission(ctx context.Context, req *
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.BusinessRoleId == "" {
@@ -184,7 +188,7 @@ func (m *BusinessServer) UpdateBusinessRole(ctx context.Context, req *pb.UpdateB
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.Id == "" {
@@ -252,7 +256,7 @@ func (m *BusinessServer) DeleteBusinessRole(ctx context.Context, req *pb.DeleteB
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.Id == "" {
@@ -320,7 +324,7 @@ func (m *BusinessServer) CreateBusinessRole(ctx context.Context, req *pb.CreateB
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	for _, i := range req.BusinessRole.Permissions {
@@ -422,7 +426,7 @@ func (m *BusinessServer) ListBusinessRole(ctx context.Context, req *pb.ListBusin
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.BusinessId == "" {
@@ -490,7 +494,7 @@ func (m *BusinessServer) UpdatePartnerApplication(ctx context.Context, req *pb.U
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.Id == "" {
@@ -646,7 +650,7 @@ func (m *BusinessServer) ListPartnerApplication(ctx context.Context, req *pb.Lis
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	res, err := m.businessService.ListPartnerApplication(ctx, req, md)
@@ -684,7 +688,7 @@ func (m *BusinessServer) CreatePartnerApplication(ctx context.Context, req *pb.C
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.PartnerApplication.Coordinates == nil {
@@ -816,7 +820,7 @@ func (m *BusinessServer) CreateBusiness(ctx context.Context, req *pb.CreateBusin
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	res, err := m.businessService.CreateBusiness(ctx, req, md)
@@ -856,7 +860,7 @@ func (m *BusinessServer) UpdateBusiness(ctx context.Context, req *pb.UpdateBusin
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	res, err := m.businessService.UpdateBusiness(ctx, req, md)

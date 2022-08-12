@@ -542,6 +542,10 @@ func (m *AuthenticationServer) SignOut(ctx context.Context, req *pb.SignOutReque
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
+		return nil, st.Err()
+	}
 	if req.AuthorizationTokenId != "" {
 		if !utils.IsValidUUID(&req.AuthorizationTokenId) {
 			invalidArgs = true
@@ -630,6 +634,10 @@ func (m *AuthenticationServer) RefreshToken(ctx context.Context, req *pb.Refresh
 func (m *AuthenticationServer) ListSession(ctx context.Context, req *gp.Empty) (*pb.ListSessionResponse, error) {
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
+		return nil, st.Err()
+	}
 	res, err := m.authenticationService.ListSession(ctx, md)
 	if err != nil {
 		switch err.Error() {

@@ -15,7 +15,7 @@ func (m *ApplicationServer) ListApplication(ctx context.Context, req *pb.ListApp
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	res, err := m.applicationService.ListApplication(ctx, req, md)
@@ -49,7 +49,7 @@ func (m *ApplicationServer) DeleteApplication(ctx context.Context, req *pb.Delet
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.Id == "" {
@@ -108,6 +108,10 @@ func (m *ApplicationServer) CreateApplication(ctx context.Context, req *pb.Creat
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
+		return nil, st.Err()
+	}
 	if req.Application.Name == "" {
 		invalidArgs = true
 		invalidName = &epb.BadRequest_FieldViolation{
