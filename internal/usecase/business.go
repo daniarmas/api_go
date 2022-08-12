@@ -646,7 +646,6 @@ func (i *businessService) CreatePartnerApplication(ctx context.Context, req *pb.
 
 func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusinessRequest, md *utils.ClientMetadata) (*pb.Business, error) {
 	var businessRes *entity.Business
-	var businessErr error
 	id := uuid.MustParse(req.Id)
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
@@ -654,9 +653,9 @@ func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusi
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -664,32 +663,26 @@ func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusi
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
 		}
-		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(ctx, tx, &entity.BusinessUser{UserId: authorizationTokenRes.UserId})
-		if businessOwnerErr != nil {
-			return businessOwnerErr
+		businessOwnerRes, err := i.dao.NewBusinessUserRepository().GetBusinessUser(ctx, tx, &entity.BusinessUser{UserId: authorizationTokenRes.UserId})
+		if err != nil {
+			return err
 		}
 		if !businessOwnerRes.IsBusinessOwner {
 			return errors.New("permission denied")
 		}
-		businessIsOpenRes, businessIsOpenErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &entity.BusinessSchedule{BusinessId: &id}, "OrderTypePickUp")
-		if businessIsOpenErr != nil && businessIsOpenErr.Error() != "business closed" {
-			return businessIsOpenErr
+		businessIsOpenRes, err := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &entity.BusinessSchedule{BusinessId: &id})
+		if err != nil && err.Error() != "business closed" {
+			return err
 		} else if businessIsOpenRes {
-			return errors.New("business is open")
-		}
-		businessHomeDeliveryRes, businessHomeDeliveryErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &entity.BusinessSchedule{BusinessId: &id}, "OrderTypeHomeDelivery")
-		if businessHomeDeliveryErr != nil && businessIsOpenErr.Error() != "business closed" {
-			return businessHomeDeliveryErr
-		} else if businessHomeDeliveryRes {
 			return errors.New("business is open")
 		}
 		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &entity.CartItem{BusinessId: &id})
@@ -754,7 +747,7 @@ func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusi
 		if req.MunicipalityId != "" {
 			municipalityId = uuid.MustParse(req.MunicipalityId)
 		}
-		businessRes, businessErr = i.dao.NewBusinessRepository().UpdateBusiness(tx, &entity.Business{
+		businessRes, err = i.dao.NewBusinessRepository().UpdateBusiness(tx, &entity.Business{
 			Name:                  req.Name,
 			Address:               req.Address,
 			HighQualityPhoto:      i.config.BusinessAvatarBulkName + "/" + req.HighQualityPhoto,
@@ -771,8 +764,8 @@ func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusi
 			ProvinceId:            &provinceId,
 			MunicipalityId:        &municipalityId,
 		}, &entity.Business{ID: &id})
-		if businessErr != nil {
-			return businessErr
+		if err != nil {
+			return err
 		}
 		return nil
 	})

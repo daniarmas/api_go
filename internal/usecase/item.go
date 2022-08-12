@@ -164,9 +164,9 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -174,21 +174,21 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("unauthenticated")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		} else if err != nil {
+			return err
 		}
 		id := uuid.MustParse(req.Id)
-		getItemRes, getItemErr := i.dao.NewItemRepository().GetItem(ctx, tx, &entity.Item{ID: &id})
-		if getItemErr != nil && getItemErr.Error() == "record not found" {
+		getItemRes, err := i.dao.NewItemRepository().GetItem(ctx, tx, &entity.Item{ID: &id})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("item not found")
-		} else if getItemErr != nil {
-			return getItemErr
+		} else if err != nil {
+			return err
 		}
 		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{Name: "delete_item", UserId: authorizationTokenRes.UserId, BusinessId: getItemRes.BusinessId})
 		if err != nil && err.Error() == "record not found" {
@@ -196,51 +196,45 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 		} else if err != nil {
 			return err
 		}
-		businessRes, businessErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &entity.BusinessSchedule{BusinessId: getItemRes.BusinessId}, "OrderTypePickUp")
-		if businessErr != nil && businessErr.Error() != "business closed" {
-			return businessErr
-		} else if businessRes {
+		businessIsOpenRes, err := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &entity.BusinessSchedule{BusinessId: getItemRes.BusinessId})
+		if err != nil && err.Error() != "business closed" {
+			return err
+		} else if businessIsOpenRes {
 			return errors.New("business is open")
 		}
-		businessHomeDeliveryRes, businessHomeDeliveryErr := i.dao.NewBusinessScheduleRepository().BusinessIsOpen(tx, &entity.BusinessSchedule{BusinessId: getItemRes.BusinessId}, "OrderTypeHomeDelivery")
-		if businessHomeDeliveryErr != nil && businessHomeDeliveryErr.Error() != "business closed" {
-			return businessHomeDeliveryErr
-		} else if businessHomeDeliveryRes {
-			return errors.New("business is open")
-		}
-		getCartItemRes, getCartItemErr := i.dao.NewCartItemRepository().GetCartItem(tx, &entity.CartItem{ItemId: &id})
-		if getCartItemErr != nil && getCartItemErr.Error() != "record not found" {
-			return getCartItemErr
+		getCartItemRes, err := i.dao.NewCartItemRepository().GetCartItem(tx, &entity.CartItem{ItemId: &id})
+		if err != nil && err.Error() != "record not found" {
+			return err
 		} else if getCartItemRes != nil {
 			return errors.New("item in the cart")
 		}
-		_, deleteItemErr := i.dao.NewItemRepository().DeleteItem(ctx, tx, &entity.Item{ID: &id}, nil)
-		if deleteItemErr != nil {
-			return deleteItemErr
+		_, err = i.dao.NewItemRepository().DeleteItem(ctx, tx, &entity.Item{ID: &id}, nil)
+		if err != nil {
+			return err
 		}
-		_, copyHqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.ItemsDeletedBulkName, Object: getItemRes.HighQualityPhoto}, minio.CopySrcOptions{Bucket: i.config.ItemsBulkName, Object: getItemRes.HighQualityPhoto})
-		if copyHqErr != nil {
-			return copyHqErr
+		_, err = repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.ItemsDeletedBulkName, Object: getItemRes.HighQualityPhoto}, minio.CopySrcOptions{Bucket: i.config.ItemsBulkName, Object: getItemRes.HighQualityPhoto})
+		if err != nil {
+			return err
 		}
-		_, copyLqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.ItemsDeletedBulkName, Object: getItemRes.LowQualityPhoto}, minio.CopySrcOptions{Bucket: i.config.ItemsBulkName, Object: getItemRes.LowQualityPhoto})
-		if copyLqErr != nil {
-			return copyLqErr
+		_, err = repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.ItemsDeletedBulkName, Object: getItemRes.LowQualityPhoto}, minio.CopySrcOptions{Bucket: i.config.ItemsBulkName, Object: getItemRes.LowQualityPhoto})
+		if err != nil {
+			return err
 		}
-		_, copyThErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.ItemsDeletedBulkName, Object: getItemRes.Thumbnail}, minio.CopySrcOptions{Bucket: i.config.ItemsBulkName, Object: getItemRes.Thumbnail})
-		if copyThErr != nil {
-			return copyThErr
+		_, err = repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.ItemsDeletedBulkName, Object: getItemRes.Thumbnail}, minio.CopySrcOptions{Bucket: i.config.ItemsBulkName, Object: getItemRes.Thumbnail})
+		if err != nil {
+			return err
 		}
-		rmHqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.ItemsBulkName, getItemRes.HighQualityPhoto, minio.RemoveObjectOptions{})
-		if rmHqErr != nil {
-			return rmHqErr
+		err = repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.ItemsBulkName, getItemRes.HighQualityPhoto, minio.RemoveObjectOptions{})
+		if err != nil {
+			return err
 		}
-		rmLqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.ItemsBulkName, getItemRes.LowQualityPhoto, minio.RemoveObjectOptions{})
-		if rmLqErr != nil {
-			return rmLqErr
+		err = repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.ItemsBulkName, getItemRes.LowQualityPhoto, minio.RemoveObjectOptions{})
+		if err != nil {
+			return err
 		}
-		rmThErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.ItemsBulkName, getItemRes.Thumbnail, minio.RemoveObjectOptions{})
-		if rmThErr != nil {
-			return rmThErr
+		err = repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.ItemsBulkName, getItemRes.Thumbnail, minio.RemoveObjectOptions{})
+		if err != nil {
+			return err
 		}
 		return nil
 	})

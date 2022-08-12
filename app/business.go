@@ -808,20 +808,20 @@ func (m *BusinessServer) UpdateBusiness(ctx context.Context, req *pb.UpdateBusin
 	res, err := m.businessService.UpdateBusiness(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "unauthenticated application":
-			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "access token contains an invalid number of segments", "access token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
+		case "permission denied":
+			st = status.New(codes.PermissionDenied, "Permission denied")
 		case "HighQualityPhotoObject missing":
 			st = status.New(codes.InvalidArgument, "HighQualityPhotoObject missing")
 		case "LowQualityPhotoObject missing":
@@ -832,8 +832,6 @@ func (m *BusinessServer) UpdateBusiness(ctx context.Context, req *pb.UpdateBusin
 			st = status.New(codes.InvalidArgument, "Business is open")
 		case "item in the cart":
 			st = status.New(codes.InvalidArgument, "Item in the cart")
-		case "user not found":
-			st = status.New(codes.NotFound, "User not found")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}

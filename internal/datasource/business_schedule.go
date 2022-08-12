@@ -12,7 +12,7 @@ import (
 
 type BusinessScheduleDatasource interface {
 	GetBusinessSchedule(tx *gorm.DB, where *entity.BusinessSchedule) (*entity.BusinessSchedule, error)
-	BusinessIsOpen(tx *gorm.DB, where *entity.BusinessSchedule, orderType string) (bool, error)
+	BusinessIsOpen(tx *gorm.DB, where *entity.BusinessSchedule) (bool, error)
 }
 
 type businessScheduleDatasource struct{}
@@ -30,7 +30,7 @@ func (v *businessScheduleDatasource) GetBusinessSchedule(tx *gorm.DB, where *ent
 	return res, nil
 }
 
-func (v *businessScheduleDatasource) BusinessIsOpen(tx *gorm.DB, where *entity.BusinessSchedule, orderType string) (bool, error) {
+func (v *businessScheduleDatasource) BusinessIsOpen(tx *gorm.DB, where *entity.BusinessSchedule) (bool, error) {
 	var schedule *entity.BusinessSchedule
 	timeNow := time.Now().UTC()
 	weekday := timeNow.Weekday().String()
