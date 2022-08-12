@@ -224,14 +224,14 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 	res, err := m.authenticationService.GetVerificationCode(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "unauthenticated application":
-			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "access token contains an invalid number of segments", "access token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "record not found":
-			st = status.New(codes.NotFound, "Not found")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "verification code not found":
+			st = status.New(codes.NotFound, "Verification code not found")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}

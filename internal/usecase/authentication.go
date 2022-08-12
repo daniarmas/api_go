@@ -126,7 +126,9 @@ func (v *authenticationService) GetVerificationCode(ctx context.Context, req *pb
 			return err
 		}
 		_, err = v.dao.NewVerificationCodeRepository().GetVerificationCode(ctx, tx, &entity.VerificationCode{Code: req.Code, Email: req.Email, Type: req.Type.String(), DeviceIdentifier: *md.DeviceIdentifier})
-		if err != nil {
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("verification code not found")
+		} else if err != nil {
 			return err
 		}
 		return nil
