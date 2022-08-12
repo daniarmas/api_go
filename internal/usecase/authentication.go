@@ -463,28 +463,25 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 }
 
 func (v *authenticationService) CheckSession(ctx context.Context, md *utils.ClientMetadata) (*pb.CheckSessionResponse, error) {
-	var userRes *entity.User
-	var deviceRes *entity.Device
-	var deviceErr, userErr error
 	var res pb.CheckSessionResponse
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
+		deviceRes, err := v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier})
+		if err != nil {
+			return err
+		} else if deviceRes == nil {
+			_, err = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+			if err != nil {
+				return err
+			}
+		} else if deviceRes != nil {
+			_, err = v.dao.NewDeviceRepository().UpdateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId})
+			if err != nil {
+				return err
+			}
+		}
 		app, err := v.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
-		}
-		deviceRes, deviceErr = v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier})
-		if deviceErr != nil {
-			return deviceErr
-		} else if deviceRes == nil {
-			deviceRes, deviceErr = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
-			if deviceErr != nil {
-				return deviceErr
-			}
-		} else if deviceRes != nil {
-			_, deviceErr := v.dao.NewDeviceRepository().UpdateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId})
-			if deviceErr != nil {
-				return deviceErr
-			}
 		}
 		if md.Authorization != nil && *md.Authorization != "" {
 			jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
@@ -492,7 +489,7 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 			if authorizationTokenParseErr != nil {
 				switch authorizationTokenParseErr.Error() {
 				case "Token is expired":
-					return errors.New("authorizationtoken expired")
+					return errors.New("authorization token expired")
 				case "signature is invalid":
 					return errors.New("signature is invalid")
 				case "token contains an invalid number of segments":
@@ -503,13 +500,13 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 			}
 			authorizationTokenRes, err := v.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 			if err != nil && err.Error() == "record not found" {
-				return errors.New("unauthenticated")
+				return errors.New("unauthenticated user")
 			} else if err != nil {
 				return err
 			}
-			userRes, userErr = v.dao.NewUserRepository().GetUserWithAddress(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId})
-			if userErr != nil {
-				return userErr
+			userRes, err := v.dao.NewUserRepository().GetUserWithAddress(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId})
+			if err != nil {
+				return err
 			} else if userRes == nil {
 				return errors.New("user not found")
 			}
