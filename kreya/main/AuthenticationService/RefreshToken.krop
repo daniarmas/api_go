@@ -4,11 +4,11 @@
     "metadata": [
       {
         "key": "Device-Id",
-        "value": "1"
+        "value": "10"
       },
       {
         "key": "Access-Token",
-        "value": "O8pzXjp4QMk4cAD60dHeoOnxdVsDc9"
+        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjAzMzU5MjAsInN1YiI6ImZiMjA5MTgzLWJiNWUtNDY1Yy1hMTI0LTFjZWIxZTM4Zjk4NiJ9.YMEx_Ncu3t0T6Y3GqPPwYWaUd1nuw1Tpr98V5gqePyk"
       },
       {
         "key": "Platform",
@@ -25,10 +25,6 @@
       {
         "key": "Firebase-Cloud-Messaging-Id",
         "value": "1"
-      },
-      {
-        "key": "Authorization",
-        "value": "Bearer"
       }
     ]
   },
