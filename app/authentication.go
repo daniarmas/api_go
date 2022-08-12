@@ -296,22 +296,16 @@ func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest
 	res, err := m.authenticationService.SignIn(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "unauthenticated application":
-			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "access token contains an invalid number of segments", "access token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "verification code not found":
-			st = status.New(codes.NotFound, "VerificationCode Not found")
+			st = status.New(codes.NotFound, "Verification code not found")
 		case "user not found":
 			st = status.New(codes.NotFound, "User not found")
-		case "user banned":
-			st = status.New(codes.PermissionDenied, "User banned")
-		case "device banned":
-			st = status.New(codes.PermissionDenied, "Device banned")
-		case "app banned":
-			st = status.New(codes.PermissionDenied, "App banned")
 		case "session limit reached":
 			st = status.New(codes.PermissionDenied, "Session limit reached")
 		default:
