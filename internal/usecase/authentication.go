@@ -491,9 +491,9 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 				case "Token is expired":
 					return errors.New("authorization token expired")
 				case "signature is invalid":
-					return errors.New("signature is invalid")
+					return errors.New("authorization token signature is invalid")
 				case "token contains an invalid number of segments":
-					return errors.New("token contains an invalid number of segments")
+					return errors.New("authorization token contains an invalid number of segments")
 				default:
 					return authorizationTokenParseErr
 				}
@@ -508,7 +508,7 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 			if err != nil {
 				return err
 			} else if userRes == nil {
-				return errors.New("user not found")
+				return errors.New("unauthenticated user")
 			}
 			cartItems, err := v.dao.NewCartItemRepository().ListCartItemAll(tx, &entity.CartItem{UserId: authorizationTokenRes.UserId})
 			if err != nil {
@@ -614,31 +614,31 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 
 func (v *authenticationService) SignOut(ctx context.Context, req *pb.SignOutRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		_, err := v.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
-		if err != nil {
-			return err
-		}
 		var authorizationTokenId uuid.UUID
 		if req.AuthorizationTokenId != "" {
 			authorizationTokenId = uuid.MustParse(req.AuthorizationTokenId)
 		}
-		jwtTokenAuthorization := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtTokenAuthorization)
+		_, err := v.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
+		if err != nil {
+			return err
+		}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
 		if authorizationTokenParseErr != nil {
 			switch authorizationTokenParseErr.Error() {
 			case "Token is expired":
-				return errors.New("authorizationtoken expired")
+				return errors.New("authorization token expired")
 			case "signature is invalid":
-				return errors.New("signature is invalid")
+				return errors.New("authorization token signature is invalid")
 			case "token contains an invalid number of segments":
-				return errors.New("token contains an invalid number of segments")
+				return errors.New("authorization token contains an invalid number of segments")
 			default:
 				return authorizationTokenParseErr
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtTokenAuthorization.TokenId})
+		authorizationTokenRes, authorizationTokenErr := v.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
+			return errors.New("unauthenticated user")
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}

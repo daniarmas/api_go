@@ -525,8 +525,6 @@ func (m *AuthenticationServer) CheckSession(ctx context.Context, req *gp.Empty) 
 			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "unauthenticated user":
 			st = status.New(codes.Unauthenticated, "Unauthenticated user")
-		case "user not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
@@ -571,14 +569,8 @@ func (m *AuthenticationServer) SignOut(ctx context.Context, req *pb.SignOutReque
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "permission denied":
-			st = status.New(codes.PermissionDenied, "Permission denied")
-		case "user not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
