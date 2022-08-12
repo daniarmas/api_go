@@ -1003,7 +1003,6 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRequest, meta *utils.ClientMetadata) (*pb.Business, error) {
 	var businessRes *entity.Business
 	var businessCollectionRes *[]entity.BusinessCollection
-	var businessErr, businessCollectionErr error
 	var itemsCategoryResponse []*pb.BusinessCollection
 	var schedule *entity.BusinessSchedule
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
@@ -1012,19 +1011,19 @@ func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRe
 			return err
 		}
 		businessId := uuid.MustParse(req.Id)
-		businessRes, businessErr = v.dao.NewBusinessRepository().GetBusiness(tx, &entity.Business{ID: &businessId})
-		if businessErr != nil && businessErr.Error() == "record not found" {
+		businessRes, err = v.dao.NewBusinessRepository().GetBusiness(tx, &entity.Business{ID: &businessId})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("business not found")
-		} else if businessErr != nil {
-			return businessErr
+		} else if err != nil {
+			return err
 		}
 		schedule, err = v.dao.NewBusinessScheduleRepository().GetBusinessSchedule(tx, &entity.BusinessSchedule{BusinessId: businessRes.ID})
 		if err != nil {
 			return err
 		}
-		businessCollectionRes, businessCollectionErr = v.dao.NewBusinessCollectionRepository().ListBusinessCollection(tx, &entity.BusinessCollection{BusinessId: &businessId})
-		if businessCollectionErr != nil {
-			return businessCollectionErr
+		businessCollectionRes, err = v.dao.NewBusinessCollectionRepository().ListBusinessCollection(tx, &entity.BusinessCollection{BusinessId: &businessId})
+		if err != nil {
+			return err
 		}
 		itemsCategoryResponse = make([]*pb.BusinessCollection, 0, len(*businessCollectionRes))
 		for _, e := range *businessCollectionRes {
