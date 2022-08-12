@@ -69,16 +69,18 @@ func (m *BusinessServer) BusinessIsInRange(ctx context.Context, req *pb.Business
 	err := m.businessService.BusinessIsInRange(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "unauthenticated application":
-			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "access token contains an invalid number of segments", "access token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "banned user":
-			st = status.New(codes.PermissionDenied, "User banned")
-		case "banned device":
-			st = status.New(codes.PermissionDenied, "Device banned")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "business not found":
 			st = status.New(codes.NotFound, "Business not found")
 		case "business is not in range":
