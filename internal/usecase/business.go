@@ -889,8 +889,7 @@ func (i *businessService) CreateBusiness(ctx context.Context, req *pb.CreateBusi
 func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *utils.ClientMetadata) (*pb.FeedResponse, error) {
 	var businessRes *[]entity.Business
 	var businessResAdd *[]entity.Business
-	var businessErr, businessErrAdd error
-	var response pb.FeedResponse
+	var res pb.FeedResponse
 	var businessCategories []*pb.BusinessCategory
 	provinceId := uuid.MustParse(req.ProvinceId)
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
@@ -899,19 +898,19 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 			return err
 		}
 		if req.SearchMunicipalityType == pb.SearchMunicipalityType_More {
-			businessRes, businessErr = v.dao.NewBusinessRepository().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, 5, req.ProvinceId, req.MunicipalityId, req.NextPage, false, req.HomeDelivery, req.ToPickUp)
-			if businessErr != nil {
-				return businessErr
+			businessRes, err = v.dao.NewBusinessRepository().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, 5, req.ProvinceId, req.MunicipalityId, req.NextPage, false, req.HomeDelivery, req.ToPickUp)
+			if err != nil {
+				return err
 			}
 			if len(*businessRes) > 5 {
 				*businessRes = (*businessRes)[:len(*businessRes)-1]
-				response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
-				response.SearchMunicipalityType = pb.SearchMunicipalityType_More
+				res.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
+				res.SearchMunicipalityType = pb.SearchMunicipalityType_More
 			} else if len(*businessRes) <= 5 && len(*businessRes) != 0 {
 				length := 5 - len(*businessRes)
-				businessResAdd, businessErrAdd = v.dao.NewBusinessRepository().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, int32(length), req.ProvinceId, req.MunicipalityId, 0, true, req.HomeDelivery, req.ToPickUp)
-				if businessErrAdd != nil {
-					return businessErrAdd
+				businessResAdd, err = v.dao.NewBusinessRepository().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, int32(length), req.ProvinceId, req.MunicipalityId, 0, true, req.HomeDelivery, req.ToPickUp)
+				if err != nil {
+					return err
 				}
 				if businessResAdd != nil {
 					if len(*businessResAdd) > length {
@@ -919,33 +918,33 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 					}
 					*businessRes = append(*businessRes, *businessResAdd...)
 				}
-				response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
-				response.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
+				res.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
+				res.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
 			} else if len(*businessRes) == 0 {
-				businessRes, businessErr = v.dao.NewBusinessRepository().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, 5, req.ProvinceId, req.MunicipalityId, 0, true, req.HomeDelivery, req.ToPickUp)
-				if businessErr != nil {
-					return businessErr
+				businessRes, err = v.dao.NewBusinessRepository().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, 5, req.ProvinceId, req.MunicipalityId, 0, true, req.HomeDelivery, req.ToPickUp)
+				if err != nil {
+					return err
 				}
 				if len(*businessRes) > 5 {
 					*businessRes = (*businessRes)[:len(*businessRes)-1]
-					response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
-					response.SearchMunicipalityType = pb.SearchMunicipalityType_More
+					res.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
+					res.SearchMunicipalityType = pb.SearchMunicipalityType_More
 				}
 			}
 		} else {
-			businessRes, businessErr = v.dao.NewBusinessRepository().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, 5, req.ProvinceId, req.MunicipalityId, req.NextPage, true, req.HomeDelivery, req.ToPickUp)
-			if businessErr != nil {
-				return businessErr
+			businessRes, err = v.dao.NewBusinessRepository().Feed(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, 5, req.ProvinceId, req.MunicipalityId, req.NextPage, true, req.HomeDelivery, req.ToPickUp)
+			if err != nil {
+				return err
 			}
 			if businessRes != nil && len(*businessRes) > 5 {
 				*businessRes = (*businessRes)[:len(*businessRes)-1]
-				response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
+				res.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
 			} else if businessRes != nil && len(*businessRes) <= 5 && len(*businessRes) != 0 {
-				response.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
+				res.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
 			} else {
-				response.NextPage = req.NextPage
+				res.NextPage = req.NextPage
 			}
-			response.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
+			res.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
 		}
 		if businessRes != nil {
 			businessResponse := make([]*pb.Business, 0, len(*businessRes))
@@ -974,14 +973,14 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 					Cursor:                int32(e.Cursor),
 				})
 			}
-			response.Businesses = businessResponse
+			res.Businesses = businessResponse
 		}
 		if req.Categories {
-			res, err := v.dao.NewBusinessCategoryRepository().ListBusinessCategory(tx, &entity.BusinessCategory{ProvinceId: &provinceId})
+			businessCategoriesRes, err := v.dao.NewBusinessCategoryRepository().ListBusinessCategory(tx, &entity.BusinessCategory{ProvinceId: &provinceId})
 			if err != nil {
 				return err
 			}
-			for _, i := range *res {
+			for _, i := range *businessCategoriesRes {
 				businessCategories = append(businessCategories, &pb.BusinessCategory{
 					Id:             i.ID.String(),
 					Name:           i.Name,
@@ -991,14 +990,14 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 					UpdateTime:     timestamppb.New(i.UpdateTime),
 				})
 			}
-			response.Categories = businessCategories
+			res.Categories = businessCategories
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &response, nil
+	return &res, nil
 }
 
 func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRequest, meta *utils.ClientMetadata) (*pb.Business, error) {
