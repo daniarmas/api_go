@@ -12,12 +12,46 @@ import (
 )
 
 type PermissionRepository interface {
+	ListPermission(ctx context.Context, tx *gorm.DB, where *entity.Permission, cursor time.Time) (*[]entity.Permission, error)
 	GetPermission(ctx context.Context, tx *gorm.DB, where *entity.Permission) (*entity.Permission, error)
 	ListPermissionAll(ctx context.Context, tx *gorm.DB, where *entity.Permission) (*[]entity.Permission, error)
 	ListPermissionByIdAll(ctx context.Context, tx *gorm.DB, where *entity.Permission, ids *[]uuid.UUID) (*[]entity.Permission, error)
 }
 
 type permissionRepository struct{}
+
+func (i *permissionRepository) ListPermission(ctx context.Context, tx *gorm.DB, where *entity.Permission, cursor time.Time) (*[]entity.Permission, error) {
+	// Get from database
+	dbRes, dbErr := Datasource.NewPermissionDatasource().ListPermission(tx, where, cursor)
+	if dbErr != nil {
+		return nil, dbErr
+	} else {
+		// Delete in cache
+		go func() {
+			ctx := context.Background()
+			rdbPipe := Rdb.Pipeline()
+			for _, item := range *dbRes {
+				cacheId := "permission:" + item.ID.String()
+				cacheErr := rdbPipe.HSet(ctx, cacheId, []string{
+					"id", item.ID.String(),
+					"name", item.Name,
+					"create_time", item.CreateTime.Format(time.RFC3339),
+					"update_time", item.UpdateTime.Format(time.RFC3339),
+				}).Err()
+				if cacheErr != nil {
+					log.Error(cacheErr)
+				} else {
+					rdbPipe.Expire(ctx, cacheId, time.Minute*15)
+				}
+			}
+			_, err := rdbPipe.Exec(ctx)
+			if err != nil {
+				log.Error(err)
+			}
+		}()
+	}
+	return dbRes, nil
+}
 
 func (i *permissionRepository) GetPermission(ctx context.Context, tx *gorm.DB, where *entity.Permission) (*entity.Permission, error) {
 	cacheId := "permission:" + where.ID.String()

@@ -63,7 +63,7 @@ func (v *refreshTokenDatasource) GetRefreshToken(tx *gorm.DB, where *entity.Refr
 	result := tx.Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
-			return nil, errors.New("refreshtoken not found")
+			return nil, errors.New("refresh token not found")
 		} else {
 			return nil, result.Error
 		}

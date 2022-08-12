@@ -551,6 +551,94 @@ var ApplicationService_ServiceDesc = grpc.ServiceDesc{
 	Metadata: "main.proto",
 }
 
+// PermissionServiceClient is the client API for PermissionService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type PermissionServiceClient interface {
+	// rpc CreatePermission (CreatePermissionRequest) returns (Permission) {}
+	ListPermission(ctx context.Context, in *ListPermissionRequest, opts ...grpc.CallOption) (*ListPermissionResponse, error)
+}
+
+type permissionServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewPermissionServiceClient(cc grpc.ClientConnInterface) PermissionServiceClient {
+	return &permissionServiceClient{cc}
+}
+
+func (c *permissionServiceClient) ListPermission(ctx context.Context, in *ListPermissionRequest, opts ...grpc.CallOption) (*ListPermissionResponse, error) {
+	out := new(ListPermissionResponse)
+	err := c.cc.Invoke(ctx, "/main.PermissionService/ListPermission", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// PermissionServiceServer is the server API for PermissionService service.
+// All implementations must embed UnimplementedPermissionServiceServer
+// for forward compatibility
+type PermissionServiceServer interface {
+	// rpc CreatePermission (CreatePermissionRequest) returns (Permission) {}
+	ListPermission(context.Context, *ListPermissionRequest) (*ListPermissionResponse, error)
+	mustEmbedUnimplementedPermissionServiceServer()
+}
+
+// UnimplementedPermissionServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedPermissionServiceServer struct {
+}
+
+func (UnimplementedPermissionServiceServer) ListPermission(context.Context, *ListPermissionRequest) (*ListPermissionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPermission not implemented")
+}
+func (UnimplementedPermissionServiceServer) mustEmbedUnimplementedPermissionServiceServer() {}
+
+// UnsafePermissionServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to PermissionServiceServer will
+// result in compilation errors.
+type UnsafePermissionServiceServer interface {
+	mustEmbedUnimplementedPermissionServiceServer()
+}
+
+func RegisterPermissionServiceServer(s grpc.ServiceRegistrar, srv PermissionServiceServer) {
+	s.RegisterService(&PermissionService_ServiceDesc, srv)
+}
+
+func _PermissionService_ListPermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PermissionServiceServer).ListPermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.PermissionService/ListPermission",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PermissionServiceServer).ListPermission(ctx, req.(*ListPermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// PermissionService_ServiceDesc is the grpc.ServiceDesc for PermissionService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var PermissionService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "main.PermissionService",
+	HandlerType: (*PermissionServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListPermission",
+			Handler:    _PermissionService_ListPermission_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "main.proto",
+}
+
 // BusinessServiceClient is the client API for BusinessService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.

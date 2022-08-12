@@ -30,6 +30,12 @@ service ApplicationService {
   rpc DeleteApplication (DeleteApplicationRequest) returns (google.protobuf.Empty) {}
 }
 
+service PermissionService {
+  // rpc CreatePermission (CreatePermissionRequest) returns (Permission) {}
+  rpc ListPermission (ListPermissionRequest) returns (ListPermissionResponse) {}
+  // rpc DeletePermission (DeletePermissionRequest) returns (google.protobuf.Empty) {}
+}
+
 service BusinessService {
   rpc Feed (FeedRequest) returns (FeedResponse) {}
   rpc GetBusiness (GetBusinessRequest) returns (Business) {}
@@ -116,6 +122,15 @@ service ObjectStorageService {
 // }
 
 // Request & Response Message
+
+message ListPermissionRequest {
+  google.protobuf.Timestamp nextPage = 1;
+}
+
+message ListPermissionResponse {
+  repeated Permission permissions = 1;
+  google.protobuf.Timestamp nextPage = 2;
+}
 
 message SessionExistsRequest {
   string email = 1;

@@ -50,6 +50,19 @@ type BusinessServer struct {
 	businessService usecase.BusinessService
 }
 
+type PermissionServer struct {
+	pb.UnimplementedPermissionServiceServer
+	permissionService usecase.PermissionService
+}
+
+func NewPermissionServer(
+	permissionService usecase.PermissionService,
+) *PermissionServer {
+	return &PermissionServer{
+		permissionService: permissionService,
+	}
+}
+
 func NewOrderServer(
 	orderService usecase.OrderService,
 ) *OrderServer {

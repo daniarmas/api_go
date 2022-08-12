@@ -775,21 +775,21 @@ func (v *authenticationService) RefreshToken(ctx context.Context, req *pb.Refres
 		if err != nil {
 			return err
 		}
-		deviceRes, deviceErr := v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier})
-		if deviceErr != nil {
-			return deviceErr
-		} else if *deviceRes == (entity.Device{}) {
-			deviceRes, deviceErr = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
-			if deviceErr != nil {
-				return deviceErr
+		deviceRes, err := v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier})
+		if err != nil && err.Error() != "record not found" {
+			return err
+		} else if deviceRes == nil {
+			deviceRes, err = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+			if err != nil {
+				return err
 			}
-		} else if *deviceRes != (entity.Device{}) {
-			_, deviceErr := v.dao.NewDeviceRepository().UpdateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId})
-			if deviceErr != nil {
-				return deviceErr
+		} else {
+			_, err = v.dao.NewDeviceRepository().UpdateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+			if err != nil {
+				return err
 			}
 		}
-		jwtRefreshToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		jwtRefreshToken := &datasource.JsonWebTokenMetadata{Token: &req.RefreshToken}
 		refreshTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtRefreshToken(jwtRefreshToken)
 		if refreshTokenParseErr != nil {
 			switch refreshTokenParseErr.Error() {
