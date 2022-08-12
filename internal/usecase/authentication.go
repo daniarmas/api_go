@@ -78,10 +78,10 @@ func (v *authenticationService) SessionExists(ctx context.Context, req *pb.Sessi
 
 func (v *authenticationService) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		deviceRes, err := v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier})
+		device, err := v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier})
 		if err != nil && err.Error() != "record not found" {
 			return err
-		} else if deviceRes == nil {
+		} else if device == nil {
 			_, err = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
 			if err != nil {
 				return err
@@ -105,9 +105,9 @@ func (v *authenticationService) CreateVerificationCode(ctx context.Context, req 
 			return errors.New("user already exists")
 		}
 		v.dao.NewVerificationCodeRepository().DeleteVerificationCode(ctx, tx, &entity.VerificationCode{Email: req.Email, Type: req.Type.String(), DeviceIdentifier: *md.DeviceIdentifier}, nil)
-		_, createVerificationCodeErr := v.dao.NewVerificationCodeRepository().CreateVerificationCode(ctx, tx, &entity.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: *md.DeviceIdentifier, CreateTime: time.Now(), UpdateTime: time.Now()})
-		if createVerificationCodeErr != nil {
-			return createVerificationCodeErr
+		_, err = v.dao.NewVerificationCodeRepository().CreateVerificationCode(ctx, tx, &entity.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: *md.DeviceIdentifier, CreateTime: time.Now(), UpdateTime: time.Now()})
+		if err != nil {
+			return err
 		}
 		// verificationCodeMsg := fmt.Sprintf("Su código de verificación es %s", createVerificationCodeRes.Code)
 		// go smtp.SendMail(req.Email, v.config.EmailAddress, v.config.EmailAddressPassword, "Código de Verificación", verificationCodeMsg, v.config)
@@ -140,14 +140,10 @@ func (v *authenticationService) GetVerificationCode(ctx context.Context, req *pb
 }
 
 func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInRequest, md *utils.ClientMetadata) (*pb.SignInResponse, error) {
-	var verificationCodeRes *entity.VerificationCode
-	var userRes *entity.User
+	var user *entity.User
 	var cartItems *[]entity.CartItem
 	var configuration *entity.UserConfiguration
-	var deviceRes *entity.Device
-	var verificationCodeErr, userErr, refreshTokenErr, authorizationTokenErr, jwtRefreshTokenErr, jwtAuthorizationTokenErr error
-	var refreshTokenRes *entity.RefreshToken
-	var authorizationTokenRes *entity.AuthorizationToken
+	var device *entity.Device
 	var app *entity.Application
 	var existsUpcomingOrders *bool
 	var (
@@ -156,11 +152,11 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 	)
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		var err error
-		deviceRes, err = v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier})
+		device, err = v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier})
 		if err != nil && err.Error() != "record not found" {
 			return err
-		} else if deviceRes == nil {
-			deviceRes, err = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+		} else if device == nil {
+			device, err = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
 			if err != nil {
 				return err
 			}
@@ -174,27 +170,27 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		if err != nil {
 			return err
 		}
-		verificationCodeRes, verificationCodeErr = v.dao.NewVerificationCodeRepository().GetVerificationCode(ctx, tx, &entity.VerificationCode{Email: req.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "SignIn"})
-		if verificationCodeErr != nil && verificationCodeErr.Error() == "record not found" {
+		_, err = v.dao.NewVerificationCodeRepository().GetVerificationCode(ctx, tx, &entity.VerificationCode{Email: req.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "SignIn"})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("verification code not found")
-		} else if verificationCodeRes == nil {
-			return verificationCodeErr
+		} else if err == nil {
+			return err
 		}
-		userRes, userErr = v.dao.NewUserRepository().GetUserWithAddress(ctx, tx, &entity.User{Email: req.Email})
-		if userErr != nil {
-			switch userErr.Error() {
+		user, err = v.dao.NewUserRepository().GetUserWithAddress(ctx, tx, &entity.User{Email: req.Email})
+		if err != nil {
+			switch err.Error() {
 			case "record not found":
 				return errors.New("user not found")
 			default:
-				return userErr
+				return err
 			}
 		}
 		// Limit session to one by device
-		authorizationToken, err := v.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{UserId: userRes.ID})
+		authToken, err := v.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{UserId: user.ID})
 		if err != nil && err.Error() != "record not found" {
 			return err
 		}
-		if authorizationToken != nil {
+		if authToken != nil {
 			return errors.New("session limit reached")
 		}
 		//
@@ -202,9 +198,9 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		if err != nil {
 			return err
 		}
-		deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenRepository().DeleteRefreshToken(ctx, tx, &entity.RefreshToken{UserId: userRes.ID, DeviceId: deviceRes.ID}, nil)
-		if deleteRefreshTokenErr != nil && deleteRefreshTokenErr.Error() != "record not found" {
-			return deleteRefreshTokenErr
+		deleteRefreshTokenRes, err := v.dao.NewRefreshTokenRepository().DeleteRefreshToken(ctx, tx, &entity.RefreshToken{UserId: user.ID, DeviceId: device.ID}, nil)
+		if err != nil && err.Error() != "record not found" {
+			return err
 		}
 		if deleteRefreshTokenRes != nil && len(*deleteRefreshTokenRes) != 0 {
 			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenRepository().DeleteAuthorizationToken(ctx, tx, &entity.AuthorizationToken{RefreshTokenId: (*deleteRefreshTokenRes)[0].ID}, nil)
@@ -212,33 +208,33 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 				return deleteAuthorizationTokenErr
 			}
 		}
-		refreshTokenRes, refreshTokenErr = v.dao.NewRefreshTokenRepository().CreateRefreshToken(ctx, tx, &entity.RefreshToken{UserId: userRes.ID, DeviceId: deviceRes.ID})
-		if refreshTokenErr != nil {
-			return refreshTokenErr
-		}
-		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenRepository().CreateAuthorizationToken(ctx, tx, &entity.AuthorizationToken{RefreshTokenId: refreshTokenRes.ID, UserId: userRes.ID, DeviceId: deviceRes.ID, App: &app.Name, AppVersion: &app.Version})
-		if authorizationTokenErr != nil {
-			return authorizationTokenErr
-		}
-		jwtRefreshToken = &datasource.JsonWebTokenMetadata{TokenId: refreshTokenRes.ID}
-		jwtRefreshTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtRefreshToken(jwtRefreshToken)
-		if jwtRefreshTokenErr != nil {
-			return jwtRefreshTokenErr
-		}
-		jwtAuthorizationToken = &datasource.JsonWebTokenMetadata{TokenId: authorizationTokenRes.ID}
-		jwtAuthorizationTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtAuthorizationToken(jwtAuthorizationToken)
-		if jwtAuthorizationTokenErr != nil {
-			return jwtAuthorizationTokenErr
-		}
-		cartItems, err = v.dao.NewCartItemRepository().ListCartItemAll(tx, &entity.CartItem{UserId: authorizationTokenRes.UserId})
+		createRefreshTokenRes, err := v.dao.NewRefreshTokenRepository().CreateRefreshToken(ctx, tx, &entity.RefreshToken{UserId: user.ID, DeviceId: device.ID})
 		if err != nil {
 			return err
 		}
-		configuration, err = v.dao.NewUserConfigurationRepository().GetUserConfiguration(ctx, tx, &entity.UserConfiguration{UserId: userRes.ID})
+		createAuthTokenRes, err := v.dao.NewAuthorizationTokenRepository().CreateAuthorizationToken(ctx, tx, &entity.AuthorizationToken{RefreshTokenId: createRefreshTokenRes.ID, UserId: user.ID, DeviceId: device.ID, App: &app.Name, AppVersion: &app.Version})
 		if err != nil {
 			return err
 		}
-		existsUpcomingOrders, err = v.dao.NewOrderRepository().ExistsUpcomingOrders(tx, *userRes.ID)
+		jwtRefreshToken = &datasource.JsonWebTokenMetadata{TokenId: createRefreshTokenRes.ID}
+		err = repository.Datasource.NewJwtTokenDatasource().CreateJwtRefreshToken(jwtRefreshToken)
+		if err != nil {
+			return err
+		}
+		jwtAuthorizationToken = &datasource.JsonWebTokenMetadata{TokenId: createAuthTokenRes.ID}
+		err = repository.Datasource.NewJwtTokenDatasource().CreateJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			return err
+		}
+		cartItems, err = v.dao.NewCartItemRepository().ListCartItemAll(tx, &entity.CartItem{UserId: createAuthTokenRes.UserId})
+		if err != nil {
+			return err
+		}
+		configuration, err = v.dao.NewUserConfigurationRepository().GetUserConfiguration(ctx, tx, &entity.UserConfiguration{UserId: user.ID})
+		if err != nil {
+			return err
+		}
+		existsUpcomingOrders, err = v.dao.NewOrderRepository().ExistsUpcomingOrders(tx, *user.ID)
 		if err != nil {
 			return err
 		}
@@ -264,10 +260,10 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 			UpdateTime:           timestamppb.New(item.UpdateTime),
 		})
 	}
-	userAddress := make([]*pb.UserAddress, 0, len(userRes.UserAddress))
-	permissions := make([]*pb.UserPermission, 0, len(userRes.UserPermissions))
+	userAddress := make([]*pb.UserAddress, 0, len(user.UserAddress))
+	permissions := make([]*pb.UserPermission, 0, len(user.UserPermissions))
 	if app.Name == "Mool for business" {
-		for _, item := range userRes.UserPermissions {
+		for _, item := range user.UserPermissions {
 			permissions = append(permissions, &pb.UserPermission{
 				Id:         item.ID.String(),
 				Name:       item.Name,
@@ -278,7 +274,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 			})
 		}
 	}
-	for _, item := range userRes.UserAddress {
+	for _, item := range user.UserAddress {
 		userAddress = append(userAddress, &pb.UserAddress{
 			Id:             item.ID.String(),
 			Name:           item.Name,
@@ -296,23 +292,23 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 	}
 	// go smtp.SendSignInMail(req.Email, time.Now(), v.config, md)
 	var highQualityPhotoUrl, lowQualityPhotoUrl, thumbnailUrl string
-	if userRes.HighQualityPhoto != "" {
-		highQualityPhotoUrl = v.config.UsersBulkName + "/" + userRes.HighQualityPhoto
-		lowQualityPhotoUrl = v.config.UsersBulkName + "/" + userRes.LowQualityPhoto
-		thumbnailUrl = v.config.UsersBulkName + "/" + userRes.Thumbnail
+	if user.HighQualityPhoto != "" {
+		highQualityPhotoUrl = v.config.UsersBulkName + "/" + user.HighQualityPhoto
+		lowQualityPhotoUrl = v.config.UsersBulkName + "/" + user.LowQualityPhoto
+		thumbnailUrl = v.config.UsersBulkName + "/" + user.Thumbnail
 
 	}
 	return &pb.SignInResponse{AuthorizationToken: *jwtAuthorizationToken.Token, RefreshToken: *jwtRefreshToken.Token, User: &pb.User{
-		Id:                   userRes.ID.String(),
-		FullName:             userRes.FullName,
-		Email:                userRes.Email,
-		HighQualityPhoto:     userRes.HighQualityPhoto,
+		Id:                   user.ID.String(),
+		FullName:             user.FullName,
+		Email:                user.Email,
+		HighQualityPhoto:     user.HighQualityPhoto,
 		HighQualityPhotoUrl:  highQualityPhotoUrl,
-		LowQualityPhoto:      userRes.LowQualityPhoto,
+		LowQualityPhoto:      user.LowQualityPhoto,
 		LowQualityPhotoUrl:   lowQualityPhotoUrl,
-		Thumbnail:            userRes.Thumbnail,
+		Thumbnail:            user.Thumbnail,
 		ThumbnailUrl:         thumbnailUrl,
-		BlurHash:             userRes.BlurHash,
+		BlurHash:             user.BlurHash,
 		Permissions:          permissions,
 		UserAddress:          userAddress,
 		CartItems:            itemsResponse,
@@ -327,19 +323,16 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 			CreateTime:            timestamppb.New(configuration.CreateTime),
 			UpdateTime:            timestamppb.New(configuration.UpdateTime),
 		},
-		CreateTime: timestamppb.New(userRes.CreateTime),
-		UpdateTime: timestamppb.New(userRes.UpdateTime),
+		CreateTime: timestamppb.New(user.CreateTime),
+		UpdateTime: timestamppb.New(user.UpdateTime),
 	}}, nil
 }
 
 func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpRequest, md *utils.ClientMetadata) (*pb.SignUpResponse, error) {
-	var userRes *entity.User
-	var deviceRes *entity.Device
-	var verificationCodeRes *entity.VerificationCode
-	var createUserAddress *entity.UserAddress
-	var verificationCodeErr, userErr, deviceErr, refreshTokenErr, authorizationTokenErr, jwtRefreshTokenErr, jwtAuthorizationTokenErr, createUserErr error
-	var refreshTokenRes *entity.RefreshToken
-	var authorizationTokenRes *entity.AuthorizationToken
+	var getUserRes *entity.User
+	var getDeviceRes *entity.Device
+	var getVerificationCode *entity.VerificationCode
+	var createUserAddressRes *entity.UserAddress
 	var createUserRes *entity.User
 	var (
 		jwtRefreshToken       *datasource.JsonWebTokenMetadata
@@ -350,34 +343,34 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 		if err != nil {
 			return err
 		}
-		verificationCodeRes, verificationCodeErr = v.dao.NewVerificationCodeRepository().GetVerificationCode(ctx, tx, &entity.VerificationCode{Email: req.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "SignUp"})
-		if verificationCodeErr != nil && verificationCodeErr.Error() == "record not found" {
+		getVerificationCode, err = v.dao.NewVerificationCodeRepository().GetVerificationCode(ctx, tx, &entity.VerificationCode{Email: req.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "SignUp"})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("verification code not found")
-		} else if verificationCodeErr != nil {
-			return verificationCodeErr
+		} else if err != nil {
+			return err
 		}
-		userRes, userErr = v.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{Email: req.Email})
-		if userErr != nil && userErr.Error() != "record not found" {
-			return userErr
-		} else if userRes != nil {
+		getUserRes, err = v.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{Email: req.Email})
+		if err != nil && err.Error() != "record not found" {
+			return err
+		} else if getUserRes != nil {
 			return errors.New("user exists")
 		}
-		_, err = v.dao.NewVerificationCodeRepository().DeleteVerificationCode(ctx, tx, &entity.VerificationCode{ID: verificationCodeRes.ID}, nil)
+		_, err = v.dao.NewVerificationCodeRepository().DeleteVerificationCode(ctx, tx, &entity.VerificationCode{ID: getVerificationCode.ID}, nil)
 		if err != nil {
 			return err
 		}
-		deviceRes, deviceErr = v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier})
-		if deviceErr != nil && deviceErr.Error() != "record not found" {
-			return deviceErr
-		} else if deviceRes == nil {
-			deviceRes, deviceErr = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
-			if deviceErr != nil {
-				return deviceErr
+		getDeviceRes, err = v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier})
+		if err != nil && err.Error() != "record not found" {
+			return err
+		} else if getDeviceRes == nil {
+			getDeviceRes, err = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+			if err != nil {
+				return err
 			}
-		} else if deviceRes != nil {
-			_, deviceErr := v.dao.NewDeviceRepository().UpdateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
-			if deviceErr != nil {
-				return deviceErr
+		} else if getDeviceRes != nil {
+			_, err := v.dao.NewDeviceRepository().UpdateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+			if err != nil {
+				return err
 			}
 		}
 		trueValue := true
@@ -385,34 +378,34 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 		municipalityId := uuid.MustParse(req.UserAddress.MunicipalityId)
 		provinceId := uuid.MustParse(req.UserAddress.ProvinceId)
 		coordinates := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.UserAddress.Coordinates.Latitude, req.UserAddress.Coordinates.Longitude}).SetSRID(4326)}
-		createUserRes, createUserErr = v.dao.NewUserRepository().CreateUser(ctx, tx, &entity.User{Email: req.Email, IsLegalAge: true, FullName: req.FullName, UserConfiguration: entity.UserConfiguration{PaymentMethod: "PaymentMethodTypeCash", DataSaving: &falseValue, HighQualityImagesWifi: &trueValue, HighQualityImagesData: &trueValue}})
-		if createUserErr != nil {
-			return createUserErr
-		}
-		createUserAddress, err = v.dao.NewUserAddressRepository().CreateUserAddress(tx, &entity.UserAddress{Selected: true, Name: req.UserAddress.Name, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, ProvinceId: &provinceId, MunicipalityId: &municipalityId, Coordinates: coordinates, UserId: createUserRes.ID})
+		createUserRes, err = v.dao.NewUserRepository().CreateUser(ctx, tx, &entity.User{Email: req.Email, IsLegalAge: true, FullName: req.FullName, UserConfiguration: entity.UserConfiguration{PaymentMethod: "PaymentMethodTypeCash", DataSaving: &falseValue, HighQualityImagesWifi: &trueValue, HighQualityImagesData: &trueValue}})
 		if err != nil {
 			return err
 		}
-		refreshTokenRes, refreshTokenErr = v.dao.NewRefreshTokenRepository().CreateRefreshToken(ctx, tx, &entity.RefreshToken{UserId: createUserRes.ID, DeviceId: deviceRes.ID})
-		if refreshTokenErr != nil {
-			return refreshTokenErr
+		createUserAddressRes, err = v.dao.NewUserAddressRepository().CreateUserAddress(tx, &entity.UserAddress{Selected: true, Name: req.UserAddress.Name, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, ProvinceId: &provinceId, MunicipalityId: &municipalityId, Coordinates: coordinates, UserId: createUserRes.ID})
+		if err != nil {
+			return err
 		}
-		authorizationTokenRes, authorizationTokenErr = v.dao.NewAuthorizationTokenRepository().CreateAuthorizationToken(ctx, tx, &entity.AuthorizationToken{RefreshTokenId: refreshTokenRes.ID, UserId: createUserRes.ID, DeviceId: deviceRes.ID, App: &app.Name, AppVersion: &app.Version})
-		if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		refreshTokenRes, err := v.dao.NewRefreshTokenRepository().CreateRefreshToken(ctx, tx, &entity.RefreshToken{UserId: createUserRes.ID, DeviceId: getDeviceRes.ID})
+		if err != nil {
+			return err
+		}
+		authorizationTokenRes, err := v.dao.NewAuthorizationTokenRepository().CreateAuthorizationToken(ctx, tx, &entity.AuthorizationToken{RefreshTokenId: refreshTokenRes.ID, UserId: createUserRes.ID, DeviceId: getDeviceRes.ID, App: &app.Name, AppVersion: &app.Version})
+		if err != nil {
+			return err
 		}
 		jwtRefreshToken = &datasource.JsonWebTokenMetadata{TokenId: refreshTokenRes.ID}
-		jwtRefreshTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtRefreshToken(jwtRefreshToken)
-		if jwtRefreshTokenErr != nil {
-			return jwtRefreshTokenErr
+		err = repository.Datasource.NewJwtTokenDatasource().CreateJwtRefreshToken(jwtRefreshToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken = &datasource.JsonWebTokenMetadata{TokenId: authorizationTokenRes.ID}
-		jwtAuthorizationTokenErr = repository.Datasource.NewJwtTokenDatasource().CreateJwtAuthorizationToken(jwtAuthorizationToken)
-		if jwtAuthorizationTokenErr != nil {
-			return jwtAuthorizationTokenErr
+		err = repository.Datasource.NewJwtTokenDatasource().CreateJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			return err
 		}
 		var isBusinessOwner bool = false
-		if verificationCodeRes.Type == "SignUpBusinessOwner" {
+		if getVerificationCode.Type == "SignUpBusinessOwner" {
 			isBusinessOwner = true
 		}
 		if req.SignUpType.String() == "SignUpBusiness" {
@@ -433,18 +426,18 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 		Email:    createUserRes.Email,
 		UserAddress: []*pb.UserAddress{
 			{
-				Id:             createUserAddress.ID.String(),
-				Name:           createUserAddress.Name,
-				Selected:       createUserAddress.Selected,
-				Number:         createUserAddress.Number,
-				Address:        createUserAddress.Address,
-				Instructions:   createUserAddress.Instructions,
-				UserId:         createUserAddress.UserId.String(),
-				ProvinceId:     createUserAddress.ProvinceId.String(),
-				MunicipalityId: createUserAddress.MunicipalityId.String(),
-				CreateTime:     timestamppb.New(createUserAddress.CreateTime),
-				UpdateTime:     timestamppb.New(createUserAddress.UpdateTime),
-				Coordinates:    &pb.Point{Latitude: createUserAddress.Coordinates.FlatCoords()[1], Longitude: createUserAddress.Coordinates.FlatCoords()[0]},
+				Id:             createUserAddressRes.ID.String(),
+				Name:           createUserAddressRes.Name,
+				Selected:       createUserAddressRes.Selected,
+				Number:         createUserAddressRes.Number,
+				Address:        createUserAddressRes.Address,
+				Instructions:   createUserAddressRes.Instructions,
+				UserId:         createUserAddressRes.UserId.String(),
+				ProvinceId:     createUserAddressRes.ProvinceId.String(),
+				MunicipalityId: createUserAddressRes.MunicipalityId.String(),
+				CreateTime:     timestamppb.New(createUserAddressRes.CreateTime),
+				UpdateTime:     timestamppb.New(createUserAddressRes.UpdateTime),
+				Coordinates:    &pb.Point{Latitude: createUserAddressRes.Coordinates.FlatCoords()[1], Longitude: createUserAddressRes.Coordinates.FlatCoords()[0]},
 			},
 		},
 		Configuration: &pb.UserConfiguration{
