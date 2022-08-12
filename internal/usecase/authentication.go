@@ -524,12 +524,6 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 			} else if err != nil {
 				return err
 			}
-			refreshTokenRes, refreshTokenErr := v.dao.NewRefreshTokenRepository().GetRefreshToken(ctx, tx, &entity.RefreshToken{ID: authorizationTokenRes.RefreshTokenId})
-			if refreshTokenErr != nil {
-				return refreshTokenErr
-			} else if refreshTokenRes == nil {
-				return errors.New("unauthenticated")
-			}
 			userRes, userErr = v.dao.NewUserRepository().GetUserWithAddress(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId})
 			if userErr != nil {
 				return userErr
