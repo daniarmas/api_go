@@ -437,9 +437,9 @@ func (i *businessService) UpdatePartnerApplication(ctx context.Context, req *pb.
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -447,21 +447,21 @@ func (i *businessService) UpdatePartnerApplication(ctx context.Context, req *pb.
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("unauthenticated user")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		} else if err != nil {
+			return err
 		}
 		id := uuid.MustParse(req.Id)
-		getPartnerAppRes, getPartnerAppErr := i.dao.NewPartnerApplicationRepository().GetPartnerApplication(tx, &entity.PartnerApplication{ID: &id})
-		if getPartnerAppErr != nil && getPartnerAppErr.Error() == "record not found" {
+		getPartnerAppRes, err := i.dao.NewPartnerApplicationRepository().GetPartnerApplication(tx, &entity.PartnerApplication{ID: &id})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("partner application not found")
-		} else if getPartnerAppErr != nil {
-			return getPartnerAppErr
+		} else if err != nil {
+			return err
 		}
 		if req.PartnerApplication.Status == pb.PartnerApplicationStatus_PartnerApplicationStatusApproved || req.PartnerApplication.Status == pb.PartnerApplicationStatus_PartnerApplicationStatusRejected {
 			_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_partner_application"})
@@ -480,9 +480,9 @@ func (i *businessService) UpdatePartnerApplication(ctx context.Context, req *pb.
 				return errors.New("permission denied")
 			}
 		}
-		updatePartnerAppRes, updatePartnerAppErr := i.dao.NewPartnerApplicationRepository().UpdatePartnerApplication(tx, &entity.PartnerApplication{ID: &id}, &entity.PartnerApplication{Status: req.PartnerApplication.Status.String()})
-		if updatePartnerAppErr != nil {
-			return updatePartnerAppErr
+		updatePartnerAppRes, err := i.dao.NewPartnerApplicationRepository().UpdatePartnerApplication(tx, &entity.PartnerApplication{ID: &id}, &entity.PartnerApplication{Status: req.PartnerApplication.Status.String()})
+		if err != nil {
+			return err
 		}
 		res = pb.PartnerApplication{
 			Id:             updatePartnerAppRes.ID.String(),
@@ -533,13 +533,13 @@ func (i *businessService) ListPartnerApplication(ctx context.Context, req *pb.Li
 		}
 		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
+			return errors.New("unauthenticated user")
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
 		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "read_partner_application"})
 		if permissionErr != nil && permissionErr.Error() == "record not found" {
-			return errors.New("not permission")
+			return errors.New("permission denied")
 		}
 		partnerApplicationsRes, partnerApplicationsErr := i.dao.NewPartnerApplicationRepository().ListPartnerApplication(tx, nil, &nextPage)
 		if partnerApplicationsErr != nil {

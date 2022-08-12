@@ -604,24 +604,20 @@ func (m *BusinessServer) ListPartnerApplication(ctx context.Context, req *pb.Lis
 	res, err := m.businessService.ListPartnerApplication(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "unauthenticated application":
-			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "access token contains an invalid number of segments", "access token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorizationtoken expired":
-			st = status.New(codes.Unauthenticated, "AuthorizationToken expired")
-		case "not permission":
-			st = status.New(codes.PermissionDenied, "Permission Denied")
+		case "permission denied":
+			st = status.New(codes.PermissionDenied, "Permission denied")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
