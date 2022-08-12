@@ -61,7 +61,7 @@ func (i *applicationService) ListApplication(ctx context.Context, req *pb.ListAp
 		}
 		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
-			return errors.New("unauthenticated")
+			return errors.New("unauthenticated user")
 		} else if err != nil {
 			return err
 		}
@@ -124,7 +124,7 @@ func (i *applicationService) DeleteApplication(ctx context.Context, req *pb.Dele
 		}
 		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
-			return errors.New("unauthenticated")
+			return errors.New("unauthenticated user")
 		} else if err != nil {
 			return err
 		}
@@ -170,7 +170,7 @@ func (i *applicationService) CreateApplication(ctx context.Context, req *pb.Crea
 		}
 		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
+			return errors.New("unauthenticated user")
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}

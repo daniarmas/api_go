@@ -91,7 +91,7 @@ func (i *applicationRepository) CheckApplication(ctx context.Context, tx *gorm.D
 	if len(cacheRes) == 0 || cacheErr == redis.Nil {
 		dbRes, dbErr := Datasource.NewApplicationDatasource().GetApplication(tx, &entity.Application{ID: jwtAccessToken.TokenId})
 		if dbErr != nil && dbErr.Error() == "record not found" {
-			return nil, errors.New("application not found")
+			return nil, errors.New("unauthenticated application")
 		} else if dbErr != nil {
 			return nil, dbErr
 		}
