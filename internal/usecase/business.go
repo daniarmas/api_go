@@ -776,18 +776,16 @@ func (i *businessService) UpdateBusiness(ctx context.Context, req *pb.UpdateBusi
 }
 
 func (i *businessService) CreateBusiness(ctx context.Context, req *pb.CreateBusinessRequest, md *utils.ClientMetadata) (*pb.CreateBusinessResponse, error) {
-	var businessRes *entity.Business
-	var businessErr error
-	var response pb.CreateBusinessResponse
+	var res pb.CreateBusinessResponse
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -795,44 +793,48 @@ func (i *businessService) CreateBusiness(ctx context.Context, req *pb.CreateBusi
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		authToken, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
 		}
-		businessOwnerRes, businessOwnerErr := i.dao.NewBusinessUserRepository().GetBusinessUser(ctx, tx, &entity.BusinessUser{UserId: authorizationTokenRes.UserId})
-		if businessOwnerErr != nil {
-			return businessOwnerErr
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authToken.UserId, Name: "create_business"})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("permission denied")
+		}
+		businessOwnerRes, err := i.dao.NewBusinessUserRepository().GetBusinessUser(ctx, tx, &entity.BusinessUser{UserId: authToken.UserId})
+		if err != nil {
+			return err
 		}
 		if !businessOwnerRes.IsBusinessOwner {
 			return errors.New("permission denied")
 		}
-		_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.BusinessAvatarBulkName, req.HighQualityPhoto)
-		if hqErr != nil && hqErr.Error() == "ObjectMissing" {
+		_, err = i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.BusinessAvatarBulkName, req.HighQualityPhoto)
+		if err != nil && err.Error() == "ObjectMissing" {
 			return errors.New("HighQualityPhotoObject missing")
-		} else if hqErr != nil {
-			return hqErr
+		} else if err != nil {
+			return err
 		}
-		_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.BusinessAvatarBulkName, req.LowQualityPhoto)
-		if lqErr != nil && lqErr.Error() == "ObjectMissing" {
+		_, err = i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.BusinessAvatarBulkName, req.LowQualityPhoto)
+		if err != nil && err.Error() == "ObjectMissing" {
 			return errors.New("LowQualityPhotoObject missing")
-		} else if lqErr != nil {
-			return lqErr
+		} else if err != nil {
+			return err
 		}
-		_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.BusinessAvatarBulkName, req.Thumbnail)
-		if tnErr != nil && tnErr.Error() == "ObjectMissing" {
+		_, err = i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.BusinessAvatarBulkName, req.Thumbnail)
+		if err != nil && err.Error() == "ObjectMissing" {
 			return errors.New("ThumbnailObject missing")
-		} else if tnErr != nil {
-			return tnErr
+		} else if err != nil {
+			return err
 		}
 		provinceId := uuid.MustParse(req.ProvinceId)
 		municipalityId := uuid.MustParse(req.MunicipalityId)
 		businessBrandId := uuid.MustParse(req.BusinessBrandId)
-		businessRes, businessErr = i.dao.NewBusinessRepository().CreateBusiness(tx, &entity.Business{
+		businessRes, err := i.dao.NewBusinessRepository().CreateBusiness(tx, &entity.Business{
 			Name:                  req.Name,
 			Address:               req.Address,
 			HighQualityPhoto:      req.HighQualityPhoto,
@@ -851,10 +853,10 @@ func (i *businessService) CreateBusiness(ctx context.Context, req *pb.CreateBusi
 			MunicipalityId:        &municipalityId,
 			BusinessBrandId:       &businessBrandId,
 		})
-		if businessErr != nil {
-			return businessErr
+		if err != nil {
+			return err
 		}
-		response.Business = &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, LowQualityPhoto: businessRes.LowQualityPhoto, Thumbnail: businessRes.Thumbnail, BlurHash: businessRes.BlurHash, DeliveryPriceCup: businessRes.DeliveryPriceCup, TimeMarginOrderMonth: businessRes.TimeMarginOrderMonth, TimeMarginOrderDay: businessRes.TimeMarginOrderDay, TimeMarginOrderHour: businessRes.TimeMarginOrderHour, TimeMarginOrderMinute: businessRes.TimeMarginOrderMinute, ToPickUp: businessRes.ToPickUp, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), CreateTime: timestamppb.New(businessRes.CreateTime), UpdateTime: timestamppb.New(businessRes.UpdateTime), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.FlatCoords()[0], Longitude: businessRes.Coordinates.FlatCoords()[1]}}
+		res.Business = &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, LowQualityPhoto: businessRes.LowQualityPhoto, Thumbnail: businessRes.Thumbnail, BlurHash: businessRes.BlurHash, DeliveryPriceCup: businessRes.DeliveryPriceCup, TimeMarginOrderMonth: businessRes.TimeMarginOrderMonth, TimeMarginOrderDay: businessRes.TimeMarginOrderDay, TimeMarginOrderHour: businessRes.TimeMarginOrderHour, TimeMarginOrderMinute: businessRes.TimeMarginOrderMinute, ToPickUp: businessRes.ToPickUp, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), CreateTime: timestamppb.New(businessRes.CreateTime), UpdateTime: timestamppb.New(businessRes.UpdateTime), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.FlatCoords()[0], Longitude: businessRes.Coordinates.FlatCoords()[1]}}
 		var unionBusinessAndMunicipalities = make([]*entity.UnionBusinessAndMunicipality, 0, len(req.Municipalities))
 		for _, item := range req.Municipalities {
 			municipalityId := uuid.MustParse(item)
@@ -863,17 +865,17 @@ func (i *businessService) CreateBusiness(ctx context.Context, req *pb.CreateBusi
 				MunicipalityId: &municipalityId,
 			})
 		}
-		unionBusinessAndMunicipalityRes, unionBusinessAndMunicipalityErr := i.dao.NewUnionBusinessAndMunicipalityRepository().BatchCreateUnionBusinessAndMunicipality(tx, unionBusinessAndMunicipalities)
-		if unionBusinessAndMunicipalityErr != nil {
-			return unionBusinessAndMunicipalityErr
+		unionBusinessAndMunicipalityRes, err := i.dao.NewUnionBusinessAndMunicipalityRepository().BatchCreateUnionBusinessAndMunicipality(tx, unionBusinessAndMunicipalities)
+		if err != nil {
+			return err
 		}
 		unionBusinessAndMunicipalityIds := make([]string, 0, len(unionBusinessAndMunicipalityRes))
 		for _, item := range unionBusinessAndMunicipalityRes {
 			unionBusinessAndMunicipalityIds = append(unionBusinessAndMunicipalityIds, item.ID.String())
 		}
-		_, unionBusinessAndMunicipalityWithMunicipalityErr := i.dao.NewUnionBusinessAndMunicipalityRepository().ListUnionBusinessAndMunicipalityWithMunicipality(tx, unionBusinessAndMunicipalityIds)
-		if unionBusinessAndMunicipalityWithMunicipalityErr != nil {
-			return unionBusinessAndMunicipalityWithMunicipalityErr
+		_, err = i.dao.NewUnionBusinessAndMunicipalityRepository().ListUnionBusinessAndMunicipalityWithMunicipality(tx, unionBusinessAndMunicipalityIds)
+		if err != nil {
+			return err
 		}
 		// response.UnionBusinessAndMunicipalityWithMunicipality = unionBusinessAndMunicipalityWithMunicipalityRes
 		return nil
@@ -881,7 +883,7 @@ func (i *businessService) CreateBusiness(ctx context.Context, req *pb.CreateBusi
 	if err != nil {
 		return nil, err
 	}
-	return &response, nil
+	return &res, nil
 }
 
 func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *utils.ClientMetadata) (*pb.FeedResponse, error) {
