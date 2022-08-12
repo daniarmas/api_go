@@ -799,8 +799,6 @@ func (v *authenticationService) RefreshToken(ctx context.Context, req *pb.Refres
 		userRes, userErr := v.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{ID: refreshTokenRes.UserId})
 		if userErr != nil {
 			return userErr
-		} else if userRes == nil {
-			return errors.New("user not found")
 		}
 		deleteRefreshTokenRes, deleteRefreshTokenErr := v.dao.NewRefreshTokenRepository().DeleteRefreshToken(ctx, tx, &entity.RefreshToken{ID: refreshTokenRes.ID}, nil)
 		if deleteRefreshTokenErr != nil {
