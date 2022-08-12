@@ -584,9 +584,9 @@ func (i *businessService) CreatePartnerApplication(ctx context.Context, req *pb.
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -594,25 +594,25 @@ func (i *businessService) CreatePartnerApplication(ctx context.Context, req *pb.
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
 		}
-		businessUserRes, businessUserErr := i.dao.NewBusinessUserRepository().GetBusinessUser(ctx, tx, &entity.BusinessUser{UserId: authorizationTokenRes.UserId})
-		if businessUserErr != nil && businessUserErr.Error() != "record not found" {
-			return businessUserErr
+		businessUserRes, err := i.dao.NewBusinessUserRepository().GetBusinessUser(ctx, tx, &entity.BusinessUser{UserId: authorizationTokenRes.UserId})
+		if err != nil && err.Error() != "record not found" {
+			return err
 		}
 		if businessUserRes != nil {
 			return errors.New("already register as business user")
 		}
-		businessRes, businessErr := i.dao.NewBusinessRepository().GetBusiness(tx, &entity.Business{Name: req.PartnerApplication.BusinessName})
-		if businessErr != nil && businessErr.Error() != "record not found" {
-			return businessErr
+		businessRes, err := i.dao.NewBusinessRepository().GetBusiness(tx, &entity.Business{Name: req.PartnerApplication.BusinessName})
+		if err != nil && err.Error() != "record not found" {
+			return err
 		}
 		if businessRes != nil {
 			return errors.New("already exists a business with that name")
@@ -620,9 +620,9 @@ func (i *businessService) CreatePartnerApplication(ctx context.Context, req *pb.
 		municipalityId := uuid.MustParse(req.PartnerApplication.MunicipalityId)
 		provinceId := uuid.MustParse(req.PartnerApplication.ProvinceId)
 		location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.PartnerApplication.Coordinates.Latitude, req.PartnerApplication.Coordinates.Longitude}).SetSRID(4326)}
-		createPartnerAppRes, createPartnerAppErr := i.dao.NewPartnerApplicationRepository().CreatePartnerApplication(tx, &entity.PartnerApplication{BusinessName: req.PartnerApplication.BusinessName, Description: req.PartnerApplication.Description, ProvinceId: &provinceId, MunicipalityId: &municipalityId, UserId: authorizationTokenRes.UserId, Coordinates: location})
-		if createPartnerAppErr != nil {
-			return createPartnerAppErr
+		createPartnerAppRes, err := i.dao.NewPartnerApplicationRepository().CreatePartnerApplication(tx, &entity.PartnerApplication{BusinessName: req.PartnerApplication.BusinessName, Description: req.PartnerApplication.Description, ProvinceId: &provinceId, MunicipalityId: &municipalityId, UserId: authorizationTokenRes.UserId, Coordinates: location})
+		if err != nil {
+			return err
 		}
 		res = pb.PartnerApplication{
 			Id:             createPartnerAppRes.ID.String(),
