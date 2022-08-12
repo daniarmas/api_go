@@ -21,8 +21,8 @@ func (m *ApplicationServer) ListApplication(ctx context.Context, req *pb.ListApp
 	res, err := m.applicationService.ListApplication(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "unauthenticated application":
-			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "application not found":
+			st = status.New(codes.NotFound, "Application not found")
 		case "access token contains an invalid number of segments", "access token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
