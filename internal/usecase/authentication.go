@@ -45,35 +45,15 @@ func NewAuthenticationService(dao repository.Repository, config *config.Config, 
 }
 
 func (v *authenticationService) SessionExists(ctx context.Context, req *pb.SessionExistsRequest, md *utils.ClientMetadata) (*pb.SessionExistsResponse, error) {
-	var verificationCodeRes *entity.VerificationCode
-	var deviceRes *entity.Device
-	var verificationCodeErr error
-	var authorizationToken *entity.AuthorizationToken
+	var res pb.SessionExistsResponse
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		var err error
-		deviceRes, err = v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier})
-		if err != nil && err.Error() != "record not found" {
-			return err
-		} else if deviceRes == nil {
-			deviceRes, err = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
-			if err != nil {
-				return err
-			}
-		} else {
-			_, err = v.dao.NewDeviceRepository().UpdateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier}, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
-			if err != nil {
-				return err
-			}
-		}
-		_, err = v.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
+		_, err := v.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
-		verificationCodeRes, verificationCodeErr = v.dao.NewVerificationCodeRepository().GetVerificationCode(ctx, tx, &entity.VerificationCode{Email: req.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "SignIn"})
-		if verificationCodeErr != nil && verificationCodeErr.Error() == "record not found" {
+		_, err = v.dao.NewVerificationCodeRepository().GetVerificationCode(ctx, tx, &entity.VerificationCode{Email: req.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "SignIn"})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("verification code not found")
-		} else if verificationCodeRes == nil {
-			return verificationCodeErr
 		}
 		user, err := v.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{Email: req.Email})
 		if err != nil && err.Error() == "record not found" {
@@ -81,18 +61,19 @@ func (v *authenticationService) SessionExists(ctx context.Context, req *pb.Sessi
 		} else if err != nil {
 			return err
 		}
-		authorizationToken, err = v.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{UserId: user.ID})
+		authorizationToken, err := v.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{UserId: user.ID})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("session not exists")
 		} else if err != nil {
 			return err
 		}
+		res.AuthorizationTokenId = authorizationToken.ID.String()
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &pb.SessionExistsResponse{AuthorizationTokenId: authorizationToken.ID.String()}, nil
+	return &res, nil
 }
 
 func (v *authenticationService) CreateVerificationCode(ctx context.Context, req *pb.CreateVerificationCodeRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
