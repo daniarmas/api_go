@@ -493,22 +493,16 @@ func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest
 	res, err := m.authenticationService.SignUp(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "unauthenticated application":
-			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "access token contains an invalid number of segments", "access token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "verification code not found":
-			st = status.New(codes.NotFound, "VerificationCode Not found")
+			st = status.New(codes.NotFound, "Verification code not found")
 		case "user exists":
-			st = status.New(codes.AlreadyExists, "User exists")
-		case "user banned":
-			st = status.New(codes.PermissionDenied, "User banned")
-		case "device banned":
-			st = status.New(codes.PermissionDenied, "Device banned")
-		case "app banned":
-			st = status.New(codes.PermissionDenied, "App banned")
+			st = status.New(codes.AlreadyExists, "User already exists")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
