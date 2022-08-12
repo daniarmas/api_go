@@ -31,8 +31,9 @@ service ApplicationService {
 }
 
 service PermissionService {
-  // rpc CreatePermission (CreatePermissionRequest) returns (Permission) {}
+  rpc CreatePermission (CreatePermissionRequest) returns (Permission) {}
   rpc ListPermission (ListPermissionRequest) returns (ListPermissionResponse) {}
+  rpc GetPermission (GetPermissionRequest) returns (Permission) {}
   // rpc DeletePermission (DeletePermissionRequest) returns (google.protobuf.Empty) {}
 }
 
@@ -122,6 +123,14 @@ service ObjectStorageService {
 // }
 
 // Request & Response Message
+
+message GetPermissionRequest {
+  string id = 1;
+}
+
+message CreatePermissionRequest {
+  Permission permission = 1;
+}
 
 message ListPermissionRequest {
   google.protobuf.Timestamp nextPage = 1;

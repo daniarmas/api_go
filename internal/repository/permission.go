@@ -12,6 +12,7 @@ import (
 )
 
 type PermissionRepository interface {
+	CreatePermission(ctx context.Context, tx *gorm.DB, data *entity.Permission) (*entity.Permission, error)
 	ListPermission(ctx context.Context, tx *gorm.DB, where *entity.Permission, cursor time.Time) (*[]entity.Permission, error)
 	GetPermission(ctx context.Context, tx *gorm.DB, where *entity.Permission) (*entity.Permission, error)
 	ListPermissionAll(ctx context.Context, tx *gorm.DB, where *entity.Permission) (*[]entity.Permission, error)
@@ -19,6 +20,32 @@ type PermissionRepository interface {
 }
 
 type permissionRepository struct{}
+
+func (v *permissionRepository) CreatePermission(ctx context.Context, tx *gorm.DB, data *entity.Permission) (*entity.Permission, error) {
+	// Store in the database
+	dbRes, dbErr := Datasource.NewPermissionDatasource().CreatePermission(tx, data)
+	if dbErr != nil {
+		return nil, dbErr
+	} else {
+		// Store in cache
+		go func() {
+			ctx := context.Background()
+			cacheId := "permission:" + dbRes.ID.String()
+			cacheErr := Rdb.HSet(ctx, cacheId, []string{
+				"id", dbRes.ID.String(),
+				"name", dbRes.Name,
+				"create_time", dbRes.CreateTime.Format(time.RFC3339),
+				"update_time", dbRes.UpdateTime.Format(time.RFC3339),
+			}).Err()
+			if cacheErr != nil {
+				log.Error(cacheErr)
+			} else {
+				Rdb.Expire(ctx, cacheId, time.Minute*15)
+			}
+		}()
+	}
+	return dbRes, nil
+}
 
 func (i *permissionRepository) ListPermission(ctx context.Context, tx *gorm.DB, where *entity.Permission, cursor time.Time) (*[]entity.Permission, error) {
 	// Get from database

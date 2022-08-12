@@ -10,6 +10,7 @@ import (
 )
 
 type PermissionDatasource interface {
+	CreatePermission(tx *gorm.DB, data *entity.Permission) (*entity.Permission, error)
 	ListPermission(tx *gorm.DB, where *entity.Permission, cursor time.Time) (*[]entity.Permission, error)
 	GetPermission(tx *gorm.DB, where *entity.Permission) (*entity.Permission, error)
 	ListPermissionAll(tx *gorm.DB, where *entity.Permission) (*[]entity.Permission, error)
@@ -17,6 +18,14 @@ type PermissionDatasource interface {
 }
 
 type permissionDatasource struct{}
+
+func (v *permissionDatasource) CreatePermission(tx *gorm.DB, data *entity.Permission) (*entity.Permission, error) {
+	result := tx.Create(&data)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return data, nil
+}
 
 func (i *permissionDatasource) ListPermission(tx *gorm.DB, where *entity.Permission, cursor time.Time) (*[]entity.Permission, error) {
 	var res []entity.Permission
