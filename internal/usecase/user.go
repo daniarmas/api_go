@@ -52,9 +52,9 @@ func (i *userService) UpdateUserConfiguration(ctx context.Context, req *pb.Updat
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -62,13 +62,13 @@ func (i *userService) UpdateUserConfiguration(ctx context.Context, req *pb.Updat
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
 		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
-			return errors.New("authorization token not found")
-		} else if err != nil && err.Error() != "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
 			return err
 		}
 		dataSaving := req.UserConfiguration.DataSaving
@@ -84,7 +84,9 @@ func (i *userService) UpdateUserConfiguration(ctx context.Context, req *pb.Updat
 			data.PaymentMethod = ""
 		}
 		userConfigurationRes, err := i.dao.NewUserConfigurationRepository().UpdateUserConfiguration(ctx, tx, &entity.UserConfiguration{UserId: authorizationTokenRes.UserId}, &data)
-		if err != nil {
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("user configuration not found")
+		} else if err != nil {
 			return err
 		}
 		res = pb.UserConfiguration{
@@ -113,9 +115,9 @@ func (i *userService) GetUserAddress(ctx context.Context, req *pb.GetUserAddress
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -123,18 +125,18 @@ func (i *userService) GetUserAddress(ctx context.Context, req *pb.GetUserAddress
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
 		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
-			return errors.New("authorization token not found")
-		} else if err != nil && err.Error() != "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
 			return err
 		}
-		userRes, userErr := i.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId})
-		if userErr != nil {
-			return userErr
+		userRes, err := i.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId})
+		if err != nil {
+			return err
 		}
 		id := uuid.MustParse(req.Id)
 		userAddressRes, err := i.dao.NewUserAddressRepository().GetUserAddress(tx, &entity.UserAddress{UserId: userRes.ID, ID: &id})
@@ -171,9 +173,9 @@ func (i *userService) UpdateUserAddress(ctx context.Context, req *pb.UpdateUserA
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -181,22 +183,22 @@ func (i *userService) UpdateUserAddress(ctx context.Context, req *pb.UpdateUserA
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
 		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
-			return errors.New("authorization token not found")
-		} else if err != nil && err.Error() != "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
 			return err
 		}
-		userRes, userErr := i.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId})
-		if userErr != nil {
-			return userErr
+		userRes, err := i.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId})
+		if err != nil {
+			return err
 		}
-		listAddressRes, listAddressErr := i.dao.NewUserAddressRepository().ListUserAddress(tx, &entity.UserAddress{UserId: userRes.ID})
-		if listAddressErr != nil {
-			return listAddressErr
+		listAddressRes, err := i.dao.NewUserAddressRepository().ListUserAddress(tx, &entity.UserAddress{UserId: userRes.ID})
+		if err != nil {
+			return err
 		}
 		if len(*listAddressRes) == 10 {
 			return errors.New("only can have 10 user_address")
@@ -265,9 +267,9 @@ func (i *userService) DeleteUserAddress(ctx context.Context, req *pb.DeleteUserA
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -275,13 +277,13 @@ func (i *userService) DeleteUserAddress(ctx context.Context, req *pb.DeleteUserA
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
 		_, err = i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
-			return errors.New("authorization token not found")
-		} else if err != nil && err.Error() != "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
 			return err
 		}
 		id := uuid.MustParse(req.Id)
@@ -307,9 +309,9 @@ func (i *userService) CreateUserAddress(ctx context.Context, req *pb.CreateUserA
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -317,22 +319,22 @@ func (i *userService) CreateUserAddress(ctx context.Context, req *pb.CreateUserA
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
 		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
-			return errors.New("authorization token not found")
-		} else if err != nil && err.Error() != "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
 			return err
 		}
-		userRes, userErr := i.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId})
-		if userErr != nil {
-			return userErr
+		userRes, err := i.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId})
+		if err != nil {
+			return err
 		}
-		listAddressRes, listAddressErr := i.dao.NewUserAddressRepository().ListUserAddress(tx, &entity.UserAddress{UserId: userRes.ID})
-		if listAddressErr != nil {
-			return listAddressErr
+		listAddressRes, err := i.dao.NewUserAddressRepository().ListUserAddress(tx, &entity.UserAddress{UserId: userRes.ID})
+		if err != nil {
+			return err
 		}
 		if len(*listAddressRes) == 10 {
 			return errors.New("only can have 10 user_address")
@@ -340,9 +342,9 @@ func (i *userService) CreateUserAddress(ctx context.Context, req *pb.CreateUserA
 		provinceId := uuid.MustParse(req.UserAddress.ProvinceId)
 		municipalityId := uuid.MustParse(req.UserAddress.MunicipalityId)
 		location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.UserAddress.Coordinates.Latitude, req.UserAddress.Coordinates.Longitude}).SetSRID(4326)}
-		createUserAddressRes, createUserAddressErr := i.dao.NewUserAddressRepository().CreateUserAddress(tx, &entity.UserAddress{Selected: req.UserAddress.Selected, Name: req.UserAddress.Name, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, UserId: userRes.ID, ProvinceId: &provinceId, MunicipalityId: &municipalityId, Coordinates: location})
-		if createUserAddressErr != nil {
-			return createUserAddressErr
+		createUserAddressRes, err := i.dao.NewUserAddressRepository().CreateUserAddress(tx, &entity.UserAddress{Selected: req.UserAddress.Selected, Name: req.UserAddress.Name, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, UserId: userRes.ID, ProvinceId: &provinceId, MunicipalityId: &municipalityId, Coordinates: location})
+		if err != nil {
+			return err
 		}
 		res = pb.UserAddress{
 			Id:             createUserAddressRes.ID.String(),
@@ -374,9 +376,9 @@ func (i *userService) ListUserAddress(ctx context.Context, req *gp.Empty, md *ut
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -384,19 +386,19 @@ func (i *userService) ListUserAddress(ctx context.Context, req *gp.Empty, md *ut
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
 		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
-			return errors.New("authorization token not found")
-		} else if err != nil && err.Error() != "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
 			return err
 		}
 		userId := *authorizationTokenRes.UserId
-		listUserAddressRes, listUserAddressErr := i.dao.NewUserAddressRepository().ListUserAddress(tx, &entity.UserAddress{UserId: &userId})
-		if listUserAddressErr != nil {
-			return listUserAddressErr
+		listUserAddressRes, err := i.dao.NewUserAddressRepository().ListUserAddress(tx, &entity.UserAddress{UserId: &userId})
+		if err != nil {
+			return err
 		}
 		userAddress := make([]*pb.UserAddress, 0, len(*listUserAddressRes))
 		for _, i := range *listUserAddressRes {
@@ -454,17 +456,16 @@ func (i *userService) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfo
 }
 
 func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*pb.User, error) {
-	var userRes *entity.User
-	var userErr error
+	var res pb.User
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -472,90 +473,91 @@ func (i *userService) GetUser(ctx context.Context, md *utils.ClientMetadata) (*p
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
 		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
-			return errors.New("authorization token not found")
-		} else if err != nil && err.Error() != "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
 			return err
 		}
-		userRes, userErr = i.dao.NewUserRepository().GetUserWithAddress(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId})
-		if userErr != nil {
-			return userErr
+		userRes, err := i.dao.NewUserRepository().GetUserWithAddress(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("user not found")
+		} else if err != nil {
+			return err
+		}
+		userAddress := make([]*pb.UserAddress, 0, len(userRes.UserAddress))
+		permissions := make([]*pb.UserPermission, 0, len(userRes.UserPermissions))
+		for _, item := range userRes.UserPermissions {
+			permissions = append(permissions, &pb.UserPermission{
+				Id:         item.ID.String(),
+				Name:       item.Name,
+				UserId:     item.UserId.String(),
+				BusinessId: item.BusinessId.String(),
+				CreateTime: timestamppb.New(item.CreateTime),
+				UpdateTime: timestamppb.New(item.UpdateTime),
+			})
+		}
+		for _, item := range userRes.UserAddress {
+			userAddress = append(userAddress, &pb.UserAddress{
+				Id:             item.ID.String(),
+				Name:           item.Name,
+				Number:         item.Number,
+				Address:        item.Address,
+				Instructions:   item.Instructions,
+				Selected:       item.Selected,
+				ProvinceId:     item.ProvinceId.String(),
+				MunicipalityId: item.MunicipalityId.String(),
+				Coordinates:    &pb.Point{Latitude: item.Coordinates.Coords()[0], Longitude: item.Coordinates.Coords()[1]},
+				UserId:         item.UserId.String(),
+				CreateTime:     timestamppb.New(item.CreateTime),
+				UpdateTime:     timestamppb.New(item.UpdateTime),
+			})
+		}
+		var highQualityPhotoUrl, lowQualityPhotoUrl, thumbnailUrl string
+		if userRes.HighQualityPhoto != "" {
+			highQualityPhotoUrl = i.config.UsersBulkName + "/" + userRes.HighQualityPhoto
+			lowQualityPhotoUrl = i.config.UsersBulkName + "/" + userRes.LowQualityPhoto
+			thumbnailUrl = i.config.UsersBulkName + "/" + userRes.Thumbnail
+
+		}
+		res = pb.User{
+			Id:                  userRes.ID.String(),
+			FullName:            userRes.FullName,
+			Email:               userRes.Email,
+			HighQualityPhoto:    userRes.HighQualityPhoto,
+			HighQualityPhotoUrl: highQualityPhotoUrl,
+			LowQualityPhoto:     userRes.LowQualityPhoto,
+			LowQualityPhotoUrl:  lowQualityPhotoUrl,
+			Thumbnail:           userRes.Thumbnail,
+			ThumbnailUrl:        thumbnailUrl,
+			BlurHash:            userRes.BlurHash,
+			UserAddress:         userAddress,
+			Permissions:         permissions,
+			CreateTime:          timestamppb.New(userRes.CreateTime),
+			UpdateTime:          timestamppb.New(userRes.UpdateTime),
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	userAddress := make([]*pb.UserAddress, 0, len(userRes.UserAddress))
-	permissions := make([]*pb.UserPermission, 0, len(userRes.UserPermissions))
-	for _, item := range userRes.UserPermissions {
-		permissions = append(permissions, &pb.UserPermission{
-			Id:         item.ID.String(),
-			Name:       item.Name,
-			UserId:     item.UserId.String(),
-			BusinessId: item.BusinessId.String(),
-			CreateTime: timestamppb.New(item.CreateTime),
-			UpdateTime: timestamppb.New(item.UpdateTime),
-		})
-	}
-	for _, item := range userRes.UserAddress {
-		userAddress = append(userAddress, &pb.UserAddress{
-			Id:             item.ID.String(),
-			Name:           item.Name,
-			Number:         item.Number,
-			Address:        item.Address,
-			Instructions:   item.Instructions,
-			Selected:       item.Selected,
-			ProvinceId:     item.ProvinceId.String(),
-			MunicipalityId: item.MunicipalityId.String(),
-			Coordinates:    &pb.Point{Latitude: item.Coordinates.Coords()[0], Longitude: item.Coordinates.Coords()[1]},
-			UserId:         item.UserId.String(),
-			CreateTime:     timestamppb.New(item.CreateTime),
-			UpdateTime:     timestamppb.New(item.UpdateTime),
-		})
-	}
-	var highQualityPhotoUrl, lowQualityPhotoUrl, thumbnailUrl string
-	if userRes.HighQualityPhoto != "" {
-		highQualityPhotoUrl = i.config.UsersBulkName + "/" + userRes.HighQualityPhoto
-		lowQualityPhotoUrl = i.config.UsersBulkName + "/" + userRes.LowQualityPhoto
-		thumbnailUrl = i.config.UsersBulkName + "/" + userRes.Thumbnail
-
-	}
-	return &pb.User{
-		Id:                  userRes.ID.String(),
-		FullName:            userRes.FullName,
-		Email:               userRes.Email,
-		HighQualityPhoto:    userRes.HighQualityPhoto,
-		HighQualityPhotoUrl: highQualityPhotoUrl,
-		LowQualityPhoto:     userRes.LowQualityPhoto,
-		LowQualityPhotoUrl:  lowQualityPhotoUrl,
-		Thumbnail:           userRes.Thumbnail,
-		ThumbnailUrl:        thumbnailUrl,
-		BlurHash:            userRes.BlurHash,
-		UserAddress:         userAddress,
-		Permissions:         permissions,
-		CreateTime:          timestamppb.New(userRes.CreateTime),
-		UpdateTime:          timestamppb.New(userRes.UpdateTime),
-	}, nil
+	return &res, nil
 }
 
 func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest, md *utils.ClientMetadata) (*pb.User, error) {
-	var updatedUserRes *entity.User
-	var updatedUserErr error
-	var userId uuid.UUID
+	var res pb.User
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -563,137 +565,135 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
-			}
-		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
-		}
-		// chech if is the user or if have permission
-		if req.User.Id != "" && authorizationTokenRes.UserId.String() != req.User.Id {
-			_, err := i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{Name: "admin"})
-			if err != nil && err.Error() == "record not found" {
-				return errors.New("not have permission")
-			} else if err != nil && err.Error() != "record not found" {
 				return err
 			}
 		}
-		userRes, userErr := i.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId})
-		if userErr != nil {
-			return userErr
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
 		}
+		// chech if is the user or if have permission
+		if req.User.Id != "" && authorizationTokenRes.UserId.String() != req.User.Id {
+			return errors.New("permission denied")
+		}
+		userRes, err := i.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId})
+		if err != nil {
+			return err
+		}
+		var userId uuid.UUID
 		if req.User.Id == "" {
 			userId = *userRes.ID
 		} else {
 			userId = uuid.MustParse(req.User.Id)
 		}
+		var updatedUserRes *entity.User
 		if req.User.Email != "" {
 			if req.Code == "" {
 				return errors.New("missing code")
 			}
-			verificationCode, verificationCodeErr := i.dao.NewVerificationCodeRepository().GetVerificationCode(ctx, tx, &entity.VerificationCode{Email: userRes.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "ChangeUserEmail"})
-			if verificationCodeErr != nil && verificationCodeErr.Error() == "record not found" {
+			verificationCode, err := i.dao.NewVerificationCodeRepository().GetVerificationCode(ctx, tx, &entity.VerificationCode{Email: userRes.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "ChangeUserEmail"})
+			if err != nil && err.Error() == "record not found" {
 				return errors.New("verification code not found")
-			} else if verificationCodeErr != nil {
-				return verificationCodeErr
+			} else if err != nil {
+				return err
 			}
-			_, err := i.dao.NewVerificationCodeRepository().DeleteVerificationCode(ctx, tx, &entity.VerificationCode{ID: verificationCode.ID}, nil)
+			_, err = i.dao.NewVerificationCodeRepository().DeleteVerificationCode(ctx, tx, &entity.VerificationCode{ID: verificationCode.ID}, nil)
 			if err != nil {
 				return err
 			}
-			updatedUserRes, updatedUserErr = i.dao.NewUserRepository().UpdateUser(ctx, tx, &entity.User{ID: &userId}, &entity.User{Email: req.User.Email})
-			if updatedUserErr != nil {
-				return updatedUserErr
+			updatedUserRes, err = i.dao.NewUserRepository().UpdateUser(ctx, tx, &entity.User{ID: &userId}, &entity.User{Email: req.User.Email})
+			if err != nil {
+				return err
 			}
 
 		} else if req.User.HighQualityPhoto != "" && req.User.LowQualityPhoto != "" && req.User.Thumbnail != "" && req.User.BlurHash != "" {
-			_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.UsersBulkName, req.User.HighQualityPhoto)
-			if hqErr != nil {
-				return hqErr
+			_, err = i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.UsersBulkName, req.User.HighQualityPhoto)
+			if err != nil {
+				return err
 			}
-			_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.UsersBulkName, req.User.LowQualityPhoto)
-			if lqErr != nil {
-				return lqErr
+			_, err := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.UsersBulkName, req.User.LowQualityPhoto)
+			if err != nil {
+				return err
 			}
-			_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.UsersBulkName, req.User.Thumbnail)
-			if tnErr != nil {
-				return tnErr
+			_, err = i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.UsersBulkName, req.User.Thumbnail)
+			if err != nil {
+				return err
 			}
 			if userRes.HighQualityPhoto != "" {
-				_, copyHqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.UsersDeletedBulkName, Object: userRes.HighQualityPhoto}, minio.CopySrcOptions{Bucket: i.config.UsersBulkName, Object: userRes.HighQualityPhoto})
-				if copyHqErr != nil {
-					return copyHqErr
+				_, err = repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.UsersDeletedBulkName, Object: userRes.HighQualityPhoto}, minio.CopySrcOptions{Bucket: i.config.UsersBulkName, Object: userRes.HighQualityPhoto})
+				if err != nil {
+					return err
 				}
 			}
 			if userRes.LowQualityPhoto != "" {
-				_, copyLqErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.UsersDeletedBulkName, Object: userRes.LowQualityPhoto}, minio.CopySrcOptions{Bucket: i.config.UsersBulkName, Object: userRes.LowQualityPhoto})
-				if copyLqErr != nil {
-					return copyLqErr
+				_, err = repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.UsersDeletedBulkName, Object: userRes.LowQualityPhoto}, minio.CopySrcOptions{Bucket: i.config.UsersBulkName, Object: userRes.LowQualityPhoto})
+				if err != nil {
+					return err
 				}
 			}
 			if userRes.Thumbnail != "" {
-				_, copyThErr := repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.UsersDeletedBulkName, Object: userRes.Thumbnail}, minio.CopySrcOptions{Bucket: i.config.UsersBulkName, Object: userRes.Thumbnail})
-				if copyThErr != nil {
-					return copyThErr
+				_, err = repository.Datasource.NewObjectStorageDatasource().CopyObject(context.Background(), minio.CopyDestOptions{Bucket: i.config.UsersDeletedBulkName, Object: userRes.Thumbnail}, minio.CopySrcOptions{Bucket: i.config.UsersBulkName, Object: userRes.Thumbnail})
+				if err != nil {
+					return err
 				}
 			}
 			if userRes.HighQualityPhoto != "" {
-				rmHqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.UsersBulkName, userRes.HighQualityPhoto, minio.RemoveObjectOptions{})
-				if rmHqErr != nil {
-					return rmHqErr
+				err = repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.UsersBulkName, userRes.HighQualityPhoto, minio.RemoveObjectOptions{})
+				if err != nil {
+					return err
 				}
 			}
 			if userRes.LowQualityPhoto != "" {
-				rmLqErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.UsersBulkName, userRes.LowQualityPhoto, minio.RemoveObjectOptions{})
-				if rmLqErr != nil {
-					return rmLqErr
+				err = repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.UsersBulkName, userRes.LowQualityPhoto, minio.RemoveObjectOptions{})
+				if err != nil {
+					return err
 				}
 			}
 			if userRes.Thumbnail != "" {
-				rmThErr := repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.UsersBulkName, userRes.Thumbnail, minio.RemoveObjectOptions{})
-				if rmThErr != nil {
-					return rmThErr
+				err = repository.Datasource.NewObjectStorageDatasource().RemoveObject(context.Background(), i.config.UsersBulkName, userRes.Thumbnail, minio.RemoveObjectOptions{})
+				if err != nil {
+					return err
 				}
 			}
-			updatedUserRes, updatedUserErr = i.dao.NewUserRepository().UpdateUser(ctx, tx, &entity.User{ID: &userId}, &entity.User{HighQualityPhoto: req.User.HighQualityPhoto, LowQualityPhoto: req.User.LowQualityPhoto, Thumbnail: req.User.Thumbnail, BlurHash: req.User.BlurHash})
-			if updatedUserErr != nil {
-				return updatedUserErr
+			updatedUserRes, err = i.dao.NewUserRepository().UpdateUser(ctx, tx, &entity.User{ID: &userId}, &entity.User{HighQualityPhoto: req.User.HighQualityPhoto, LowQualityPhoto: req.User.LowQualityPhoto, Thumbnail: req.User.Thumbnail, BlurHash: req.User.BlurHash})
+			if err != nil {
+				return err
 			}
 		} else if req.User.FullName != "" {
-			updatedUserRes, updatedUserErr = i.dao.NewUserRepository().UpdateUser(ctx, tx, &entity.User{ID: &userId}, &entity.User{FullName: req.User.FullName})
-			if updatedUserErr != nil {
-				return updatedUserErr
+			updatedUserRes, err = i.dao.NewUserRepository().UpdateUser(ctx, tx, &entity.User{ID: &userId}, &entity.User{FullName: req.User.FullName})
+			if err != nil {
+				return err
 			}
+		}
+		var highQualityPhotoUrl, lowQualityPhotoUrl, thumbnailUrl string
+		if updatedUserRes.HighQualityPhoto != "" {
+			highQualityPhotoUrl = i.config.UsersBulkName + "/" + updatedUserRes.HighQualityPhoto
+			lowQualityPhotoUrl = i.config.UsersBulkName + "/" + updatedUserRes.LowQualityPhoto
+			thumbnailUrl = i.config.UsersBulkName + "/" + updatedUserRes.Thumbnail
+
+		}
+		res = pb.User{
+			Id:                  updatedUserRes.ID.String(),
+			FullName:            updatedUserRes.FullName,
+			Email:               updatedUserRes.Email,
+			HighQualityPhoto:    updatedUserRes.HighQualityPhoto,
+			HighQualityPhotoUrl: highQualityPhotoUrl,
+			LowQualityPhoto:     updatedUserRes.LowQualityPhoto,
+			LowQualityPhotoUrl:  lowQualityPhotoUrl,
+			Thumbnail:           updatedUserRes.Thumbnail,
+			ThumbnailUrl:        thumbnailUrl,
+			BlurHash:            updatedUserRes.BlurHash,
+			UserAddress:         nil,
+			Permissions:         nil,
+			CreateTime:          timestamppb.New(updatedUserRes.CreateTime),
+			UpdateTime:          timestamppb.New(updatedUserRes.UpdateTime),
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	var highQualityPhotoUrl, lowQualityPhotoUrl, thumbnailUrl string
-	if updatedUserRes.HighQualityPhoto != "" {
-		highQualityPhotoUrl = i.config.UsersBulkName + "/" + updatedUserRes.HighQualityPhoto
-		lowQualityPhotoUrl = i.config.UsersBulkName + "/" + updatedUserRes.LowQualityPhoto
-		thumbnailUrl = i.config.UsersBulkName + "/" + updatedUserRes.Thumbnail
-
-	}
-	return &pb.User{
-		Id:                  updatedUserRes.ID.String(),
-		FullName:            updatedUserRes.FullName,
-		Email:               updatedUserRes.Email,
-		HighQualityPhoto:    updatedUserRes.HighQualityPhoto,
-		HighQualityPhotoUrl: highQualityPhotoUrl,
-		LowQualityPhoto:     updatedUserRes.LowQualityPhoto,
-		LowQualityPhotoUrl:  lowQualityPhotoUrl,
-		Thumbnail:           updatedUserRes.Thumbnail,
-		ThumbnailUrl:        thumbnailUrl,
-		BlurHash:            updatedUserRes.BlurHash,
-		UserAddress:         nil,
-		Permissions:         nil,
-		CreateTime:          timestamppb.New(updatedUserRes.CreateTime),
-		UpdateTime:          timestamppb.New(updatedUserRes.UpdateTime),
-	}, nil
+	return &res, nil
 }

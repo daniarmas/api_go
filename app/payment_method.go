@@ -17,7 +17,7 @@ func (m *PaymentMethodServer) ListBusinessPaymentMethod(ctx context.Context, req
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.BusinessId == "" {
@@ -53,10 +53,8 @@ func (m *PaymentMethodServer) ListBusinessPaymentMethod(ctx context.Context, req
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "user configuration not found":
-			st = status.New(codes.Unauthenticated, "User address not found")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
@@ -75,7 +73,7 @@ func (m *PaymentMethodServer) DeletePaymentMethod(ctx context.Context, req *pb.D
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.Id == "" {
@@ -111,10 +109,8 @@ func (m *PaymentMethodServer) DeletePaymentMethod(ctx context.Context, req *pb.D
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "user configuration not found":
-			st = status.New(codes.Unauthenticated, "User address not found")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
@@ -135,7 +131,7 @@ func (m *PaymentMethodServer) ListPaymentMethod(ctx context.Context, req *pb.Lis
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	res, err := m.paymentMethodService.ListPaymentMethod(ctx, req, md)
@@ -147,16 +143,12 @@ func (m *PaymentMethodServer) ListPaymentMethod(ctx context.Context, req *pb.Lis
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "user configuration not found":
-			st = status.New(codes.Unauthenticated, "User address not found")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
-		case "permission denied":
-			st = status.New(codes.PermissionDenied, "Permission denied")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -171,7 +163,7 @@ func (m *PaymentMethodServer) UpdatePaymentMethod(ctx context.Context, req *pb.U
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.Id == "" {
@@ -219,10 +211,8 @@ func (m *PaymentMethodServer) UpdatePaymentMethod(ctx context.Context, req *pb.U
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "user configuration not found":
-			st = status.New(codes.Unauthenticated, "User address not found")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
@@ -245,7 +235,7 @@ func (m *PaymentMethodServer) CreatePaymentMethod(ctx context.Context, req *pb.C
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.PaymentMethod.Type == pb.PaymentMethodType_PaymentMethodTypeUnspecified {
@@ -273,10 +263,8 @@ func (m *PaymentMethodServer) CreatePaymentMethod(ctx context.Context, req *pb.C
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "user configuration not found":
-			st = status.New(codes.Unauthenticated, "User address not found")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":

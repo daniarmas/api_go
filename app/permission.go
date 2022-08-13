@@ -9,14 +9,13 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	gp "google.golang.org/protobuf/types/known/emptypb"
-	// gp "google.golang.org/protobuf/types/known/emptypb"
 )
 
 func (m *PermissionServer) ListPermission(ctx context.Context, req *pb.ListPermissionRequest) (*pb.ListPermissionResponse, error) {
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	res, err := m.permissionService.ListPermission(ctx, req, md)
@@ -28,16 +27,14 @@ func (m *PermissionServer) ListPermission(ctx context.Context, req *pb.ListPermi
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "permission denied":
-			st = status.New(codes.PermissionDenied, "Permission denied")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
+		case "permission denied":
+			st = status.New(codes.PermissionDenied, "Permission denied")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -52,7 +49,7 @@ func (m *PermissionServer) DeletePermission(ctx context.Context, req *pb.DeleteP
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.Id == "" {
@@ -88,18 +85,16 @@ func (m *PermissionServer) DeletePermission(ctx context.Context, req *pb.DeleteP
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "permission not found":
-			st = status.New(codes.NotFound, "Permission not found")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "permission denied":
 			st = status.New(codes.PermissionDenied, "Permission denied")
+		case "permission not found":
+			st = status.New(codes.NotFound, "Permission not found")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -114,7 +109,7 @@ func (m *PermissionServer) GetPermission(ctx context.Context, req *pb.GetPermiss
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.Id == "" {
@@ -150,18 +145,16 @@ func (m *PermissionServer) GetPermission(ctx context.Context, req *pb.GetPermiss
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
-		case "permission not found":
-			st = status.New(codes.NotFound, "Permission not found")
 		case "permission denied":
 			st = status.New(codes.PermissionDenied, "Permission denied")
+		case "permission not found":
+			st = status.New(codes.NotFound, "Permission not found")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -175,6 +168,10 @@ func (m *PermissionServer) CreatePermission(ctx context.Context, req *pb.CreateP
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
+		return nil, st.Err()
+	}
 	if req.Permission.Name == "" {
 		invalidArgs = true
 		invalidName = &epb.BadRequest_FieldViolation{
@@ -200,10 +197,8 @@ func (m *PermissionServer) CreatePermission(ctx context.Context, req *pb.CreateP
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":

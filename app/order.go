@@ -15,6 +15,10 @@ func (m *OrderServer) GetCheckoutInfo(ctx context.Context, req *pb.GetCheckoutIn
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
+		return nil, st.Err()
+	}
 	if req.BusinessId == "" {
 		invalidArgs = true
 		invalidId = &epb.BadRequest_FieldViolation{
@@ -68,16 +72,18 @@ func (m *OrderServer) GetCheckoutInfo(ctx context.Context, req *pb.GetCheckoutIn
 	res, err := m.orderService.GetCheckoutInfo(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "unauthenticated application":
-			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "access token contains an invalid number of segments", "access token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "banned user":
-			st = status.New(codes.PermissionDenied, "User banned")
-		case "banned device":
-			st = status.New(codes.PermissionDenied, "Device banned")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "business not found":
 			st = status.New(codes.NotFound, "Business not found")
 		default:
@@ -97,7 +103,7 @@ func (m *OrderServer) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*p
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.Id == "" {
@@ -135,26 +141,12 @@ func (m *OrderServer) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*p
 			st = status.New(codes.Unauthenticated, "Access token is expired")
 		case "unauthenticated":
 			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
-		case "permission denied":
-			st = status.New(codes.PermissionDenied, "Permission denied")
-		case "business is open":
-			st = status.New(codes.InvalidArgument, "Business is open")
-		case "HighQualityPhotoObject missing":
-			st = status.New(codes.InvalidArgument, "HighQualityPhotoObject missing")
-		case "LowQualityPhotoObject missing":
-			st = status.New(codes.InvalidArgument, "LowQualityPhotoObject missing")
-		case "ThumbnailObject missing":
-			st = status.New(codes.InvalidArgument, "ThumbnailObject missing")
-		case "item in the cart":
-			st = status.New(codes.InvalidArgument, "Item in the cart")
-		case "cartitem not found":
-			st = status.New(codes.NotFound, "CartItem not found")
+		case "order not found":
+			st = status.New(codes.NotFound, "Order not found")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -167,7 +159,7 @@ func (m *OrderServer) ListOrder(ctx context.Context, req *pb.ListOrderRequest) (
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	res, err := m.orderService.ListOrder(ctx, req, md)
@@ -179,28 +171,12 @@ func (m *OrderServer) ListOrder(ctx context.Context, req *pb.ListOrderRequest) (
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
-		case "permission denied":
-			st = status.New(codes.PermissionDenied, "Permission denied")
-		case "business is open":
-			st = status.New(codes.InvalidArgument, "Business is open")
-		case "HighQualityPhotoObject missing":
-			st = status.New(codes.InvalidArgument, "HighQualityPhotoObject missing")
-		case "LowQualityPhotoObject missing":
-			st = status.New(codes.InvalidArgument, "LowQualityPhotoObject missing")
-		case "ThumbnailObject missing":
-			st = status.New(codes.InvalidArgument, "ThumbnailObject missing")
-		case "item in the cart":
-			st = status.New(codes.InvalidArgument, "Item in the cart")
-		case "cartitem not found":
-			st = status.New(codes.NotFound, "CartItem not found")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -215,7 +191,7 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.Location == nil {
@@ -289,39 +265,29 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 		}
 		return nil, st.Err()
 	}
-	res, createOrderErr := m.orderService.CreateOrder(ctx, req, md)
-	if createOrderErr != nil {
-		switch createOrderErr.Error() {
+	res, err := m.orderService.CreateOrder(ctx, req, md)
+	if err != nil {
+		switch err.Error() {
 		case "unauthenticated application":
 			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "access token contains an invalid number of segments", "access token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "not fulfilled the previous time of the business":
 			st = status.New(codes.InvalidArgument, "Not fulfilled the previous time of the business")
-		case "cart items not found":
-			st = status.New(codes.InvalidArgument, "Cart items not found")
 		case "business closed":
 			st = status.New(codes.InvalidArgument, "Business closed")
-		case "invalid schedule":
-			st = status.New(codes.InvalidArgument, "Invalid schedule")
-		case "permission denied":
-			st = status.New(codes.PermissionDenied, "Permission denied")
-		case "business is open":
-			st = status.New(codes.InvalidArgument, "Business is open")
-		case "item in the cart":
-			st = status.New(codes.InvalidArgument, "Item in the cart")
-		case "cartitem not found":
-			st = status.New(codes.NotFound, "CartItem not found")
+		case "cart items not found":
+			st = status.New(codes.InvalidArgument, "Cart items not found")
+		case "business not in range":
+			st = status.New(codes.InvalidArgument, "Business not in range")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -336,7 +302,7 @@ func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReques
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.Order.Id == "" {
@@ -375,24 +341,24 @@ func (m *OrderServer) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReques
 		}
 		return nil, st.Err()
 	}
-	res, updateOrderErr := m.orderService.UpdateOrder(ctx, req, md)
-	if updateOrderErr != nil {
-		switch updateOrderErr.Error() {
+	res, err := m.orderService.UpdateOrder(ctx, req, md)
+	if err != nil {
+		switch err.Error() {
 		case "unauthenticated application":
 			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "access token contains an invalid number of segments", "access token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
-		case "invalid status value":
+		case "order not found":
+			st = status.New(codes.NotFound, "Order not found")
+		case "status error":
 			st = status.New(codes.InvalidArgument, "Invalid status value")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
@@ -408,7 +374,7 @@ func (m *OrderServer) ListOrderedItem(ctx context.Context, req *pb.ListOrderedIt
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.OrderId == "" {
@@ -435,25 +401,21 @@ func (m *OrderServer) ListOrderedItem(ctx context.Context, req *pb.ListOrderedIt
 		}
 		return nil, st.Err()
 	}
-	res, listOrderedItemErr := m.orderService.ListOrderedItemWithItem(ctx, req, md)
-	if listOrderedItemErr != nil {
-		switch listOrderedItemErr.Error() {
+	res, err := m.orderService.ListOrderedItemWithItem(ctx, req, md)
+	if err != nil {
+		switch err.Error() {
 		case "unauthenticated application":
 			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "access token contains an invalid number of segments", "access token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
-		case "invalid status value":
-			st = status.New(codes.InvalidArgument, "Invalid status value")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}

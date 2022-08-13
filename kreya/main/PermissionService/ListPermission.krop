@@ -3,31 +3,31 @@
     "methodFqn": "main.PermissionService.ListPermission",
     "metadata": [
       {
-        "key": "Device-Id",
+        "key": "device-id",
         "value": "10"
       },
       {
-        "key": "Platform",
+        "key": "platform",
         "value": "IOS"
       },
       {
-        "key": "System-Version",
+        "key": "system-version",
         "value": "14.1"
       },
       {
-        "key": "Model",
+        "key": "model",
         "value": "iPhone 11"
       },
       {
-        "key": "Firebase-Cloud-Messaging-Id",
+        "key": "firebase-cloud-messaging-id",
         "value": "1"
       },
       {
-        "key": "Authorization",
+        "key": "authorization",
         "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjAzOTYzNjYsInN1YiI6IjI2NzcyZWE4LTVjODUtNDIzMy1hZTQ5LTc5ZmM5NGE5ZjBkNiJ9.CfOMYhWssNJr-lj2j_On_nloaPJ9E33DB8xp1ZQP5Y4"
       },
       {
-        "key": "Access-Token",
+        "key": "access-token",
         "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjAzOTYyNzQsInN1YiI6IjczZWVjNzEzLTcyMjItNGQ2My05NjhhLTBhMDQ0ZDljMDdlMCJ9.dTNMIYVOKjP4U-37ZMMeJqhctrVdFf2OlEqQoRmaYUE"
       }
     ]

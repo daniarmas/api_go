@@ -69,24 +69,18 @@ func (m *AuthenticationServer) SessionExists(ctx context.Context, req *pb.Sessio
 	res, err := m.authenticationService.SessionExists(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "unauthenticated application":
-			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "access token contains an invalid number of segments", "access token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "verification code not found":
-			st = status.New(codes.NotFound, "VerificationCode Not found")
+			st = status.New(codes.NotFound, "Verification code not found")
 		case "user not found":
 			st = status.New(codes.NotFound, "User not found")
-		case "user banned":
-			st = status.New(codes.PermissionDenied, "User banned")
-		case "device banned":
-			st = status.New(codes.PermissionDenied, "Device banned")
-		case "app banned":
-			st = status.New(codes.PermissionDenied, "App banned")
 		case "session not exists":
-			st = status.New(codes.PermissionDenied, "Session not exists")
+			st = status.New(codes.NotFound, "Session not exists")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -143,18 +137,12 @@ func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *
 	res, err := m.authenticationService.CreateVerificationCode(ctx, req, meta)
 	if err != nil {
 		switch err.Error() {
-		case "unauthenticated application":
-			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "access token contains an invalid number of segments", "access token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "banned user":
-			st = status.New(codes.PermissionDenied, "User banned")
-		case "banned device":
-			st = status.New(codes.PermissionDenied, "Device banned")
-		case "app banned":
-			st = status.New(codes.PermissionDenied, "App banned")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "user not found":
 			st = status.New(codes.NotFound, "User not found")
 		case "user already exists":
@@ -236,14 +224,14 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 	res, err := m.authenticationService.GetVerificationCode(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "unauthenticated application":
-			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "access token contains an invalid number of segments", "access token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "record not found":
-			st = status.New(codes.NotFound, "Not found")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "verification code not found":
+			st = status.New(codes.NotFound, "Verification code not found")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -308,22 +296,16 @@ func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest
 	res, err := m.authenticationService.SignIn(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "unauthenticated application":
-			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "access token contains an invalid number of segments", "access token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "verification code not found":
-			st = status.New(codes.NotFound, "VerificationCode Not found")
+			st = status.New(codes.NotFound, "Verification code not found")
 		case "user not found":
 			st = status.New(codes.NotFound, "User not found")
-		case "user banned":
-			st = status.New(codes.PermissionDenied, "User banned")
-		case "device banned":
-			st = status.New(codes.PermissionDenied, "Device banned")
-		case "app banned":
-			st = status.New(codes.PermissionDenied, "App banned")
 		case "session limit reached":
 			st = status.New(codes.PermissionDenied, "Session limit reached")
 		default:
@@ -511,22 +493,16 @@ func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest
 	res, err := m.authenticationService.SignUp(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "unauthenticated application":
-			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "access token contains an invalid number of segments", "access token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "verification code not found":
-			st = status.New(codes.NotFound, "VerificationCode Not found")
+			st = status.New(codes.NotFound, "Verification code not found")
 		case "user exists":
-			st = status.New(codes.AlreadyExists, "User exists")
-		case "user banned":
-			st = status.New(codes.PermissionDenied, "User banned")
-		case "device banned":
-			st = status.New(codes.PermissionDenied, "Device banned")
-		case "app banned":
-			st = status.New(codes.PermissionDenied, "App banned")
+			st = status.New(codes.AlreadyExists, "User already exists")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -547,18 +523,8 @@ func (m *AuthenticationServer) CheckSession(ctx context.Context, req *gp.Empty) 
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "user not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "user banned":
-			st = status.New(codes.PermissionDenied, "User banned")
-		case "device banned":
-			st = status.New(codes.PermissionDenied, "Device banned")
-		case "app banned":
-			st = status.New(codes.PermissionDenied, "App banned")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
@@ -576,6 +542,10 @@ func (m *AuthenticationServer) SignOut(ctx context.Context, req *pb.SignOutReque
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
+		return nil, st.Err()
+	}
 	if req.AuthorizationTokenId != "" {
 		if !utils.IsValidUUID(&req.AuthorizationTokenId) {
 			invalidArgs = true
@@ -603,14 +573,8 @@ func (m *AuthenticationServer) SignOut(ctx context.Context, req *pb.SignOutReque
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "permission denied":
-			st = status.New(codes.PermissionDenied, "Permission denied")
-		case "user not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
@@ -653,14 +617,8 @@ func (m *AuthenticationServer) RefreshToken(ctx context.Context, req *pb.Refresh
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "permission denied":
-			st = status.New(codes.PermissionDenied, "Permission denied")
-		case "user not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
 		case "refresh token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+			st = status.New(codes.Unauthenticated, "Refresh token not found")
 		case "refresh token expired":
 			st = status.New(codes.Unauthenticated, "Refresh token expired")
 		case "refresh token contains an invalid number of segments", "refresh token signature is invalid":
@@ -676,6 +634,10 @@ func (m *AuthenticationServer) RefreshToken(ctx context.Context, req *pb.Refresh
 func (m *AuthenticationServer) ListSession(ctx context.Context, req *gp.Empty) (*pb.ListSessionResponse, error) {
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
+	if md.Authorization == nil {
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
+		return nil, st.Err()
+	}
 	res, err := m.authenticationService.ListSession(ctx, md)
 	if err != nil {
 		switch err.Error() {
@@ -685,8 +647,8 @@ func (m *AuthenticationServer) ListSession(ctx context.Context, req *gp.Empty) (
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
