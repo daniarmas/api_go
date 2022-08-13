@@ -309,9 +309,9 @@ func (i *userService) CreateUserAddress(ctx context.Context, req *pb.CreateUserA
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -319,22 +319,22 @@ func (i *userService) CreateUserAddress(ctx context.Context, req *pb.CreateUserA
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
 		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
-			return errors.New("authorization token not found")
-		} else if err != nil && err.Error() != "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
 			return err
 		}
-		userRes, userErr := i.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId})
-		if userErr != nil {
-			return userErr
+		userRes, err := i.dao.NewUserRepository().GetUser(ctx, tx, &entity.User{ID: authorizationTokenRes.UserId})
+		if err != nil {
+			return err
 		}
-		listAddressRes, listAddressErr := i.dao.NewUserAddressRepository().ListUserAddress(tx, &entity.UserAddress{UserId: userRes.ID})
-		if listAddressErr != nil {
-			return listAddressErr
+		listAddressRes, err := i.dao.NewUserAddressRepository().ListUserAddress(tx, &entity.UserAddress{UserId: userRes.ID})
+		if err != nil {
+			return err
 		}
 		if len(*listAddressRes) == 10 {
 			return errors.New("only can have 10 user_address")
@@ -342,9 +342,9 @@ func (i *userService) CreateUserAddress(ctx context.Context, req *pb.CreateUserA
 		provinceId := uuid.MustParse(req.UserAddress.ProvinceId)
 		municipalityId := uuid.MustParse(req.UserAddress.MunicipalityId)
 		location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.UserAddress.Coordinates.Latitude, req.UserAddress.Coordinates.Longitude}).SetSRID(4326)}
-		createUserAddressRes, createUserAddressErr := i.dao.NewUserAddressRepository().CreateUserAddress(tx, &entity.UserAddress{Selected: req.UserAddress.Selected, Name: req.UserAddress.Name, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, UserId: userRes.ID, ProvinceId: &provinceId, MunicipalityId: &municipalityId, Coordinates: location})
-		if createUserAddressErr != nil {
-			return createUserAddressErr
+		createUserAddressRes, err := i.dao.NewUserAddressRepository().CreateUserAddress(tx, &entity.UserAddress{Selected: req.UserAddress.Selected, Name: req.UserAddress.Name, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, UserId: userRes.ID, ProvinceId: &provinceId, MunicipalityId: &municipalityId, Coordinates: location})
+		if err != nil {
+			return err
 		}
 		res = pb.UserAddress{
 			Id:             createUserAddressRes.ID.String(),
