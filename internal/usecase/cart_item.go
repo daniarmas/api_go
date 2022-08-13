@@ -63,7 +63,7 @@ func (i *cartItemService) EmptyAndAddCartItem(ctx context.Context, req *pb.Empty
 		}
 		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
+			return errors.New("unauthenticated user")
 		} else if authorizationTokenErr != nil {
 			return authorizationTokenErr
 		}
