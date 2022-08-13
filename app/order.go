@@ -191,7 +191,7 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.Location == nil {
@@ -265,39 +265,29 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 		}
 		return nil, st.Err()
 	}
-	res, createOrderErr := m.orderService.CreateOrder(ctx, req, md)
-	if createOrderErr != nil {
-		switch createOrderErr.Error() {
+	res, err := m.orderService.CreateOrder(ctx, req, md)
+	if err != nil {
+		switch err.Error() {
 		case "unauthenticated application":
 			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "access token contains an invalid number of segments", "access token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "not fulfilled the previous time of the business":
 			st = status.New(codes.InvalidArgument, "Not fulfilled the previous time of the business")
-		case "cart items not found":
-			st = status.New(codes.InvalidArgument, "Cart items not found")
 		case "business closed":
 			st = status.New(codes.InvalidArgument, "Business closed")
-		case "invalid schedule":
-			st = status.New(codes.InvalidArgument, "Invalid schedule")
-		case "permission denied":
-			st = status.New(codes.PermissionDenied, "Permission denied")
-		case "business is open":
-			st = status.New(codes.InvalidArgument, "Business is open")
-		case "item in the cart":
-			st = status.New(codes.InvalidArgument, "Item in the cart")
-		case "cartitem not found":
-			st = status.New(codes.NotFound, "CartItem not found")
+		case "cart items not found":
+			st = status.New(codes.InvalidArgument, "Cart items not found")
+		case "business not in range":
+			st = status.New(codes.InvalidArgument, "Business not in range")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
