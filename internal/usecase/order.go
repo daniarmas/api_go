@@ -245,16 +245,15 @@ func (i *orderService) GetOrder(ctx context.Context, req *pb.GetOrderRequest, md
 
 func (i *orderService) ListOrderedItemWithItem(ctx context.Context, req *pb.ListOrderedItemRequest, md *utils.ClientMetadata) (*pb.ListOrderedItemResponse, error) {
 	var res pb.ListOrderedItemResponse
-	orderId := uuid.MustParse(req.OrderId)
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -262,26 +261,27 @@ func (i *orderService) ListOrderedItemWithItem(ctx context.Context, req *pb.List
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		_, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		_, err = i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
 		}
-		unionOrderAndOrderedItemRes, unionOrderAndOrderedItemErr := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &entity.UnionOrderAndOrderedItem{OrderId: &orderId})
-		if unionOrderAndOrderedItemErr != nil {
-			return unionOrderAndOrderedItemErr
+		orderId := uuid.MustParse(req.OrderId)
+		unionOrderAndOrderedItemRes, err := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &entity.UnionOrderAndOrderedItem{OrderId: &orderId})
+		if err != nil {
+			return err
 		}
 		orderedItemFks := make([]uuid.UUID, 0, len(*unionOrderAndOrderedItemRes))
 		for _, item := range *unionOrderAndOrderedItemRes {
 			orderedItemFks = append(orderedItemFks, *item.OrderedItemId)
 		}
-		orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, orderedItemFks)
-		if orderedItemsErr != nil {
-			return orderedItemsErr
+		orderedItemsRes, err := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, orderedItemFks)
+		if err != nil {
+			return err
 		}
 		orderedItems := make([]*pb.OrderedItem, 0, len(*orderedItemsRes))
 		for _, item := range *orderedItemsRes {
