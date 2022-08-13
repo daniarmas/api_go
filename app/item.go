@@ -448,7 +448,7 @@ func (m *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) 
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.Id == "" {
@@ -484,30 +484,20 @@ func (m *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) 
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "permission denied":
 			st = status.New(codes.PermissionDenied, "Permission denied")
-		case "business is open":
-			st = status.New(codes.InvalidArgument, "Business is open")
-		case "HighQualityPhotoObject missing":
-			st = status.New(codes.InvalidArgument, "HighQualityPhotoObject missing")
-		case "LowQualityPhotoObject missing":
-			st = status.New(codes.InvalidArgument, "LowQualityPhotoObject missing")
-		case "ThumbnailObject missing":
-			st = status.New(codes.InvalidArgument, "ThumbnailObject missing")
 		case "item in the cart":
 			st = status.New(codes.InvalidArgument, "Item in the cart")
 		case "item not found":
 			st = status.New(codes.NotFound, "Item not found")
-		case "cartitem not found":
-			st = status.New(codes.NotFound, "CartItem not found")
+		case "business is open":
+			st = status.New(codes.InvalidArgument, "Business is open")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}

@@ -181,7 +181,7 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 		}
 		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
-			return errors.New("unauthenticated")
+			return errors.New("unauthenticated user")
 		} else if err != nil {
 			return err
 		}
