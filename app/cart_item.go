@@ -368,7 +368,7 @@ func (m *CartItemServer) IsEmptyCartItem(ctx context.Context, req *gp.Empty) (*p
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	res, err := m.cartItemService.IsEmptyCartItem(ctx, req, md)
@@ -381,25 +381,8 @@ func (m *CartItemServer) IsEmptyCartItem(ctx context.Context, req *gp.Empty) (*p
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "cartitem not found":
-			st = status.New(codes.NotFound, "CartItem not found")
-		case "out of range":
-			st = status.New(codes.InvalidArgument, "Out of range")
-		case "no_availability":
-			st = status.New(codes.InvalidArgument, "No availability")
-			ds, _ := st.WithDetails(
-				&epb.QuotaFailure{
-					Violations: []*epb.QuotaFailure_Violation{{
-						Subject:     "Availability",
-						Description: errorr[2],
-					}},
-				},
-			)
-			st = ds
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
