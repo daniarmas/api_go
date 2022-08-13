@@ -194,14 +194,14 @@ func (m *UserServer) GetUserAddress(ctx context.Context, req *pb.GetUserAddressR
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "user address not found":
-			st = status.New(codes.Unauthenticated, "User address not found")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
+		case "user address not found":
+			st = status.New(codes.Unauthenticated, "User address not found")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
@@ -244,7 +244,7 @@ func (m *UserServer) ListUserAddress(ctx context.Context, req *gp.Empty) (*pb.Li
 	var st *status.Status
 	meta := utils.GetMetadata(ctx)
 	if meta.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	res, err := m.userService.ListUserAddress(ctx, req, meta)
@@ -256,8 +256,8 @@ func (m *UserServer) ListUserAddress(ctx context.Context, req *gp.Empty) (*pb.Li
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":

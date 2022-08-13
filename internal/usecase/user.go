@@ -376,9 +376,9 @@ func (i *userService) ListUserAddress(ctx context.Context, req *gp.Empty, md *ut
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -386,19 +386,19 @@ func (i *userService) ListUserAddress(ctx context.Context, req *gp.Empty, md *ut
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
 		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
-			return errors.New("authorization token not found")
-		} else if err != nil && err.Error() != "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
 			return err
 		}
 		userId := *authorizationTokenRes.UserId
-		listUserAddressRes, listUserAddressErr := i.dao.NewUserAddressRepository().ListUserAddress(tx, &entity.UserAddress{UserId: &userId})
-		if listUserAddressErr != nil {
-			return listUserAddressErr
+		listUserAddressRes, err := i.dao.NewUserAddressRepository().ListUserAddress(tx, &entity.UserAddress{UserId: &userId})
+		if err != nil {
+			return err
 		}
 		userAddress := make([]*pb.UserAddress, 0, len(*listUserAddressRes))
 		for _, i := range *listUserAddressRes {
