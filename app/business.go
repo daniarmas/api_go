@@ -1077,20 +1077,14 @@ func (m *BusinessServer) GetBusinessWithDistance(ctx context.Context, req *pb.Ge
 	res, err := m.businessService.GetBusinessWithDistance(ctx, req, md)
 	if err != nil {
 		switch err.Error() {
-		case "unauthenticated application":
-			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "access token contains an invalid number of segments", "access token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "banned user":
-			st = status.New(codes.PermissionDenied, "User banned")
-		case "banned device":
-			st = status.New(codes.PermissionDenied, "Device banned")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "business not found":
 			st = status.New(codes.NotFound, "Business not found")
-		case "user already exists":
-			st = status.New(codes.AlreadyExists, "User already exists")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
