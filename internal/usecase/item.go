@@ -317,33 +317,26 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 }
 
 func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md *utils.ClientMetadata) (*pb.ListItemResponse, error) {
-	where := entity.Item{}
-	var nextPage time.Time
-	if req.NextPage == nil || (req.NextPage.Nanos == 0 && req.NextPage.Seconds == 0) {
-		nextPage = time.Now()
-	} else {
-		nextPage = req.NextPage.AsTime()
-	}
-	var items *[]entity.Item
 	var res pb.ListItemResponse
-	var itemsErr error
-	var businessCollectionId, businessId uuid.UUID
-	if req.BusinessCollectionId != "" {
-		businessCollectionId = uuid.MustParse(req.BusinessCollectionId)
-		where.BusinessCollectionId = &businessCollectionId
-	}
-	if req.BusinessId != "" {
-		businessId = uuid.MustParse(req.BusinessId)
-		where.BusinessId = &businessId
-	}
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
-		items, itemsErr = i.dao.NewItemRepository().ListItem(ctx, tx, &where, nextPage)
-		if itemsErr != nil {
-			return itemsErr
+		where := entity.Item{}
+		var nextPage time.Time
+		if req.NextPage == nil || (req.NextPage.Nanos == 0 && req.NextPage.Seconds == 0) {
+			nextPage = time.Now()
+		} else {
+			nextPage = req.NextPage.AsTime()
+		}
+		businessCollectionId := uuid.MustParse(req.BusinessCollectionId)
+		where.BusinessCollectionId = &businessCollectionId
+		businessId := uuid.MustParse(req.BusinessId)
+		where.BusinessId = &businessId
+		items, err := i.dao.NewItemRepository().ListItem(ctx, tx, &where, nextPage)
+		if err != nil {
+			return err
 		} else if len(*items) > 10 {
 			*items = (*items)[:len(*items)-1]
 			res.NextPage = timestamppb.New((*items)[len(*items)-1].CreateTime)
@@ -352,36 +345,36 @@ func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md 
 		} else {
 			res.NextPage = timestamppb.New((*items)[len(*items)-1].CreateTime)
 		}
+		if items != nil {
+			itemsResponse := make([]*pb.Item, 0, len(*items))
+			for _, item := range *items {
+				itemsResponse = append(itemsResponse, &pb.Item{
+					Id:                   item.ID.String(),
+					Name:                 item.Name,
+					BusinessName:         item.BusinessName,
+					Description:          item.Description,
+					PriceCup:             item.PriceCup,
+					Availability:         int32(item.Availability),
+					BusinessId:           item.BusinessId.String(),
+					BusinessCollectionId: item.BusinessCollectionId.String(),
+					HighQualityPhoto:     item.HighQualityPhoto,
+					HighQualityPhotoUrl:  i.config.ItemsBulkName + "/" + item.HighQualityPhoto,
+					LowQualityPhoto:      item.LowQualityPhoto,
+					LowQualityPhotoUrl:   i.config.ItemsBulkName + "/" + item.LowQualityPhoto,
+					Thumbnail:            item.Thumbnail,
+					ThumbnailUrl:         i.config.ItemsBulkName + "/" + item.Thumbnail,
+					BlurHash:             item.BlurHash,
+					Cursor:               int32(item.Cursor),
+					CreateTime:           timestamppb.New(item.CreateTime),
+					UpdateTime:           timestamppb.New(item.UpdateTime),
+				})
+			}
+			res.Items = itemsResponse
+		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
-	}
-	if items != nil {
-		itemsResponse := make([]*pb.Item, 0, len(*items))
-		for _, item := range *items {
-			itemsResponse = append(itemsResponse, &pb.Item{
-				Id:                   item.ID.String(),
-				Name:                 item.Name,
-				BusinessName:         item.BusinessName,
-				Description:          item.Description,
-				PriceCup:             item.PriceCup,
-				Availability:         int32(item.Availability),
-				BusinessId:           item.BusinessId.String(),
-				BusinessCollectionId: item.BusinessCollectionId.String(),
-				HighQualityPhoto:     item.HighQualityPhoto,
-				HighQualityPhotoUrl:  i.config.ItemsBulkName + "/" + item.HighQualityPhoto,
-				LowQualityPhoto:      item.LowQualityPhoto,
-				LowQualityPhotoUrl:   i.config.ItemsBulkName + "/" + item.LowQualityPhoto,
-				Thumbnail:            item.Thumbnail,
-				ThumbnailUrl:         i.config.ItemsBulkName + "/" + item.Thumbnail,
-				BlurHash:             item.BlurHash,
-				Cursor:               int32(item.Cursor),
-				CreateTime:           timestamppb.New(item.CreateTime),
-				UpdateTime:           timestamppb.New(item.UpdateTime),
-			})
-		}
-		res.Items = itemsResponse
 	}
 	return &res, nil
 }
