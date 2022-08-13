@@ -306,9 +306,9 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -316,18 +316,20 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		_, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		_, err = i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
 		}
-		orderRes, orderErr := i.dao.NewOrderRepository().GetOrder(tx, &entity.Order{ID: &id})
-		if orderErr != nil {
-			return orderErr
+		orderRes, err := i.dao.NewOrderRepository().GetOrder(tx, &entity.Order{ID: &id})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("order not found")
+		} else if err != nil {
+			return err
 		}
 		switch req.Order.Status {
 		case pb.OrderStatusType_OrderStatusTypeExpired:
@@ -344,17 +346,17 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 			for _, item := range *unionOrderAndOrderedItemRes {
 				orderedItemFks = append(orderedItemFks, *item.OrderedItemId)
 			}
-			orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, orderedItemFks)
-			if orderedItemsErr != nil {
-				return orderedItemsErr
+			orderedItemsRes, err := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, orderedItemFks)
+			if err != nil {
+				return err
 			}
 			itemFks := make([]uuid.UUID, 0, len(*orderedItemsRes))
 			for _, item := range *orderedItemsRes {
 				itemFks = append(itemFks, *item.ItemId)
 			}
-			itemsRes, itemsErr := i.dao.NewItemRepository().ListItemInIds(ctx, tx, itemFks)
-			if itemsErr != nil {
-				return itemsErr
+			itemsRes, err := i.dao.NewItemRepository().ListItemInIds(ctx, tx, itemFks)
+			if err != nil {
+				return err
 			}
 			for _, item := range *orderedItemsRes {
 				var index = -1
@@ -366,9 +368,9 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 				(*itemsRes)[index].Availability += int64(item.Quantity)
 			}
 			for _, item := range *itemsRes {
-				_, updateItemsErr := i.dao.NewItemRepository().UpdateItem(ctx, tx, &entity.Item{ID: item.ID}, &item)
-				if updateItemsErr != nil {
-					return updateItemsErr
+				_, err := i.dao.NewItemRepository().UpdateItem(ctx, tx, &entity.Item{ID: item.ID}, &item)
+				if err != nil {
+					return err
 				}
 			}
 			cancelReasons = req.Order.CancelReasons
@@ -385,13 +387,13 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 			// 		return errors.New("status error")
 			// 	}
 		}
-		updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &entity.Order{ID: &id}, &entity.Order{Status: req.Order.Status.String(), CancelReasons: cancelReasons})
-		if updateOrderErr != nil {
-			return updateOrderErr
+		updateOrderRes, err := i.dao.NewOrderRepository().UpdateOrder(tx, &entity.Order{ID: &id}, &entity.Order{Status: req.Order.Status.String(), CancelReasons: cancelReasons})
+		if err != nil {
+			return err
 		}
-		_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &entity.OrderLifecycle{Status: req.Order.Status.String(), OrderId: &id, CreateTime: updateOrderRes.UpdateTime})
-		if createOrderLcErr != nil {
-			return createOrderLcErr
+		_, err = i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &entity.OrderLifecycle{Status: req.Order.Status.String(), OrderId: &id, CreateTime: updateOrderRes.UpdateTime})
+		if err != nil {
+			return err
 		}
 		res = &pb.Order{Id: updateOrderRes.ID.String(), BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + updateOrderRes.BusinessThumbnail, Status: *utils.ParseOrderStatusType(&updateOrderRes.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.OrderType), PriceCup: updateOrderRes.PriceCup, BusinessId: updateOrderRes.BusinessId.String(), UserId: updateOrderRes.UserId.String(), Coordinates: &pb.Point{Latitude: updateOrderRes.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Coordinates.FlatCoords()[1]}, StartOrderTime: timestamppb.New(updateOrderRes.StartOrderTime), EndOrderTime: timestamppb.New(updateOrderRes.EndOrderTime), CreateTime: timestamppb.New(updateOrderRes.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.UpdateTime), Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions, ShortId: updateOrderRes.ShortId, CancelReasons: updateOrderRes.CancelReasons, BusinessName: updateOrderRes.BusinessName, ItemsQuantity: updateOrderRes.ItemsQuantity}
 		return nil
