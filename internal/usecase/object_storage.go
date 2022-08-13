@@ -30,15 +30,16 @@ func NewObjectStorageService(dao repository.Repository, sqldb *sqldb.Sql, config
 }
 
 func (i *objectStorageService) GetPresignedPutObject(ctx context.Context, req *pb.GetPresignedPutObjectRequest, md *utils.ClientMetadata) (*pb.GetPresignedPutObjectResponse, error) {
+	var res pb.GetPresignedPutObjectResponse
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -46,44 +47,43 @@ func (i *objectStorageService) GetPresignedPutObject(ctx context.Context, req *p
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		_, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		_, err = i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
 		}
+		var bucket string
+		switch req.PhotoType {
+		case pb.PhotoType_PhotoTypeBusiness:
+			bucket = i.config.BusinessAvatarBulkName
+		case pb.PhotoType_PhotoTypeItem:
+			bucket = i.config.ItemsBulkName
+		case pb.PhotoType_PhotoTypeUser:
+			bucket = i.config.UsersBulkName
+		}
+		hqRes, err := i.dao.NewObjectStorageRepository().PresignedPutObject(context.Background(), bucket, req.HighQualityPhoto, time.Duration(10)*time.Minute)
+		if err != nil {
+			return err
+		}
+		lqRes, err := i.dao.NewObjectStorageRepository().PresignedPutObject(context.Background(), bucket, req.LowQualityPhoto, time.Duration(10)*time.Minute)
+		if err != nil {
+			return err
+		}
+		thRes, err := i.dao.NewObjectStorageRepository().PresignedPutObject(context.Background(), bucket, req.ThumbnailQualityPhoto, time.Duration(10)*time.Minute)
+		if err != nil {
+			return err
+		}
+		res.HighQualityPhotoPresignedPutUrl = *hqRes
+		res.LowQualityPhotoPresignedPutUrl = *lqRes
+		res.ThumbnailPresignedPutUrl = *thRes
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	var bucket string
-	var response pb.GetPresignedPutObjectResponse
-	switch req.PhotoType {
-	case pb.PhotoType_PhotoTypeBusiness:
-		bucket = i.config.BusinessAvatarBulkName
-	case pb.PhotoType_PhotoTypeItem:
-		bucket = i.config.ItemsBulkName
-	case pb.PhotoType_PhotoTypeUser:
-		bucket = i.config.UsersBulkName
-	}
-	hqRes, hqErr := i.dao.NewObjectStorageRepository().PresignedPutObject(context.Background(), bucket, req.HighQualityPhoto, time.Duration(10)*time.Minute)
-	if hqErr != nil {
-		return nil, hqErr
-	}
-	lqRes, lqErr := i.dao.NewObjectStorageRepository().PresignedPutObject(context.Background(), bucket, req.LowQualityPhoto, time.Duration(10)*time.Minute)
-	if lqErr != nil {
-		return nil, lqErr
-	}
-	thRes, thErr := i.dao.NewObjectStorageRepository().PresignedPutObject(context.Background(), bucket, req.ThumbnailQualityPhoto, time.Duration(10)*time.Minute)
-	if thErr != nil {
-		return nil, thErr
-	}
-	response.HighQualityPhotoPresignedPutUrl = *hqRes
-	response.LowQualityPhotoPresignedPutUrl = *lqRes
-	response.ThumbnailPresignedPutUrl = *thRes
-	return &response, nil
+	return &res, nil
 }
