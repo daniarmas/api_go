@@ -124,7 +124,7 @@ func (m *CartItemServer) EmptyCartItem(ctx context.Context, req *gp.Empty) (*gp.
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	res, err := m.cartItemService.EmptyCartItem(ctx, md)
@@ -154,7 +154,7 @@ func (m *CartItemServer) ListCartItem(ctx context.Context, req *pb.ListCartItemR
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	res, err := m.cartItemService.ListCartItem(ctx, req, md)
@@ -186,7 +186,7 @@ func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemReq
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.Quantity <= 0 {
@@ -261,12 +261,14 @@ func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemReq
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "unauthenticated":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "item not found":
 			st = status.New(codes.NotFound, "Item not found")
-		case "out of range":
-			st = status.New(codes.InvalidArgument, "Out of range")
 		case "no_availability":
 			st = status.New(codes.InvalidArgument, "No availability")
 			ds, _ := st.WithDetails(
@@ -279,13 +281,7 @@ func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemReq
 			)
 			st = ds
 		case "the items in the cart can only be from one business":
-			st = status.New(codes.Unauthenticated, "The items in the cart can only be from one business")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorization token expired":
-			st = status.New(codes.Unauthenticated, "Authorization token expired")
-		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
-			st = status.New(codes.Unauthenticated, "Authorization token invalid")
+			st = status.New(codes.InvalidArgument, "The items in the cart can only be from one business")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}

@@ -335,18 +335,16 @@ func (i *cartItemService) ListCartItem(ctx context.Context, req *pb.ListCartItem
 }
 
 func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRequest, md *utils.ClientMetadata) (*pb.CartItem, error) {
-	var result *entity.CartItem
-	var resultErr error
-	itemId := uuid.MustParse(req.ItemId)
+	var res pb.CartItem
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -354,22 +352,24 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
 		}
-		item, itemErr := i.dao.NewItemRepository().GetItem(ctx, tx, &entity.Item{ID: &itemId})
+		itemId := uuid.MustParse(req.ItemId)
+		item, err := i.dao.NewItemRepository().GetItem(ctx, tx, &entity.Item{ID: &itemId})
 		var itemAvailability int64
-		if itemErr != nil && itemErr.Error() == "record not found" {
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("item not found")
-		} else if itemErr != nil {
-			return itemErr
+		} else if err != nil {
+			return err
 		}
+		var result *entity.CartItem
 		cartItemRes, err := i.dao.NewCartItemRepository().GetCartItem(tx, &entity.CartItem{ItemId: &itemId})
 		if err != nil && err.Error() != "record not found" {
 			return err
@@ -383,9 +383,9 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 			} else {
 				itemAvailability = item.Availability - int64(req.Quantity)
 			}
-			_, updateItemErr := i.dao.NewItemRepository().UpdateItem(ctx, tx, &entity.Item{ID: item.ID}, &entity.Item{Availability: itemAvailability})
-			if updateItemErr != nil {
-				return updateItemErr
+			_, err = i.dao.NewItemRepository().UpdateItem(ctx, tx, &entity.Item{ID: item.ID}, &entity.Item{Availability: itemAvailability})
+			if err != nil {
+				return err
 			}
 			result, err = i.dao.NewCartItemRepository().UpdateCartItem(tx, &entity.CartItem{ItemId: &itemId}, &entity.CartItem{Quantity: req.Quantity})
 			if err != nil {
@@ -398,34 +398,35 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 			} else if cartItemExists != nil && *cartItemExists.BusinessId != *item.BusinessId {
 				return errors.New("the items in the cart can only be from one business")
 			}
-			result, resultErr = i.dao.NewCartItemRepository().CreateCartItem(tx, &entity.CartItem{Name: item.Name, PriceCup: item.PriceCup, Quantity: req.Quantity, ItemId: item.ID, UserId: authorizationTokenRes.UserId, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: item.BusinessId, Thumbnail: item.Thumbnail, BlurHash: item.BlurHash})
-			if resultErr != nil {
-				return resultErr
+			result, err = i.dao.NewCartItemRepository().CreateCartItem(tx, &entity.CartItem{Name: item.Name, PriceCup: item.PriceCup, Quantity: req.Quantity, ItemId: item.ID, UserId: authorizationTokenRes.UserId, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: item.BusinessId, Thumbnail: item.Thumbnail, BlurHash: item.BlurHash})
+			if err != nil {
+				return err
 			}
-			_, updateItemErr := i.dao.NewItemRepository().UpdateItem(ctx, tx, &entity.Item{ID: item.ID}, &entity.Item{Availability: item.Availability - int64(req.Quantity)})
-			if updateItemErr != nil {
-				return updateItemErr
+			_, err = i.dao.NewItemRepository().UpdateItem(ctx, tx, &entity.Item{ID: item.ID}, &entity.Item{Availability: item.Availability - int64(req.Quantity)})
+			if err != nil {
+				return err
 			}
+		}
+		res = pb.CartItem{
+			Id:                   result.ID.String(),
+			Name:                 result.Name,
+			PriceCup:             result.PriceCup,
+			ItemId:               result.ItemId.String(),
+			BusinessId:           result.BusinessId.String(),
+			AuthorizationTokenId: result.AuthorizationTokenId.String(),
+			Quantity:             result.Quantity,
+			CreateTime:           timestamppb.New(result.CreateTime),
+			UpdateTime:           timestamppb.New(result.UpdateTime),
+			Thumbnail:            result.Thumbnail,
+			ThumbnailUrl:         i.config.ItemsBulkName + "/" + result.Thumbnail,
+			BlurHash:             result.BlurHash,
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &pb.CartItem{
-		Id:                   result.ID.String(),
-		Name:                 result.Name,
-		PriceCup:             result.PriceCup,
-		ItemId:               result.ItemId.String(),
-		BusinessId:           result.BusinessId.String(),
-		AuthorizationTokenId: result.AuthorizationTokenId.String(),
-		Quantity:             result.Quantity,
-		CreateTime:           timestamppb.New(result.CreateTime),
-		UpdateTime:           timestamppb.New(result.UpdateTime),
-		Thumbnail:            result.Thumbnail,
-		ThumbnailUrl:         i.config.ItemsBulkName + "/" + result.Thumbnail,
-		BlurHash:             result.BlurHash,
-	}, nil
+	return &res, nil
 }
 
 func (i *cartItemService) DeleteCartItem(ctx context.Context, req *pb.DeleteCartItemRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
