@@ -265,24 +265,16 @@ func (i *cartItemService) IsEmptyCartItem(ctx context.Context, req *gp.Empty, md
 }
 
 func (i *cartItemService) ListCartItem(ctx context.Context, req *pb.ListCartItemRequest, md *utils.ClientMetadata) (*pb.ListCartItemResponse, error) {
-	var items *[]entity.CartItem
 	var res pb.ListCartItemResponse
-	var itemsErr error
-	var nextPage time.Time
-	if req.NextPage == nil {
-		nextPage = time.Now()
-	} else {
-		nextPage = req.NextPage.AsTime()
-	}
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -290,18 +282,24 @@ func (i *cartItemService) ListCartItem(ctx context.Context, req *pb.ListCartItem
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
 		}
-		items, itemsErr = i.dao.NewCartItemRepository().ListCartItem(tx, &entity.CartItem{UserId: authorizationTokenRes.UserId}, &nextPage)
-		if itemsErr != nil {
-			return itemsErr
+		var nextPage time.Time
+		if req.NextPage == nil {
+			nextPage = time.Now()
+		} else {
+			nextPage = req.NextPage.AsTime()
+		}
+		items, err := i.dao.NewCartItemRepository().ListCartItem(tx, &entity.CartItem{UserId: authorizationTokenRes.UserId}, &nextPage)
+		if err != nil {
+			return err
 		} else if len(*items) > 10 {
 			*items = (*items)[:len(*items)-1]
 			res.NextPage = timestamppb.New((*items)[len(*items)-1].CreateTime)
@@ -310,29 +308,29 @@ func (i *cartItemService) ListCartItem(ctx context.Context, req *pb.ListCartItem
 		} else {
 			res.NextPage = timestamppb.New((*items)[len(*items)-1].CreateTime)
 		}
+		itemsResponse := make([]*pb.CartItem, 0, len(*items))
+		for _, item := range *items {
+			itemsResponse = append(itemsResponse, &pb.CartItem{
+				Id:                   item.ID.String(),
+				Name:                 item.Name,
+				PriceCup:             item.PriceCup,
+				ItemId:               item.ItemId.String(),
+				BusinessId:           item.BusinessId.String(),
+				AuthorizationTokenId: item.AuthorizationTokenId.String(),
+				Quantity:             item.Quantity,
+				Thumbnail:            item.Thumbnail,
+				ThumbnailUrl:         i.config.ItemsBulkName + "/" + item.Thumbnail,
+				BlurHash:             item.BlurHash,
+				CreateTime:           timestamppb.New(item.CreateTime),
+				UpdateTime:           timestamppb.New(item.UpdateTime),
+			})
+		}
+		res.CartItems = itemsResponse
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	itemsResponse := make([]*pb.CartItem, 0, len(*items))
-	for _, item := range *items {
-		itemsResponse = append(itemsResponse, &pb.CartItem{
-			Id:                   item.ID.String(),
-			Name:                 item.Name,
-			PriceCup:             item.PriceCup,
-			ItemId:               item.ItemId.String(),
-			BusinessId:           item.BusinessId.String(),
-			AuthorizationTokenId: item.AuthorizationTokenId.String(),
-			Quantity:             item.Quantity,
-			Thumbnail:            item.Thumbnail,
-			ThumbnailUrl:         i.config.ItemsBulkName + "/" + item.Thumbnail,
-			BlurHash:             item.BlurHash,
-			CreateTime:           timestamppb.New(item.CreateTime),
-			UpdateTime:           timestamppb.New(item.UpdateTime),
-		})
-	}
-	res.CartItems = itemsResponse
 	return &res, nil
 }
 
