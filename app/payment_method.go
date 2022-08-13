@@ -17,7 +17,7 @@ func (m *PaymentMethodServer) ListBusinessPaymentMethod(ctx context.Context, req
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.BusinessId == "" {
@@ -73,7 +73,7 @@ func (m *PaymentMethodServer) DeletePaymentMethod(ctx context.Context, req *pb.D
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.Id == "" {
@@ -131,7 +131,7 @@ func (m *PaymentMethodServer) ListPaymentMethod(ctx context.Context, req *pb.Lis
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	res, err := m.paymentMethodService.ListPaymentMethod(ctx, req, md)
@@ -163,7 +163,7 @@ func (m *PaymentMethodServer) UpdatePaymentMethod(ctx context.Context, req *pb.U
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.Id == "" {
@@ -235,7 +235,7 @@ func (m *PaymentMethodServer) CreatePaymentMethod(ctx context.Context, req *pb.C
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.PaymentMethod.Type == pb.PaymentMethodType_PaymentMethodTypeUnspecified {
