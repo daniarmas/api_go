@@ -427,25 +427,24 @@ func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *u
 }
 
 func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest, md *utils.ClientMetadata) (*pb.SearchItemResponse, error) {
-	var response *[]entity.Item
-	var searchItemResponse pb.SearchItemResponse
-	var responseErr error
+	var res pb.SearchItemResponse
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
+		var searchItemRes *[]entity.Item
 		if req.SearchMunicipalityType.String() == "More" {
-			response, responseErr = i.dao.NewItemRepository().SearchItem(ctx, tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), false, 10)
-			if responseErr != nil {
-				return responseErr
+			searchItemRes, err = i.dao.NewItemRepository().SearchItem(ctx, tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), false, 10)
+			if err != nil {
+				return err
 			}
-			if len(*response) > 10 {
-				*response = (*response)[:len(*response)-1]
-				searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
-				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_More
-			} else if len(*response) <= 10 && len(*response) != 0 {
-				length := 10 - len(*response)
+			if len(*searchItemRes) > 10 {
+				*searchItemRes = (*searchItemRes)[:len(*searchItemRes)-1]
+				res.NextPage = int32((*searchItemRes)[len(*searchItemRes)-1].Cursor)
+				res.SearchMunicipalityType = pb.SearchMunicipalityType_More
+			} else if len(*searchItemRes) <= 10 && len(*searchItemRes) != 0 {
+				length := 10 - len(*searchItemRes)
 				responseAdd, responseErr := i.dao.NewItemRepository().SearchItem(ctx, tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, int64(length))
 				if responseErr != nil {
 					return responseErr
@@ -453,57 +452,57 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 				if len(*responseAdd) > length {
 					*responseAdd = (*responseAdd)[:len(*responseAdd)-1]
 				}
-				*response = append(*response, *responseAdd...)
-				searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
-				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
-			} else if len(*response) == 0 {
-				response, responseErr = i.dao.NewItemRepository().SearchItem(ctx, tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10)
-				if responseErr != nil {
-					return responseErr
+				*searchItemRes = append(*searchItemRes, *responseAdd...)
+				res.NextPage = int32((*searchItemRes)[len(*searchItemRes)-1].Cursor)
+				res.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
+			} else if len(*searchItemRes) == 0 {
+				searchItemRes, err = i.dao.NewItemRepository().SearchItem(ctx, tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10)
+				if err != nil {
+					return err
 				}
-				if len(*response) > 10 {
-					*response = (*response)[:len(*response)-1]
-					searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
-				} else if len(*response) <= 10 && len(*response) != 0 {
-					searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
+				if len(*searchItemRes) > 10 {
+					*searchItemRes = (*searchItemRes)[:len(*searchItemRes)-1]
+					res.NextPage = int32((*searchItemRes)[len(*searchItemRes)-1].Cursor)
+				} else if len(*searchItemRes) <= 10 && len(*searchItemRes) != 0 {
+					res.NextPage = int32((*searchItemRes)[len(*searchItemRes)-1].Cursor)
 				}
-				searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
+				res.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
 			}
 		} else {
-			response, responseErr = i.dao.NewItemRepository().SearchItem(ctx, tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10)
-			if responseErr != nil {
-				return responseErr
+			searchItemRes, err = i.dao.NewItemRepository().SearchItem(ctx, tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), true, 10)
+			if err != nil {
+				return err
 			}
-			if len(*response) > 10 {
-				*response = (*response)[:len(*response)-1]
-				searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
-			} else if len(*response) <= 10 && len(*response) != 0 {
-				searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
+			if len(*searchItemRes) > 10 {
+				*searchItemRes = (*searchItemRes)[:len(*searchItemRes)-1]
+				res.NextPage = int32((*searchItemRes)[len(*searchItemRes)-1].Cursor)
+			} else if len(*searchItemRes) <= 10 && len(*searchItemRes) != 0 {
+				res.NextPage = int32((*searchItemRes)[len(*searchItemRes)-1].Cursor)
 			}
-			searchItemResponse.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
+			res.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
+		}
+		if searchItemRes != nil {
+			itemsResponse := make([]*pb.SearchItem, 0, len(*searchItemRes))
+			for _, e := range *searchItemRes {
+				itemsResponse = append(itemsResponse, &pb.SearchItem{
+					Id:           e.ID.String(),
+					Name:         e.Name,
+					Thumbnail:    e.Thumbnail,
+					ThumbnailUrl: i.config.ItemsBulkName + "/" + e.Thumbnail,
+					BlurHash:     e.BlurHash,
+					PriceCup:     e.PriceCup,
+					BusinessId:   e.BusinessId.String(),
+					Cursor:       int32(e.Cursor),
+				})
+			}
+			res.Items = itemsResponse
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	if response != nil {
-		itemsResponse := make([]*pb.SearchItem, 0, len(*response))
-		for _, e := range *response {
-			itemsResponse = append(itemsResponse, &pb.SearchItem{
-				Id:           e.ID.String(),
-				Name:         e.Name,
-				Thumbnail:    e.Thumbnail,
-				ThumbnailUrl: i.config.ItemsBulkName + "/" + e.Thumbnail,
-				BlurHash:     e.BlurHash,
-				PriceCup:     e.PriceCup,
-				BusinessId:   e.BusinessId.String(),
-				Cursor:       int32(e.Cursor),
-			})
-		}
-		searchItemResponse.Items = itemsResponse
-	}
-	return &searchItemResponse, nil
+	return &res, nil
 }
 
 func (i *itemService) SearchItemByBusiness(ctx context.Context, req *pb.SearchItemByBusinessRequest, md *utils.ClientMetadata) (*pb.SearchItemByBusinessResponse, error) {
