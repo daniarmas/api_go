@@ -694,14 +694,6 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 }
 
 func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, md *utils.ClientMetadata) (*pb.ListOrderResponse, error) {
-	var ordersRes *[]entity.OrderBusiness
-	var ordersErr error
-	var nextPage time.Time
-	if req.NextPage == nil {
-		nextPage = time.Now()
-	} else {
-		nextPage = req.NextPage.AsTime()
-	}
 	var res pb.ListOrderResponse
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
@@ -709,9 +701,9 @@ func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, 
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -719,22 +711,29 @@ func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, 
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
+		}
+		var ordersRes *[]entity.OrderBusiness
+		var nextPage time.Time
+		if req.NextPage == nil {
+			nextPage = time.Now()
+		} else {
+			nextPage = req.NextPage.AsTime()
 		}
 		if !req.Upcoming && !req.History {
-			ordersRes, ordersErr = i.dao.NewOrderRepository().ListOrderWithBusiness(tx, &entity.OrderBusiness{CreateTime: nextPage, UserId: authorizationTokenRes.UserId})
+			ordersRes, err = i.dao.NewOrderRepository().ListOrderWithBusiness(tx, &entity.OrderBusiness{CreateTime: nextPage, UserId: authorizationTokenRes.UserId})
 		} else {
-			ordersRes, ordersErr = i.dao.NewOrderRepository().ListOrderFilter(tx, &entity.OrderBusiness{CreateTime: nextPage, UserId: authorizationTokenRes.UserId}, req.Upcoming)
+			ordersRes, err = i.dao.NewOrderRepository().ListOrderFilter(tx, &entity.OrderBusiness{CreateTime: nextPage, UserId: authorizationTokenRes.UserId}, req.Upcoming)
 		}
-		if ordersErr != nil {
-			return ordersErr
+		if err != nil {
+			return err
 		}
 		if len(*ordersRes) > 10 {
 			*ordersRes = (*ordersRes)[:len(*ordersRes)-1]
@@ -744,34 +743,34 @@ func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, 
 		} else {
 			res.NextPage = timestamppb.New(nextPage)
 		}
+		ordersResponse := make([]*pb.Order, 0, len(*ordersRes))
+		for _, item := range *ordersRes {
+			ordersResponse = append(ordersResponse, &pb.Order{
+				Id:            item.ID.String(),
+				ShortId:       item.ShortId,
+				CancelReasons: item.CancelReasons,
+				BusinessName:  item.BusinessName,
+				ItemsQuantity: item.ItemsQuantity,
+				PriceCup:      item.PriceCup,
+				Number:        item.Number, Address: item.Address,
+				Instructions:      item.Instructions,
+				UserId:            item.UserId.String(),
+				StartOrderTime:    timestamppb.New(item.StartOrderTime),
+				EndOrderTime:      timestamppb.New(item.EndOrderTime),
+				Status:            *utils.ParseOrderStatusType(&item.Status),
+				OrderType:         *utils.ParseOrderType(&item.OrderType),
+				Coordinates:       &pb.Point{Latitude: item.Coordinates.Coords()[1], Longitude: item.Coordinates.Coords()[0]},
+				BusinessId:        item.BusinessId.String(),
+				BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + item.BusinessThumbnail,
+				CreateTime:        timestamppb.New(item.CreateTime),
+				UpdateTime:        timestamppb.New(item.UpdateTime),
+			})
+		}
+		res.Orders = ordersResponse
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	ordersResponse := make([]*pb.Order, 0, len(*ordersRes))
-	for _, item := range *ordersRes {
-		ordersResponse = append(ordersResponse, &pb.Order{
-			Id:            item.ID.String(),
-			ShortId:       item.ShortId,
-			CancelReasons: item.CancelReasons,
-			BusinessName:  item.BusinessName,
-			ItemsQuantity: item.ItemsQuantity,
-			PriceCup:      item.PriceCup,
-			Number:        item.Number, Address: item.Address,
-			Instructions:      item.Instructions,
-			UserId:            item.UserId.String(),
-			StartOrderTime:    timestamppb.New(item.StartOrderTime),
-			EndOrderTime:      timestamppb.New(item.EndOrderTime),
-			Status:            *utils.ParseOrderStatusType(&item.Status),
-			OrderType:         *utils.ParseOrderType(&item.OrderType),
-			Coordinates:       &pb.Point{Latitude: item.Coordinates.Coords()[1], Longitude: item.Coordinates.Coords()[0]},
-			BusinessId:        item.BusinessId.String(),
-			BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + item.BusinessThumbnail,
-			CreateTime:        timestamppb.New(item.CreateTime),
-			UpdateTime:        timestamppb.New(item.UpdateTime),
-		})
-	}
-	res.Orders = ordersResponse
 	return &res, nil
 }
