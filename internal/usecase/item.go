@@ -71,7 +71,9 @@ func (i *itemService) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest,
 		}
 		id := uuid.MustParse(req.Item.Id)
 		getItemRes, err := i.dao.NewItemRepository().GetItem(ctx, tx, &entity.Item{ID: &id})
-		if err != nil {
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("item not found")
+		} else if err != nil {
 			return err
 		}
 		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_item", BusinessId: getItemRes.BusinessId})

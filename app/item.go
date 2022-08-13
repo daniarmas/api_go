@@ -277,6 +277,8 @@ func (m *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) 
 			st = status.New(codes.PermissionDenied, "Permission denied")
 		case "item in the cart":
 			st = status.New(codes.InvalidArgument, "Item in the cart")
+		case "item not found":
+			st = status.New(codes.NotFound, "Item not found")
 		case "HighQualityPhotoObject missing":
 			st = status.New(codes.InvalidArgument, "HighQualityPhotoObject missing")
 		case "LowQualityPhotoObject missing":
