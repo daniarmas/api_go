@@ -506,45 +506,44 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 }
 
 func (i *itemService) SearchItemByBusiness(ctx context.Context, req *pb.SearchItemByBusinessRequest, md *utils.ClientMetadata) (*pb.SearchItemByBusinessResponse, error) {
-	var response *[]entity.Item
-	var searchItemResponse pb.SearchItemByBusinessResponse
-	var responseErr error
+	var res pb.SearchItemByBusinessResponse
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
-		response, responseErr = i.dao.NewItemRepository().SearchItemByBusiness(ctx, tx, req.Name, int64(req.NextPage), req.BusinessId)
-		if responseErr != nil {
-			return responseErr
+		var searchItemByBusinessRes *[]entity.Item
+		searchItemByBusinessRes, err = i.dao.NewItemRepository().SearchItemByBusiness(ctx, tx, req.Name, int64(req.NextPage), req.BusinessId)
+		if err != nil {
+			return err
 		}
-		if len(*response) <= 10 && len(*response) > 1 {
-			*response = (*response)[:len(*response)]
-			searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
-		} else if len(*response) == 1 {
-			*response = (*response)[:len(*response)]
-			searchItemResponse.NextPage = int32((*response)[len(*response)-1].Cursor)
+		if len(*searchItemByBusinessRes) <= 10 && len(*searchItemByBusinessRes) > 1 {
+			*searchItemByBusinessRes = (*searchItemByBusinessRes)[:len(*searchItemByBusinessRes)]
+			res.NextPage = int32((*searchItemByBusinessRes)[len(*searchItemByBusinessRes)-1].Cursor)
+		} else if len(*searchItemByBusinessRes) == 1 {
+			*searchItemByBusinessRes = (*searchItemByBusinessRes)[:len(*searchItemByBusinessRes)]
+			res.NextPage = int32((*searchItemByBusinessRes)[len(*searchItemByBusinessRes)-1].Cursor)
+		}
+		if len(*searchItemByBusinessRes) != 0 {
+			itemsResponse := make([]*pb.SearchItem, 0, len(*searchItemByBusinessRes))
+			for _, e := range *searchItemByBusinessRes {
+				itemsResponse = append(itemsResponse, &pb.SearchItem{
+					Id:           e.ID.String(),
+					Name:         e.Name,
+					Thumbnail:    e.Thumbnail,
+					ThumbnailUrl: i.config.ItemsBulkName + "/" + e.Thumbnail,
+					BlurHash:     e.BlurHash,
+					PriceCup:     e.PriceCup,
+					Cursor:       int32(e.Cursor),
+					BusinessId:   e.BusinessId.String(),
+				})
+			}
+			res.Items = itemsResponse
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	if len(*response) != 0 {
-		itemsResponse := make([]*pb.SearchItem, 0, len(*response))
-		for _, e := range *response {
-			itemsResponse = append(itemsResponse, &pb.SearchItem{
-				Id:           e.ID.String(),
-				Name:         e.Name,
-				Thumbnail:    e.Thumbnail,
-				ThumbnailUrl: i.config.ItemsBulkName + "/" + e.Thumbnail,
-				BlurHash:     e.BlurHash,
-				PriceCup:     e.PriceCup,
-				Cursor:       int32(e.Cursor),
-				BusinessId:   e.BusinessId.String(),
-			})
-		}
-		searchItemResponse.Items = itemsResponse
-	}
-	return &searchItemResponse, nil
+	return &res, nil
 }
