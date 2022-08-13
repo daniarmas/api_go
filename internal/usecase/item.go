@@ -247,17 +247,16 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 }
 
 func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest, md *utils.ClientMetadata) (*pb.Item, error) {
-	var itemRes *entity.Item
-	var itemErr error
+	var res pb.Item
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -265,19 +264,19 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
 		}
 		businessId := uuid.MustParse(req.Item.BusinessId)
-		businessRes, businessErr := i.dao.NewBusinessRepository().GetBusiness(tx, &entity.Business{ID: &businessId})
-		if businessErr != nil {
-			return businessErr
+		businessRes, err := i.dao.NewBusinessRepository().GetBusiness(tx, &entity.Business{ID: &businessId})
+		if err != nil {
+			return err
 		}
 		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{Name: "create_item", UserId: authorizationTokenRes.UserId, BusinessId: &businessId})
 		if err != nil && err.Error() == "record not found" {
@@ -285,35 +284,36 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 		} else if err != nil {
 			return err
 		}
-		_, hqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.ItemsBulkName, req.Item.HighQualityPhoto)
-		if hqErr != nil && hqErr.Error() == "ObjectMissing" {
+		_, err = i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.ItemsBulkName, req.Item.HighQualityPhoto)
+		if err != nil && err.Error() == "ObjectMissing" {
 			return errors.New("highQualityPhotoObject missing")
-		} else if hqErr != nil {
-			return hqErr
+		} else if err != nil {
+			return err
 		}
-		_, lqErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.ItemsBulkName, req.Item.LowQualityPhoto)
-		if lqErr != nil && lqErr.Error() == "ObjectMissing" {
+		_, err = i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.ItemsBulkName, req.Item.LowQualityPhoto)
+		if err != nil && err.Error() == "ObjectMissing" {
 			return errors.New("lowQualityPhotoObject missing")
-		} else if lqErr != nil {
-			return lqErr
+		} else if err != nil {
+			return err
 		}
-		_, tnErr := i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.ItemsBulkName, req.Item.Thumbnail)
-		if tnErr != nil && tnErr.Error() == "ObjectMissing" {
+		_, err = i.dao.NewObjectStorageRepository().ObjectExists(context.Background(), i.config.ItemsBulkName, req.Item.Thumbnail)
+		if err != nil && err.Error() == "ObjectMissing" {
 			return errors.New("thumbnailObject missing")
-		} else if tnErr != nil {
-			return tnErr
+		} else if err != nil {
+			return err
 		}
 		businessCollectionId := uuid.MustParse(req.Item.BusinessCollectionId)
-		itemRes, itemErr = i.dao.NewItemRepository().CreateItem(ctx, tx, &entity.Item{Name: req.Item.Name, Description: req.Item.Description, PriceCup: req.Item.PriceCup, CostCup: req.Item.CostCup, ProfitCup: req.Item.ProfitCup, PriceUsd: req.Item.PriceUsd, ProfitUsd: req.Item.ProfitUsd, CostUsd: req.Item.CostUsd, Availability: int64(req.Item.Availability), BusinessId: &businessId, BusinessCollectionId: &businessCollectionId, HighQualityPhoto: req.Item.HighQualityPhoto, LowQualityPhoto: req.Item.LowQualityPhoto, Thumbnail: req.Item.Thumbnail, BlurHash: req.Item.BlurHash, ProvinceId: businessRes.ProvinceId, MunicipalityId: businessRes.MunicipalityId, AvailableFlag: req.Item.AvailableFlag, EnabledFlag: req.Item.EnabledFlag})
-		if itemErr != nil {
-			return itemErr
+		itemRes, err := i.dao.NewItemRepository().CreateItem(ctx, tx, &entity.Item{Name: req.Item.Name, Description: req.Item.Description, PriceCup: req.Item.PriceCup, CostCup: req.Item.CostCup, ProfitCup: req.Item.ProfitCup, PriceUsd: req.Item.PriceUsd, ProfitUsd: req.Item.ProfitUsd, CostUsd: req.Item.CostUsd, Availability: int64(req.Item.Availability), BusinessId: &businessId, BusinessCollectionId: &businessCollectionId, HighQualityPhoto: req.Item.HighQualityPhoto, LowQualityPhoto: req.Item.LowQualityPhoto, Thumbnail: req.Item.Thumbnail, BlurHash: req.Item.BlurHash, ProvinceId: businessRes.ProvinceId, MunicipalityId: businessRes.MunicipalityId, AvailableFlag: req.Item.AvailableFlag, EnabledFlag: req.Item.EnabledFlag})
+		if err != nil {
+			return err
 		}
+		res = pb.Item{Id: itemRes.ID.String(), BusinessName: itemRes.BusinessName, Name: itemRes.Name, Description: itemRes.Description, PriceCup: itemRes.PriceCup, CostCup: itemRes.CostCup, ProfitCup: itemRes.ProfitCup, PriceUsd: itemRes.PriceUsd, CostUsd: itemRes.CostUsd, ProfitUsd: itemRes.ProfitUsd, EnabledFlag: itemRes.EnabledFlag, AvailableFlag: itemRes.AvailableFlag, Availability: int32(itemRes.Availability), BusinessId: itemRes.BusinessId.String(), BusinessCollectionId: itemRes.BusinessCollectionId.String(), HighQualityPhoto: itemRes.HighQualityPhoto, LowQualityPhoto: itemRes.LowQualityPhoto, Thumbnail: itemRes.Thumbnail, BlurHash: itemRes.BlurHash, ProvinceId: itemRes.ProvinceId.String(), MunicipalityId: itemRes.MunicipalityId.String(), ThumbnailUrl: i.config.ItemsBulkName + "/" + itemRes.Thumbnail, HighQualityPhotoUrl: i.config.ItemsBulkName + "/" + itemRes.HighQualityPhoto, LowQualityPhotoUrl: i.config.ItemsBulkName + "/" + itemRes.LowQualityPhoto, CreateTime: timestamppb.New(itemRes.CreateTime), UpdateTime: timestamppb.New(itemRes.UpdateTime)}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &pb.Item{Id: itemRes.ID.String(), BusinessName: itemRes.BusinessName, Name: itemRes.Name, Description: itemRes.Description, PriceCup: itemRes.PriceCup, CostCup: itemRes.CostCup, ProfitCup: itemRes.ProfitCup, PriceUsd: itemRes.PriceUsd, CostUsd: itemRes.CostUsd, ProfitUsd: itemRes.ProfitUsd, EnabledFlag: itemRes.EnabledFlag, AvailableFlag: itemRes.AvailableFlag, Availability: int32(itemRes.Availability), BusinessId: itemRes.BusinessId.String(), BusinessCollectionId: itemRes.BusinessCollectionId.String(), HighQualityPhoto: itemRes.HighQualityPhoto, LowQualityPhoto: itemRes.LowQualityPhoto, Thumbnail: itemRes.Thumbnail, BlurHash: itemRes.BlurHash, ProvinceId: itemRes.ProvinceId.String(), MunicipalityId: itemRes.MunicipalityId.String(), ThumbnailUrl: i.config.ItemsBulkName + "/" + itemRes.Thumbnail, HighQualityPhotoUrl: i.config.ItemsBulkName + "/" + itemRes.HighQualityPhoto, LowQualityPhotoUrl: i.config.ItemsBulkName + "/" + itemRes.LowQualityPhoto, CreateTime: timestamppb.New(itemRes.CreateTime), UpdateTime: timestamppb.New(itemRes.UpdateTime)}, nil
+	return &res, nil
 }
 
 func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md *utils.ClientMetadata) (*pb.ListItemResponse, error) {
