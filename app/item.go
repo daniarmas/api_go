@@ -129,7 +129,7 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.I
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "record not found":
+		case "item not found":
 			st = status.New(codes.NotFound, "Item not found")
 		default:
 			st = status.New(codes.Internal, err.Error())

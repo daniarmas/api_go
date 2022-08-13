@@ -388,21 +388,21 @@ func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md 
 
 func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *utils.ClientMetadata) (*pb.Item, error) {
 	var res pb.Item
-	var item *entity.Item
-	var itemErr error
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
 		}
 		id := uuid.MustParse(req.Id)
-		item, itemErr = i.dao.NewItemRepository().GetItem(ctx, tx, &entity.Item{ID: &id})
-		if itemErr != nil {
-			return itemErr
+		item, err := i.dao.NewItemRepository().GetItem(ctx, tx, &entity.Item{ID: &id})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("item not found")
+		} else if err != nil {
+			return err
 		}
-		isInRangeRes, isInRangeErr := i.dao.NewBusinessRepository().BusinessIsInRange(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, item.BusinessId)
-		if isInRangeErr != nil {
-			return isInRangeErr
+		isInRangeRes, err := i.dao.NewBusinessRepository().BusinessIsInRange(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, item.BusinessId)
+		if err != nil {
+			return err
 		}
 		res = pb.Item{
 			Id:                   item.ID.String(),
