@@ -17,7 +17,7 @@ func (m *UserServer) UpdateUserConfiguration(ctx context.Context, req *pb.Update
 	var st *status.Status
 	meta := utils.GetMetadata(ctx)
 	if meta.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	var invalidUserId *epb.BadRequest_FieldViolation
@@ -55,14 +55,14 @@ func (m *UserServer) UpdateUserConfiguration(ctx context.Context, req *pb.Update
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "user configuration not found":
-			st = status.New(codes.Unauthenticated, "User address not found")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
+		case "user configuration not found":
+			st = status.New(codes.NotFound, "User address not found")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}

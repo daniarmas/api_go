@@ -52,9 +52,9 @@ func (i *userService) UpdateUserConfiguration(ctx context.Context, req *pb.Updat
 			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -62,13 +62,13 @@ func (i *userService) UpdateUserConfiguration(ctx context.Context, req *pb.Updat
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
 		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
-			return errors.New("authorization token not found")
-		} else if err != nil && err.Error() != "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
 			return err
 		}
 		dataSaving := req.UserConfiguration.DataSaving
@@ -84,7 +84,9 @@ func (i *userService) UpdateUserConfiguration(ctx context.Context, req *pb.Updat
 			data.PaymentMethod = ""
 		}
 		userConfigurationRes, err := i.dao.NewUserConfigurationRepository().UpdateUserConfiguration(ctx, tx, &entity.UserConfiguration{UserId: authorizationTokenRes.UserId}, &data)
-		if err != nil {
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("user configuration not found")
+		} else if err != nil {
 			return err
 		}
 		res = pb.UserConfiguration{
