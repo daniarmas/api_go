@@ -76,10 +76,6 @@ func (m *UserServer) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoR
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
-	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated user")
-		return nil, st.Err()
-	}
 	if req.Location == nil {
 		invalidArgs = true
 		invalidLocation = &epb.BadRequest_FieldViolation{
@@ -134,12 +130,6 @@ func (m *UserServer) GetAddressInfo(ctx context.Context, req *pb.GetAddressInfoR
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "unauthenticated user":
-			st = status.New(codes.Unauthenticated, "Unauthenticated user")
-		case "authorization token expired":
-			st = status.New(codes.Unauthenticated, "Authorization token expired")
-		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
-			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "municipality not found":
 			st = status.New(codes.InvalidArgument, "Location not available")
 		case "province not found":
@@ -156,7 +146,7 @@ func (m *UserServer) GetUserAddress(ctx context.Context, req *pb.GetUserAddressR
 	var st *status.Status
 	meta := utils.GetMetadata(ctx)
 	if meta.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	var invalidId *epb.BadRequest_FieldViolation
@@ -214,7 +204,7 @@ func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.User, erro
 	var st *status.Status
 	meta := utils.GetMetadata(ctx)
 	if meta.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	res, err := m.userService.GetUser(ctx, meta)
@@ -226,8 +216,8 @@ func (m *UserServer) GetUser(ctx context.Context, req *gp.Empty) (*pb.User, erro
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
@@ -562,7 +552,7 @@ func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) 
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.User.Email != "" {
@@ -621,6 +611,12 @@ func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) 
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "missing code":
 			invalidCode := &epb.BadRequest_FieldViolation{
 				Field:       "Code",
@@ -630,16 +626,12 @@ func (m *UserServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) 
 			st, _ = st.WithDetails(
 				invalidCode,
 			)
-		case "not have permission":
-			st = status.New(codes.PermissionDenied, "Permission denied")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
-		case "authorization token expired":
-			st = status.New(codes.Unauthenticated, "Authorization token expired")
-		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
-			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "user already exist":
 			st = status.New(codes.AlreadyExists, "User already exists")
+		case "permission denied":
+			st = status.New(codes.PermissionDenied, "Permission denied")
+		case "verification code not found":
+			st = status.New(codes.NotFound, "Verification code not found")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
