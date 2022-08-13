@@ -276,7 +276,7 @@ func (m *UserServer) DeleteUserAddress(ctx context.Context, req *pb.DeleteUserAd
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
-		st = status.New(codes.Unauthenticated, "Unauthenticated")
+		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
 	if req.Id == "" {
@@ -312,14 +312,14 @@ func (m *UserServer) DeleteUserAddress(ctx context.Context, req *pb.DeleteUserAd
 			st = status.New(codes.Unauthenticated, "Access token is invalid")
 		case "access token expired":
 			st = status.New(codes.Unauthenticated, "Access token is expired")
-		case "authorization token not found":
-			st = status.New(codes.Unauthenticated, "Unauthenticated")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "user address not found":
-			st = status.New(codes.NotFound, "UserAddress not found")
+			st = status.New(codes.NotFound, "User address not found")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
