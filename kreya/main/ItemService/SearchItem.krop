@@ -7,12 +7,8 @@
         "value": "1"
       },
       {
-        "key": "App-Version",
-        "value": "1.0.0"
-      },
-      {
         "key": "Access-Token",
-        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTc3NDQyNzgsInN1YiI6Ijg2ZmViMmY5LWFlMTAtNDk3Zi05MmI3LWMxMThmM2ZkMjEzMyJ9.NGYFXZ34XfQ4Q_r-CrxXIdCoH3nmQjYsEHwduzJ2QYs"
+        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjAxNTY1NjQsInN1YiI6ImMyYWNiYmI5LWZkYmItNDE4NS1hZTcxLWY0ZjlkMjc3NzExNyJ9.BWRPOGPv299elxWfDD_jV34kiYp7pXGON7mcaXHP4BM"
       },
       {
         "key": "Platform",
@@ -25,10 +21,6 @@
       {
         "key": "Model",
         "value": "Google Pixel 3XL"
-      },
-      {
-        "key": "App",
-        "value": "App"
       },
       {
         "key": "Firebase-Cloud-Messaging-Id",

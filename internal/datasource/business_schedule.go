@@ -11,19 +11,15 @@ import (
 )
 
 type BusinessScheduleDatasource interface {
-	GetBusinessSchedule(tx *gorm.DB, where *entity.BusinessSchedule, fields *[]string) (*entity.BusinessSchedule, error)
-	BusinessIsOpen(tx *gorm.DB, where *entity.BusinessSchedule, orderType string) (bool, error)
+	GetBusinessSchedule(tx *gorm.DB, where *entity.BusinessSchedule) (*entity.BusinessSchedule, error)
+	BusinessIsOpen(tx *gorm.DB, where *entity.BusinessSchedule) (bool, error)
 }
 
 type businessScheduleDatasource struct{}
 
-func (v *businessScheduleDatasource) GetBusinessSchedule(tx *gorm.DB, where *entity.BusinessSchedule, fields *[]string) (*entity.BusinessSchedule, error) {
+func (v *businessScheduleDatasource) GetBusinessSchedule(tx *gorm.DB, where *entity.BusinessSchedule) (*entity.BusinessSchedule, error) {
 	var res *entity.BusinessSchedule
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Where(where).Select(*selectFields).Take(&res)
+	result := tx.Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
@@ -34,7 +30,7 @@ func (v *businessScheduleDatasource) GetBusinessSchedule(tx *gorm.DB, where *ent
 	return res, nil
 }
 
-func (v *businessScheduleDatasource) BusinessIsOpen(tx *gorm.DB, where *entity.BusinessSchedule, orderType string) (bool, error) {
+func (v *businessScheduleDatasource) BusinessIsOpen(tx *gorm.DB, where *entity.BusinessSchedule) (bool, error) {
 	var schedule *entity.BusinessSchedule
 	timeNow := time.Now().UTC()
 	weekday := timeNow.Weekday().String()

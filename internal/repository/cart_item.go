@@ -9,20 +9,20 @@ import (
 )
 
 type CartItemRepository interface {
-	ListCartItem(tx *gorm.DB, where *entity.CartItem, cursor *time.Time, fields *[]string) (*[]entity.CartItem, error)
-	ListCartItemAll(tx *gorm.DB, where *entity.CartItem, fields *[]string) (*[]entity.CartItem, error)
-	ListCartItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.CartItem, error)
+	ListCartItem(tx *gorm.DB, where *entity.CartItem, cursor *time.Time) (*[]entity.CartItem, error)
+	ListCartItemAll(tx *gorm.DB, where *entity.CartItem) (*[]entity.CartItem, error)
+	ListCartItemInIds(tx *gorm.DB, ids []uuid.UUID) (*[]entity.CartItem, error)
 	CreateCartItem(tx *gorm.DB, where *entity.CartItem) (*entity.CartItem, error)
 	UpdateCartItem(tx *gorm.DB, where *entity.CartItem, data *entity.CartItem) (*entity.CartItem, error)
-	GetCartItem(tx *gorm.DB, where *entity.CartItem, fields *[]string) (*entity.CartItem, error)
+	GetCartItem(tx *gorm.DB, where *entity.CartItem) (*entity.CartItem, error)
 	DeleteCartItem(tx *gorm.DB, where *entity.CartItem, ids *[]uuid.UUID) (*[]entity.CartItem, error)
 	CartItemIsEmpty(tx *gorm.DB, where *entity.CartItem) (*bool, error)
 }
 
 type cartItemRepository struct{}
 
-func (i *cartItemRepository) ListCartItem(tx *gorm.DB, where *entity.CartItem, cursor *time.Time, fields *[]string) (*[]entity.CartItem, error) {
-	res, err := Datasource.NewCartItemDatasource().ListCartItem(tx, where, cursor, fields)
+func (i *cartItemRepository) ListCartItem(tx *gorm.DB, where *entity.CartItem, cursor *time.Time) (*[]entity.CartItem, error) {
+	res, err := Datasource.NewCartItemDatasource().ListCartItem(tx, where, cursor)
 	if err != nil {
 		return nil, err
 	}
@@ -37,16 +37,16 @@ func (i *cartItemRepository) CartItemIsEmpty(tx *gorm.DB, where *entity.CartItem
 	return res, nil
 }
 
-func (i *cartItemRepository) ListCartItemAll(tx *gorm.DB, where *entity.CartItem, fields *[]string) (*[]entity.CartItem, error) {
-	res, err := Datasource.NewCartItemDatasource().ListCartItemAll(tx, where, fields)
+func (i *cartItemRepository) ListCartItemAll(tx *gorm.DB, where *entity.CartItem) (*[]entity.CartItem, error) {
+	res, err := Datasource.NewCartItemDatasource().ListCartItemAll(tx, where)
 	if err != nil {
 		return nil, err
 	}
 	return res, nil
 }
 
-func (i *cartItemRepository) ListCartItemInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.CartItem, error) {
-	res, err := Datasource.NewCartItemDatasource().ListCartItemInIds(tx, ids, fields)
+func (i *cartItemRepository) ListCartItemInIds(tx *gorm.DB, ids []uuid.UUID) (*[]entity.CartItem, error) {
+	res, err := Datasource.NewCartItemDatasource().ListCartItemInIds(tx, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -69,8 +69,8 @@ func (i *cartItemRepository) UpdateCartItem(tx *gorm.DB, where *entity.CartItem,
 	return res, nil
 }
 
-func (i *cartItemRepository) GetCartItem(tx *gorm.DB, where *entity.CartItem, fields *[]string) (*entity.CartItem, error) {
-	res, err := Datasource.NewCartItemDatasource().GetCartItem(tx, where, fields)
+func (i *cartItemRepository) GetCartItem(tx *gorm.DB, where *entity.CartItem) (*entity.CartItem, error) {
+	res, err := Datasource.NewCartItemDatasource().GetCartItem(tx, where)
 	if err != nil {
 		return nil, err
 	}

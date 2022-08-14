@@ -7,12 +7,8 @@
         "value": "10"
       },
       {
-        "key": "App-Version",
-        "value": "1.0.0"
-      },
-      {
         "key": "Access-Token",
-        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTkyMTA5OTAsInN1YiI6Ijk5YzdiMTZhLTlmYjktNDZhNC1iZTdkLWUxZGMyYmU3ZjU4MiJ9.sg3stjVX6UpIZDzb0OMrTLV2upkcKYZyvDOGX-uy7tE"
+        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjAxMzg2MTQsInN1YiI6IjdjYTQ3YjMzLTVhNjUtNDBjMC05YTE1LTBiMjBkY2IwNjM4NSJ9.ub7_2vup3jchcBDol-pRH-guxxwlfCW5bYzRYTJfL2Q"
       },
       {
         "key": "Platform",
@@ -27,16 +23,12 @@
         "value": "iPhone 11"
       },
       {
-        "key": "App",
-        "value": "App"
-      },
-      {
         "key": "Firebase-Cloud-Messaging-Id",
         "value": "1"
       },
       {
         "key": "Authorization",
-        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTkyMTEwMzIsInN1YiI6IjI2ZTNmNDUyLTU3MzItNGRjMy05YTdlLWU0NTY0ZWI1NTRkZSJ9.H0DL7XQjk1GSEOgeHaSDV5M2Y6d3mV8fqqowX1K6pJg"
+        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjAxNDMxNzAsInN1YiI6ImY3MTE2NDgwLTI5ZjYtNDVmNi04ODk4LWE4OTEwMjkwYWE5ZiJ9.NUe6fgJDp0we7j9pUtz2r8C2jtsM7e9xuhZ7y-cf-rY"
       }
     ]
   },

@@ -12,7 +12,7 @@ import (
 )
 
 type UserAddressDatasource interface {
-	ListUserAddress(tx *gorm.DB, where *entity.UserAddress, fields *[]string) (*[]entity.UserAddress, error)
+	ListUserAddress(tx *gorm.DB, where *entity.UserAddress) (*[]entity.UserAddress, error)
 	CreateUserAddress(tx *gorm.DB, data *entity.UserAddress) (*entity.UserAddress, error)
 	UpdateUserAddress(tx *gorm.DB, where *entity.UserAddress, data *entity.UserAddress) (*entity.UserAddress, error)
 	UpdateUserAddressByUserId(tx *gorm.DB, where *entity.UserAddress, data *entity.UserAddress) (*entity.UserAddress, error)
@@ -23,12 +23,9 @@ type UserAddressDatasource interface {
 
 type userAddressDatasource struct{}
 
-func (i *userAddressDatasource) ListUserAddress(tx *gorm.DB, where *entity.UserAddress, fields *[]string) (*[]entity.UserAddress, error) {
+func (i *userAddressDatasource) ListUserAddress(tx *gorm.DB, where *entity.UserAddress) (*[]entity.UserAddress, error) {
 	var res []entity.UserAddress
 	selectFields := &[]string{"id", "selected", "name", "address", "number", "ST_AsEWKB(coordinates) AS coordinates", "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time"}
-	if fields != nil {
-		selectFields = fields
-	}
 	result := tx.Where(where).Select(*selectFields).Find(&res)
 	if result.Error != nil {
 		return nil, result.Error

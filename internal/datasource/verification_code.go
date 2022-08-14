@@ -10,7 +10,7 @@ import (
 )
 
 type VerificationCodeDatasource interface {
-	GetVerificationCode(tx *gorm.DB, where *entity.VerificationCode, fields *[]string) (*entity.VerificationCode, error)
+	GetVerificationCode(tx *gorm.DB, where *entity.VerificationCode) (*entity.VerificationCode, error)
 	CreateVerificationCode(tx *gorm.DB, data *entity.VerificationCode) (*entity.VerificationCode, error)
 	DeleteVerificationCode(tx *gorm.DB, where *entity.VerificationCode, ids *[]uuid.UUID) (*[]entity.VerificationCode, error)
 }
@@ -25,13 +25,9 @@ func (v *verificationCodeDatasource) CreateVerificationCode(tx *gorm.DB, data *e
 	return data, nil
 }
 
-func (v *verificationCodeDatasource) GetVerificationCode(tx *gorm.DB, verificationCode *entity.VerificationCode, fields *[]string) (*entity.VerificationCode, error) {
+func (v *verificationCodeDatasource) GetVerificationCode(tx *gorm.DB, verificationCode *entity.VerificationCode) (*entity.VerificationCode, error) {
 	var res *entity.VerificationCode
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Where(verificationCode).Select(*selectFields).Take(&res)
+	result := tx.Where(verificationCode).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

@@ -40,14 +40,14 @@ func NewPaymentMethodService(dao repository.Repository, config *config.Config, r
 func (i *paymentMethodService) ListBusinessPaymentMethod(ctx context.Context, req *pb.ListBusinessPaymentMethodRequest, md *utils.ClientMetadata) (*pb.ListBusinessPaymentMethodResponse, error) {
 	var res pb.ListBusinessPaymentMethodResponse
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -55,17 +55,17 @@ func (i *paymentMethodService) ListBusinessPaymentMethod(ctx context.Context, re
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		_, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		_, err = i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
-			return errors.New("authorization token not found")
-		} else if err != nil && err.Error() != "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
 			return err
 		}
 		businessId := uuid.MustParse(req.BusinessId)
-		result, err := i.dao.NewBusinessPaymentMethodRepository().ListBusinessPaymentMethodWithEnabled(tx, &entity.BusinessPaymentMethod{BusinessId: &businessId})
+		result, err := i.dao.NewBusinessPaymentMethodRepository().ListBusinessPaymentMethodWithEnabled(ctx, tx, &entity.BusinessPaymentMethod{BusinessId: &businessId})
 		if err != nil {
 			return err
 		}
@@ -93,14 +93,14 @@ func (i *paymentMethodService) ListBusinessPaymentMethod(ctx context.Context, re
 
 func (i *paymentMethodService) DeletePaymentMethod(ctx context.Context, req *pb.DeletePaymentMethodRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -108,21 +108,21 @@ func (i *paymentMethodService) DeletePaymentMethod(ctx context.Context, req *pb.
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		_, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authToken, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
-			return errors.New("authorization token not found")
-		} else if err != nil && err.Error() != "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
 			return err
 		}
-		// _, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_payment_method"}, &[]string{"id"})
-		// if permissionErr != nil && permissionErr.Error() == "record not found" {
-		// 	return errors.New("permission denied")
-		// }
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authToken.UserId, Name: "delete_payment_method"})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("permission denied")
+		}
 		id := uuid.MustParse(req.Id)
-		_, err = i.dao.NewPaymentMethodRepository().DeletePaymentMethod(tx, &entity.PaymentMethod{ID: &id}, nil)
+		_, err = i.dao.NewPaymentMethodRepository().DeletePaymentMethod(ctx, tx, &entity.PaymentMethod{ID: &id}, nil)
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("payment method not found")
 		} else if err != nil {
@@ -139,14 +139,14 @@ func (i *paymentMethodService) DeletePaymentMethod(ctx context.Context, req *pb.
 func (i *paymentMethodService) UpdatePaymentMethod(ctx context.Context, req *pb.UpdatePaymentMethodRequest, md *utils.ClientMetadata) (*pb.PaymentMethod, error) {
 	var res pb.PaymentMethod
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -154,21 +154,21 @@ func (i *paymentMethodService) UpdatePaymentMethod(ctx context.Context, req *pb.
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authToken, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
-			return errors.New("authorization token not found")
-		} else if err != nil && err.Error() != "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
 			return err
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "update_payment_method"}, &[]string{"id"})
-		if permissionErr != nil && permissionErr.Error() == "record not found" {
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authToken.UserId, Name: "update_payment_method"})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
 		id := uuid.MustParse(req.Id)
-		result, err := i.dao.NewPaymentMethodRepository().UpdatePaymentMethod(tx, &entity.PaymentMethod{ID: &id}, &entity.PaymentMethod{Enabled: req.PaymentMethod.Enabled, Address: req.PaymentMethod.Address, Type: req.PaymentMethod.Type.String()})
+		result, err := i.dao.NewPaymentMethodRepository().UpdatePaymentMethod(ctx, tx, &entity.PaymentMethod{ID: &id}, &entity.PaymentMethod{Enabled: req.PaymentMethod.Enabled, Address: req.PaymentMethod.Address, Type: req.PaymentMethod.Type.String()})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("payment method not found")
 		} else if err != nil {
@@ -193,14 +193,14 @@ func (i *paymentMethodService) UpdatePaymentMethod(ctx context.Context, req *pb.
 func (i *paymentMethodService) ListPaymentMethod(ctx context.Context, req *pb.ListPaymentMethodRequest, md *utils.ClientMetadata) (*pb.ListPaymentMethodResponse, error) {
 	var res pb.ListPaymentMethodResponse
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -208,20 +208,16 @@ func (i *paymentMethodService) ListPaymentMethod(ctx context.Context, req *pb.Li
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		_, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		_, err = i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
-			return errors.New("authorization token not found")
-		} else if err != nil && err.Error() != "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
 			return err
 		}
-		// _, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "list_payment_method"}, &[]string{"id"})
-		// if permissionErr != nil && permissionErr.Error() == "record not found" {
-		// 	return errors.New("permission denied")
-		// }
-		result, err := i.dao.NewPaymentMethodRepository().ListPaymentMethod(tx, &entity.PaymentMethod{})
+		result, err := i.dao.NewPaymentMethodRepository().ListPaymentMethod(ctx, tx, &entity.PaymentMethod{})
 		if err != nil {
 			return err
 		}
@@ -248,14 +244,14 @@ func (i *paymentMethodService) ListPaymentMethod(ctx context.Context, req *pb.Li
 func (i *paymentMethodService) CreatePaymentMethod(ctx context.Context, req *pb.CreatePaymentMethodRequest, md *utils.ClientMetadata) (*pb.PaymentMethod, error) {
 	var res pb.PaymentMethod
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -263,30 +259,30 @@ func (i *paymentMethodService) CreatePaymentMethod(ctx context.Context, req *pb.
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
+		authToken, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
 		if err != nil && err.Error() == "record not found" {
-			return errors.New("authorization token not found")
-		} else if err != nil && err.Error() != "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
 			return err
 		}
-		_, permissionErr := i.dao.NewUserPermissionRepository().GetUserPermission(tx, &entity.UserPermission{UserId: authorizationTokenRes.UserId, Name: "create_payment_method"}, &[]string{"id"})
-		if permissionErr != nil && permissionErr.Error() == "record not found" {
+		_, err = i.dao.NewUserPermissionRepository().GetUserPermission(ctx, tx, &entity.UserPermission{UserId: authToken.UserId, Name: "create_payment_method"})
+		if err != nil && err.Error() == "record not found" {
 			return errors.New("permission denied")
 		}
-		result, err := i.dao.NewPaymentMethodRepository().CreatePaymentMethod(tx, &entity.PaymentMethod{Enabled: req.PaymentMethod.Enabled, Address: req.PaymentMethod.Address, Type: req.PaymentMethod.Type.String()})
+		createPaymentMethodRes, err := i.dao.NewPaymentMethodRepository().CreatePaymentMethod(ctx, tx, &entity.PaymentMethod{Enabled: req.PaymentMethod.Enabled, Address: req.PaymentMethod.Address, Type: req.PaymentMethod.Type.String()})
 		if err != nil {
 			return err
 		}
 		res = pb.PaymentMethod{
-			Id:         result.ID.String(),
-			Type:       *utils.ParsePaymentMethodType(&result.Type),
-			Address:    result.Address,
-			Enabled:    result.Enabled,
-			CreateTime: timestamppb.New(result.CreateTime),
-			UpdateTime: timestamppb.New(result.UpdateTime),
+			Id:         createPaymentMethodRes.ID.String(),
+			Type:       *utils.ParsePaymentMethodType(&createPaymentMethodRes.Type),
+			Address:    createPaymentMethodRes.Address,
+			Enabled:    createPaymentMethodRes.Enabled,
+			CreateTime: timestamppb.New(createPaymentMethodRes.CreateTime),
+			UpdateTime: timestamppb.New(createPaymentMethodRes.UpdateTime),
 		}
 		return nil
 	})

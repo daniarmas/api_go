@@ -12,7 +12,7 @@ import (
 )
 
 type PartnerApplicationDatasource interface {
-	ListPartnerApplication(tx *gorm.DB, where *entity.PartnerApplication, fields *[]string, cursor *time.Time) (*[]entity.PartnerApplication, error)
+	ListPartnerApplication(tx *gorm.DB, where *entity.PartnerApplication, cursor *time.Time) (*[]entity.PartnerApplication, error)
 	CreatePartnerApplication(tx *gorm.DB, data *entity.PartnerApplication) (*entity.PartnerApplication, error)
 	UpdatePartnerApplication(tx *gorm.DB, where *entity.PartnerApplication, data *entity.PartnerApplication) (*entity.PartnerApplication, error)
 	GetPartnerApplication(tx *gorm.DB, where *entity.PartnerApplication) (*entity.PartnerApplication, error)
@@ -77,13 +77,9 @@ func (i *partnerApplicationDatasource) CreatePartnerApplication(tx *gorm.DB, dat
 	return &res, nil
 }
 
-func (i *partnerApplicationDatasource) ListPartnerApplication(tx *gorm.DB, where *entity.PartnerApplication, fields *[]string, cursor *time.Time) (*[]entity.PartnerApplication, error) {
+func (i *partnerApplicationDatasource) ListPartnerApplication(tx *gorm.DB, where *entity.PartnerApplication, cursor *time.Time) (*[]entity.PartnerApplication, error) {
 	var res []entity.PartnerApplication
-	selectFields := &[]string{"id", "business_name", "description", "user_id", "status", "ST_AsEWKB(coordinates) AS coordinates", "province_id", "municipality_id", "create_time", "update_time"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Limit(11).Select(*selectFields).Where(where).Where(`partner_application.create_time < ?`, cursor).Order("create_time desc").Find(&res)
+	result := tx.Limit(11).Where(where).Where(`partner_application.create_time < ?`, cursor).Order("create_time desc").Find(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}

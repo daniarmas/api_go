@@ -112,6 +112,8 @@ func serviceRegister(sv *grpc.Server) {
 	objectStorageService := usecase.NewObjectStorageService(repository, sqlDb, cfg)
 	applicationService := usecase.NewApplicationService(repository, sqlDb)
 	paymentMethodService := usecase.NewPaymentMethodService(repository, cfg, rdb, sqlDb)
+	permissionService := usecase.NewPermissionService(repository, sqlDb)
+	pb.RegisterPermissionServiceServer(sv, app.NewPermissionServer(permissionService))
 	pb.RegisterItemServiceServer(sv, app.NewItemServer(
 		itemService,
 	))

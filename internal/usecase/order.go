@@ -22,6 +22,7 @@ import (
 )
 
 type OrderService interface {
+	GetCheckoutInfo(ctx context.Context, req *pb.GetCheckoutInfoRequest, md *utils.ClientMetadata) (*pb.GetCheckoutInfoResponse, error)
 	GetOrder(ctx context.Context, req *pb.GetOrderRequest, md *utils.ClientMetadata) (*pb.Order, error)
 	ListOrder(ctx context.Context, req *pb.ListOrderRequest, md *utils.ClientMetadata) (*pb.ListOrderResponse, error)
 	CreateOrder(ctx context.Context, req *pb.CreateOrderRequest, md *utils.ClientMetadata) (*pb.Order, error)
@@ -39,17 +40,17 @@ func NewOrderService(dao repository.Repository, sqldb *sqldb.Sql, config *config
 	return &orderService{dao: dao, sqldb: sqldb, config: config}
 }
 
-func (i *orderService) GetOrder(ctx context.Context, req *pb.GetOrderRequest, md *utils.ClientMetadata) (*pb.Order, error) {
-	var res pb.Order
+func (i *orderService) GetCheckoutInfo(ctx context.Context, req *pb.GetCheckoutInfoRequest, md *utils.ClientMetadata) (*pb.GetCheckoutInfoResponse, error) {
+	var res pb.GetCheckoutInfoResponse
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -57,14 +58,131 @@ func (i *orderService) GetOrder(ctx context.Context, req *pb.GetOrderRequest, md
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		_, err = i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
+		}
+		businessId := uuid.MustParse(req.BusinessId)
+		businessRes, err := i.dao.NewBusinessRepository().GetBusiness(tx, &entity.Business{ID: &businessId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("business not found")
+		} else if err != nil {
+			return err
+		}
+		businessIsInRange, err := i.dao.NewBusinessRepository().BusinessIsInRange(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Coordinates.Latitude, req.Coordinates.Longitude}).SetSRID(4326)}, businessRes.ID)
+		if err != nil {
+			return err
+		}
+		businessDistance, err := i.dao.NewBusinessRepository().GetBusinessDistance(tx, &entity.Business{ID: businessRes.ID}, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Coordinates.Latitude, req.Coordinates.Longitude}).SetSRID(4326)})
+		if err != nil {
+			return err
+		}
+		schedule, err := i.dao.NewBusinessScheduleRepository().GetBusinessSchedule(tx, &entity.BusinessSchedule{BusinessId: businessRes.ID})
+		if err != nil {
+			return err
+		}
+		listBusinessPaymentMethodsResult, err := i.dao.NewBusinessPaymentMethodRepository().ListBusinessPaymentMethodWithEnabled(ctx, tx, &entity.BusinessPaymentMethod{BusinessId: &businessId})
+		if err != nil {
+			return err
+		}
+		businessPaymentMethods := make([]*pb.BusinessPaymentMethod, 0, len(*listBusinessPaymentMethodsResult))
+		for _, item := range *listBusinessPaymentMethodsResult {
+			businessPaymentMethods = append(businessPaymentMethods, &pb.BusinessPaymentMethod{
+				Id:              item.ID.String(),
+				Type:            *utils.ParsePaymentMethodType(&item.Type),
+				Address:         item.Address,
+				Enabled:         item.Enabled,
+				BusinessId:      item.BusinessId.String(),
+				PaymentMethodId: item.PaymentMethodId.String(),
+				CreateTime:      timestamppb.New(item.CreateTime),
+				UpdateTime:      timestamppb.New(item.UpdateTime),
+			})
+		}
+		res = pb.GetCheckoutInfoResponse{
+			ServerTimeNow:          timestamppb.New(time.Now().UTC()),
+			BusinessPaymentMethods: businessPaymentMethods,
+			BusinessAddress:        businessRes.Address,
+			Delivery:               businessRes.HomeDelivery,
+			PickUp:                 businessRes.ToPickUp,
+			DeliveryPriceCup:       businessRes.DeliveryPriceCup,
+			BusinessCoordinates:    &pb.Point{Latitude: businessRes.Coordinates.Coords()[1], Longitude: businessRes.Coordinates.Coords()[0]},
+			TimeMarginOrderMonth:   businessRes.TimeMarginOrderMonth,
+			TimeMarginOrderDay:     businessRes.TimeMarginOrderDay,
+			TimeMarginOrderHour:    businessRes.TimeMarginOrderHour,
+			TimeMarginOrderMinute:  businessRes.TimeMarginOrderMinute,
+			IsInRange:              *businessIsInRange,
+			Distance:               businessDistance.Distance,
+			BusinessSchedule: &pb.BusinessSchedule{
+				Id:                         schedule.ID.String(),
+				FirstOpeningTimeSunday:     timestamppb.New(schedule.FirstOpeningTimeSunday),
+				FirstClosingTimeSunday:     timestamppb.New(schedule.FirstClosingTimeSunday),
+				FirstOpeningTimeMonday:     timestamppb.New(schedule.FirstOpeningTimeMonday),
+				FirstClosingTimeMonday:     timestamppb.New(schedule.FirstClosingTimeMonday),
+				FirstOpeningTimeTuesday:    timestamppb.New(schedule.FirstOpeningTimeTuesday),
+				FirstClosingTimeTuesday:    timestamppb.New(schedule.FirstClosingTimeTuesday),
+				FirstOpeningTimeWednesday:  timestamppb.New(schedule.FirstOpeningTimeWednesday),
+				FirstClosingTimeWednesday:  timestamppb.New(schedule.FirstClosingTimeWednesday),
+				FirstOpeningTimeThursday:   timestamppb.New(schedule.FirstOpeningTimeThursday),
+				FirstClosingTimeThursday:   timestamppb.New(schedule.FirstClosingTimeThursday),
+				FirstOpeningTimeFriday:     timestamppb.New(schedule.FirstOpeningTimeFriday),
+				FirstClosingTimeFriday:     timestamppb.New(schedule.FirstClosingTimeFriday),
+				FirstOpeningTimeSaturday:   timestamppb.New(schedule.FirstOpeningTimeSaturday),
+				FirstClosingTimeSaturday:   timestamppb.New(schedule.FirstClosingTimeSaturday),
+				SecondOpeningTimeSunday:    timestamppb.New(schedule.SecondOpeningTimeSunday),
+				SecondClosingTimeSunday:    timestamppb.New(schedule.SecondClosingTimeSunday),
+				SecondOpeningTimeMonday:    timestamppb.New(schedule.SecondOpeningTimeMonday),
+				SecondClosingTimeMonday:    timestamppb.New(schedule.SecondClosingTimeMonday),
+				SecondOpeningTimeTuesday:   timestamppb.New(schedule.SecondOpeningTimeTuesday),
+				SecondClosingTimeTuesday:   timestamppb.New(schedule.SecondClosingTimeTuesday),
+				SecondOpeningTimeWednesday: timestamppb.New(schedule.SecondOpeningTimeWednesday),
+				SecondClosingTimeWednesday: timestamppb.New(schedule.SecondClosingTimeWednesday),
+				SecondOpeningTimeThursday:  timestamppb.New(schedule.SecondOpeningTimeThursday),
+				SecondClosingTimeThursday:  timestamppb.New(schedule.SecondClosingTimeThursday),
+				SecondOpeningTimeFriday:    timestamppb.New(schedule.SecondOpeningTimeFriday),
+				SecondClosingTimeFriday:    timestamppb.New(schedule.SecondClosingTimeFriday),
+				SecondOpeningTimeSaturday:  timestamppb.New(schedule.SecondOpeningTimeSaturday),
+				SecondClosingTimeSaturday:  timestamppb.New(schedule.SecondClosingTimeSaturday),
+			},
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (i *orderService) GetOrder(ctx context.Context, req *pb.GetOrderRequest, md *utils.ClientMetadata) (*pb.Order, error) {
+	var res pb.Order
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
+		if err != nil {
+			return err
+		}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
+			case "Token is expired":
+				return errors.New("authorization token expired")
+			case "signature is invalid":
+				return errors.New("authorization token signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("authorization token contains an invalid number of segments")
+			default:
+				return err
+			}
+		}
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
 		}
 		id := uuid.MustParse(req.Id)
 		order, err := i.dao.NewOrderRepository().GetOrder(tx, &entity.Order{ID: &id, UserId: authorizationTokenRes.UserId})
@@ -73,7 +191,7 @@ func (i *orderService) GetOrder(ctx context.Context, req *pb.GetOrderRequest, md
 		} else if err != nil {
 			return err
 		}
-		unionOrderedItems, err := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &entity.UnionOrderAndOrderedItem{OrderId: order.ID}, nil)
+		unionOrderedItems, err := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &entity.UnionOrderAndOrderedItem{OrderId: order.ID})
 		if err != nil {
 			return err
 		}
@@ -81,7 +199,7 @@ func (i *orderService) GetOrder(ctx context.Context, req *pb.GetOrderRequest, md
 		for _, item := range *unionOrderedItems {
 			orderedItemIds = append(orderedItemIds, *item.OrderedItemId)
 		}
-		orderedItemsRes, err := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, orderedItemIds, nil)
+		orderedItemsRes, err := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, orderedItemIds)
 		if err != nil {
 			return err
 		}
@@ -127,16 +245,15 @@ func (i *orderService) GetOrder(ctx context.Context, req *pb.GetOrderRequest, md
 
 func (i *orderService) ListOrderedItemWithItem(ctx context.Context, req *pb.ListOrderedItemRequest, md *utils.ClientMetadata) (*pb.ListOrderedItemResponse, error) {
 	var res pb.ListOrderedItemResponse
-	orderId := uuid.MustParse(req.OrderId)
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -144,26 +261,27 @@ func (i *orderService) ListOrderedItemWithItem(ctx context.Context, req *pb.List
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		_, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		_, err = i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
 		}
-		unionOrderAndOrderedItemRes, unionOrderAndOrderedItemErr := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &entity.UnionOrderAndOrderedItem{OrderId: &orderId}, &[]string{"id", "order_id", "ordered_item_id"})
-		if unionOrderAndOrderedItemErr != nil {
-			return unionOrderAndOrderedItemErr
+		orderId := uuid.MustParse(req.OrderId)
+		unionOrderAndOrderedItemRes, err := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &entity.UnionOrderAndOrderedItem{OrderId: &orderId})
+		if err != nil {
+			return err
 		}
 		orderedItemFks := make([]uuid.UUID, 0, len(*unionOrderAndOrderedItemRes))
 		for _, item := range *unionOrderAndOrderedItemRes {
 			orderedItemFks = append(orderedItemFks, *item.OrderedItemId)
 		}
-		orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, orderedItemFks, &[]string{"id", "name", "price_cup", "quantity", "item_id", "cart_item_id", "user_id", "create_time", "update_time"})
-		if orderedItemsErr != nil {
-			return orderedItemsErr
+		orderedItemsRes, err := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, orderedItemFks)
+		if err != nil {
+			return err
 		}
 		orderedItems := make([]*pb.OrderedItem, 0, len(*orderedItemsRes))
 		for _, item := range *orderedItemsRes {
@@ -183,14 +301,14 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 	id := uuid.MustParse(req.Order.Id)
 	var cancelReasons string
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -198,18 +316,20 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		_, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		_, err = i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
 		}
-		orderRes, orderErr := i.dao.NewOrderRepository().GetOrder(tx, &entity.Order{ID: &id})
-		if orderErr != nil {
-			return orderErr
+		orderRes, err := i.dao.NewOrderRepository().GetOrder(tx, &entity.Order{ID: &id})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("order not found")
+		} else if err != nil {
+			return err
 		}
 		switch req.Order.Status {
 		case pb.OrderStatusType_OrderStatusTypeExpired:
@@ -218,7 +338,7 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 			if orderRes.Status != "OrderStatusTypeOrdered" {
 				return errors.New("status error")
 			}
-			unionOrderAndOrderedItemRes, unionOrderAndOrderedItemErr := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &entity.UnionOrderAndOrderedItem{OrderId: &id}, &[]string{"ordered_item_id"})
+			unionOrderAndOrderedItemRes, unionOrderAndOrderedItemErr := i.dao.NewUnionOrderAndOrderedItemRepository().ListUnionOrderAndOrderedItem(tx, &entity.UnionOrderAndOrderedItem{OrderId: &id})
 			if unionOrderAndOrderedItemErr != nil {
 				return unionOrderAndOrderedItemErr
 			}
@@ -226,17 +346,17 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 			for _, item := range *unionOrderAndOrderedItemRes {
 				orderedItemFks = append(orderedItemFks, *item.OrderedItemId)
 			}
-			orderedItemsRes, orderedItemsErr := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, orderedItemFks, &[]string{})
-			if orderedItemsErr != nil {
-				return orderedItemsErr
+			orderedItemsRes, err := i.dao.NewOrderedRepository().ListOrderedItemByIds(tx, orderedItemFks)
+			if err != nil {
+				return err
 			}
 			itemFks := make([]uuid.UUID, 0, len(*orderedItemsRes))
 			for _, item := range *orderedItemsRes {
 				itemFks = append(itemFks, *item.ItemId)
 			}
-			itemsRes, itemsErr := i.dao.NewItemRepository().ListItemInIds(tx, itemFks, nil)
-			if itemsErr != nil {
-				return itemsErr
+			itemsRes, err := i.dao.NewItemRepository().ListItemInIds(ctx, tx, itemFks)
+			if err != nil {
+				return err
 			}
 			for _, item := range *orderedItemsRes {
 				var index = -1
@@ -248,9 +368,9 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 				(*itemsRes)[index].Availability += int64(item.Quantity)
 			}
 			for _, item := range *itemsRes {
-				_, updateItemsErr := i.dao.NewItemRepository().UpdateItem(tx, &entity.Item{ID: item.ID}, &item)
-				if updateItemsErr != nil {
-					return updateItemsErr
+				_, err := i.dao.NewItemRepository().UpdateItem(ctx, tx, &entity.Item{ID: item.ID}, &item)
+				if err != nil {
+					return err
 				}
 			}
 			cancelReasons = req.Order.CancelReasons
@@ -267,13 +387,13 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 			// 		return errors.New("status error")
 			// 	}
 		}
-		updateOrderRes, updateOrderErr := i.dao.NewOrderRepository().UpdateOrder(tx, &entity.Order{ID: &id}, &entity.Order{Status: req.Order.Status.String(), CancelReasons: cancelReasons})
-		if updateOrderErr != nil {
-			return updateOrderErr
+		updateOrderRes, err := i.dao.NewOrderRepository().UpdateOrder(tx, &entity.Order{ID: &id}, &entity.Order{Status: req.Order.Status.String(), CancelReasons: cancelReasons})
+		if err != nil {
+			return err
 		}
-		_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &entity.OrderLifecycle{Status: req.Order.Status.String(), OrderId: &id, CreateTime: updateOrderRes.UpdateTime})
-		if createOrderLcErr != nil {
-			return createOrderLcErr
+		_, err = i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &entity.OrderLifecycle{Status: req.Order.Status.String(), OrderId: &id, CreateTime: updateOrderRes.UpdateTime})
+		if err != nil {
+			return err
 		}
 		res = &pb.Order{Id: updateOrderRes.ID.String(), BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + updateOrderRes.BusinessThumbnail, Status: *utils.ParseOrderStatusType(&updateOrderRes.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.OrderType), PriceCup: updateOrderRes.PriceCup, BusinessId: updateOrderRes.BusinessId.String(), UserId: updateOrderRes.UserId.String(), Coordinates: &pb.Point{Latitude: updateOrderRes.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Coordinates.FlatCoords()[1]}, StartOrderTime: timestamppb.New(updateOrderRes.StartOrderTime), EndOrderTime: timestamppb.New(updateOrderRes.EndOrderTime), CreateTime: timestamppb.New(updateOrderRes.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.UpdateTime), Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions, ShortId: updateOrderRes.ShortId, CancelReasons: updateOrderRes.CancelReasons, BusinessName: updateOrderRes.BusinessName, ItemsQuantity: updateOrderRes.ItemsQuantity}
 		return nil
@@ -286,17 +406,15 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 
 func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest, md *utils.ClientMetadata) (*pb.Order, error) {
 	var res *pb.Order
-	var cartItems []uuid.UUID
-	location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -304,14 +422,14 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
 		}
 		startOrderTimeWeekday := req.StartOrderTime.AsTime()
 		endOrderTimeWeekday := req.EndOrderTime.AsTime()
@@ -320,12 +438,13 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 			startOrderTimeWeekday = startOrderTimeWeekday.AddDate(0, 0, 1)
 		}
 		weekday := startOrderTimeWeekday.Local().Weekday().String()
-		listCartItemRes, listCartItemErr := i.dao.NewCartItemRepository().ListCartItemAll(tx, &entity.CartItem{UserId: authorizationTokenRes.UserId}, &[]string{"id", "business_id", "price_cup", "item_id", "user_id", "quantity", "name"})
-		if listCartItemErr != nil {
-			return listCartItemErr
+		listCartItemRes, err := i.dao.NewCartItemRepository().ListCartItemAll(tx, &entity.CartItem{UserId: authorizationTokenRes.UserId})
+		if err != nil {
+			return err
 		} else if listCartItemRes == nil {
 			return errors.New("cart items not found")
 		}
+		var cartItems []uuid.UUID
 		for _, item := range *listCartItemRes {
 			cartItems = append(cartItems, *item.ID)
 		}
@@ -341,13 +460,13 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 			quantity += item.Quantity
 			orderedItems = append(orderedItems, entity.OrderedItem{Quantity: item.Quantity, PriceCup: item.PriceCup, CartItemId: item.ID, UserId: item.UserId, ItemId: item.ItemId, Name: item.Name})
 		}
-		businessScheduleRes, businessScheduleErr := i.dao.NewBusinessScheduleRepository().GetBusinessSchedule(tx, &entity.BusinessSchedule{BusinessId: (*listCartItemRes)[0].BusinessId}, nil)
-		if businessScheduleErr != nil {
-			return businessScheduleErr
+		businessScheduleRes, err := i.dao.NewBusinessScheduleRepository().GetBusinessSchedule(tx, &entity.BusinessSchedule{BusinessId: (*listCartItemRes)[0].BusinessId})
+		if err != nil {
+			return err
 		}
-		businessRes, businessErr := i.dao.NewBusinessRepository().GetBusinessWithDistance(tx, &entity.Business{ID: (*listCartItemRes)[0].BusinessId, Coordinates: location})
-		if businessErr != nil {
-			return businessErr
+		businessRes, err := i.dao.NewBusinessRepository().GetBusinessWithDistance(tx, &entity.Business{ID: (*listCartItemRes)[0].BusinessId}, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)})
+		if err != nil {
+			return err
 		}
 		// Check if the time when the order is placed is between the choseen interval.
 		createTime := time.Now().UTC()
@@ -361,6 +480,7 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 			return errors.New("not fulfilled the previous time of the business")
 		}
 		// If the order is for delivery, check if the location is in the delivery range of the business
+		location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}
 		if req.OrderType == pb.OrderType_OrderTypeHomeDelivery {
 			isInRange, err := i.dao.NewBusinessRepository().BusinessIsInRange(tx, location, businessRes.ID)
 			if err != nil {
@@ -542,27 +662,27 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 			}
 
 		}
-		_, createOrderedItemsErr := i.dao.NewOrderedRepository().BatchCreateOrderedItem(tx, &orderedItems)
-		if createOrderedItemsErr != nil {
-			return createOrderedItemsErr
+		_, err = i.dao.NewOrderedRepository().BatchCreateOrderedItem(tx, &orderedItems)
+		if err != nil {
+			return err
 		}
-		createOrderRes, createOrderErr := i.dao.NewOrderRepository().CreateOrder(tx, &entity.Order{ItemsQuantity: quantity, BusinessThumbnail: businessRes.Thumbnail, OrderType: req.OrderType.String(), UserId: authorizationTokenRes.UserId, StartOrderTime: req.StartOrderTime.AsTime().UTC(), EndOrderTime: req.EndOrderTime.AsTime().UTC(), Coordinates: location, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: (*listCartItemRes)[0].BusinessId, PriceCup: price_cup.String(), CreateTime: createTime, UpdateTime: createTime, Number: req.Number, Address: req.Address, Instructions: req.Instructions, BusinessName: businessRes.Name, Status: "OrderStatusTypeOrdered"})
-		if createOrderErr != nil {
-			return createOrderErr
+		createOrderRes, err := i.dao.NewOrderRepository().CreateOrder(tx, &entity.Order{ItemsQuantity: quantity, BusinessThumbnail: businessRes.Thumbnail, OrderType: req.OrderType.String(), UserId: authorizationTokenRes.UserId, StartOrderTime: req.StartOrderTime.AsTime().UTC(), EndOrderTime: req.EndOrderTime.AsTime().UTC(), Coordinates: location, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: (*listCartItemRes)[0].BusinessId, PriceCup: price_cup.String(), CreateTime: createTime, UpdateTime: createTime, Number: req.Number, Address: req.Address, Instructions: req.Instructions, BusinessName: businessRes.Name, Status: "OrderStatusTypeOrdered"})
+		if err != nil {
+			return err
 		}
-		_, createOrderLcErr := i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &entity.OrderLifecycle{Status: createOrderRes.Status, OrderId: createOrderRes.ID})
-		if createOrderLcErr != nil {
-			return createOrderLcErr
+		_, err = i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &entity.OrderLifecycle{Status: createOrderRes.Status, OrderId: createOrderRes.ID})
+		if err != nil {
+			return err
 		}
 		unionOrderAndOrderedItems := make([]entity.UnionOrderAndOrderedItem, 0, len(orderedItems))
 		for _, item := range orderedItems {
 			unionOrderAndOrderedItems = append(unionOrderAndOrderedItems, entity.UnionOrderAndOrderedItem{OrderId: createOrderRes.ID, OrderedItemId: item.ID})
 		}
-		_, createUnionOrderAndOrderedItemsErr := i.dao.NewUnionOrderAndOrderedItemRepository().BatchCreateUnionOrderAndOrderedItem(tx, &unionOrderAndOrderedItems)
-		if createUnionOrderAndOrderedItemsErr != nil {
-			return createUnionOrderAndOrderedItemsErr
+		_, err = i.dao.NewUnionOrderAndOrderedItemRepository().BatchCreateUnionOrderAndOrderedItem(tx, &unionOrderAndOrderedItems)
+		if err != nil {
+			return err
 		}
-		_, err := i.dao.NewCartItemRepository().DeleteCartItem(tx, &entity.CartItem{UserId: authorizationTokenRes.UserId}, nil)
+		_, err = i.dao.NewCartItemRepository().DeleteCartItem(tx, &entity.CartItem{UserId: authorizationTokenRes.UserId}, nil)
 		if err != nil {
 			return err
 		}
@@ -576,24 +696,16 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 }
 
 func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, md *utils.ClientMetadata) (*pb.ListOrderResponse, error) {
-	var ordersRes *[]entity.OrderBusiness
-	var ordersErr error
-	var nextPage time.Time
-	if req.NextPage == nil {
-		nextPage = time.Now()
-	} else {
-		nextPage = req.NextPage.AsTime()
-	}
 	var res pb.ListOrderResponse
 	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		appErr := i.dao.NewApplicationRepository().CheckApplication(tx, *md.AccessToken)
-		if appErr != nil {
-			return appErr
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
+		if err != nil {
+			return err
 		}
 		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
-		authorizationTokenParseErr := repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
-		if authorizationTokenParseErr != nil {
-			switch authorizationTokenParseErr.Error() {
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
 			case "Token is expired":
 				return errors.New("authorization token expired")
 			case "signature is invalid":
@@ -601,18 +713,29 @@ func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, 
 			case "token contains an invalid number of segments":
 				return errors.New("authorization token contains an invalid number of segments")
 			default:
-				return authorizationTokenParseErr
+				return err
 			}
 		}
-		authorizationTokenRes, authorizationTokenErr := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId}, &[]string{"id", "refresh_token_id", "device_id", "user_id", "app", "app_version", "create_time", "update_time"})
-		if authorizationTokenErr != nil && authorizationTokenErr.Error() == "record not found" {
-			return errors.New("unauthenticated")
-		} else if authorizationTokenErr != nil {
-			return authorizationTokenErr
+		authorizationTokenRes, err := i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
 		}
-		ordersRes, ordersErr = i.dao.NewOrderRepository().ListOrderWithBusiness(tx, &entity.OrderBusiness{CreateTime: nextPage, UserId: authorizationTokenRes.UserId})
-		if ordersErr != nil {
-			return ordersErr
+		var ordersRes *[]entity.OrderBusiness
+		var nextPage time.Time
+		if req.NextPage == nil {
+			nextPage = time.Now()
+		} else {
+			nextPage = req.NextPage.AsTime()
+		}
+		if !req.Upcoming && !req.History {
+			ordersRes, err = i.dao.NewOrderRepository().ListOrderWithBusiness(tx, &entity.OrderBusiness{CreateTime: nextPage, UserId: authorizationTokenRes.UserId})
+		} else {
+			ordersRes, err = i.dao.NewOrderRepository().ListOrderFilter(tx, &entity.OrderBusiness{CreateTime: nextPage, UserId: authorizationTokenRes.UserId}, req.Upcoming)
+		}
+		if err != nil {
+			return err
 		}
 		if len(*ordersRes) > 10 {
 			*ordersRes = (*ordersRes)[:len(*ordersRes)-1]
@@ -622,34 +745,34 @@ func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, 
 		} else {
 			res.NextPage = timestamppb.New(nextPage)
 		}
+		ordersResponse := make([]*pb.Order, 0, len(*ordersRes))
+		for _, item := range *ordersRes {
+			ordersResponse = append(ordersResponse, &pb.Order{
+				Id:            item.ID.String(),
+				ShortId:       item.ShortId,
+				CancelReasons: item.CancelReasons,
+				BusinessName:  item.BusinessName,
+				ItemsQuantity: item.ItemsQuantity,
+				PriceCup:      item.PriceCup,
+				Number:        item.Number, Address: item.Address,
+				Instructions:      item.Instructions,
+				UserId:            item.UserId.String(),
+				StartOrderTime:    timestamppb.New(item.StartOrderTime),
+				EndOrderTime:      timestamppb.New(item.EndOrderTime),
+				Status:            *utils.ParseOrderStatusType(&item.Status),
+				OrderType:         *utils.ParseOrderType(&item.OrderType),
+				Coordinates:       &pb.Point{Latitude: item.Coordinates.Coords()[1], Longitude: item.Coordinates.Coords()[0]},
+				BusinessId:        item.BusinessId.String(),
+				BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + item.BusinessThumbnail,
+				CreateTime:        timestamppb.New(item.CreateTime),
+				UpdateTime:        timestamppb.New(item.UpdateTime),
+			})
+		}
+		res.Orders = ordersResponse
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	ordersResponse := make([]*pb.Order, 0, len(*ordersRes))
-	for _, item := range *ordersRes {
-		ordersResponse = append(ordersResponse, &pb.Order{
-			Id:            item.ID.String(),
-			ShortId:       item.ShortId,
-			CancelReasons: item.CancelReasons,
-			BusinessName:  item.BusinessName,
-			ItemsQuantity: item.ItemsQuantity,
-			PriceCup:      item.PriceCup,
-			Number:        item.Number, Address: item.Address,
-			Instructions:      item.Instructions,
-			UserId:            item.UserId.String(),
-			StartOrderTime:    timestamppb.New(item.StartOrderTime),
-			EndOrderTime:      timestamppb.New(item.EndOrderTime),
-			Status:            *utils.ParseOrderStatusType(&item.Status),
-			OrderType:         *utils.ParseOrderType(&item.OrderType),
-			Coordinates:       &pb.Point{Latitude: item.Coordinates.Coords()[1], Longitude: item.Coordinates.Coords()[0]},
-			BusinessId:        item.BusinessId.String(),
-			BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + item.BusinessThumbnail,
-			CreateTime:        timestamppb.New(item.CreateTime),
-			UpdateTime:        timestamppb.New(item.UpdateTime),
-		})
-	}
-	res.Orders = ordersResponse
 	return &res, nil
 }

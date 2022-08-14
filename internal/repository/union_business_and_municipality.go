@@ -6,15 +6,15 @@ import (
 )
 
 type UnionBusinessAndMunicipalityRepository interface {
-	GetUnionBusinessAndMunicipality(tx *gorm.DB, where *entity.UnionBusinessAndMunicipality, fields *[]string) (*entity.UnionBusinessAndMunicipality, error)
+	GetUnionBusinessAndMunicipality(tx *gorm.DB, where *entity.UnionBusinessAndMunicipality) (*entity.UnionBusinessAndMunicipality, error)
 	BatchCreateUnionBusinessAndMunicipality(tx *gorm.DB, data []*entity.UnionBusinessAndMunicipality) ([]*entity.UnionBusinessAndMunicipality, error)
 	ListUnionBusinessAndMunicipalityWithMunicipality(tx *gorm.DB, ids []string) (*[]entity.UnionBusinessAndMunicipalityWithMunicipality, error)
 }
 
 type unionBusinessAndMunicipality struct{}
 
-func (v *unionBusinessAndMunicipality) GetUnionBusinessAndMunicipality(tx *gorm.DB, where *entity.UnionBusinessAndMunicipality, fields *[]string) (*entity.UnionBusinessAndMunicipality, error) {
-	res, err := Datasource.NewUnionBusinessAndMunicipalityDatasource().GetUnionBusinessAndMunicipality(tx, &entity.UnionBusinessAndMunicipality{MunicipalityId: where.MunicipalityId, BusinessId: where.BusinessId}, fields)
+func (v *unionBusinessAndMunicipality) GetUnionBusinessAndMunicipality(tx *gorm.DB, where *entity.UnionBusinessAndMunicipality) (*entity.UnionBusinessAndMunicipality, error) {
+	res, err := Datasource.NewUnionBusinessAndMunicipalityDatasource().GetUnionBusinessAndMunicipality(tx, &entity.UnionBusinessAndMunicipality{MunicipalityId: where.MunicipalityId, BusinessId: where.BusinessId})
 	if err != nil {
 		return nil, err
 	}

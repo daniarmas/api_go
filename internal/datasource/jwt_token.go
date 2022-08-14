@@ -11,7 +11,7 @@ import (
 )
 
 type JwtTokenDatasource interface {
-	CreateJwtAccessToken(tokenMetadata *JsonWebTokenMetadata) error
+	CreateJwtAccessToken(tokenMetadata *JsonWebTokenMetadata, expirationTime *time.Time) error
 	CreateJwtRefreshToken(tokenMetadata *JsonWebTokenMetadata) error
 	CreateJwtAuthorizationToken(tokenMetadata *JsonWebTokenMetadata) error
 	ParseJwtRefreshToken(tokenMetadata *JsonWebTokenMetadata) error
@@ -22,10 +22,11 @@ type jwtTokenDatasource struct {
 	Config *config.Config
 }
 
-func (v *jwtTokenDatasource) CreateJwtAccessToken(tokenMetadata *JsonWebTokenMetadata) error {
+func (v *jwtTokenDatasource) CreateJwtAccessToken(tokenMetadata *JsonWebTokenMetadata, expirationTime *time.Time) error {
 	hmacSecret := []byte(v.Config.JwtSecret)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
-		ExpiresAt: time.Now().Add(time.Hour * 8760).Unix(),
+		// ExpiresAt: time.Now().Add(time.Hour * 8760).Unix(),
+		ExpiresAt: expirationTime.Unix(),
 		Subject:   tokenMetadata.TokenId.String(),
 	})
 	// Sign and get the complete encoded token as a string using the secret

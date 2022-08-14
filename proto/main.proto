@@ -17,6 +17,7 @@ service AuthenticationService {
   rpc SignOut (SignOutRequest) returns (google.protobuf.Empty) {}
 
   rpc CheckSession (google.protobuf.Empty) returns (CheckSessionResponse) {}
+  rpc SessionExists (SessionExistsRequest) returns (SessionExistsResponse) {}
 
   rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse) {}
 
@@ -29,6 +30,13 @@ service ApplicationService {
   rpc DeleteApplication (DeleteApplicationRequest) returns (google.protobuf.Empty) {}
 }
 
+service PermissionService {
+  rpc CreatePermission (CreatePermissionRequest) returns (Permission) {}
+  rpc ListPermission (ListPermissionRequest) returns (ListPermissionResponse) {}
+  rpc GetPermission (GetPermissionRequest) returns (Permission) {}
+  rpc DeletePermission (DeletePermissionRequest) returns (google.protobuf.Empty) {}
+}
+
 service BusinessService {
   rpc Feed (FeedRequest) returns (FeedResponse) {}
   rpc GetBusiness (GetBusinessRequest) returns (Business) {}
@@ -36,6 +44,8 @@ service BusinessService {
   rpc CreateBusiness (CreateBusinessRequest) returns (CreateBusinessResponse) {}
   // rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
   rpc UpdateBusiness (UpdateBusinessRequest) returns (Business) {}
+
+  rpc BusinessIsInRange (BusinessIsInRangeRequest) returns (google.protobuf.Empty) {}
 
   rpc CreatePartnerApplication (CreatePartnerApplicationRequest) returns (PartnerApplication) {}
   rpc ListPartnerApplication (ListPartnerApplicationRequest) returns (ListPartnerApplicationResponse) {}
@@ -78,6 +88,7 @@ service OrderService {
   rpc CreateOrder (CreateOrderRequest) returns (Order) {}
   rpc UpdateOrder (UpdateOrderRequest) returns (Order) {}
   rpc ListOrderedItem (ListOrderedItemRequest) returns (ListOrderedItemResponse) {}
+  rpc GetCheckoutInfo (GetCheckoutInfoRequest) returns (GetCheckoutInfoResponse) {}
 }
 
 service CartItemService {
@@ -112,6 +123,63 @@ service ObjectStorageService {
 // }
 
 // Request & Response Message
+
+message DeletePermissionRequest {
+  string id = 1;  
+}
+
+message GetPermissionRequest {
+  string id = 1;
+}
+
+message CreatePermissionRequest {
+  Permission permission = 1;
+}
+
+message ListPermissionRequest {
+  google.protobuf.Timestamp nextPage = 1;
+}
+
+message ListPermissionResponse {
+  repeated Permission permissions = 1;
+  google.protobuf.Timestamp nextPage = 2;
+}
+
+message SessionExistsRequest {
+  string email = 1;
+  string code = 2;
+}
+
+message SessionExistsResponse {
+  string authorizationTokenId = 1;
+}
+
+message BusinessIsInRangeRequest {
+  string businessId = 1;
+  Point coordinates = 2;
+}
+
+message GetCheckoutInfoRequest {
+  string businessId = 1;
+  Point coordinates = 2;
+}
+
+message GetCheckoutInfoResponse {
+  google.protobuf.Timestamp serverTimeNow = 1;
+  repeated BusinessPaymentMethod businessPaymentMethods = 2;
+  bool delivery = 3;
+  bool pickUp = 4;
+  string businessAddress = 5;
+  string deliveryPriceCup = 6;
+  Point businessCoordinates = 7;
+  int32 timeMarginOrderMonth = 8;
+  int32 timeMarginOrderDay = 9;
+  int32 timeMarginOrderHour = 10;
+  int32 timeMarginOrderMinute = 11;
+  double distance = 12;
+  bool isInRange = 13;
+  BusinessSchedule businessSchedule = 14;
+}
 
 message ListBusinessPaymentMethodRequest {
   string businessId = 1;
@@ -419,6 +487,8 @@ message CreateOrderRequest {
 
 message ListOrderRequest {
   google.protobuf.Timestamp nextPage = 1;
+  bool upcoming = 2;
+  bool history = 3;
 }
 
 message ListOrderResponse {
@@ -626,6 +696,7 @@ message UserExistsRequest {
 
 message CheckSessionResponse {
   repeated string ipAddresses = 1;
+  User user = 2;
 }
 
 message CreateVerificationCodeRequest {
@@ -727,8 +798,9 @@ message User {
   repeated UserPermission permissions = 12;
   repeated CartItem cartItems = 13;
   UserConfiguration configuration = 14;
-  google.protobuf.Timestamp createTime = 15;
-  google.protobuf.Timestamp updateTime = 16;
+  bool existsUpcomingOrders = 15;
+  google.protobuf.Timestamp createTime = 16;
+  google.protobuf.Timestamp updateTime = 17;
 }
 
 message Municipality {

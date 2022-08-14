@@ -12,8 +12,8 @@ import (
 
 type ApplicationDatasource interface {
 	CreateApplication(tx *gorm.DB, data *entity.Application) (*entity.Application, error)
-	GetApplication(tx *gorm.DB, where *entity.Application, fields *[]string) (*entity.Application, error)
-	ListApplication(tx *gorm.DB, where *entity.Application, cursor *time.Time, fields *[]string) (*[]entity.Application, error)
+	GetApplication(tx *gorm.DB, where *entity.Application) (*entity.Application, error)
+	ListApplication(tx *gorm.DB, where *entity.Application, cursor *time.Time) (*[]entity.Application, error)
 	DeleteApplication(tx *gorm.DB, where *entity.Application, ids *[]uuid.UUID) (*[]entity.Application, error)
 }
 
@@ -35,13 +35,9 @@ func (i *applicationDatasource) DeleteApplication(tx *gorm.DB, where *entity.App
 	return res, nil
 }
 
-func (i *applicationDatasource) ListApplication(tx *gorm.DB, where *entity.Application, cursor *time.Time, fields *[]string) (*[]entity.Application, error) {
+func (i *applicationDatasource) ListApplication(tx *gorm.DB, where *entity.Application, cursor *time.Time) (*[]entity.Application, error) {
 	var res []entity.Application
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Model(&entity.Application{}).Select(*selectFields).Limit(11).Where(where).Where("create_time < ?", cursor).Order("create_time desc").Scan(&res)
+	result := tx.Model(&entity.Application{}).Limit(11).Where(where).Where("create_time < ?", cursor).Order("create_time desc").Scan(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -56,13 +52,9 @@ func (v *applicationDatasource) CreateApplication(tx *gorm.DB, data *entity.Appl
 	return data, nil
 }
 
-func (v *applicationDatasource) GetApplication(tx *gorm.DB, where *entity.Application, fields *[]string) (*entity.Application, error) {
+func (v *applicationDatasource) GetApplication(tx *gorm.DB, where *entity.Application) (*entity.Application, error) {
 	var res *entity.Application
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Where(where).Select(*selectFields).Take(&res)
+	result := tx.Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")

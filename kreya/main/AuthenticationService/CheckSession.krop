@@ -4,15 +4,11 @@
     "metadata": [
       {
         "key": "Device-Id",
-        "value": "1"
-      },
-      {
-        "key": "App-Version",
-        "value": "1.0.0"
+        "value": "10"
       },
       {
         "key": "Access-Token",
-        "value": "O8pzXjp4QMk4cAD60dHeoOnxdVsDc9"
+        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjAwNjAyNDcsInN1YiI6ImQxNDgxMzRkLTNmMjktNGVlMS05MDU5LWU4OGQxMWJlYjQ4OCJ9.LAW4VSiPgeoZaE8d-rXIUi8DxPyaETW9HZaTTXb2MaM"
       },
       {
         "key": "Platform",
@@ -27,16 +23,12 @@
         "value": "Google Pixel 3XL"
       },
       {
-        "key": "App",
-        "value": "App"
-      },
-      {
         "key": "Firebase-Cloud-Messaging-Id",
         "value": "1"
       },
       {
         "key": "Authorization",
-        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTMxNTg4NTYsInN1YiI6ImZlNmY3YTA3LTNmNGQtNGYzZS1hMzQxLWYzNjFhZDFiZWIzOSJ9.GwOFlOy9Fc_kBmBFcJxzorksBGjVofdKCRu7Fpk-sJA"
+        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjAwNzE3MDksInN1YiI6ImU5ZGM4MjJiLTkwZmQtNDIzZS05N2NmLTk4MjEwOGQxMTM0MiJ9.faq76Qx76AdvGK1JBnUHNuxFodtwGCyT2c9R1FCfojw"
       }
     ]
   },

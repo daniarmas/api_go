@@ -8,8 +8,8 @@ import (
 
 type OrderedRepository interface {
 	BatchCreateOrderedItem(tx *gorm.DB, data *[]entity.OrderedItem) (*[]entity.OrderedItem, error)
-	ListOrderedItemByIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.OrderedItem, error)
-	ListOrderedItem(tx *gorm.DB, where *entity.OrderedItem, fields *[]string) (*[]entity.OrderedItem, error)
+	ListOrderedItemByIds(tx *gorm.DB, ids []uuid.UUID) (*[]entity.OrderedItem, error)
+	ListOrderedItem(tx *gorm.DB, where *entity.OrderedItem) (*[]entity.OrderedItem, error)
 }
 
 type orderedRepository struct{}
@@ -22,16 +22,16 @@ func (i *orderedRepository) BatchCreateOrderedItem(tx *gorm.DB, data *[]entity.O
 	return res, nil
 }
 
-func (i *orderedRepository) ListOrderedItemByIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.OrderedItem, error) {
-	result, err := Datasource.NewOrderedItemDatasource().ListOrderedItemByIds(tx, ids, fields)
+func (i *orderedRepository) ListOrderedItemByIds(tx *gorm.DB, ids []uuid.UUID) (*[]entity.OrderedItem, error) {
+	result, err := Datasource.NewOrderedItemDatasource().ListOrderedItemByIds(tx, ids)
 	if err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func (i *orderedRepository) ListOrderedItem(tx *gorm.DB, where *entity.OrderedItem, fields *[]string) (*[]entity.OrderedItem, error) {
-	result, err := Datasource.NewOrderedItemDatasource().ListOrderedItem(tx, where, fields)
+func (i *orderedRepository) ListOrderedItem(tx *gorm.DB, where *entity.OrderedItem) (*[]entity.OrderedItem, error) {
+	result, err := Datasource.NewOrderedItemDatasource().ListOrderedItem(tx, where)
 	if err != nil {
 		return nil, err
 	}

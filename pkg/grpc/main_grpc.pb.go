@@ -29,6 +29,7 @@ type AuthenticationServiceClient interface {
 	SignUp(ctx context.Context, in *SignUpRequest, opts ...grpc.CallOption) (*SignUpResponse, error)
 	SignOut(ctx context.Context, in *SignOutRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	CheckSession(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CheckSessionResponse, error)
+	SessionExists(ctx context.Context, in *SessionExistsRequest, opts ...grpc.CallOption) (*SessionExistsResponse, error)
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
 	ListSession(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListSessionResponse, error)
 }
@@ -95,6 +96,15 @@ func (c *authenticationServiceClient) CheckSession(ctx context.Context, in *empt
 	return out, nil
 }
 
+func (c *authenticationServiceClient) SessionExists(ctx context.Context, in *SessionExistsRequest, opts ...grpc.CallOption) (*SessionExistsResponse, error) {
+	out := new(SessionExistsResponse)
+	err := c.cc.Invoke(ctx, "/main.AuthenticationService/SessionExists", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authenticationServiceClient) RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error) {
 	out := new(RefreshTokenResponse)
 	err := c.cc.Invoke(ctx, "/main.AuthenticationService/RefreshToken", in, out, opts...)
@@ -123,6 +133,7 @@ type AuthenticationServiceServer interface {
 	SignUp(context.Context, *SignUpRequest) (*SignUpResponse, error)
 	SignOut(context.Context, *SignOutRequest) (*emptypb.Empty, error)
 	CheckSession(context.Context, *emptypb.Empty) (*CheckSessionResponse, error)
+	SessionExists(context.Context, *SessionExistsRequest) (*SessionExistsResponse, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 	ListSession(context.Context, *emptypb.Empty) (*ListSessionResponse, error)
 	mustEmbedUnimplementedAuthenticationServiceServer()
@@ -149,6 +160,9 @@ func (UnimplementedAuthenticationServiceServer) SignOut(context.Context, *SignOu
 }
 func (UnimplementedAuthenticationServiceServer) CheckSession(context.Context, *emptypb.Empty) (*CheckSessionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckSession not implemented")
+}
+func (UnimplementedAuthenticationServiceServer) SessionExists(context.Context, *SessionExistsRequest) (*SessionExistsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SessionExists not implemented")
 }
 func (UnimplementedAuthenticationServiceServer) RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RefreshToken not implemented")
@@ -277,6 +291,24 @@ func _AuthenticationService_CheckSession_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthenticationService_SessionExists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SessionExistsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationServiceServer).SessionExists(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.AuthenticationService/SessionExists",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationServiceServer).SessionExists(ctx, req.(*SessionExistsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AuthenticationService_RefreshToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RefreshTokenRequest)
 	if err := dec(in); err != nil {
@@ -343,6 +375,10 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckSession",
 			Handler:    _AuthenticationService_CheckSession_Handler,
+		},
+		{
+			MethodName: "SessionExists",
+			Handler:    _AuthenticationService_SessionExists_Handler,
 		},
 		{
 			MethodName: "RefreshToken",
@@ -515,6 +551,200 @@ var ApplicationService_ServiceDesc = grpc.ServiceDesc{
 	Metadata: "main.proto",
 }
 
+// PermissionServiceClient is the client API for PermissionService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type PermissionServiceClient interface {
+	CreatePermission(ctx context.Context, in *CreatePermissionRequest, opts ...grpc.CallOption) (*Permission, error)
+	ListPermission(ctx context.Context, in *ListPermissionRequest, opts ...grpc.CallOption) (*ListPermissionResponse, error)
+	GetPermission(ctx context.Context, in *GetPermissionRequest, opts ...grpc.CallOption) (*Permission, error)
+	DeletePermission(ctx context.Context, in *DeletePermissionRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+}
+
+type permissionServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewPermissionServiceClient(cc grpc.ClientConnInterface) PermissionServiceClient {
+	return &permissionServiceClient{cc}
+}
+
+func (c *permissionServiceClient) CreatePermission(ctx context.Context, in *CreatePermissionRequest, opts ...grpc.CallOption) (*Permission, error) {
+	out := new(Permission)
+	err := c.cc.Invoke(ctx, "/main.PermissionService/CreatePermission", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *permissionServiceClient) ListPermission(ctx context.Context, in *ListPermissionRequest, opts ...grpc.CallOption) (*ListPermissionResponse, error) {
+	out := new(ListPermissionResponse)
+	err := c.cc.Invoke(ctx, "/main.PermissionService/ListPermission", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *permissionServiceClient) GetPermission(ctx context.Context, in *GetPermissionRequest, opts ...grpc.CallOption) (*Permission, error) {
+	out := new(Permission)
+	err := c.cc.Invoke(ctx, "/main.PermissionService/GetPermission", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *permissionServiceClient) DeletePermission(ctx context.Context, in *DeletePermissionRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/main.PermissionService/DeletePermission", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// PermissionServiceServer is the server API for PermissionService service.
+// All implementations must embed UnimplementedPermissionServiceServer
+// for forward compatibility
+type PermissionServiceServer interface {
+	CreatePermission(context.Context, *CreatePermissionRequest) (*Permission, error)
+	ListPermission(context.Context, *ListPermissionRequest) (*ListPermissionResponse, error)
+	GetPermission(context.Context, *GetPermissionRequest) (*Permission, error)
+	DeletePermission(context.Context, *DeletePermissionRequest) (*emptypb.Empty, error)
+	mustEmbedUnimplementedPermissionServiceServer()
+}
+
+// UnimplementedPermissionServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedPermissionServiceServer struct {
+}
+
+func (UnimplementedPermissionServiceServer) CreatePermission(context.Context, *CreatePermissionRequest) (*Permission, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePermission not implemented")
+}
+func (UnimplementedPermissionServiceServer) ListPermission(context.Context, *ListPermissionRequest) (*ListPermissionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPermission not implemented")
+}
+func (UnimplementedPermissionServiceServer) GetPermission(context.Context, *GetPermissionRequest) (*Permission, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPermission not implemented")
+}
+func (UnimplementedPermissionServiceServer) DeletePermission(context.Context, *DeletePermissionRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePermission not implemented")
+}
+func (UnimplementedPermissionServiceServer) mustEmbedUnimplementedPermissionServiceServer() {}
+
+// UnsafePermissionServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to PermissionServiceServer will
+// result in compilation errors.
+type UnsafePermissionServiceServer interface {
+	mustEmbedUnimplementedPermissionServiceServer()
+}
+
+func RegisterPermissionServiceServer(s grpc.ServiceRegistrar, srv PermissionServiceServer) {
+	s.RegisterService(&PermissionService_ServiceDesc, srv)
+}
+
+func _PermissionService_CreatePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PermissionServiceServer).CreatePermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.PermissionService/CreatePermission",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PermissionServiceServer).CreatePermission(ctx, req.(*CreatePermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PermissionService_ListPermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PermissionServiceServer).ListPermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.PermissionService/ListPermission",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PermissionServiceServer).ListPermission(ctx, req.(*ListPermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PermissionService_GetPermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PermissionServiceServer).GetPermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.PermissionService/GetPermission",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PermissionServiceServer).GetPermission(ctx, req.(*GetPermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PermissionService_DeletePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PermissionServiceServer).DeletePermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.PermissionService/DeletePermission",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PermissionServiceServer).DeletePermission(ctx, req.(*DeletePermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// PermissionService_ServiceDesc is the grpc.ServiceDesc for PermissionService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var PermissionService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "main.PermissionService",
+	HandlerType: (*PermissionServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreatePermission",
+			Handler:    _PermissionService_CreatePermission_Handler,
+		},
+		{
+			MethodName: "ListPermission",
+			Handler:    _PermissionService_ListPermission_Handler,
+		},
+		{
+			MethodName: "GetPermission",
+			Handler:    _PermissionService_GetPermission_Handler,
+		},
+		{
+			MethodName: "DeletePermission",
+			Handler:    _PermissionService_DeletePermission_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "main.proto",
+}
+
 // BusinessServiceClient is the client API for BusinessService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
@@ -525,6 +755,7 @@ type BusinessServiceClient interface {
 	CreateBusiness(ctx context.Context, in *CreateBusinessRequest, opts ...grpc.CallOption) (*CreateBusinessResponse, error)
 	// rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
 	UpdateBusiness(ctx context.Context, in *UpdateBusinessRequest, opts ...grpc.CallOption) (*Business, error)
+	BusinessIsInRange(ctx context.Context, in *BusinessIsInRangeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	CreatePartnerApplication(ctx context.Context, in *CreatePartnerApplicationRequest, opts ...grpc.CallOption) (*PartnerApplication, error)
 	ListPartnerApplication(ctx context.Context, in *ListPartnerApplicationRequest, opts ...grpc.CallOption) (*ListPartnerApplicationResponse, error)
 	UpdatePartnerApplication(ctx context.Context, in *UpdatePartnerApplicationRequest, opts ...grpc.CallOption) (*PartnerApplication, error)
@@ -582,6 +813,15 @@ func (c *businessServiceClient) CreateBusiness(ctx context.Context, in *CreateBu
 func (c *businessServiceClient) UpdateBusiness(ctx context.Context, in *UpdateBusinessRequest, opts ...grpc.CallOption) (*Business, error) {
 	out := new(Business)
 	err := c.cc.Invoke(ctx, "/main.BusinessService/UpdateBusiness", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *businessServiceClient) BusinessIsInRange(ctx context.Context, in *BusinessIsInRangeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/main.BusinessService/BusinessIsInRange", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -670,6 +910,7 @@ type BusinessServiceServer interface {
 	CreateBusiness(context.Context, *CreateBusinessRequest) (*CreateBusinessResponse, error)
 	// rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
 	UpdateBusiness(context.Context, *UpdateBusinessRequest) (*Business, error)
+	BusinessIsInRange(context.Context, *BusinessIsInRangeRequest) (*emptypb.Empty, error)
 	CreatePartnerApplication(context.Context, *CreatePartnerApplicationRequest) (*PartnerApplication, error)
 	ListPartnerApplication(context.Context, *ListPartnerApplicationRequest) (*ListPartnerApplicationResponse, error)
 	UpdatePartnerApplication(context.Context, *UpdatePartnerApplicationRequest) (*PartnerApplication, error)
@@ -699,6 +940,9 @@ func (UnimplementedBusinessServiceServer) CreateBusiness(context.Context, *Creat
 }
 func (UnimplementedBusinessServiceServer) UpdateBusiness(context.Context, *UpdateBusinessRequest) (*Business, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBusiness not implemented")
+}
+func (UnimplementedBusinessServiceServer) BusinessIsInRange(context.Context, *BusinessIsInRangeRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BusinessIsInRange not implemented")
 }
 func (UnimplementedBusinessServiceServer) CreatePartnerApplication(context.Context, *CreatePartnerApplicationRequest) (*PartnerApplication, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePartnerApplication not implemented")
@@ -823,6 +1067,24 @@ func _BusinessService_UpdateBusiness_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BusinessServiceServer).UpdateBusiness(ctx, req.(*UpdateBusinessRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BusinessService_BusinessIsInRange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BusinessIsInRangeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusinessServiceServer).BusinessIsInRange(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.BusinessService/BusinessIsInRange",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusinessServiceServer).BusinessIsInRange(ctx, req.(*BusinessIsInRangeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -997,6 +1259,10 @@ var BusinessService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateBusiness",
 			Handler:    _BusinessService_UpdateBusiness_Handler,
+		},
+		{
+			MethodName: "BusinessIsInRange",
+			Handler:    _BusinessService_BusinessIsInRange_Handler,
 		},
 		{
 			MethodName: "CreatePartnerApplication",
@@ -1720,6 +1986,7 @@ type OrderServiceClient interface {
 	CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*Order, error)
 	UpdateOrder(ctx context.Context, in *UpdateOrderRequest, opts ...grpc.CallOption) (*Order, error)
 	ListOrderedItem(ctx context.Context, in *ListOrderedItemRequest, opts ...grpc.CallOption) (*ListOrderedItemResponse, error)
+	GetCheckoutInfo(ctx context.Context, in *GetCheckoutInfoRequest, opts ...grpc.CallOption) (*GetCheckoutInfoResponse, error)
 }
 
 type orderServiceClient struct {
@@ -1775,6 +2042,15 @@ func (c *orderServiceClient) ListOrderedItem(ctx context.Context, in *ListOrdere
 	return out, nil
 }
 
+func (c *orderServiceClient) GetCheckoutInfo(ctx context.Context, in *GetCheckoutInfoRequest, opts ...grpc.CallOption) (*GetCheckoutInfoResponse, error) {
+	out := new(GetCheckoutInfoResponse)
+	err := c.cc.Invoke(ctx, "/main.OrderService/GetCheckoutInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrderServiceServer is the server API for OrderService service.
 // All implementations must embed UnimplementedOrderServiceServer
 // for forward compatibility
@@ -1784,6 +2060,7 @@ type OrderServiceServer interface {
 	CreateOrder(context.Context, *CreateOrderRequest) (*Order, error)
 	UpdateOrder(context.Context, *UpdateOrderRequest) (*Order, error)
 	ListOrderedItem(context.Context, *ListOrderedItemRequest) (*ListOrderedItemResponse, error)
+	GetCheckoutInfo(context.Context, *GetCheckoutInfoRequest) (*GetCheckoutInfoResponse, error)
 	mustEmbedUnimplementedOrderServiceServer()
 }
 
@@ -1805,6 +2082,9 @@ func (UnimplementedOrderServiceServer) UpdateOrder(context.Context, *UpdateOrder
 }
 func (UnimplementedOrderServiceServer) ListOrderedItem(context.Context, *ListOrderedItemRequest) (*ListOrderedItemResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrderedItem not implemented")
+}
+func (UnimplementedOrderServiceServer) GetCheckoutInfo(context.Context, *GetCheckoutInfoRequest) (*GetCheckoutInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCheckoutInfo not implemented")
 }
 func (UnimplementedOrderServiceServer) mustEmbedUnimplementedOrderServiceServer() {}
 
@@ -1909,6 +2189,24 @@ func _OrderService_ListOrderedItem_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderService_GetCheckoutInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCheckoutInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).GetCheckoutInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.OrderService/GetCheckoutInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).GetCheckoutInfo(ctx, req.(*GetCheckoutInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrderService_ServiceDesc is the grpc.ServiceDesc for OrderService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1935,6 +2233,10 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListOrderedItem",
 			Handler:    _OrderService_ListOrderedItem_Handler,
+		},
+		{
+			MethodName: "GetCheckoutInfo",
+			Handler:    _OrderService_GetCheckoutInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

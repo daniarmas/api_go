@@ -11,7 +11,7 @@ import (
 
 type UnionBusinessRoleAndPermissionDatasource interface {
 	ListUnionBusinessRoleAndPermission(tx *gorm.DB, where *entity.UnionBusinessRoleAndPermission) (*[]entity.UnionBusinessRoleAndPermission, error)
-	ListUnionBusinessRoleAndPermissionInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.UnionBusinessRoleAndPermission, error)
+	ListUnionBusinessRoleAndPermissionInIds(tx *gorm.DB, ids []uuid.UUID) (*[]entity.UnionBusinessRoleAndPermission, error)
 	CreateUnionBusinessRoleAndPermission(tx *gorm.DB, where *[]entity.UnionBusinessRoleAndPermission) (*[]entity.UnionBusinessRoleAndPermission, error)
 	DeleteUnionBusinessRoleAndPermission(tx *gorm.DB, where *entity.UnionBusinessRoleAndPermission, ids *[]uuid.UUID) (*[]entity.UnionBusinessRoleAndPermission, error)
 	DeleteUnionBusinessRoleAndPermissionByPermissionIds(tx *gorm.DB, where *entity.UnionBusinessRoleAndPermission, ids *[]uuid.UUID) (*[]entity.UnionBusinessRoleAndPermission, error)
@@ -19,13 +19,9 @@ type UnionBusinessRoleAndPermissionDatasource interface {
 
 type unionBusinessRoleAndPermissionDatasource struct{}
 
-func (i *unionBusinessRoleAndPermissionDatasource) ListUnionBusinessRoleAndPermissionInIds(tx *gorm.DB, ids []uuid.UUID, fields *[]string) (*[]entity.UnionBusinessRoleAndPermission, error) {
+func (i *unionBusinessRoleAndPermissionDatasource) ListUnionBusinessRoleAndPermissionInIds(tx *gorm.DB, ids []uuid.UUID) (*[]entity.UnionBusinessRoleAndPermission, error) {
 	var UnionBusinessRoleAndPermissions []entity.UnionBusinessRoleAndPermission
-	selectFields := &[]string{"*"}
-	if fields != nil {
-		selectFields = fields
-	}
-	result := tx.Where("id IN ?", ids).Select(*selectFields).Find(&UnionBusinessRoleAndPermissions)
+	result := tx.Where("id IN ?", ids).Find(&UnionBusinessRoleAndPermissions)
 	if result.Error != nil {
 		return nil, result.Error
 	}
