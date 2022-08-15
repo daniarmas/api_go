@@ -173,7 +173,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		_, err = v.dao.NewVerificationCodeRepository().GetVerificationCode(ctx, tx, &entity.VerificationCode{Email: req.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "SignIn"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("verification code not found")
-		} else if err == nil {
+		} else if err != nil {
 			return err
 		}
 		user, err = v.dao.NewUserRepository().GetUserWithAddress(ctx, tx, &entity.User{Email: req.Email})
