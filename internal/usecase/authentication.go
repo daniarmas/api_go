@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 
 	"errors"
 	"time"
@@ -13,7 +14,7 @@ import (
 	pb "github.com/daniarmas/api_go/pkg/grpc"
 	"github.com/daniarmas/api_go/pkg/sqldb"
 	"github.com/daniarmas/api_go/utils"
-	// smtp "github.com/daniarmas/api_go/utils/smtp"
+	smtp "github.com/daniarmas/api_go/utils/smtp"
 	"github.com/google/uuid"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
@@ -105,12 +106,12 @@ func (v *authenticationService) CreateVerificationCode(ctx context.Context, req 
 			return errors.New("user already exists")
 		}
 		v.dao.NewVerificationCodeRepository().DeleteVerificationCode(ctx, tx, &entity.VerificationCode{Email: req.Email, Type: req.Type.String(), DeviceIdentifier: *md.DeviceIdentifier}, nil)
-		_, err = v.dao.NewVerificationCodeRepository().CreateVerificationCode(ctx, tx, &entity.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: *md.DeviceIdentifier, CreateTime: time.Now(), UpdateTime: time.Now()})
+		createVerificationCodeRes, err := v.dao.NewVerificationCodeRepository().CreateVerificationCode(ctx, tx, &entity.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: *md.DeviceIdentifier, CreateTime: time.Now(), UpdateTime: time.Now()})
 		if err != nil {
 			return err
 		}
-		// verificationCodeMsg := fmt.Sprintf("Su código de verificación es %s", createVerificationCodeRes.Code)
-		// go smtp.SendMail(req.Email, v.config.EmailAddress, v.config.EmailAddressPassword, "Código de Verificación", verificationCodeMsg, v.config)
+		verificationCodeMsg := fmt.Sprintf("Su código de verificación es %s", createVerificationCodeRes.Code)
+		go smtp.SendMail(req.Email, v.config.EmailAddress, v.config.EmailAddressPassword, "Código de Verificación", verificationCodeMsg, v.config)
 		return nil
 	})
 	if err != nil {
@@ -290,7 +291,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 			UpdateTime:     timestamppb.New(item.UpdateTime),
 		})
 	}
-	// go smtp.SendSignInMail(req.Email, time.Now(), v.config, md)
+	go smtp.SendSignInMail(req.Email, time.Now(), v.config, md)
 	var highQualityPhotoUrl, lowQualityPhotoUrl, thumbnailUrl string
 	if user.HighQualityPhoto != "" {
 		highQualityPhotoUrl = v.config.UsersBulkName + "/" + user.HighQualityPhoto
