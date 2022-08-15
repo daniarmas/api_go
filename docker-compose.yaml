@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   cockroach:
-    image: docker.uclv.cu/cockroachdb/cockroach:latest-v21.2
+    image: docker.uclv.cu/cockroachdb/cockroach:latest-v21.1
     container_name: cockroach
     volumes:
       - cockroach:/cockroach/cockroach-data

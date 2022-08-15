@@ -459,7 +459,7 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 	var res pb.CheckSessionResponse
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		deviceRes, err := v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier})
-		if err != nil {
+		if err != nil && err.Error() != "record not found" {
 			return err
 		} else if deviceRes == nil {
 			_, err = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})

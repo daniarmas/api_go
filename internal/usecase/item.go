@@ -330,10 +330,15 @@ func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md 
 		} else {
 			nextPage = req.NextPage.AsTime()
 		}
-		businessCollectionId := uuid.MustParse(req.BusinessCollectionId)
-		where.BusinessCollectionId = &businessCollectionId
-		businessId := uuid.MustParse(req.BusinessId)
-		where.BusinessId = &businessId
+		var businessCollectionId, businessId uuid.UUID
+		if req.BusinessCollectionId != "" {
+			businessCollectionId = uuid.MustParse(req.BusinessCollectionId)
+			where.BusinessCollectionId = &businessCollectionId
+		}
+		if req.BusinessId != "" {
+			businessId = uuid.MustParse(req.BusinessId)
+			where.BusinessId = &businessId
+		}
 		items, err := i.dao.NewItemRepository().ListItem(ctx, tx, &where, nextPage)
 		if err != nil {
 			return err
