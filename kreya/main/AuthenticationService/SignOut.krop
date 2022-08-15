@@ -4,7 +4,7 @@
     "metadata": [
       {
         "key": "Authorization",
-        "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTU1MDI0NzksInN1YiI6IjA0MzY0NTVlLWNkM2QtNGYzMC1iODA4LWU4MDBmZDE5ZmMwYyJ9.yJC2Wp6dZSDRgG9LMLC4wDsW2KzJ_TlxwxUYHHWSs6o"
+        "value": "{{ authorization }}"
       },
       {
         "key": "Device-Id",
@@ -12,7 +12,7 @@
       },
       {
         "key": "Access-Token",
-        "value": "O8pzXjp4QMk4cAD60dHeoOnxdVsDc9"
+        "value": "{{ accesstoken }}"
       },
       {
         "key": "Platform",
@@ -28,7 +28,7 @@
       },
       {
         "key": "Firebase-Cloud-Messaging-Id",
-        "value": "1"
+        "value": "{{ firebasecloudmessagingid }}"
       }
     ]
   },

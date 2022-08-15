@@ -3,6 +3,9 @@
   "color": "#60A5FA",
   "globalContent": {
     "host": "localhost",
-    "port": 22211
+    "port": 22211,
+    "accesstoken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjA2NjYyMTUsInN1YiI6Ijg4ZTIxMzcwLTE4N2YtNDJkMy1iNjFjLWE5YjRkMTMxZDY0NCJ9.rYBcr7lqZ7BL0PR-y8ZvqvPX4PjPqkq13jcRvI3tpw4",
+    "authorization": "Bearer ",
+    "firebasecloudmessagingid": "1"
   }
 }
