@@ -8,7 +8,7 @@
       },
       {
         "key": "Access-Token",
-        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjAzMzU5MjAsInN1YiI6ImZiMjA5MTgzLWJiNWUtNDY1Yy1hMTI0LTFjZWIxZTM4Zjk4NiJ9.YMEx_Ncu3t0T6Y3GqPPwYWaUd1nuw1Tpr98V5gqePyk"
+        "value": "{{ accesstoken }}"
       },
       {
         "key": "Platform",
@@ -24,7 +24,7 @@
       },
       {
         "key": "Firebase-Cloud-Messaging-Id",
-        "value": "1"
+        "value": "{{ firebasecloudmessagingid }}"
       }
     ]
   },

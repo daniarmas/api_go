@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 
 	"errors"
 	"time"
@@ -13,7 +14,7 @@ import (
 	pb "github.com/daniarmas/api_go/pkg/grpc"
 	"github.com/daniarmas/api_go/pkg/sqldb"
 	"github.com/daniarmas/api_go/utils"
-	// smtp "github.com/daniarmas/api_go/utils/smtp"
+	smtp "github.com/daniarmas/api_go/utils/smtp"
 	"github.com/google/uuid"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
@@ -105,12 +106,12 @@ func (v *authenticationService) CreateVerificationCode(ctx context.Context, req 
 			return errors.New("user already exists")
 		}
 		v.dao.NewVerificationCodeRepository().DeleteVerificationCode(ctx, tx, &entity.VerificationCode{Email: req.Email, Type: req.Type.String(), DeviceIdentifier: *md.DeviceIdentifier}, nil)
-		_, err = v.dao.NewVerificationCodeRepository().CreateVerificationCode(ctx, tx, &entity.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: *md.DeviceIdentifier, CreateTime: time.Now(), UpdateTime: time.Now()})
+		createVerificationCodeRes, err := v.dao.NewVerificationCodeRepository().CreateVerificationCode(ctx, tx, &entity.VerificationCode{Code: utils.EncodeToString(6), Email: req.Email, Type: req.Type.Enum().String(), DeviceIdentifier: *md.DeviceIdentifier, CreateTime: time.Now(), UpdateTime: time.Now()})
 		if err != nil {
 			return err
 		}
-		// verificationCodeMsg := fmt.Sprintf("Su código de verificación es %s", createVerificationCodeRes.Code)
-		// go smtp.SendMail(req.Email, v.config.EmailAddress, v.config.EmailAddressPassword, "Código de Verificación", verificationCodeMsg, v.config)
+		verificationCodeMsg := fmt.Sprintf("Su código de verificación es %s", createVerificationCodeRes.Code)
+		go smtp.SendMail(req.Email, v.config.EmailAddress, v.config.EmailAddressPassword, "Código de Verificación", verificationCodeMsg, v.config)
 		return nil
 	})
 	if err != nil {
@@ -173,7 +174,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		_, err = v.dao.NewVerificationCodeRepository().GetVerificationCode(ctx, tx, &entity.VerificationCode{Email: req.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "SignIn"})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("verification code not found")
-		} else if err == nil {
+		} else if err != nil {
 			return err
 		}
 		user, err = v.dao.NewUserRepository().GetUserWithAddress(ctx, tx, &entity.User{Email: req.Email})
@@ -290,7 +291,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 			UpdateTime:     timestamppb.New(item.UpdateTime),
 		})
 	}
-	// go smtp.SendSignInMail(req.Email, time.Now(), v.config, md)
+	go smtp.SendSignInMail(req.Email, time.Now(), v.config, md)
 	var highQualityPhotoUrl, lowQualityPhotoUrl, thumbnailUrl string
 	if user.HighQualityPhoto != "" {
 		highQualityPhotoUrl = v.config.UsersBulkName + "/" + user.HighQualityPhoto
@@ -459,7 +460,7 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 	var res pb.CheckSessionResponse
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		deviceRes, err := v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier})
-		if err != nil {
+		if err != nil && err.Error() != "record not found" {
 			return err
 		} else if deviceRes == nil {
 			_, err = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
