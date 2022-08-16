@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
 	"time"
 
+	firebase "firebase.google.com/go"
+	// "firebase.google.com/go/messaging"
 	"github.com/daniarmas/api_go/app"
 	"github.com/daniarmas/api_go/cli"
 	"github.com/daniarmas/api_go/config"
@@ -22,6 +25,8 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+
+	"google.golang.org/api/option"
 )
 
 func main() {
@@ -72,6 +77,18 @@ func main() {
 }
 
 func serviceRegister(sv *grpc.Server) {
+	// Mool for shopping - Firebase Client
+	opt := option.WithCredentialsFile("mool-for-shopping-firebase-adminsdk-4vkol-f4cc371851.json")
+	moolShoppingApp, err := firebase.NewApp(context.Background(), nil, opt)
+	if err != nil {
+		log.Fatalf("error initializing app: %v", err)
+	}
+	// Obtain a messaging.Client from the App.
+	ctx := context.Background()
+	moolShoppingClient, err := moolShoppingApp.Messaging(ctx)
+	if err != nil {
+		log.Fatalf("error getting Mool Shopping Firebase Messaging Client: %v\n", err)
+	}
 	// Configurations
 	cfg, err := config.New()
 	if err != nil {
@@ -104,7 +121,7 @@ func serviceRegister(sv *grpc.Server) {
 	// Handle the cli
 	cli.HandleCli(os.Args, sqlDb.Gorm, cfg, repository)
 	itemService := usecase.NewItemService(repository, cfg, stDb, sqlDb)
-	authenticationService := usecase.NewAuthenticationService(repository, cfg, sqlDb)
+	authenticationService := usecase.NewAuthenticationService(repository, cfg, sqlDb, moolShoppingClient)
 	businessService := usecase.NewBusinessService(repository, cfg, stDb, sqlDb)
 	userService := usecase.NewUserService(repository, cfg, rdb, sqlDb)
 	cartItemService := usecase.NewCartItemService(repository, cfg, sqlDb)
