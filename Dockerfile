@@ -28,6 +28,7 @@ WORKDIR /app
 
 COPY --from=build /app/main /app/main
 COPY --from=build ./app/app.env /app/
+COPY mool-for-shopping-firebase-adminsdk-4vkol-f4cc371851.json /app/
 
 EXPOSE 22210
 
