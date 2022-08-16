@@ -191,8 +191,19 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		if err != nil && err.Error() != "record not found" {
 			return err
 		}
-		if authToken != nil {
+		if authToken != nil && !req.Logout {
 			return errors.New("session limit reached")
+		} else if authToken != nil && req.Logout {
+			deleteRefreshTokenRes, err := v.dao.NewRefreshTokenRepository().DeleteRefreshToken(ctx, tx, &entity.RefreshToken{UserId: user.ID}, nil)
+			if err != nil && err.Error() != "record not found" {
+				return err
+			}
+			if deleteRefreshTokenRes != nil && len(*deleteRefreshTokenRes) != 0 {
+				_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenRepository().DeleteAuthorizationToken(ctx, tx, &entity.AuthorizationToken{RefreshTokenId: (*deleteRefreshTokenRes)[0].ID}, nil)
+				if deleteAuthorizationTokenErr != nil {
+					return deleteAuthorizationTokenErr
+				}
+			}
 		}
 		//
 		_, err = v.dao.NewVerificationCodeRepository().DeleteVerificationCode(ctx, tx, &entity.VerificationCode{Email: req.Email, Type: "SignIn", DeviceIdentifier: *md.DeviceIdentifier}, nil)

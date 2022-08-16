@@ -7,15 +7,6 @@
           "disableServerCertificateValidation": true
         }
       }
-    },
-    {
-      "environmentId": "329f4e95-b54b-45d4-b04c-9be09fa06f96",
-      "options": {
-        "grpc": {
-          "endpoint": "http://{{ env.host }}:{{ env.port }}",
-          "disableServerCertificateValidation": true
-        }
-      }
     }
   ]
 }

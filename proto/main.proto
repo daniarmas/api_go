@@ -729,6 +729,7 @@ message GetVerificationCodeRequest {
 message SignInRequest {
   string email = 1;
   string code = 2;
+  bool logout = 3;
 }
 
 message SignInResponse {
