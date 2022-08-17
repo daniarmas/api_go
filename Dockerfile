@@ -10,7 +10,6 @@ WORKDIR /app
 
 COPY go.mod ./
 COPY go.sum ./
-COPY mool-for-shopping-firebase-adminsdk-4vkol-f4cc371851.json ./
 RUN go mod download
 
 # COPY *.go ./
@@ -29,7 +28,6 @@ WORKDIR /app
 
 COPY --from=build /app/main /app/main
 COPY --from=build ./app/app.env /app/
-COPY --from=build ./app/mool-for-shopping-firebase-adminsdk-4vkol-f4cc371851.json /app/
 
 EXPOSE 22210
 
