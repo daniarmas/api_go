@@ -8,7 +8,6 @@ import (
 	"time"
 
 	firebase "firebase.google.com/go"
-	// "firebase.google.com/go/messaging"
 	"github.com/daniarmas/api_go/app"
 	"github.com/daniarmas/api_go/cli"
 	"github.com/daniarmas/api_go/config"
@@ -77,9 +76,15 @@ func main() {
 }
 
 func serviceRegister(sv *grpc.Server) {
+	// Configurations
+	cfg, err := config.New()
+	if err != nil {
+		log.Fatal("cannot load config:", err)
+	}
 	// Mool for shopping - Firebase Client
-	opt := option.WithCredentialsFile("mool-for-shopping-firebase-adminsdk-4vkol-f4cc371851.json")
-	moolShoppingApp, err := firebase.NewApp(context.Background(), nil, opt)
+	opt := []option.ClientOption{option.WithCredentialsJSON([]byte(cfg.MoolShoppingFirebase))}
+	// opt := option.WithCredentialsFile("mool-for-shopping-firebase-adminsdk-4vkol-f4cc371851.json")
+	moolShoppingApp, err := firebase.NewApp(context.Background(), nil, opt...)
 	if err != nil {
 		log.Fatalf("error initializing app: %v", err)
 	}
@@ -88,11 +93,6 @@ func serviceRegister(sv *grpc.Server) {
 	moolShoppingClient, err := moolShoppingApp.Messaging(ctx)
 	if err != nil {
 		log.Fatalf("error getting Mool Shopping Firebase Messaging Client: %v\n", err)
-	}
-	// Configurations
-	cfg, err := config.New()
-	if err != nil {
-		log.Fatal("cannot load config:", err)
 	}
 	// Redis
 	rdb := rdb.New(cfg)
