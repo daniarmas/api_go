@@ -328,6 +328,10 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 				Title: "Inició de sesión",
 				Body:  bodyMsg,
 			},
+			Data: map[string]string{
+				"res":  "cart_item",
+				"verb": "create",
+			},
 			Token: deviceSignOut.FirebaseCloudMessagingId,
 		}
 
