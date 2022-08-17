@@ -82,9 +82,9 @@ func serviceRegister(sv *grpc.Server) {
 		log.Fatal("cannot load config:", err)
 	}
 	// Mool for shopping - Firebase Client
-	opt := []option.ClientOption{option.WithCredentialsJSON([]byte(cfg.MoolShoppingFirebase))}
-	// opt := option.WithCredentialsFile("mool-for-shopping-firebase-adminsdk-4vkol-f4cc371851.json")
-	moolShoppingApp, err := firebase.NewApp(context.Background(), nil, opt...)
+	// opt := []option.ClientOption{option.WithCredentialsJSON([]byte(cfg.MoolShoppingFirebase))}
+	opt := option.WithCredentialsFile("mool-for-shopping-firebase-adminsdk-4vkol-f4cc371851.json")
+	moolShoppingApp, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
 		log.Fatalf("error initializing app: %v", err)
 	}
