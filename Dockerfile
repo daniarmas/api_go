@@ -43,5 +43,5 @@ WORKDIR /app
 COPY . .
 COPY --from=build /app/main /app/main
 COPY --from=build ./app/app.env /app/
-COPY --from=build /go/bin/dlv /app/
-ENTRYPOINT [ "/dlv" , "--listen=:40000", "--headless=true", "--api-version=2", "--accept-multiclient", "exec", "/app"]]
+COPY --from=build /go/bin/dlv /app/dlv
+ENTRYPOINT [ "/app/dlv" , "--listen=:40000", "--headless=true", "--api-version=2", "--accept-multiclient", "exec", "/app/main"]]
