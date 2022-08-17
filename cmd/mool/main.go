@@ -90,13 +90,13 @@ func serviceRegister(sv *grpc.Server) {
 	// opt := []option.ClientOption{option.WithCredentialsJSON([]byte(cfg.MoolShoppingFirebase))}
 	opt := option.WithCredentialsFile("mool-for-shopping-firebase-adminsdk-4vkol-f4cc371851.json")
 	moolShoppingApp, err := firebase.NewApp(context.Background(), nil, opt)
-	if err != nil {
+	if err != nil && cfg.Environment != "development" {
 		log.Fatalf("error initializing app: %v", err)
 	}
 	// Obtain a messaging.Client from the App.
 	ctx := context.Background()
 	moolShoppingClient, err := moolShoppingApp.Messaging(ctx)
-	if err != nil {
+	if err != nil && cfg.Environment != "development" {
 		log.Fatalf("error getting Mool Shopping Firebase Messaging Client: %v\n", err)
 	}
 	// Redis
