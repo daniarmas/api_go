@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: staging
+  name: server-debug
+spec:
+  selector:
+    matchLabels:
+      app: server-debug
+  template:
+    metadata:
+      labels:
+        app: server-debug
+    spec:
+      containers:
+        - name: server-debug
+          image: cr.mool.cu/daniarmas/api_go
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 22212
+          volumeMounts:
+            - name: mool-for-shopping-volume
+              mountPath: ./app/mool-for-shopping-firebase-adminsdk-4vkol-f4cc371851.json
+              subPath: mool-for-shopping-firebase-adminsdk-4vkol-f4cc371851.json
+          env:
+            - name: TLS
+              value: "false"
+            - name: ENVIRONMENT
+              value: staging
+            - name: SENTRY_DSN
+              value: http://8189857f445e4608abe3e32af4ce791d@galeria.blue:3000/2
+            - name: DB_USER
+              value: root
+            - name: DB_PASSWORD
+              value: root
+            - name: DB_DATABASE
+              value: postgres
+            - name: DB_PORT
+              value: "26257"
+            - name: DB_HOST
+              value: cockroachdb-api.staging.svc.cluster.local
+            - name: API_PORT
+              value: "22212"
+            - name: JWT_SECRET
+              value: O8pzXjp4QMk4cAD60dHeoOnxdVsDc10
+            - name: OBJECT_STORAGE_SERVER_USE_SSL
+              value: "false"
+            - name: OBJECT_STORAGE_SERVER_ACCESS_KEY_ID
+              value: root
+            - name: OBJECT_STORAGE_SERVER_SECRET_ACCESS_KEY
+              value: root1234
+            - name: OBJECT_STORAGE_SERVER_ENDPOINT
+              value: oss.mool.cu:30090
+            - name: OBJECT_STORAGE_SERVER_PREFIX
+              value: ""
+            - name: BUSINESS_AVATAR_BULK_NAME
+              value: business-avatar
+            - name: BUSINESS_AVATAR_DELETED_BULK_NAME
+              value: business-avatar-deleted
+            - name: ITEMS_BULK_NAME
+              value: items
+            - name: ITEMS_DELETED_BULK_NAME
+              value: items-deleted
+            - name: USERS_BULK_NAME
+              value: user-avatar
+            - name: USERS_DELETED_BULK_NAME
+              value: users-deleted
+            - name: EMAIL_HOSTNAME
+              value: mail.mool.cu
+            - name: EMAIL_SMTP_PORT
+              value: "587"
+            - name: EMAIL_ADDRESS
+              value: noresponder@mool.cu
+            - name: EMAIL_ADDRESS_PASSWORD
+              value: CarMa2022*1234
+            - name: APP_NAME
+              value: Mool
+            - name: REDIS_HOST
+              value: redis-master.staging.svc.cluster.local
+            - name: REIDS_PORT
+              value: "6379"
+            - name: REDIS_PASSWORD
+              value: ""
+            - name: REDIS_DB
+              value: "0"
+            - name: REDIS_REPLICA_HOST
+              value: redis-replicas.staging.svc.cluster.local
+            - name: REIDS_REPLICA_PORT
+              value: "6379"
+            - name: REDIS_REPLICA_PASSWORD
+              value: ""
+      volumes:
+        - name: mool-for-shopping-volume
+          configMap:
+            name: mool-for-shopping
+            items:
+              - key: mool-for-shopping-firebase
+                path: mool-for-shopping-firebase-adminsdk-4vkol-f4cc371851.json

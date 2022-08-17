@@ -8,6 +8,8 @@ name: Create and publish a Docker image
 on:
   release:
     types: [published]
+    branches:
+      - main
 
 env:
   REGISTRY: cr.mool.cu
