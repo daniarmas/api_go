@@ -27,7 +27,7 @@ FROM gcr.io/distroless/base-debian10
 WORKDIR /app
 
 COPY --from=build /app/main /app/main
-COPY --from=build ./app/app.env /app/
+# COPY --from=build ./app/app.env /app/
 
 EXPOSE 22210
 
