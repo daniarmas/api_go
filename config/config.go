@@ -33,7 +33,6 @@ type Config struct {
 	RedisPort                          string `mapstructure:"REIDS_PORT"`
 	RedisPassword                      string `mapstructure:"REDIS_PASSWORD"`
 	RedisDb                            int    `mapstructure:"REDIS_DB"`
-	MoolShoppingFirebase               string `mapstructure:"MOOL_SHOPPING_FIREBASE"`
 }
 
 func New() (*Config, error) {
