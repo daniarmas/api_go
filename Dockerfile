@@ -40,7 +40,8 @@ COPY . .
 RUN go mod download
 RUN CGO_ENABLED=0 go get -ldflags "-s -w -extldflags '-static'" github.com/go-delve/delve/cmd/dlv
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -gcflags "all=-N -l" cmd/mool/main.go
-COPY /go/bin/dlv /app/dlv
+# COPY /go/bin/dlv /app/dlv
 EXPOSE 22211
 EXPOSE 32333
-ENTRYPOINT [ "/app/dlv" , "--listen=:32333", "--headless=true", "--api-version=2", "--accept-multiclient", "exec", "/app/main"]]
+ENTRYPOINT [ "/app/main"]]
+# ENTRYPOINT [ "/app/dlv" , "--listen=:32333", "--headless=true", "--api-version=2", "--accept-multiclient", "exec", "/app/main"]]
