@@ -2,7 +2,7 @@ apiVersion: skaffold/v2beta19
 kind: Config
 build:
   artifacts:
-  - image: cr.lanave/amorgant/server-debug
+  - image: cr.mool.cu/daniarmas/api_go
     buildpacks:
       builder: cr.lanave.io/buildpacks/builder:v1
     context: .
