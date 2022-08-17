@@ -76,6 +76,11 @@ func main() {
 }
 
 func serviceRegister(sv *grpc.Server) {
+	if _, err := os.Stat("mool-for-shopping-firebase-adminsdk-4vkol-f4cc371851.json"); err == nil {
+		fmt.Printf("File exists\n")
+	} else {
+		fmt.Printf("File does not exist\n")
+	}
 	// Configurations
 	cfg, err := config.New()
 	if err != nil {
