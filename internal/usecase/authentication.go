@@ -149,7 +149,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 	var app *entity.Application
 	var authToken *entity.AuthorizationToken
 	var actualDevice *entity.Device
-	var deviceSignOut *entity.Device
+	var signOutDevice *entity.Device
 	var existsUpcomingOrders *bool
 	var (
 		jwtRefreshToken       *datasource.JsonWebTokenMetadata
@@ -208,7 +208,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 				}
 				if authToken != nil && req.Logout {
 					deviceId := *deleteAuthorizationTokenRes
-					deviceSignOut, err = v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{ID: deviceId[0].ID})
+					signOutDevice, err = v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{ID: deviceId[0].ID})
 					if err != nil && err.Error() != "record not found" {
 						return err
 					}
@@ -312,7 +312,6 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 			UpdateTime:     timestamppb.New(item.UpdateTime),
 		})
 	}
-	go smtp.SendSignInMail(req.Email, time.Now(), v.config, md)
 	var highQualityPhotoUrl, lowQualityPhotoUrl, thumbnailUrl string
 	if user.HighQualityPhoto != "" {
 		highQualityPhotoUrl = v.config.UsersBulkName + "/" + user.HighQualityPhoto
@@ -329,10 +328,11 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 				Body:  bodyMsg,
 			},
 			Data: map[string]string{
-				"res":  "cart_item",
-				"verb": "create",
+				"res_id": "",
+				"res":    "session",
+				"verb":   "create",
 			},
-			Token: deviceSignOut.FirebaseCloudMessagingId,
+			Token: signOutDevice.FirebaseCloudMessagingId,
 		}
 
 		// Send a message to the device corresponding to the provided
@@ -344,6 +344,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		// Response is a message ID string.
 		fmt.Println("Successfully sent message:", response)
 	}
+	go smtp.SendSignInMail(req.Email, time.Now(), v.config, md)
 	return &pb.SignInResponse{AuthorizationToken: *jwtAuthorizationToken.Token, RefreshToken: *jwtRefreshToken.Token, User: &pb.User{
 		Id:                   user.ID.String(),
 		FullName:             user.FullName,
