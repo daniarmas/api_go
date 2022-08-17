@@ -7,6 +7,7 @@ import (
 	"errors"
 	"time"
 
+	"firebase.google.com/go/messaging"
 	"github.com/daniarmas/api_go/config"
 	"github.com/daniarmas/api_go/internal/datasource"
 	"github.com/daniarmas/api_go/internal/entity"
@@ -36,13 +37,14 @@ type AuthenticationService interface {
 }
 
 type authenticationService struct {
-	dao    repository.Repository
-	config *config.Config
-	sqldb  *sqldb.Sql
+	dao                repository.Repository
+	config             *config.Config
+	sqldb              *sqldb.Sql
+	moolShoppingClient *messaging.Client
 }
 
-func NewAuthenticationService(dao repository.Repository, config *config.Config, sqldb *sqldb.Sql) AuthenticationService {
-	return &authenticationService{dao: dao, config: config, sqldb: sqldb}
+func NewAuthenticationService(dao repository.Repository, config *config.Config, sqldb *sqldb.Sql, moolShoppingClient *messaging.Client) AuthenticationService {
+	return &authenticationService{dao: dao, config: config, sqldb: sqldb, moolShoppingClient: moolShoppingClient}
 }
 
 func (v *authenticationService) SessionExists(ctx context.Context, req *pb.SessionExistsRequest, md *utils.ClientMetadata) (*pb.SessionExistsResponse, error) {
@@ -144,20 +146,21 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 	var user *entity.User
 	var cartItems *[]entity.CartItem
 	var configuration *entity.UserConfiguration
-	var device *entity.Device
 	var app *entity.Application
+	var authToken *entity.AuthorizationToken
+	var actualDevice *entity.Device
+	var deviceSignOut *entity.Device
 	var existsUpcomingOrders *bool
 	var (
 		jwtRefreshToken       *datasource.JsonWebTokenMetadata
 		jwtAuthorizationToken *datasource.JsonWebTokenMetadata
 	)
 	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		var err error
-		device, err = v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier})
+		actualDevice, err := v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier})
 		if err != nil && err.Error() != "record not found" {
 			return err
-		} else if device == nil {
-			device, err = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
+		} else if actualDevice == nil {
+			actualDevice, err = v.dao.NewDeviceRepository().CreateDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier, Platform: *md.Platform, SystemVersion: *md.SystemVersion, FirebaseCloudMessagingId: *md.FirebaseCloudMessagingId, Model: *md.Model})
 			if err != nil {
 				return err
 			}
@@ -187,7 +190,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 			}
 		}
 		// Limit session to one by device
-		authToken, err := v.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{UserId: user.ID})
+		authToken, err = v.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{UserId: user.ID})
 		if err != nil && err.Error() != "record not found" {
 			return err
 		}
@@ -199,9 +202,16 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 				return err
 			}
 			if deleteRefreshTokenRes != nil && len(*deleteRefreshTokenRes) != 0 {
-				_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenRepository().DeleteAuthorizationToken(ctx, tx, &entity.AuthorizationToken{RefreshTokenId: (*deleteRefreshTokenRes)[0].ID}, nil)
+				deleteAuthorizationTokenRes, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenRepository().DeleteAuthorizationToken(ctx, tx, &entity.AuthorizationToken{RefreshTokenId: (*deleteRefreshTokenRes)[0].ID}, nil)
 				if deleteAuthorizationTokenErr != nil {
 					return deleteAuthorizationTokenErr
+				}
+				if authToken != nil && req.Logout {
+					deviceId := *deleteAuthorizationTokenRes
+					deviceSignOut, err = v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{ID: deviceId[0].ID})
+					if err != nil && err.Error() != "record not found" {
+						return err
+					}
 				}
 			}
 		}
@@ -210,21 +220,21 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		if err != nil {
 			return err
 		}
-		deleteRefreshTokenRes, err := v.dao.NewRefreshTokenRepository().DeleteRefreshToken(ctx, tx, &entity.RefreshToken{UserId: user.ID, DeviceId: device.ID}, nil)
+		deleteRefreshTokenRes, err := v.dao.NewRefreshTokenRepository().DeleteRefreshToken(ctx, tx, &entity.RefreshToken{UserId: user.ID, DeviceId: actualDevice.ID}, nil)
 		if err != nil && err.Error() != "record not found" {
 			return err
 		}
 		if deleteRefreshTokenRes != nil && len(*deleteRefreshTokenRes) != 0 {
-			_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenRepository().DeleteAuthorizationToken(ctx, tx, &entity.AuthorizationToken{RefreshTokenId: (*deleteRefreshTokenRes)[0].ID}, nil)
-			if deleteAuthorizationTokenErr != nil {
-				return deleteAuthorizationTokenErr
+			_, err = v.dao.NewAuthorizationTokenRepository().DeleteAuthorizationToken(ctx, tx, &entity.AuthorizationToken{RefreshTokenId: (*deleteRefreshTokenRes)[0].ID}, nil)
+			if err != nil {
+				return err
 			}
 		}
-		createRefreshTokenRes, err := v.dao.NewRefreshTokenRepository().CreateRefreshToken(ctx, tx, &entity.RefreshToken{UserId: user.ID, DeviceId: device.ID})
+		createRefreshTokenRes, err := v.dao.NewRefreshTokenRepository().CreateRefreshToken(ctx, tx, &entity.RefreshToken{UserId: user.ID, DeviceId: actualDevice.ID})
 		if err != nil {
 			return err
 		}
-		createAuthTokenRes, err := v.dao.NewAuthorizationTokenRepository().CreateAuthorizationToken(ctx, tx, &entity.AuthorizationToken{RefreshTokenId: createRefreshTokenRes.ID, UserId: user.ID, DeviceId: device.ID, App: &app.Name, AppVersion: &app.Version})
+		createAuthTokenRes, err := v.dao.NewAuthorizationTokenRepository().CreateAuthorizationToken(ctx, tx, &entity.AuthorizationToken{RefreshTokenId: createRefreshTokenRes.ID, UserId: user.ID, DeviceId: actualDevice.ID, App: &app.Name, AppVersion: &app.Version})
 		if err != nil {
 			return err
 		}
@@ -309,6 +319,26 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		lowQualityPhotoUrl = v.config.UsersBulkName + "/" + user.LowQualityPhoto
 		thumbnailUrl = v.config.UsersBulkName + "/" + user.Thumbnail
 
+	}
+	if authToken != nil && req.Logout {
+		bodyMsg := fmt.Sprintf("Se ha iniciado una nueva sesión en un dispositivo " + actualDevice.Model)
+		// See documentation on defining a message payload.
+		message := &messaging.Message{
+			Notification: &messaging.Notification{
+				Title: "Inició de sesión",
+				Body:  bodyMsg,
+			},
+			Token: deviceSignOut.FirebaseCloudMessagingId,
+		}
+
+		// Send a message to the device corresponding to the provided
+		// registration token.
+		response, err := v.moolShoppingClient.Send(ctx, message)
+		if err != nil {
+			return nil, err
+		}
+		// Response is a message ID string.
+		fmt.Println("Successfully sent message:", response)
 	}
 	return &pb.SignInResponse{AuthorizationToken: *jwtAuthorizationToken.Token, RefreshToken: *jwtRefreshToken.Token, User: &pb.User{
 		Id:                   user.ID.String(),
