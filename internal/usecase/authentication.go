@@ -17,6 +17,7 @@ import (
 	"github.com/daniarmas/api_go/utils"
 	smtp "github.com/daniarmas/api_go/utils/smtp"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	gp "google.golang.org/protobuf/types/known/emptypb"
@@ -34,6 +35,7 @@ type AuthenticationService interface {
 	ListSession(ctx context.Context, md *utils.ClientMetadata) (*pb.ListSessionResponse, error)
 	RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest, md *utils.ClientMetadata) (*pb.RefreshTokenResponse, error)
 	SessionExists(ctx context.Context, req *pb.SessionExistsRequest, md *utils.ClientMetadata) (*pb.SessionExistsResponse, error)
+	SendPushNotification(ctx context.Context, req *pb.SendPushNotificationRequest, md *utils.ClientMetadata) (*gp.Empty, error)
 }
 
 type authenticationService struct {
@@ -45,6 +47,30 @@ type authenticationService struct {
 
 func NewAuthenticationService(dao repository.Repository, config *config.Config, sqldb *sqldb.Sql, moolShoppingClient *messaging.Client) AuthenticationService {
 	return &authenticationService{dao: dao, config: config, sqldb: sqldb, moolShoppingClient: moolShoppingClient}
+}
+
+func (v *authenticationService) SendPushNotification(ctx context.Context, req *pb.SendPushNotificationRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
+	// See documentation on defining a message payload.
+	message := &messaging.Message{
+		Notification: &messaging.Notification{
+			Title: req.Title,
+			Body:  req.Body,
+		},
+		Data: map[string]string{
+			"res_id": "",
+			"res":    "",
+			"verb":   "",
+		},
+		Token: req.FcmToken,
+	}
+	// Send a message to the device corresponding to the provided
+	// registration token.
+	_, err := v.moolShoppingClient.Send(ctx, message)
+	if err != nil {
+		logrus.Errorf(err.Error())
+		return nil, err
+	}
+	return &gp.Empty{}, nil
 }
 
 func (v *authenticationService) SessionExists(ctx context.Context, req *pb.SessionExistsRequest, md *utils.ClientMetadata) (*pb.SessionExistsResponse, error) {

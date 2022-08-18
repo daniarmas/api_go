@@ -22,6 +22,7 @@ service AuthenticationService {
   rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse) {}
 
   rpc ListSession (google.protobuf.Empty) returns (ListSessionResponse) {}
+  rpc SendPushNotification (SendPushNotificationRequest) returns (google.protobuf.Empty) {}
 }
 
 service ApplicationService {
@@ -123,6 +124,12 @@ service ObjectStorageService {
 // }
 
 // Request & Response Message
+
+message SendPushNotificationRequest {
+  string title = 1;
+  string body = 2;
+  string fcmToken = 3;
+}
 
 message DeletePermissionRequest {
   string id = 1;  
