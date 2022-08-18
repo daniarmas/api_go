@@ -37,88 +37,90 @@ func UnaryMetadataRequestInterceptor() grpc.UnaryServerInterceptor {
 		var invalidArgs bool
 		var st = status.New(codes.Unauthenticated, "Incorrect metadata")
 		md, _ := metadata.FromIncomingContext(ctx)
-		if len(md.Get("Authorization")) != 0 {
-			splitValue := strings.Split(md.Get("Authorization")[0], " ")
-			if splitValue[0] != "Bearer" {
-				invalidArgs = true
-				invalidAuthorizationToken = &epb.ErrorInfo{
-					Reason: "authorization token is invalid",
+		if info.FullMethod != "/grpc.health.v1.Health/Check" {
+			if len(md.Get("Authorization")) != 0 {
+				splitValue := strings.Split(md.Get("Authorization")[0], " ")
+				if splitValue[0] != "Bearer" {
+					invalidArgs = true
+					invalidAuthorizationToken = &epb.ErrorInfo{
+						Reason: "authorization token is invalid",
+					}
 				}
 			}
-		}
-		if len(md.Get("Firebase-Cloud-Messaging-Id")) == 0 {
-			invalidArgs = true
-			invalidFirebaseCloudMessagingId = &epb.ErrorInfo{
-				Reason: "firebase-cloud-messaging-id metadata missing",
+			if len(md.Get("Firebase-Cloud-Messaging-Id")) == 0 {
+				invalidArgs = true
+				invalidFirebaseCloudMessagingId = &epb.ErrorInfo{
+					Reason: "firebase-cloud-messaging-id metadata missing",
+				}
 			}
-		}
-		if len(md.Get("Device-Id")) == 0 {
-			invalidArgs = true
-			invalidDeviceId = &epb.ErrorInfo{
-				Reason: "device-id metadata missing",
+			if len(md.Get("Device-Id")) == 0 {
+				invalidArgs = true
+				invalidDeviceId = &epb.ErrorInfo{
+					Reason: "device-id metadata missing",
+				}
 			}
-		}
-		if len(md.Get("Access-Token")) == 0 {
-			invalidArgs = true
-			invalidAccessToken = &epb.ErrorInfo{
-				Reason: "access-token metadata missing",
+			if len(md.Get("Access-Token")) == 0 {
+				invalidArgs = true
+				invalidAccessToken = &epb.ErrorInfo{
+					Reason: "access-token metadata missing",
+				}
 			}
-		}
-		if len(md.Get("Platform")) == 0 {
-			invalidArgs = true
-			invalidPlatform = &epb.ErrorInfo{
-				Reason: "platform metadata missing",
+			if len(md.Get("Platform")) == 0 {
+				invalidArgs = true
+				invalidPlatform = &epb.ErrorInfo{
+					Reason: "platform metadata missing",
+				}
 			}
-		}
-		if len(md.Get("System-Version")) == 0 {
-			invalidArgs = true
-			invalidSystemVersion = &epb.ErrorInfo{
-				Reason: "system-version metadata missing",
+			if len(md.Get("System-Version")) == 0 {
+				invalidArgs = true
+				invalidSystemVersion = &epb.ErrorInfo{
+					Reason: "system-version metadata missing",
+				}
 			}
-		}
-		if len(md.Get("Model")) == 0 {
-			invalidArgs = true
-			invalidModel = &epb.ErrorInfo{
-				Reason: "model metadata missing",
+			if len(md.Get("Model")) == 0 {
+				invalidArgs = true
+				invalidModel = &epb.ErrorInfo{
+					Reason: "model metadata missing",
+				}
 			}
-		}
-		if invalidArgs {
-			if invalidDeviceId != nil {
-				st, _ = st.WithDetails(
-					invalidDeviceId,
-				)
+			if invalidArgs {
+				if invalidDeviceId != nil {
+					st, _ = st.WithDetails(
+						invalidDeviceId,
+					)
+				}
+				if invalidAuthorizationToken != nil {
+					st, _ = st.WithDetails(
+						invalidAuthorizationToken,
+					)
+				}
+				if invalidAccessToken != nil {
+					st, _ = st.WithDetails(
+						invalidAccessToken,
+					)
+				}
+				if invalidPlatform != nil {
+					st, _ = st.WithDetails(
+						invalidPlatform,
+					)
+				}
+				if invalidFirebaseCloudMessagingId != nil {
+					st, _ = st.WithDetails(
+						invalidFirebaseCloudMessagingId,
+					)
+				}
+				if invalidSystemVersion != nil {
+					st, _ = st.WithDetails(
+						invalidSystemVersion,
+					)
+				}
+				if invalidModel != nil {
+					st, _ = st.WithDetails(
+						invalidModel,
+					)
+				}
+				return nil, st.Err()
 			}
-			if invalidAuthorizationToken != nil {
-				st, _ = st.WithDetails(
-					invalidAuthorizationToken,
-				)
-			}
-			if invalidAccessToken != nil {
-				st, _ = st.WithDetails(
-					invalidAccessToken,
-				)
-			}
-			if invalidPlatform != nil {
-				st, _ = st.WithDetails(
-					invalidPlatform,
-				)
-			}
-			if invalidFirebaseCloudMessagingId != nil {
-				st, _ = st.WithDetails(
-					invalidFirebaseCloudMessagingId,
-				)
-			}
-			if invalidSystemVersion != nil {
-				st, _ = st.WithDetails(
-					invalidSystemVersion,
-				)
-			}
-			if invalidModel != nil {
-				st, _ = st.WithDetails(
-					invalidModel,
-				)
-			}
-			return nil, st.Err()
 		}
 		m, err := handler(ctx, req)
 		if err != nil {
