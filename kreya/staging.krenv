@@ -1,0 +1,11 @@
+{
+  "id": "1c3f14f4-07da-4fc5-9d6e-00cf1bd19d86",
+  "color": "#60A5FA",
+  "globalContent": {
+    "host": "api-staging.mool.cu",
+    "port": 30211,
+    "accesstoken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjA4ODgwNTgsInN1YiI6ImM0MGNhMjI3LThjMmMtNGNhMi1hZjMxLTAwOWY4NjhkM2M3MSJ9.A0m_PHLJ13Cm8GZA63LFjnoxgteybNton-RYxCYX8Dg",
+    "authorization": "Bearer ",
+    "firebasecloudmessagingid": "1"
+  }
+}
