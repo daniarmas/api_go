@@ -25,6 +25,10 @@
       {
         "key": "Firebase-Cloud-Messaging-Id",
         "value": "{{ firebasecloudmessagingid }}"
+      },
+      {
+        "key": "authorization",
+        "value": "{{ authorization }}"
       }
     ]
   },
