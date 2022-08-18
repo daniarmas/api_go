@@ -16,6 +16,11 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build cmd/mool/main.go
 
+# Adding the grpc_health_probe
+RUN GRPC_HEALTH_PROBE_VERSION=v0.4.11 && \
+    wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
+    chmod +x /bin/grpc_health_probe
+
 ##
 ## Deploy
 ##
@@ -25,6 +30,7 @@ WORKDIR /app
 
 COPY --from=build /app/main /app/main
 COPY --from=build ./app/app.env /app/
+COPY --from=build /bin/grpc_health_probe /app/grpc_health_probe
 
 EXPOSE 22210
 EXPOSE 32333
