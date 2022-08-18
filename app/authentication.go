@@ -13,6 +13,78 @@ import (
 	gp "google.golang.org/protobuf/types/known/emptypb"
 )
 
+func (m *AuthenticationServer) SendPushNotification(ctx context.Context, req *pb.SendPushNotificationRequest) (*gp.Empty, error) {
+	var (
+		invalidBody     *epb.BadRequest_FieldViolation
+		invalidTitle    *epb.BadRequest_FieldViolation
+		invalidFCMToken *epb.BadRequest_FieldViolation
+	)
+	var invalidArgs bool
+	var st *status.Status
+	md := utils.GetMetadata(ctx)
+	if req.Body == "" {
+		invalidArgs = true
+		invalidBody = &epb.BadRequest_FieldViolation{
+			Field:       "body",
+			Description: "The body field is required",
+		}
+	}
+	if req.FcmToken == "" {
+		invalidArgs = true
+		invalidFCMToken = &epb.BadRequest_FieldViolation{
+			Field:       "fcmToken",
+			Description: "The fcmToken field is required",
+		}
+	}
+	if req.Title == "" {
+		invalidArgs = true
+		invalidTitle = &epb.BadRequest_FieldViolation{
+			Field:       "title",
+			Description: "The title field is required",
+		}
+	}
+	if invalidArgs {
+		st = status.New(codes.InvalidArgument, "Invalid Arguments")
+		if invalidBody != nil {
+			st, _ = st.WithDetails(
+				invalidBody,
+			)
+		}
+		if invalidFCMToken != nil {
+			st, _ = st.WithDetails(
+				invalidFCMToken,
+			)
+		}
+		if invalidTitle != nil {
+			st, _ = st.WithDetails(
+				invalidTitle,
+			)
+		}
+		return nil, st.Err()
+	}
+	res, err := m.authenticationService.SendPushNotification(ctx, req, md)
+	if err != nil {
+		switch err.Error() {
+		case "access token contains an invalid number of segments", "access token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Access token is invalid")
+		case "access token expired":
+			st = status.New(codes.Unauthenticated, "Access token is expired")
+		case "unauthenticated application":
+			st = status.New(codes.Unauthenticated, "Unauthenticated application")
+		case "unauthenticated user":
+			st = status.New(codes.Unauthenticated, "Unauthenticated user")
+		case "authorization token expired":
+			st = status.New(codes.Unauthenticated, "Authorization token expired")
+		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
+			st = status.New(codes.Unauthenticated, "Authorization token invalid")
+		default:
+			st = status.New(codes.Internal, "Internal server error")
+		}
+		return nil, st.Err()
+	}
+	return res, nil
+}
+
 func (m *AuthenticationServer) SessionExists(ctx context.Context, req *pb.SessionExistsRequest) (*pb.SessionExistsResponse, error) {
 	var (
 		invalidEmail *epb.BadRequest_FieldViolation

@@ -32,6 +32,7 @@ type AuthenticationServiceClient interface {
 	SessionExists(ctx context.Context, in *SessionExistsRequest, opts ...grpc.CallOption) (*SessionExistsResponse, error)
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
 	ListSession(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListSessionResponse, error)
+	SendPushNotification(ctx context.Context, in *SendPushNotificationRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type authenticationServiceClient struct {
@@ -123,6 +124,15 @@ func (c *authenticationServiceClient) ListSession(ctx context.Context, in *empty
 	return out, nil
 }
 
+func (c *authenticationServiceClient) SendPushNotification(ctx context.Context, in *SendPushNotificationRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/main.AuthenticationService/SendPushNotification", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthenticationServiceServer is the server API for AuthenticationService service.
 // All implementations must embed UnimplementedAuthenticationServiceServer
 // for forward compatibility
@@ -136,6 +146,7 @@ type AuthenticationServiceServer interface {
 	SessionExists(context.Context, *SessionExistsRequest) (*SessionExistsResponse, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 	ListSession(context.Context, *emptypb.Empty) (*ListSessionResponse, error)
+	SendPushNotification(context.Context, *SendPushNotificationRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedAuthenticationServiceServer()
 }
 
@@ -169,6 +180,9 @@ func (UnimplementedAuthenticationServiceServer) RefreshToken(context.Context, *R
 }
 func (UnimplementedAuthenticationServiceServer) ListSession(context.Context, *emptypb.Empty) (*ListSessionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListSession not implemented")
+}
+func (UnimplementedAuthenticationServiceServer) SendPushNotification(context.Context, *SendPushNotificationRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendPushNotification not implemented")
 }
 func (UnimplementedAuthenticationServiceServer) mustEmbedUnimplementedAuthenticationServiceServer() {}
 
@@ -345,6 +359,24 @@ func _AuthenticationService_ListSession_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthenticationService_SendPushNotification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendPushNotificationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationServiceServer).SendPushNotification(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.AuthenticationService/SendPushNotification",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationServiceServer).SendPushNotification(ctx, req.(*SendPushNotificationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthenticationService_ServiceDesc is the grpc.ServiceDesc for AuthenticationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -387,6 +419,10 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListSession",
 			Handler:    _AuthenticationService_ListSession_Handler,
+		},
+		{
+			MethodName: "SendPushNotification",
+			Handler:    _AuthenticationService_SendPushNotification_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
