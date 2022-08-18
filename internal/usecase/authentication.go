@@ -545,6 +545,12 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 				return err
 			}
 		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	err = v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		app, err := v.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err
