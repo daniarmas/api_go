@@ -148,8 +148,8 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 	var configuration *entity.UserConfiguration
 	var app *entity.Application
 	var authToken *entity.AuthorizationToken
-	var actualDevice *entity.Device
-	var deviceSignOut *entity.Device
+	// var actualDevice *entity.Device
+	// var signOutDevice *entity.Device
 	var existsUpcomingOrders *bool
 	var (
 		jwtRefreshToken       *datasource.JsonWebTokenMetadata
@@ -202,17 +202,17 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 				return err
 			}
 			if deleteRefreshTokenRes != nil && len(*deleteRefreshTokenRes) != 0 {
-				deleteAuthorizationTokenRes, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenRepository().DeleteAuthorizationToken(ctx, tx, &entity.AuthorizationToken{RefreshTokenId: (*deleteRefreshTokenRes)[0].ID}, nil)
+				_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenRepository().DeleteAuthorizationToken(ctx, tx, &entity.AuthorizationToken{RefreshTokenId: (*deleteRefreshTokenRes)[0].ID}, nil)
 				if deleteAuthorizationTokenErr != nil {
 					return deleteAuthorizationTokenErr
 				}
-				if authToken != nil && req.Logout {
-					deviceId := *deleteAuthorizationTokenRes
-					deviceSignOut, err = v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{ID: deviceId[0].ID})
-					if err != nil && err.Error() != "record not found" {
-						return err
-					}
-				}
+				// if authToken != nil && req.Logout {
+				// deviceId := *deleteAuthorizationTokenRes
+				// signOutDevice, err = v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{ID: deviceId[0].ID})
+				// if err != nil && err.Error() != "record not found" {
+				// 	return err
+				// }
+				// }
 			}
 		}
 		//
@@ -312,7 +312,6 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 			UpdateTime:     timestamppb.New(item.UpdateTime),
 		})
 	}
-	go smtp.SendSignInMail(req.Email, time.Now(), v.config, md)
 	var highQualityPhotoUrl, lowQualityPhotoUrl, thumbnailUrl string
 	if user.HighQualityPhoto != "" {
 		highQualityPhotoUrl = v.config.UsersBulkName + "/" + user.HighQualityPhoto
@@ -320,26 +319,32 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		thumbnailUrl = v.config.UsersBulkName + "/" + user.Thumbnail
 
 	}
-	if authToken != nil && req.Logout {
-		bodyMsg := fmt.Sprintf("Se ha iniciado una nueva sesión en un dispositivo " + actualDevice.Model)
-		// See documentation on defining a message payload.
-		message := &messaging.Message{
-			Notification: &messaging.Notification{
-				Title: "Inició de sesión",
-				Body:  bodyMsg,
-			},
-			Token: deviceSignOut.FirebaseCloudMessagingId,
-		}
+	// if authToken != nil && req.Logout {
+	// 	bodyMsg := fmt.Sprintf("Se ha iniciado una nueva sesión en un dispositivo " + actualDevice.Model)
+	// 	// See documentation on defining a message payload.
+	// 	message := &messaging.Message{
+	// 		Notification: &messaging.Notification{
+	// 			Title: "Inició de sesión",
+	// 			Body:  bodyMsg,
+	// 		},
+	// 		Data: map[string]string{
+	// 			"res_id": "",
+	// 			"res":    "session",
+	// 			"verb":   "create",
+	// 		},
+	// 		Token: signOutDevice.FirebaseCloudMessagingId,
+	// 	}
 
-		// Send a message to the device corresponding to the provided
-		// registration token.
-		response, err := v.moolShoppingClient.Send(ctx, message)
-		if err != nil {
-			return nil, err
-		}
-		// Response is a message ID string.
-		fmt.Println("Successfully sent message:", response)
-	}
+	// 	// Send a message to the device corresponding to the provided
+	// 	// registration token.
+	// 	response, err := v.moolShoppingClient.Send(ctx, message)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	// Response is a message ID string.
+	// 	fmt.Println("Successfully sent message:", response)
+	// }
+	go smtp.SendSignInMail(req.Email, time.Now(), v.config, md)
 	return &pb.SignInResponse{AuthorizationToken: *jwtAuthorizationToken.Token, RefreshToken: *jwtRefreshToken.Token, User: &pb.User{
 		Id:                   user.ID.String(),
 		FullName:             user.FullName,
