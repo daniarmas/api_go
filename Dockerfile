@@ -33,7 +33,6 @@ COPY --from=build ./app/app.env /app/
 COPY --from=build /bin/grpc_health_probe /app/grpc_health_probe
 
 EXPOSE 22210
-EXPOSE 32333
 
 USER nonroot:nonroot
 
