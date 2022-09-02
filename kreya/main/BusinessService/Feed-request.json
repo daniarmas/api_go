@@ -8,6 +8,6 @@
   "toPickUp": true,
   "homeDelivery": true,
   "categories": true,
-  "searchMunicipalityType": "More",
-  "nextPage": 0
+  "searchMunicipalityType": "NoMore",
+  "nextPage": 8
 }

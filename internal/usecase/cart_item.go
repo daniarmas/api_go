@@ -93,7 +93,7 @@ func (i *cartItemService) EmptyAndAddCartItem(ctx context.Context, req *pb.Empty
 			}
 		}
 		_, err = i.dao.NewCartItemRepository().DeleteCartItem(tx, &entity.CartItem{UserId: authorizationTokenRes.UserId}, nil)
-		if err != nil {
+		if err != nil && err.Error() != "record not found" {
 			return err
 		}
 		// Add CartItem
