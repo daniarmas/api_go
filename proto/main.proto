@@ -489,7 +489,10 @@ message CreateOrderRequest {
   string instructions = 4;           
 	Point location = 5;    
 	google.protobuf.Timestamp startOrderTime = 6;    
-	google.protobuf.Timestamp endOrderTime = 7;     
+	google.protobuf.Timestamp endOrderTime = 7;  
+  string phone = 8;
+  string businessPaymentMethodId = 9;   
+  PaymentMethodType paymentMethodType = 10;
 }
 
 message ListOrderRequest {
