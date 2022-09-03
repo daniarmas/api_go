@@ -186,13 +186,27 @@ func (m *OrderServer) ListOrder(ctx context.Context, req *pb.ListOrderRequest) (
 }
 
 func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*pb.Order, error) {
-	var invalidCartItems, invalidLocation, invalidOrderType, invalidNumber, invalidAddress *epb.BadRequest_FieldViolation
+	var invalidCartItems, invalidPhone, invalidPaymentMethodType, invalidLocation, invalidOrderType, invalidNumber, invalidAddress *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
 		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
+	}
+	if req.PaymentMethodType == pb.PaymentMethodType_PaymentMethodTypeUnspecified {
+		invalidArgs = true
+		invalidPaymentMethodType = &epb.BadRequest_FieldViolation{
+			Field:       "paymentMethodType",
+			Description: "The paymentMethodType field is required",
+		}
+	}
+	if req.Phone == "" {
+		invalidArgs = true
+		invalidPhone = &epb.BadRequest_FieldViolation{
+			Field:       "phone",
+			Description: "The phone field is required",
+		}
 	}
 	if req.Location == nil {
 		invalidArgs = true
@@ -251,6 +265,16 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 		if invalidNumber != nil {
 			st, _ = st.WithDetails(
 				invalidNumber,
+			)
+		}
+		if invalidPaymentMethodType != nil {
+			st, _ = st.WithDetails(
+				invalidPaymentMethodType,
+			)
+		}
+		if invalidPhone != nil {
+			st, _ = st.WithDetails(
+				invalidPhone,
 			)
 		}
 		if invalidCartItems != nil {
