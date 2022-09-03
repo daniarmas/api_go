@@ -25,6 +25,8 @@ type Order struct {
 	Number               string         `gorm:"column:number;not null"`
 	Address              string         `gorm:"column:address;not null"`
 	Instructions         string         `gorm:"column:instructions"`
+	Phone                string         `gorm:"column:phone"`
+	PaymentMethodType    string         `gorm:"column:payment_method_type"`
 	CancelReasons        string         `gorm:"column:cancel_reasons"`
 	Coordinates          ewkb.Point     `gorm:"column:coordinates;not null"`
 	AuthorizationTokenId *uuid.UUID     `gorm:"column:authorization_token_id;not null"`
