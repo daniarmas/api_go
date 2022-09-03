@@ -666,7 +666,7 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		if err != nil {
 			return err
 		}
-		createOrderRes, err := i.dao.NewOrderRepository().CreateOrder(tx, &entity.Order{ItemsQuantity: quantity, BusinessThumbnail: businessRes.Thumbnail, OrderType: req.OrderType.String(), UserId: authorizationTokenRes.UserId, StartOrderTime: req.StartOrderTime.AsTime().UTC(), EndOrderTime: req.EndOrderTime.AsTime().UTC(), Coordinates: location, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: (*listCartItemRes)[0].BusinessId, PriceCup: price_cup.String(), CreateTime: createTime, UpdateTime: createTime, Number: req.Number, Address: req.Address, Instructions: req.Instructions, BusinessName: businessRes.Name, Status: "OrderStatusTypeOrdered"})
+		createOrderRes, err := i.dao.NewOrderRepository().CreateOrder(tx, &entity.Order{ItemsQuantity: quantity, BusinessThumbnail: businessRes.Thumbnail, OrderType: req.OrderType.String(), UserId: authorizationTokenRes.UserId, StartOrderTime: req.StartOrderTime.AsTime().UTC(), EndOrderTime: req.EndOrderTime.AsTime().UTC(), Coordinates: location, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: (*listCartItemRes)[0].BusinessId, PriceCup: price_cup.String(), CreateTime: createTime, UpdateTime: createTime, Number: req.Number, Address: req.Address, Instructions: req.Instructions, BusinessName: businessRes.Name, Status: "OrderStatusTypeOrdered", Phone: req.Phone, PaymentMethodType: req.PaymentMethodType.String()})
 		if err != nil {
 			return err
 		}
