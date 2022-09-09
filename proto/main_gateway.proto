@@ -1,0 +1,1256 @@
+syntax = "proto3";
+
+package main;
+
+import "google/protobuf/empty.proto";
+// import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "/pkg/grpc";
+
+service AuthenticationService {
+  rpc CreateVerificationCode (CreateVerificationCodeRequest) returns (google.protobuf.Empty) {}
+  rpc GetVerificationCode (GetVerificationCodeRequest) returns (google.protobuf.Empty) {}
+
+  rpc SignIn (SignInRequest) returns (SignInResponse) {}
+  rpc SignUp (SignUpRequest) returns (SignUpResponse) {}
+  rpc SignOut (SignOutRequest) returns (google.protobuf.Empty) {}
+
+  rpc CheckSession (google.protobuf.Empty) returns (CheckSessionResponse) {}
+  rpc SessionExists (SessionExistsRequest) returns (SessionExistsResponse) {}
+
+  rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse) {}
+
+  rpc ListSession (google.protobuf.Empty) returns (ListSessionResponse) {}
+  rpc SendPushNotification (SendPushNotificationRequest) returns (google.protobuf.Empty) {}
+}
+
+service ApplicationService {
+  rpc CreateApplication (CreateApplicationRequest) returns (Application) {}
+  rpc ListApplication (ListApplicationRequest) returns (ListApplicationResponse) {}
+  rpc DeleteApplication (DeleteApplicationRequest) returns (google.protobuf.Empty) {}
+}
+
+service PermissionService {
+  rpc CreatePermission (CreatePermissionRequest) returns (Permission) {}
+  rpc ListPermission (ListPermissionRequest) returns (ListPermissionResponse) {}
+  rpc GetPermission (GetPermissionRequest) returns (Permission) {}
+  rpc DeletePermission (DeletePermissionRequest) returns (google.protobuf.Empty) {}
+}
+
+service BusinessService {
+  rpc Feed (FeedRequest) returns (FeedResponse) {}
+  rpc GetBusiness (GetBusinessRequest) returns (Business) {}
+  rpc GetBusinessWithDistance (GetBusinessWithDistanceRequest) returns (Business) {}
+  rpc CreateBusiness (CreateBusinessRequest) returns (CreateBusinessResponse) {}
+  // rpc CreateBusinessSchedule (CreateBusinessScheduleRequest) returns (CreateBusinessScheduleResponse) {}
+  rpc UpdateBusiness (UpdateBusinessRequest) returns (Business) {}
+
+  rpc BusinessIsInRange (BusinessIsInRangeRequest) returns (google.protobuf.Empty) {}
+
+  rpc CreatePartnerApplication (CreatePartnerApplicationRequest) returns (PartnerApplication) {}
+  rpc ListPartnerApplication (ListPartnerApplicationRequest) returns (ListPartnerApplicationResponse) {}
+  rpc UpdatePartnerApplication (UpdatePartnerApplicationRequest) returns (PartnerApplication) {}
+
+  rpc CreateBusinessRole (CreateBusinessRoleRequest) returns (BusinessRole) {}
+  rpc UpdateBusinessRole (UpdateBusinessRoleRequest) returns (BusinessRole) {}
+  rpc ModifyBusinessRolePermission (ModifyBusinessRolePermissionRequest) returns (google.protobuf.Empty) {}
+  rpc ListBusinessRole (ListBusinessRoleRequest) returns (ListBusinessRoleResponse) {}
+  rpc DeleteBusinessRole (DeleteBusinessRoleRequest) returns (google.protobuf.Empty) {}
+}
+
+service ItemService {
+  rpc ListItem (ListItemRequest) returns (ListItemResponse) {}
+  rpc GetItem (GetItemRequest) returns (Item) {}
+  rpc CreateItem (CreateItemRequest) returns (Item) {}
+  rpc UpdateItem (UpdateItemRequest) returns (Item) {}
+  rpc DeleteItem (DeleteItemRequest) returns (google.protobuf.Empty) {}  
+  rpc SearchItem (SearchItemRequest) returns (SearchItemResponse) {}
+  rpc SearchItemByBusiness (SearchItemByBusinessRequest) returns (SearchItemByBusinessResponse) {}
+}
+
+service UserService {
+  rpc GetUser (google.protobuf.Empty) returns (User) {}
+  rpc UpdateUser (UpdateUserRequest) returns (User) {}
+  rpc GetAddressInfo (GetAddressInfoRequest) returns (GetAddressInfoResponse) {}
+
+  rpc ListUserAddress (google.protobuf.Empty) returns (ListUserAddressResponse) {}
+  rpc GetUserAddress (GetUserAddressRequest) returns (UserAddress) {}
+  rpc CreateUserAddress (CreateUserAddressRequest) returns (UserAddress) {}
+  rpc UpdateUserAddress (UpdateUserAddressRequest) returns (UserAddress) {}
+  rpc DeleteUserAddress (DeleteUserAddressRequest) returns (google.protobuf.Empty) {}
+
+  rpc UpdateUserConfiguration (UpdateUserConfigurationRequest) returns (UserConfiguration) {}
+}
+
+service OrderService {
+  rpc GetOrder (GetOrderRequest) returns (Order) {}
+  rpc ListOrder (ListOrderRequest) returns (ListOrderResponse) {}
+  rpc CreateOrder (CreateOrderRequest) returns (Order) {}
+  rpc UpdateOrder (UpdateOrderRequest) returns (Order) {}
+  rpc ListOrderedItem (ListOrderedItemRequest) returns (ListOrderedItemResponse) {}
+  rpc GetCheckoutInfo (GetCheckoutInfoRequest) returns (GetCheckoutInfoResponse) {}
+}
+
+service CartItemService {
+  rpc ListCartItem (ListCartItemRequest) returns (ListCartItemResponse) {}
+  rpc AddCartItem (AddCartItemRequest) returns (CartItem) {}
+  rpc IsEmptyCartItem (google.protobuf.Empty) returns (IsEmptyCartItemResponse) {}
+  rpc DeleteCartItem (DeleteCartItemRequest) returns (google.protobuf.Empty) {}
+  rpc EmptyCartItem (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc EmptyAndAddCartItem (EmptyAndAddCartItemRequest) returns (CartItem) {}
+}
+
+service PaymentMethodService {
+  rpc CreatePaymentMethod (CreatePaymentMethodRequest) returns (PaymentMethod) {}
+  rpc ListPaymentMethod (ListPaymentMethodRequest) returns (ListPaymentMethodResponse) {}
+  rpc UpdatePaymentMethod (UpdatePaymentMethodRequest) returns (PaymentMethod) {}
+  rpc DeletePaymentMethod (DeletePaymentMethodRequest) returns (google.protobuf.Empty) {}
+
+  rpc ListBusinessPaymentMethod (ListBusinessPaymentMethodRequest) returns (ListBusinessPaymentMethodResponse) {}
+}
+
+// service BanService {
+//   rpc GetBannedDevice(google.protobuf.Empty) returns (GetBannedDeviceResponse) {}
+//   rpc GetBannedUser(google.protobuf.Empty) returns (GetBannedUserResponse) {}
+// }
+
+service ObjectStorageService {
+  rpc GetPresignedPutObject (GetPresignedPutObjectRequest) returns (GetPresignedPutObjectResponse) {}
+}
+
+// service AnalyticsService {
+//   rpc CollectAnalytics (CollectAnalyticsRequest) returns (google.protobuf.Empty) {}
+// }
+
+// Request & Response Message
+
+message SendPushNotificationRequest {
+  string title = 1;
+  string body = 2;
+  string fcmToken = 3;
+}
+
+message DeletePermissionRequest {
+  string id = 1;  
+}
+
+message GetPermissionRequest {
+  string id = 1;
+}
+
+message CreatePermissionRequest {
+  Permission permission = 1;
+}
+
+message ListPermissionRequest {
+  google.protobuf.Timestamp nextPage = 1;
+}
+
+message ListPermissionResponse {
+  repeated Permission permissions = 1;
+  google.protobuf.Timestamp nextPage = 2;
+}
+
+message SessionExistsRequest {
+  string email = 1;
+  string code = 2;
+}
+
+message SessionExistsResponse {
+  string authorizationTokenId = 1;
+}
+
+message BusinessIsInRangeRequest {
+  string businessId = 1;
+  Point coordinates = 2;
+}
+
+message GetCheckoutInfoRequest {
+  string businessId = 1;
+  Point coordinates = 2;
+}
+
+message GetCheckoutInfoResponse {
+  google.protobuf.Timestamp serverTimeNow = 1;
+  repeated BusinessPaymentMethod businessPaymentMethods = 2;
+  bool delivery = 3;
+  bool pickUp = 4;
+  string businessAddress = 5;
+  string deliveryPriceCup = 6;
+  Point businessCoordinates = 7;
+  int32 timeMarginOrderMonth = 8;
+  int32 timeMarginOrderDay = 9;
+  int32 timeMarginOrderHour = 10;
+  int32 timeMarginOrderMinute = 11;
+  double distance = 12;
+  bool isInRange = 13;
+  BusinessSchedule businessSchedule = 14;
+}
+
+message ListBusinessPaymentMethodRequest {
+  string businessId = 1;
+}
+
+message ListBusinessPaymentMethodResponse {
+  repeated BusinessPaymentMethod businessPaymentMethods = 1;
+}
+
+message DeletePaymentMethodRequest {
+  string id = 1;
+}
+
+message UpdatePaymentMethodRequest {
+  string id = 1;
+  PaymentMethod paymentMethod = 2;
+}
+
+message ListPaymentMethodRequest {
+
+}
+
+message ListPaymentMethodResponse {
+  repeated PaymentMethod paymentMethods = 1;
+}
+
+message CreatePaymentMethodRequest {
+  PaymentMethod paymentMethod = 1;
+}
+
+message GetOrderRequest {
+  string id = 1;
+}
+
+message UpdateUserConfigurationRequest {
+  string userId = 1;
+  UserConfiguration userConfiguration = 2;
+}
+
+message ModifyBusinessRolePermissionRequest {
+  string businessRoleId = 1;
+  repeated string permissionIds = 2;
+}
+
+message UpdateBusinessRoleRequest {
+  string id = 1;
+  BusinessRole businessRole = 2;
+}
+
+message DeleteBusinessRoleRequest {
+  string id = 1;
+}
+
+message GetUserAddressRequest {
+  string id = 1;
+}
+
+message ListBusinessRoleRequest {
+  string businessId = 1;
+  google.protobuf.Timestamp nextPage = 2;
+}
+
+message ListBusinessRoleResponse {
+  repeated BusinessRole businessRoles = 1;
+  google.protobuf.Timestamp nextPage = 2;
+}
+
+message CreateBusinessRoleRequest {
+  BusinessRole businessRole = 1;
+}
+
+message ListApplicationRequest {
+  google.protobuf.Timestamp nextPage = 1;
+}
+
+message ListApplicationResponse {
+  repeated Application applications = 1;
+  google.protobuf.Timestamp nextPage = 2;
+}
+
+message DeleteApplicationRequest {
+  string id = 1;
+}
+
+message CreateApplicationRequest {
+  Application application = 1;
+}
+
+message UpdatePartnerApplicationRequest {
+  string id = 1;
+  PartnerApplication partnerApplication = 2;
+}
+
+message ListPartnerApplicationRequest {
+  google.protobuf.Timestamp nextPage = 1;
+}
+
+message ListPartnerApplicationResponse {
+  repeated PartnerApplication partnerApplications = 1;
+  google.protobuf.Timestamp nextPage = 2;
+}
+
+message CreatePartnerApplicationRequest {
+  PartnerApplication partnerApplication = 1;
+}
+
+message DeleteUserAddressRequest {
+  string id = 1;
+}
+
+message CreateUserAddressRequest {
+  UserAddress userAddress = 1;
+}
+
+message UpdateUserAddressRequest {
+  string id = 1;
+  UserAddress userAddress = 2;
+}
+
+message ListUserAddressResponse {
+  repeated UserAddress userAddress = 1;
+}
+
+message CollectAnalyticsRequest {
+  repeated BusinessAnalytics businessAnalytics = 1;
+  repeated ItemAnalytics itemAnalytics = 2;
+}
+
+// message GetOrderRequest {
+//   string id = 1;
+//   google.protobuf.FieldMask fieldMask = 2;
+// }
+
+// message GetOrderResponse {
+//   Order order = 1;
+// }
+
+// message CreateBusinessScheduleRequest {
+//   string business_Id = 1;
+//   string openingTimeSunday = 2;            
+// 	string openingTimeMonday = 3;           
+// 	string openingTimeTuesday = 4;          
+// 	string openingTimeWednesday = 5;        
+// 	string openingTimeThursday = 6;         
+// 	string openingTimeFriday = 7;           
+// 	string openingTimeSaturday = 8;        
+// 	string closingTimeSunday = 9;          
+// 	string closingTimeMonday = 10;           
+// 	string closingTimeTuesday = 11;          
+// 	string closingTimeWednesday = 12;        
+// 	string closingTimeThursday = 13;         
+// 	string closingTimeFriday = 14;           
+// 	string closingTimeSaturday = 15;         
+// 	string openingTimeDeliverySunday = 16;   
+// 	string openingTimeDeliveryMonday = 17;   
+// 	string openingTimeDeliveryTuesday = 18;  
+// 	string openingTimeDeliveryWednesday = 19;
+// 	string openingTimeDeliveryThursday = 20;
+// 	string openingTimeDeliveryFriday = 21;   
+// 	string openingTimeDeliverySaturday = 22;  
+// 	string closingTimeDeliverySunday = 23;   
+// 	string closingTimeDeliveryMonday = 24;    
+// 	string closingTimeDeliveryTuesday = 25; 
+// 	string closingTimeDeliveryWednesday = 26; 
+// 	string closingTimeDeliveryThursday = 27; 
+// 	string closingTimeDeliveryFriday = 28;  
+// 	string closingTimeDeliverySaturday = 29;
+// }
+
+// message CreateBusinessScheduleResponse {
+//   string openingTimeSunday = 1;            
+// 	string openingTimeMonday = 2;           
+// 	string openingTimeTuesday = 3;          
+// 	string openingTimeWednesday = 4;        
+// 	string openingTimeThursday = 5;         
+// 	string openingTimeFriday = 6;           
+// 	string openingTimeSaturday = 7;        
+// 	string closingTimeSunday = 8;          
+// 	string closingTimeMonday = 9;           
+// 	string closingTimeTuesday = 10;          
+// 	string closingTimeWednesday = 11;        
+// 	string closingTimeThursday = 12;         
+// 	string closingTimeFriday = 13;           
+// 	string closingTimeSaturday = 14;         
+// 	string openingTimeDeliverySunday = 15;   
+// 	string openingTimeDeliveryMonday = 16;   
+// 	string openingTimeDeliveryTuesday = 17;  
+// 	string openingTimeDeliveryWednesday = 18;
+// 	string openingTimeDeliveryThursday = 19;
+// 	string openingTimeDeliveryFriday = 20;   
+// 	string openingTimeDeliverySaturday = 21;  
+// 	string closingTimeDeliverySunday = 22;   
+// 	string closingTimeDeliveryMonday = 23;    
+// 	string closingTimeDeliveryTuesday = 24; 
+// 	string closingTimeDeliveryWednesday = 25; 
+// 	string closingTimeDeliveryThursday = 26; 
+// 	string closingTimeDeliveryFriday = 27;  
+// 	string closingTimeDeliverySaturday = 28;
+// }
+
+message GetPresignedPutObjectRequest {
+  string lowQualityPhoto = 1;
+  string highQualityPhoto = 2;
+  string thumbnailQualityPhoto = 3;
+  PhotoType PhotoType = 4;
+}
+
+message GetPresignedPutObjectResponse {
+  string lowQualityPhotoPresignedPutUrl = 1;
+  string highQualityPhotoPresignedPutUrl = 2;
+  string thumbnailPresignedPutUrl = 3;
+}
+
+message UpdateBusinessRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string address = 4;
+  string phone = 5;
+  string email = 6;
+  string highQualityPhoto = 7;
+  string lowQualityPhoto = 8;
+  repeated string municipalities = 9;
+  string thumbnail = 10;
+  string blurHash = 11;
+  string deliveryPriceCup = 12;
+  int32 timeMarginOrderMonth = 13;
+  int32 timeMarginOrderDay = 14;
+  int32 timeMarginOrderHour = 15;
+  int32 timeMarginOrderMinute = 16;
+  bool toPickUp = 17;
+  bool homeDelivery = 18;
+  string provinceId = 19;
+  string municipalityId = 20;
+}
+
+message UpdateBusinessResponse {
+  Business business = 1;
+}
+
+message CreateBusinessRequest {
+  string name = 1;
+  string description = 2;
+  string address = 3;
+  string phone = 4;
+  string email = 5;
+  string highQualityPhoto = 6;
+  string lowQualityPhoto = 7;
+  repeated string municipalities = 8;
+  string thumbnail = 9;
+  string blurHash = 10;
+  string deliveryPriceCup = 11;
+  Point coordinates = 12;
+  int32 timeMarginOrderMonth = 13;
+  int32 timeMarginOrderDay = 14;
+  int32 timeMarginOrderHour = 15;
+  int32 timeMarginOrderMinute = 16;
+  bool toPickUp = 17;
+  bool homeDelivery = 18;
+  string businessBrandId = 19;
+  string provinceId = 20;
+  string municipalityId = 21;
+}
+
+message CreateBusinessResponse {
+  Business business = 1;
+  repeated UnionBusinessAndMunicipality municipalities = 2;
+}
+
+message GetAddressInfoRequest {
+  Point location = 1;
+}
+
+message GetAddressInfoResponse {
+  string provinceId = 1;
+  string provinceName = 2;
+  string provinceNameAbbreviation = 3;
+  string municipalityId = 4;
+  string municipalityName = 5;
+}
+
+message GetBannedDeviceResponse {
+	google.protobuf.Timestamp banExpirationTime = 1;
+	google.protobuf.Timestamp createTime = 2;
+}
+
+message GetBannedUserResponse {
+  google.protobuf.Timestamp banExpirationTime = 1;
+	google.protobuf.Timestamp createTime = 2;
+}
+
+message UpdateOrderRequest {
+  Order order = 1;
+}
+
+message CreateOrderRequest {           
+	OrderType orderType = 1;
+  string instructions = 2;
+  string phone = 3;
+  string businessPaymentMethodId = 4; 
+  string userAddressId = 5;
+	google.protobuf.Timestamp startOrderTime = 6;    
+	google.protobuf.Timestamp endOrderTime = 7;  
+}
+
+message ListOrderRequest {
+  google.protobuf.Timestamp nextPage = 1;
+  bool upcoming = 2;
+  bool history = 3;
+}
+
+message ListOrderResponse {
+  repeated Order orders = 1;
+  google.protobuf.Timestamp nextPage = 2;
+}
+
+message ListOrderedItemRequest {
+  string orderId = 1;
+}
+
+message ListOrderedItemResponse {
+  repeated OrderedItem orderedItems = 1;
+  google.protobuf.Timestamp nextPage = 2;
+}
+
+// message GetCartItemRequest {
+//   string id = 1;
+//   google.protobuf.FieldMask fieldMask = 2;
+// }
+
+// message GetCartItemResponse {
+//   Item item = 1;
+// }
+
+message UpdateItemRequest {
+  Item item = 1;         
+}
+
+message IsEmptyCartItemResponse {
+  bool isEmpty = 1;
+}
+
+message CreateItemRequest {
+  Item item = 1;
+}
+
+message ListCartItemRequest {
+  google.protobuf.Timestamp nextPage = 1;
+}
+
+message ListCartItemResponse {
+  repeated CartItem cartItems = 1;
+  google.protobuf.Timestamp nextPage = 2;
+}
+
+message UpdateUserRequest {
+  User user = 1;
+  string code = 2;
+}
+
+message ListSessionResponse {
+  Session actualSession = 1;
+  repeated Session otherSessions = 2;
+}
+
+message SignOutRequest {
+  bool all = 1;
+  string authorizationTokenId = 2;
+}
+ 
+message RefreshTokenRequest {
+  string refreshToken = 1;
+}
+
+message RefreshTokenResponse {
+  string refreshToken = 1;
+  string authorizationToken = 2;
+}
+
+message DeleteItemRequest {
+  string id = 1;
+}
+
+message DeleteCartItemRequest {
+  string id = 1;
+  string itemId = 2;
+}
+
+message AddCartItemRequest {
+  string itemId = 1;
+  Point location = 2;
+  int32 quantity = 3;
+}
+
+message EmptyAndAddCartItemRequest {
+  string itemId = 1;
+  Point location = 2;
+  int32 quantity = 3;
+}
+
+message SearchItemRequest {
+  int32 nextPage = 1;
+  string name = 2;
+  string provinceId = 3;
+  string municipalityId = 4;
+  SearchMunicipalityType searchMunicipalityType = 5;
+}
+
+message SearchItemByBusinessRequest {
+  int32 nextPage = 1;
+  string name = 2;
+  string businessId = 3;
+}
+
+message SearchItemResponse {
+  repeated SearchItem items = 1;
+  SearchMunicipalityType searchMunicipalityType = 2;
+  int32 nextPage = 3;
+}
+
+message SearchItemByBusinessResponse {
+  repeated SearchItem items = 1;
+  int32 nextPage = 2;
+}
+
+message ListItemRequest {
+  google.protobuf.Timestamp nextPage = 1;
+  string businessId = 2;
+  string businessCollectionId = 3;
+}
+
+message ListItemResponse {
+  repeated Item items = 1;
+  google.protobuf.Timestamp nextPage = 2;
+}
+
+message GetItemRequest {
+  string id = 1;
+  Point location = 2;
+}
+
+message FeedRequest {
+  Point location = 1;
+  string provinceId = 2;
+  string municipalityId = 3;
+  bool toPickUp = 4;
+  bool homeDelivery = 5;
+  SearchMunicipalityType searchMunicipalityType = 6;
+  int32 nextPage = 7;
+  bool categories = 8;
+}
+
+message FeedResponse {
+  repeated Business businesses = 1;
+  SearchMunicipalityType searchMunicipalityType = 2;
+  repeated BusinessCategory categories = 3;
+  int32 nextPage = 4;
+}
+
+message GetBusinessRequest {
+  string id = 1;
+  Point location = 2;
+}
+
+message GetBusinessWithDistanceRequest {
+  string id = 1;
+  Point location = 2;
+}
+
+message GetBusinessResponse {
+  Business business = 1;
+  repeated BusinessCollection businessCollections = 2;
+}
+
+message GetBusinessWithDistanceResponse {
+  Business business = 1;
+  repeated BusinessCollection businessCollections = 2;
+  string businessCategory = 3;
+}
+
+// message GetPresignedPutUserAvatarRequest {
+//   string objectName = 1;
+// }
+
+// message GetPresignedPutUserAvatarResponse {
+//   string objectUrl = 1;
+// }
+
+message SignUpRequest {
+  string email = 1;
+  string fullName = 2;
+  string code = 3;
+  SignUpType signUpType = 4;
+  UserAddress userAddress = 5;
+}
+
+message SignUpResponse {
+  string refreshToken = 1;
+  string authorizationToken = 2;
+  User user = 3;
+}
+
+// message UserExistsStreamRequest {
+//   string alias = 1;
+// }
+
+// message UserExistsStreamResponse {
+//   bool isValid = 1;
+// }
+
+message UserExistsRequest {
+  string alias = 1;
+}
+
+message CheckSessionResponse {
+  repeated string ipAddresses = 1;
+  User user = 2;
+}
+
+message CreateVerificationCodeRequest {
+  string email = 1;
+  VerificationCodeType type = 2;
+}
+
+// message CreateVerificationCodeResponse {
+//   VerificationCode verificationCode = 1;
+// }
+
+// message ListVerificationCodeRequest {
+//   google.protobuf.FieldMask fieldMask = 1;
+// }
+
+// message ListVerificationCodeResponse {
+//   repeated VerificationCode verificationCodes = 1;
+// }
+
+// message DeleteVerificationCodeRequest {
+//   string id = 1;
+// }
+
+message GetVerificationCodeRequest {
+  string code = 1;
+  string email = 2;
+  VerificationCodeType type = 3;
+}
+
+message SignInRequest {
+  string email = 1;
+  string code = 2;
+  bool logout = 3;
+}
+
+message SignInResponse {
+  string refreshToken = 1;
+  string authorizationToken = 2;
+  User user = 3;
+  // Business business = 4;
+}
+
+// message HostnameRequest {
+  
+// }
+
+// message HostnameResponse {
+//   string hostname = 1;
+// }
+
+// Entites Messages
+
+message OrderedItem {
+  string id = 1;
+  string name = 2;
+	string priceCup = 3;
+  string cartItemId = 4;
+	string itemId = 5;
+	int32 quantity = 6;
+	string userId = 7;
+	google.protobuf.Timestamp createTime = 8;
+	google.protobuf.Timestamp updateTime = 9;
+}
+
+message Order {
+  string id = 1;
+  string shortId = 2;
+  OrderStatusType status = 3;
+  OrderType orderType = 4;
+  string number = 5;
+  string address = 6;
+  string instructions = 7;
+  string cancelReasons = 8;
+  Point coordinates = 9;
+  string priceCup = 10;
+  string businessId = 11;
+  string userId = 12;
+  string businessName = 13;
+  string businessThumbnail = 14;
+  int32 itemsQuantity = 15;
+  repeated OrderedItem orderedItems = 16;
+  google.protobuf.Timestamp startOrderTime = 17;
+  google.protobuf.Timestamp endOrderTime = 18;
+  google.protobuf.Timestamp createTime = 19;
+  google.protobuf.Timestamp updateTime = 20;
+}
+
+message User {
+  string id = 1;
+  string fullName = 2;
+  string email = 3; 
+  string highQualityPhoto = 4;
+  string highQualityPhotoUrl = 5;
+  string lowQualityPhoto = 6;
+  string lowQualityPhotoUrl = 7;
+  string thumbnail = 8;
+  string thumbnailUrl = 9;
+  string blurHash = 10;
+  repeated UserAddress userAddress = 11;
+  repeated UserPermission permissions = 12;
+  repeated CartItem cartItems = 13;
+  UserConfiguration configuration = 14;
+  bool existsUpcomingOrders = 15;
+  google.protobuf.Timestamp createTime = 16;
+  google.protobuf.Timestamp updateTime = 17;
+}
+
+message Municipality {
+  string id = 1;
+  string name = 2;
+}
+
+message UnionBusinessAndMunicipality {
+  string id = 1;
+  string name = 2;
+  string municipalityId = 3;
+}
+
+message BusinessAnalytics {
+  string id = 1;
+  string businessId = 2;
+  BusinessAnalyticsType type = 3;
+  google.protobuf.Timestamp createTime = 4;
+  google.protobuf.Timestamp updateTime = 5;
+}
+
+message ItemAnalytics {
+  string id = 1;
+  string itemId = 2;
+  ItemAnalyticsType type = 3;
+  google.protobuf.Timestamp createTime = 4;
+  google.protobuf.Timestamp updateTime = 5;
+}
+
+message Business {
+  string id = 1;
+  string name = 2;
+  string address = 3;
+  string highQualityPhoto = 4;
+  string highQualityPhotoUrl = 5;
+  string lowQualityPhoto = 6;
+  string lowQualityPhotoUrl = 7;
+  string thumbnail = 8;
+  string thumbnailUrl = 9;
+  string blurHash = 10;
+  bool isOpen = 11;
+  string deliveryPriceCup = 12;
+  repeated double polygon = 13;
+  Point coordinates = 14;
+  int32 timeMarginOrderMonth = 15;
+  int32 timeMarginOrderDay = 16;
+  int32 timeMarginOrderHour = 17;
+  int32 timeMarginOrderMinute = 18;
+  bool toPickUp = 19;
+  bool homeDelivery = 20;
+  string businessBrandId = 21;
+  string provinceId = 22;
+  string municipalityId = 23;
+  double distance = 24;
+  BusinessStatusType status = 25;
+  int32 cursor = 26;
+  bool isInRange = 27;
+  repeated BusinessCollection businessCollections = 28;
+  string businessCategory = 29;
+  BusinessSchedule businessSchedule = 30;
+  google.protobuf.Timestamp createTime = 31;
+  google.protobuf.Timestamp updateTime = 32;
+}
+
+message Item {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string thumbnail = 4;
+  string thumbnailUrl = 5;
+  string highQualityPhoto = 6;
+  string highQualityPhotoUrl = 7;
+  string lowQualityPhoto = 8;
+  string lowQualityPhotoUrl = 9;
+  string blurHash = 10;
+  string priceCup = 11;
+  string costCup = 12;
+  string profitCup = 13;
+  string priceUsd = 14;
+  string costUsd = 15;
+  string profitUsd = 16;
+  int32 cursor = 17;
+  bool enabledFlag = 18;
+  bool availableFlag = 19;
+  int32 availability = 20;
+  string provinceId = 21;
+  string municipalityId = 22;
+  string businessId = 23;
+  string businessCollectionId = 24;
+  bool isInRange = 25;
+  string businessName = 27;
+  google.protobuf.Timestamp createTime = 28;
+  google.protobuf.Timestamp updateTime = 29;
+}
+
+message Application {
+  string id = 1;
+  string name = 2;
+  string version = 3;
+  string description = 4;
+  string access_token = 5;
+  google.protobuf.Timestamp expiration_time = 6;
+  google.protobuf.Timestamp create_time = 7;
+  google.protobuf.Timestamp update_time = 8;
+}
+
+message PartnerApplication {
+  string id = 1;
+  string businessName = 2;
+  Point coordinates = 3;
+  string description = 4;
+  PartnerApplicationStatus status = 5;
+  string userId = 6;
+  string municipalityId = 7;
+  string provinceId = 8;
+  google.protobuf.Timestamp createTime = 9;
+  google.protobuf.Timestamp updateTime = 10;
+}
+
+message CartItem {
+  string id = 1;
+  string name = 2;
+  string itemId = 3;
+  string businessId = 4;
+  string authorizationTokenId = 5;
+  string priceCup = 6;
+  int32 quantity = 7;
+  string thumbnail = 8;
+  string thumbnailUrl = 9;
+  string blurHash = 10;
+  google.protobuf.Timestamp createTime = 11;
+  google.protobuf.Timestamp updateTime = 12;
+}
+
+
+message BusinessCollection {
+  string id = 1;
+  string name = 2;
+  int32 index = 3;
+  string businessId = 4;
+  google.protobuf.Timestamp createTime = 5;
+  google.protobuf.Timestamp updateTime = 6;
+}
+
+message BusinessCategory {
+  string id = 1;
+  string name = 2;
+  string provinceId = 3;
+  string municipalityId = 4;
+  google.protobuf.Timestamp createTime = 5;
+  google.protobuf.Timestamp updateTime = 6;
+}
+
+message SearchItem {
+  string id = 1;
+  string name = 2;
+  string priceCup = 3;
+  string thumbnail = 4;
+  string thumbnailUrl = 5;
+  string blurHash = 6;
+  int32 cursor = 7;
+  string businessId = 8;
+}
+
+message ItemPhoto {
+  string id = 1;
+  string itemId = 2;
+  string highQualityPhoto = 3;
+  string lowQualityPhoto = 4;
+  string thumbnail = 5;
+  string blurHash = 6;
+  google.protobuf.Timestamp createTime = 7;
+  google.protobuf.Timestamp updateTime = 8;
+}
+
+// message BannedUser {
+//   string id = 1;
+//   string description = 2;
+//   string userId = 3;
+//   string email = 4;
+//   string moderatorAuthorizationTokenId = 5;
+//   string createTime = 6;
+//   string updateTime = 7;
+// }
+
+// message BannedDevice {
+//   string id = 1;
+//   string description = 2;
+//   string deviceId = 3;
+//   string deviceId = 4;
+//   string moderatorAuthorizationTokenId = 5;
+//   string createTime = 6;
+//   string updateTime = 7;
+// }
+
+message Session {
+  string id = 1;
+  PlatformType platform = 2;
+  string systemVersion = 3;
+  string model = 4;
+  AppType app = 5;
+  string appVersion = 6;
+  string deviceId = 7;
+}
+
+message BusinessRole {
+  string id = 1;
+  string name = 2;
+  string businessId = 3;
+  repeated Permission permissions = 4;
+  google.protobuf.Timestamp createTime = 5;
+  google.protobuf.Timestamp updateTime = 6;
+}
+
+// message Device {
+//   string id = 1;
+//   PlatformType platform = 2;
+//   string systemVersion = 3;
+//   string deviceId = 4;
+//   string firebaseCloudMessagingId = 5;
+//   string model = 6;
+//   string createTime = 7;
+//   string updateTime = 8;
+// }
+
+message UserAddress {
+  string id = 1;
+  string name = 2;
+  bool selected = 3;
+  string number = 4;
+  string address = 5;
+  Point coordinates = 6;
+  string instructions = 7;
+  string userId = 8;
+  string provinceId = 9;
+  string municipalityId = 10;
+  google.protobuf.Timestamp createTime = 11;
+  google.protobuf.Timestamp updateTime = 12;
+}
+
+message UserConfiguration {
+  string id = 1;
+  bool dataSaving = 2;
+	bool highQualityImagesWifi = 3;
+	bool highQualityImagesData = 4;
+	PaymentMethodType paymentMethod = 5;
+  string userId = 6;
+  google.protobuf.Timestamp createTime = 11;
+  google.protobuf.Timestamp updateTime = 12;
+}
+
+message PaymentMethod {
+  string id = 1;
+  PaymentMethodType type = 2;
+  string address = 3;
+  bool enabled = 4;
+  google.protobuf.Timestamp createTime = 5;
+  google.protobuf.Timestamp updateTime = 6;
+}
+
+message BusinessPaymentMethod {
+  string id = 1;
+  PaymentMethodType type = 2;
+  string address = 3;
+  bool enabled = 4;
+  string businessId = 5;
+  string paymentMethodId = 6;
+  google.protobuf.Timestamp createTime = 7;
+  google.protobuf.Timestamp updateTime = 8;
+}
+
+message BusinessRolePermission {
+  string id = 1;
+  string businessRoleId = 2;
+  string permissionId = 3;
+  google.protobuf.Timestamp createTime = 4;
+  google.protobuf.Timestamp updateTime = 5;
+}
+
+message UserPermission {
+  string id = 1;
+  string name = 2;
+  string userId = 4;
+  string businessId = 5;
+  google.protobuf.Timestamp createTime = 6;
+  google.protobuf.Timestamp updateTime = 7;
+}
+
+message Permission {
+  string id = 1;
+  string name = 2;
+  google.protobuf.Timestamp createTime = 3;
+  google.protobuf.Timestamp updateTime = 4;
+}
+
+message Polygon {
+  repeated double coordinates = 1;
+}
+
+message ErrorDetail {
+  string subject = 1;
+  string description = 2;
+}
+
+// // Enums
+
+enum SearchMunicipalityType {
+  SearchMunicipalityTypeUnspecified = 0;
+  More = 1;
+  NoMore = 2;
+}
+
+enum VerificationCodeType {
+  VerificationCodeTypeUnspecified = 0;
+  SignIn = 1;
+  SignUp = 2;
+  SignUpBusinessOwner = 3;
+  ChangeUserEmail = 4;
+}
+
+enum ItemStatusType {
+  ItemStatusTypeUnspecified = 0;
+  Available = 1;
+  Unavailable = 2;
+  Deprecated = 3;
+}
+
+enum BusinessStatusType {
+  BusinessStatusTypeUnspecified = 0;
+  BusinessAvailable = 1;
+  BusinessUnavailable = 2;
+}
+
+enum PlatformType {
+  PlatformTypeUnspecified = 0;
+  IOS = 1;
+  Android = 2;
+}
+
+enum AppType  {
+  AppTypeUnspecified = 0;
+  App = 1;
+  BusinessApp = 2;
+  AdminApp = 3;
+}
+
+enum OrderStatusType {
+  OrderStatusTypeUnspecified = 0; 
+  OrderStatusTypePendingPayment = 1;
+  OrderStatusTypeOrdered = 2;
+  OrderStatusTypeAccepted = 3;
+  OrderStatusTypeReady = 4;
+  OrderStatusTypeAssignedMessenger = 5;
+  OrderStatusTypeDelivered = 6;
+  OrderStatusTypeRejected = 7;
+  OrderStatusTypeCancelled = 8;
+  OrderStatusTypeExpired = 9;
+}
+
+enum PartnerApplicationStatus {
+  PartnerApplicationStatusUnspecified = 0;
+  PartnerApplicationStatusPending = 1;
+  PartnerApplicationStatusCanceled = 2;
+  PartnerApplicationStatusApproved = 3;
+  PartnerApplicationStatusRejected = 4;
+}
+
+enum OrderType {
+  OrderTypeUnspecified = 0;
+  OrderTypePickUp = 1; 
+  OrderTypeHomeDelivery = 2;
+}
+
+enum BusinessAnalyticsType {
+  BusinessAnalyticsTypeUnspecified = 0;
+  BusinessAnalyticsTypeView = 1; 
+  BusinessAnalyticsTypeDetailView = 2;
+}
+
+enum ItemAnalyticsType {
+  ItemAnalyticsTypeUnspecified = 0;
+  ItemAnalyticsTypeView = 1; 
+  ItemAnalyticsTypeDetailView = 2;
+}
+
+enum SignUpType {
+  SignUpUnspecified = 0;
+  SignUpUser = 1;
+  SignUpBusiness = 2;
+}
+
+enum PhotoType {
+  PhotoTypeUnspecified = 0;
+  PhotoTypeBusiness = 1;
+  PhotoTypeItem = 2;
+  PhotoTypeUser = 3;
+}
+
+enum PaymentMethodType {
+  PaymentMethodTypeUnspecified = 0;
+  PaymentMethodTypeCash = 1;
+  PaymentMethodTypeEnzona = 2;
+  PaymentMethodTypeTransfermovil = 3;
+  PaymentMethodTypeSolanaPay = 4;
+}
+
+
+// 'Sign_In', 'Sign_Up', 'Change_User_Email'
+
+message BusinessSchedule {
+  string id = 1;
+  google.protobuf.Timestamp first_opening_time_sunday = 2;
+  google.protobuf.Timestamp first_closing_time_sunday = 3;
+  google.protobuf.Timestamp first_opening_time_monday = 4;
+  google.protobuf.Timestamp first_closing_time_monday = 5;
+  google.protobuf.Timestamp first_opening_time_tuesday = 6;
+  google.protobuf.Timestamp first_closing_time_tuesday = 7;
+  google.protobuf.Timestamp first_opening_time_wednesday = 8;
+  google.protobuf.Timestamp first_closing_time_wednesday = 9;
+  google.protobuf.Timestamp first_opening_time_thursday = 10;
+  google.protobuf.Timestamp first_closing_time_thursday = 11;
+  google.protobuf.Timestamp first_opening_time_friday = 12;
+  google.protobuf.Timestamp first_closing_time_friday = 13;
+  google.protobuf.Timestamp first_opening_time_saturday = 14;
+  google.protobuf.Timestamp first_closing_time_saturday = 15;
+  google.protobuf.Timestamp second_opening_time_sunday = 16;
+  google.protobuf.Timestamp second_closing_time_sunday = 17;
+  google.protobuf.Timestamp second_opening_time_monday = 18;
+  google.protobuf.Timestamp second_closing_time_monday = 19;
+  google.protobuf.Timestamp second_opening_time_tuesday = 20;
+  google.protobuf.Timestamp second_closing_time_tuesday = 21;
+  google.protobuf.Timestamp second_opening_time_wednesday = 22;
+  google.protobuf.Timestamp second_closing_time_wednesday = 23;
+  google.protobuf.Timestamp second_opening_time_thursday = 24;
+  google.protobuf.Timestamp second_closing_time_thursday = 25;
+  google.protobuf.Timestamp second_opening_time_friday = 26;
+  google.protobuf.Timestamp second_closing_time_friday = 27;
+  google.protobuf.Timestamp second_opening_time_saturday = 28;
+  google.protobuf.Timestamp second_closing_time_saturday = 29;
+}
+
+message Point {
+  double latitude = 1;
+  double longitude = 2;
+}
