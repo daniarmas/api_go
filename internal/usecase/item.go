@@ -15,8 +15,6 @@ import (
 	"github.com/daniarmas/api_go/utils"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
-	"github.com/twpayne/go-geom"
-	"github.com/twpayne/go-geom/encoding/ewkb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 )
@@ -398,10 +396,6 @@ func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *u
 		} else if err != nil {
 			return err
 		}
-		isInRangeRes, err := i.dao.NewBusinessRepository().BusinessIsInRange(tx, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}, item.BusinessId)
-		if err != nil {
-			return err
-		}
 		res = pb.Item{
 			Id:                   item.ID.String(),
 			Name:                 item.Name,
@@ -419,7 +413,6 @@ func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *u
 			ThumbnailUrl:         i.config.ItemsBulkName + "/" + item.Thumbnail,
 			BlurHash:             item.BlurHash,
 			Cursor:               item.Cursor,
-			IsInRange:            *isInRangeRes,
 			CreateTime:           timestamppb.New(item.CreateTime),
 			UpdateTime:           timestamppb.New(item.UpdateTime),
 		}
