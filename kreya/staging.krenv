@@ -5,7 +5,7 @@
     "host": "api-staging.mool.cu",
     "port": 30211,
     "accesstoken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjA4ODgwNTgsInN1YiI6ImM0MGNhMjI3LThjMmMtNGNhMi1hZjMxLTAwOWY4NjhkM2M3MSJ9.A0m_PHLJ13Cm8GZA63LFjnoxgteybNton-RYxCYX8Dg",
-    "authorization": "Bearer ",
+    "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjA5MzM5MjksInN1YiI6ImQ5NzhjMzc0LWU5ODUtNDkwOS05OTY5LWRkNmZmYjgxYTY4MyJ9.QRpDQ6cOsfWYaCmySJp3Kz26TCiRr5sOjV9GOXx7Mbc",
     "firebasecloudmessagingid": "1"
   }
 }

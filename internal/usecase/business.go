@@ -902,7 +902,10 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 			if err != nil {
 				return err
 			}
-			if len(*businessRes) > 5 {
+			if businessRes == nil {
+				res.NextPage = int32(req.NextPage)
+				res.SearchMunicipalityType = pb.SearchMunicipalityType_NoMore
+			} else if len(*businessRes) > 5 {
 				*businessRes = (*businessRes)[:len(*businessRes)-1]
 				res.NextPage = int32((*businessRes)[len(*businessRes)-1].Cursor)
 				res.SearchMunicipalityType = pb.SearchMunicipalityType_More

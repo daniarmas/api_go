@@ -3,6 +3,9 @@
   "color": "#60A5FA",
   "globalContent": {
     "host": "localhost",
-    "port": 22212
+    "port": 22211,
+    "accesstoken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjI4NDA4NTAsInN1YiI6IjBjYTcxMzJkLTZlMmUtNDg2Mi05YTk2LTlmNWEwYTFiZmEwNSJ9.XqFPU5Ng14cKgOKgN4mB0a3R8VLtZ71_vw7BtLP733Q",
+    "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjE3MzAxNTIsInN1YiI6ImUwNjYwZWMwLTdmODQtNDVkNC05Mzg0LWU2OWVlNTYyZDNhYyJ9.IrxYft28wraSpKkVzDn6xEr3XBZkGSlPuy9fMA-81NE",
+    "firebasecloudmessagingid": "1"
   }
 }

@@ -80,6 +80,8 @@ func (m *OrderServer) GetCheckoutInfo(ctx context.Context, req *pb.GetCheckoutIn
 			st = status.New(codes.Unauthenticated, "Unauthenticated application")
 		case "unauthenticated user":
 			st = status.New(codes.Unauthenticated, "Unauthenticated user")
+		case "business not in range":
+			st = status.New(codes.InvalidArgument, "Business not in range")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
@@ -186,7 +188,7 @@ func (m *OrderServer) ListOrder(ctx context.Context, req *pb.ListOrderRequest) (
 }
 
 func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*pb.Order, error) {
-	var invalidCartItems, invalidLocation, invalidOrderType, invalidNumber, invalidAddress *epb.BadRequest_FieldViolation
+	var invalidCartItems, invalidUserAddressId, invalidPhone, invalidBusinessPaymentMethodId, invalidOrderType *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
@@ -194,39 +196,41 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
-	if req.Location == nil {
+	if req.UserAddressId == "" {
 		invalidArgs = true
-		invalidLocation = &epb.BadRequest_FieldViolation{
-			Field:       "Location",
-			Description: "The Location field is required",
+		invalidUserAddressId = &epb.BadRequest_FieldViolation{
+			Field:       "userAddressId",
+			Description: "The userAddressId field is required",
 		}
-	} else if req.Location != nil {
-		if req.Location.Latitude == 0 {
+	} else if req.UserAddressId != "" {
+		if !utils.IsValidUUID(&req.UserAddressId) {
 			invalidArgs = true
-			invalidLocation = &epb.BadRequest_FieldViolation{
-				Field:       "Location.Latitude",
-				Description: "The Location.Latitude field is required",
-			}
-		} else if req.Location.Longitude == 0 {
-			invalidArgs = true
-			invalidLocation = &epb.BadRequest_FieldViolation{
-				Field:       "Location.Longitude",
-				Description: "The Location.Longitude field is required",
+			invalidUserAddressId = &epb.BadRequest_FieldViolation{
+				Field:       "userAddressId",
+				Description: "The userAddressId field is not a valid uuid v4",
 			}
 		}
 	}
-	if req.Address == "" {
+	if req.BusinessPaymentMethodId == "" {
 		invalidArgs = true
-		invalidAddress = &epb.BadRequest_FieldViolation{
-			Field:       "Address",
-			Description: "The Address field is required",
+		invalidBusinessPaymentMethodId = &epb.BadRequest_FieldViolation{
+			Field:       "businessPaymentMethodId",
+			Description: "The businessPaymentMethodId field is required",
+		}
+	} else if req.BusinessPaymentMethodId != "" {
+		if !utils.IsValidUUID(&req.BusinessPaymentMethodId) {
+			invalidArgs = true
+			invalidBusinessPaymentMethodId = &epb.BadRequest_FieldViolation{
+				Field:       "businessPaymentMethodId",
+				Description: "The businessPaymentMethodId field is not a valid uuid v4",
+			}
 		}
 	}
-	if req.Number == "" {
+	if req.Phone == "" {
 		invalidArgs = true
-		invalidNumber = &epb.BadRequest_FieldViolation{
-			Field:       "Number",
-			Description: "The Number field is required",
+		invalidPhone = &epb.BadRequest_FieldViolation{
+			Field:       "phone",
+			Description: "The phone field is required",
 		}
 	}
 	if req.OrderType == *pb.OrderType_OrderTypeUnspecified.Enum() {
@@ -238,19 +242,19 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 	}
 	if invalidArgs {
 		st = status.New(codes.InvalidArgument, "Invalid Arguments")
-		if invalidLocation != nil {
+		if invalidBusinessPaymentMethodId != nil {
 			st, _ = st.WithDetails(
-				invalidLocation,
+				invalidBusinessPaymentMethodId,
 			)
 		}
-		if invalidAddress != nil {
+		if invalidPhone != nil {
 			st, _ = st.WithDetails(
-				invalidAddress,
+				invalidPhone,
 			)
 		}
-		if invalidNumber != nil {
+		if invalidUserAddressId != nil {
 			st, _ = st.WithDetails(
-				invalidNumber,
+				invalidUserAddressId,
 			)
 		}
 		if invalidCartItems != nil {

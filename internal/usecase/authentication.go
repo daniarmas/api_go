@@ -17,7 +17,7 @@ import (
 	"github.com/daniarmas/api_go/utils"
 	smtp "github.com/daniarmas/api_go/utils/smtp"
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
 	gp "google.golang.org/protobuf/types/known/emptypb"
@@ -67,7 +67,7 @@ func (v *authenticationService) SendPushNotification(ctx context.Context, req *p
 	// registration token.
 	_, err := v.moolShoppingClient.Send(ctx, message)
 	if err != nil {
-		logrus.Errorf(err.Error())
+		log.Errorf(err.Error())
 		return nil, err
 	}
 	return &gp.Empty{}, nil
@@ -139,7 +139,11 @@ func (v *authenticationService) CreateVerificationCode(ctx context.Context, req 
 			return err
 		}
 		verificationCodeMsg := fmt.Sprintf("Su código de verificación es %s", createVerificationCodeRes.Code)
-		go smtp.SendMail(req.Email, v.config.EmailAddress, v.config.EmailAddressPassword, "Código de Verificación", verificationCodeMsg, v.config)
+		err = smtp.SendMail(req.Email, v.config.EmailAddress, v.config.EmailAddressPassword, "Código de Verificación", verificationCodeMsg, v.config)
+		if err != nil {
+			log.Errorf(err.Error())
+			return err
+		}
 		return nil
 	})
 	if err != nil {
@@ -332,7 +336,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 			Instructions:   item.Instructions,
 			ProvinceId:     item.ProvinceId.String(),
 			MunicipalityId: item.MunicipalityId.String(),
-			Coordinates:    &pb.Point{Latitude: item.Coordinates.Coords()[0], Longitude: item.Coordinates.Coords()[1]},
+			Coordinates:    &pb.Point{Latitude: item.Coordinates.Coords()[1], Longitude: item.Coordinates.Coords()[0]},
 			UserId:         item.UserId.String(),
 			CreateTime:     timestamppb.New(item.CreateTime),
 			UpdateTime:     timestamppb.New(item.UpdateTime),
@@ -370,7 +374,11 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 	// 	// Response is a message ID string.
 	// 	fmt.Println("Successfully sent message:", response)
 	// }
-	go smtp.SendSignInMail(req.Email, time.Now(), v.config, md)
+	err = smtp.SendSignInMail(req.Email, time.Now(), v.config, md)
+	if err != nil {
+		log.Errorf(err.Error())
+		return nil, err
+	}
 	return &pb.SignInResponse{AuthorizationToken: *jwtAuthorizationToken.Token, RefreshToken: *jwtRefreshToken.Token, User: &pb.User{
 		Id:                   user.ID.String(),
 		FullName:             user.FullName,
@@ -545,6 +553,12 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 				return err
 			}
 		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	err = v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
 		app, err := v.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
 		if err != nil {
 			return err

@@ -1,0 +1,42 @@
+{
+  "details": {
+    "methodFqn": "main.AuthenticationService.SendPushNotification",
+    "metadata": [
+      {
+        "key": "Device-Id",
+        "value": "10"
+      },
+      {
+        "key": "Access-Token",
+        "value": "{{ accesstoken }}"
+      },
+      {
+        "key": "Platform",
+        "value": "Android"
+      },
+      {
+        "key": "System-Version",
+        "value": "11"
+      },
+      {
+        "key": "Model",
+        "value": "Google Pixel 3XL"
+      },
+      {
+        "key": "Firebase-Cloud-Messaging-Id",
+        "value": "{{ firebasecloudmessagingid }}"
+      },
+      {
+        "key": "authorization",
+        "value": "{{ authorization }}"
+      }
+    ]
+  },
+  "requests": [
+    {
+      "location": "SendPushNotification-request.json"
+    }
+  ],
+  "operationType": "unary",
+  "invokerName": "grpc"
+}

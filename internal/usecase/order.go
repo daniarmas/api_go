@@ -464,7 +464,14 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		if err != nil {
 			return err
 		}
-		businessRes, err := i.dao.NewBusinessRepository().GetBusinessWithDistance(tx, &entity.Business{ID: (*listCartItemRes)[0].BusinessId}, ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)})
+		userAddressId := uuid.MustParse(req.UserAddressId)
+		userAddress, err := i.dao.NewUserAddressRepository().GetUserAddress(tx, &entity.UserAddress{ID: &userAddressId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("user address not found")
+		} else if err != nil {
+			return err
+		}
+		businessRes, err := i.dao.NewBusinessRepository().GetBusinessWithDistance(tx, &entity.Business{ID: (*listCartItemRes)[0].BusinessId}, userAddress.Coordinates)
 		if err != nil {
 			return err
 		}
@@ -480,7 +487,7 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 			return errors.New("not fulfilled the previous time of the business")
 		}
 		// If the order is for delivery, check if the location is in the delivery range of the business
-		location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.Location.Latitude, req.Location.Longitude}).SetSRID(4326)}
+		location := userAddress.Coordinates
 		if req.OrderType == pb.OrderType_OrderTypeHomeDelivery {
 			isInRange, err := i.dao.NewBusinessRepository().BusinessIsInRange(tx, location, businessRes.ID)
 			if err != nil {
@@ -666,7 +673,12 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		if err != nil {
 			return err
 		}
-		createOrderRes, err := i.dao.NewOrderRepository().CreateOrder(tx, &entity.Order{ItemsQuantity: quantity, BusinessThumbnail: businessRes.Thumbnail, OrderType: req.OrderType.String(), UserId: authorizationTokenRes.UserId, StartOrderTime: req.StartOrderTime.AsTime().UTC(), EndOrderTime: req.EndOrderTime.AsTime().UTC(), Coordinates: location, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: (*listCartItemRes)[0].BusinessId, PriceCup: price_cup.String(), CreateTime: createTime, UpdateTime: createTime, Number: req.Number, Address: req.Address, Instructions: req.Instructions, BusinessName: businessRes.Name, Status: "OrderStatusTypeOrdered"})
+		businessPaymentMethodId := uuid.MustParse(req.BusinessPaymentMethodId)
+		businessPaymentMethod, err := i.dao.NewBusinessPaymentMethodRepository().GetBusinessPaymentMethod(ctx, tx, &entity.BusinessPaymentMethod{ID: &businessPaymentMethodId})
+		if err != nil {
+			return err
+		}
+		createOrderRes, err := i.dao.NewOrderRepository().CreateOrder(tx, &entity.Order{ItemsQuantity: quantity, BusinessThumbnail: businessRes.Thumbnail, OrderType: req.OrderType.String(), UserId: authorizationTokenRes.UserId, StartOrderTime: req.StartOrderTime.AsTime().UTC(), EndOrderTime: req.EndOrderTime.AsTime().UTC(), Coordinates: location, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: (*listCartItemRes)[0].BusinessId, PriceCup: price_cup.String(), CreateTime: createTime, UpdateTime: createTime, Number: userAddress.Number, Address: userAddress.Address, Instructions: req.Instructions, BusinessName: businessRes.Name, Status: "OrderStatusTypeOrdered", Phone: req.Phone, PaymentMethodType: businessPaymentMethod.Type})
 		if err != nil {
 			return err
 		}
@@ -729,11 +741,12 @@ func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, 
 		} else {
 			nextPage = req.NextPage.AsTime()
 		}
-		if !req.Upcoming && !req.History {
-			ordersRes, err = i.dao.NewOrderRepository().ListOrderWithBusiness(tx, &entity.OrderBusiness{CreateTime: nextPage, UserId: authorizationTokenRes.UserId})
-		} else {
-			ordersRes, err = i.dao.NewOrderRepository().ListOrderFilter(tx, &entity.OrderBusiness{CreateTime: nextPage, UserId: authorizationTokenRes.UserId}, req.Upcoming)
-		}
+		// if !req.Upcoming && !req.History {
+		// 	ordersRes, err = i.dao.NewOrderRepository().ListOrderWithBusiness(tx, &entity.OrderBusiness{CreateTime: nextPage, UserId: authorizationTokenRes.UserId})
+		// } else {
+		// 	ordersRes, err = i.dao.NewOrderRepository().ListOrderFilter(tx, &entity.OrderBusiness{CreateTime: nextPage, UserId: authorizationTokenRes.UserId}, req.Upcoming)
+		// }
+		ordersRes, err = i.dao.NewOrderRepository().ListOrderFilter(tx, &entity.OrderBusiness{CreateTime: nextPage, UserId: authorizationTokenRes.UserId}, req.Upcoming)
 		if err != nil {
 			return err
 		}
