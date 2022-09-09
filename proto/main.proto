@@ -483,16 +483,13 @@ message UpdateOrderRequest {
 }
 
 message CreateOrderRequest {           
-	OrderType orderType = 1;           
-	string number = 2;         
-	string address = 3;
-  string instructions = 4;           
-	Point location = 5;    
+	OrderType orderType = 1;
+  string instructions = 2;
+  string phone = 3;
+  string businessPaymentMethodId = 4; 
+  string userAddressId = 5;
 	google.protobuf.Timestamp startOrderTime = 6;    
 	google.protobuf.Timestamp endOrderTime = 7;  
-  string phone = 8;
-  string businessPaymentMethodId = 9;   
-  PaymentMethodType paymentMethodType = 10;
 }
 
 message ListOrderRequest {
@@ -902,9 +899,9 @@ message Item {
   string businessId = 23;
   string businessCollectionId = 24;
   bool isInRange = 25;
-  string businessName = 26;
-  google.protobuf.Timestamp createTime = 27;
-  google.protobuf.Timestamp updateTime = 28;
+  string businessName = 27;
+  google.protobuf.Timestamp createTime = 28;
+  google.protobuf.Timestamp updateTime = 29;
 }
 
 message Application {
