@@ -96,7 +96,7 @@ func (m *AuthenticationServer) SessionExists(ctx context.Context, req *pb.Sessio
 	if req.Email == "" {
 		invalidArgs = true
 		invalidEmail = &epb.BadRequest_FieldViolation{
-			Field:       "Email",
+			Field:       "email",
 			Description: "The email field is required",
 		}
 	} else {
@@ -104,7 +104,7 @@ func (m *AuthenticationServer) SessionExists(ctx context.Context, req *pb.Sessio
 		if err != nil {
 			invalidArgs = true
 			invalidEmail = &epb.BadRequest_FieldViolation{
-				Field:       "Email",
+				Field:       "email",
 				Description: "The email field is invalid",
 			}
 		}
@@ -112,14 +112,14 @@ func (m *AuthenticationServer) SessionExists(ctx context.Context, req *pb.Sessio
 	if req.Code == "" {
 		invalidArgs = true
 		invalidCode = &epb.BadRequest_FieldViolation{
-			Field:       "Code",
+			Field:       "code",
 			Description: "The code field is required",
 		}
 	} else {
 		if _, err := strconv.Atoi(req.Code); err != nil {
 			invalidArgs = true
 			invalidCode = &epb.BadRequest_FieldViolation{
-				Field:       "Code",
+				Field:       "code",
 				Description: "The code field is invalid",
 			}
 		}
@@ -172,7 +172,7 @@ func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *
 	if req.Email == "" {
 		invalidArgs = true
 		invalidEmail = &epb.BadRequest_FieldViolation{
-			Field:       "Email",
+			Field:       "email",
 			Description: "The email field is required",
 		}
 	} else {
@@ -180,7 +180,7 @@ func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *
 		if err != nil {
 			invalidArgs = true
 			invalidEmail = &epb.BadRequest_FieldViolation{
-				Field:       "Email",
+				Field:       "email",
 				Description: "The email field is invalid",
 			}
 		}
@@ -188,7 +188,7 @@ func (m *AuthenticationServer) CreateVerificationCode(ctx context.Context, req *
 	if req.Type == pb.VerificationCodeType_VerificationCodeTypeUnspecified {
 		invalidArgs = true
 		invalidType = &epb.BadRequest_FieldViolation{
-			Field:       "Type",
+			Field:       "type",
 			Description: "The type field is required",
 		}
 	}
@@ -239,7 +239,7 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 	if req.Email == "" {
 		invalidArgs = true
 		invalidEmail = &epb.BadRequest_FieldViolation{
-			Field:       "Email",
+			Field:       "email",
 			Description: "The email field is required",
 		}
 	} else {
@@ -247,7 +247,7 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 		if err != nil {
 			invalidArgs = true
 			invalidEmail = &epb.BadRequest_FieldViolation{
-				Field:       "Email",
+				Field:       "email",
 				Description: "The email field is invalid",
 			}
 		}
@@ -255,14 +255,14 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 	if req.Code == "" {
 		invalidArgs = true
 		invalidCode = &epb.BadRequest_FieldViolation{
-			Field:       "Code",
+			Field:       "code",
 			Description: "The code field is required",
 		}
 	} else {
 		if _, err := strconv.Atoi(req.Code); err != nil {
 			invalidArgs = true
 			invalidCode = &epb.BadRequest_FieldViolation{
-				Field:       "Code",
+				Field:       "code",
 				Description: "The code field is invalid",
 			}
 		}
@@ -270,7 +270,7 @@ func (m *AuthenticationServer) GetVerificationCode(ctx context.Context, req *pb.
 	if req.Type == pb.VerificationCodeType_VerificationCodeTypeUnspecified {
 		invalidArgs = true
 		invalidType = &epb.BadRequest_FieldViolation{
-			Field:       "Type",
+			Field:       "type",
 			Description: "The type field is required",
 		}
 	}
@@ -323,7 +323,7 @@ func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest
 	if req.Email == "" {
 		invalidArgs = true
 		invalidEmail = &epb.BadRequest_FieldViolation{
-			Field:       "Email",
+			Field:       "email",
 			Description: "The email field is required",
 		}
 	} else {
@@ -331,7 +331,7 @@ func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest
 		if err != nil {
 			invalidArgs = true
 			invalidEmail = &epb.BadRequest_FieldViolation{
-				Field:       "Email",
+				Field:       "email",
 				Description: "The email field is invalid",
 			}
 		}
@@ -339,14 +339,14 @@ func (m *AuthenticationServer) SignIn(ctx context.Context, req *pb.SignInRequest
 	if req.Code == "" {
 		invalidArgs = true
 		invalidCode = &epb.BadRequest_FieldViolation{
-			Field:       "Code",
+			Field:       "code",
 			Description: "The code field is required",
 		}
 	} else {
 		if _, err := strconv.Atoi(req.Code); err != nil {
 			invalidArgs = true
 			invalidCode = &epb.BadRequest_FieldViolation{
-				Field:       "Code",
+				Field:       "code",
 				Description: "The code field is invalid",
 			}
 		}
@@ -478,7 +478,7 @@ func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest
 	if req.Email == "" {
 		invalidArgs = true
 		invalidEmail = &epb.BadRequest_FieldViolation{
-			Field:       "Email",
+			Field:       "email",
 			Description: "The email field is required",
 		}
 	} else {
@@ -486,7 +486,7 @@ func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest
 		if err != nil {
 			invalidArgs = true
 			invalidEmail = &epb.BadRequest_FieldViolation{
-				Field:       "Email",
+				Field:       "email",
 				Description: "The email field is invalid",
 			}
 		}
@@ -494,21 +494,21 @@ func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest
 	if req.FullName == "" {
 		invalidArgs = true
 		invalidFullname = &epb.BadRequest_FieldViolation{
-			Field:       "Fullname",
+			Field:       "fullname",
 			Description: "The fullname field is required",
 		}
 	}
 	if req.Code == "" {
 		invalidArgs = true
 		invalidCode = &epb.BadRequest_FieldViolation{
-			Field:       "Code",
+			Field:       "code",
 			Description: "The code field is required",
 		}
 	} else {
 		if _, err := strconv.Atoi(req.Code); err != nil {
 			invalidArgs = true
 			invalidCode = &epb.BadRequest_FieldViolation{
-				Field:       "Code",
+				Field:       "code",
 				Description: "The code field is invalid",
 			}
 		}
@@ -667,8 +667,8 @@ func (m *AuthenticationServer) RefreshToken(ctx context.Context, req *pb.Refresh
 	if req.RefreshToken == "" {
 		invalidArgs = true
 		invalidRefreshToken = &epb.BadRequest_FieldViolation{
-			Field:       "RefreshToken",
-			Description: "The RefreshToken field is required",
+			Field:       "refreshToken",
+			Description: "The refreshToken field is required",
 		}
 	}
 	if invalidArgs {

@@ -4,7 +4,7 @@
   "globalContent": {
     "host": "localhost",
     "port": 22211,
-    "accesstoken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjI4NDA4NTAsInN1YiI6IjBjYTcxMzJkLTZlMmUtNDg2Mi05YTk2LTlmNWEwYTFiZmEwNSJ9.XqFPU5Ng14cKgOKgN4mB0a3R8VLtZ71_vw7BtLP733Q",
+    "accesstoken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjMyNDc5MjksInN1YiI6IjRmZTAwZDVjLTM4NTAtNDU1Mi1hODVlLTEzNTk2YjczNTg3OCJ9.MUljm30uaWxm-2hDZC_1F_Twt9ZLykx1ae_RKwRsQXM",
     "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjE3MzAxNTIsInN1YiI6ImUwNjYwZWMwLTdmODQtNDVkNC05Mzg0LWU2OWVlNTYyZDNhYyJ9.IrxYft28wraSpKkVzDn6xEr3XBZkGSlPuy9fMA-81NE",
     "firebasecloudmessagingid": "1"
   }
