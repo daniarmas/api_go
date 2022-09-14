@@ -5,24 +5,67 @@ package main;
 import "google/protobuf/empty.proto";
 // import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
 
 option go_package = "/pkg/grpc";
 
 service AuthenticationService {
-  rpc CreateVerificationCode (CreateVerificationCodeRequest) returns (google.protobuf.Empty) {}
-  rpc GetVerificationCode (GetVerificationCodeRequest) returns (google.protobuf.Empty) {}
+  rpc CreateVerificationCode (CreateVerificationCodeRequest) returns (google.protobuf.Empty) {
+      option (google.api.http) = {
+            post: "/api/v1/verification-code"
+            body: "*"
+      };
+  }
+  rpc GetVerificationCode (GetVerificationCodeRequest) returns (google.protobuf.Empty) {
+      option (google.api.http) = {
+            get: "/api/v1/verification-code"
+      };
+  }
 
-  rpc SignIn (SignInRequest) returns (SignInResponse) {}
-  rpc SignUp (SignUpRequest) returns (SignUpResponse) {}
-  rpc SignOut (SignOutRequest) returns (google.protobuf.Empty) {}
+  rpc SignIn (SignInRequest) returns (SignInResponse) {
+      option (google.api.http) = {
+            post: "/api/v1/sign-in"
+            body: "*"
+      };
+  }
+  rpc SignUp (SignUpRequest) returns (SignUpResponse) {
+      option (google.api.http) = {
+            post: "/api/v1/sign-up"
+            body: "*"
+      };
+  }
+  rpc SignOut (SignOutRequest) returns (google.protobuf.Empty) {
+      option (google.api.http) = {
+            post: "/api/v1/sign-out"
+            body: "*"
+      };
+  }
 
-  rpc CheckSession (google.protobuf.Empty) returns (CheckSessionResponse) {}
+  rpc CheckSession (google.protobuf.Empty) returns (CheckSessionResponse) {
+      option (google.api.http) = {
+            get: "/api/v1/check-session"
+      };
+  }
   rpc SessionExists (SessionExistsRequest) returns (SessionExistsResponse) {}
 
-  rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse) {}
+  rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse) {
+      option (google.api.http) = {
+            post: "/api/v1/refresh-token"
+            body: "*"
+      };
+  }
 
-  rpc ListSession (google.protobuf.Empty) returns (ListSessionResponse) {}
-  rpc SendPushNotification (SendPushNotificationRequest) returns (google.protobuf.Empty) {}
+  rpc ListSession (google.protobuf.Empty) returns (ListSessionResponse) {
+      option (google.api.http) = {
+            get: "/api/v1/session"
+      };
+  }
+  rpc SendPushNotification (SendPushNotificationRequest) returns (google.protobuf.Empty) {
+      option (google.api.http) = {
+            post: "/api/v1/push-notification"
+            body: "*"
+      };
+  }
 }
 
 service ApplicationService {
