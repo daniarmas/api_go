@@ -9,36 +9,12 @@ import "google/protobuf/timestamp.proto";
 option go_package = "/pkg/grpc";
 
 service AuthenticationService {
-  rpc CreateVerificationCode (CreateVerificationCodeRequest) returns (google.protobuf.Empty) {
-      option (google.api.http) = {
-            post: "/api/v1/verification-code"
-            body: "*"
-      };
-  }
-  rpc GetVerificationCode (GetVerificationCodeRequest) returns (google.protobuf.Empty) {
-      option (google.api.http) = {
-            get: "/api/v1/verification-code"
-      };
-  }
+  rpc CreateVerificationCode (CreateVerificationCodeRequest) returns (google.protobuf.Empty) {}
+  rpc GetVerificationCode (GetVerificationCodeRequest) returns (google.protobuf.Empty) {}
 
-  rpc SignIn (SignInRequest) returns (SignInResponse) {
-      option (google.api.http) = {
-            post: "/api/v1/sign-in"
-            body: "*"
-      };
-  }
-  rpc SignUp (SignUpRequest) returns (SignUpResponse) {
-      option (google.api.http) = {
-            post: "/api/v1/sign-up"
-            body: "*"
-      };
-  }
-  rpc SignOut (SignOutRequest) returns (google.protobuf.Empty) {
-      option (google.api.http) = {
-            post: "/api/v1/sign-out"
-            body: "*"
-      };
-  }
+  rpc SignIn (SignInRequest) returns (SignInResponse) {}
+  rpc SignUp (SignUpRequest) returns (SignUpResponse) {}
+  rpc SignOut (SignOutRequest) returns (google.protobuf.Empty) {}
 
   rpc CheckSession (google.protobuf.Empty) returns (CheckSessionResponse) {}
   rpc SessionExists (SessionExistsRequest) returns (SessionExistsResponse) {}
