@@ -2,10 +2,10 @@
   "id": "1c3f14f4-07da-4fc5-9d6e-00cf1bd19d86",
   "color": "#60A5FA",
   "globalContent": {
-    "host": "api-staging.mool.cu",
+    "host": "api.staging.mool.cu",
     "port": 30211,
-    "accesstoken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjA4ODgwNTgsInN1YiI6ImM0MGNhMjI3LThjMmMtNGNhMi1hZjMxLTAwOWY4NjhkM2M3MSJ9.A0m_PHLJ13Cm8GZA63LFjnoxgteybNton-RYxCYX8Dg",
-    "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjA5MzM5MjksInN1YiI6ImQ5NzhjMzc0LWU5ODUtNDkwOS05OTY5LWRkNmZmYjgxYTY4MyJ9.QRpDQ6cOsfWYaCmySJp3Kz26TCiRr5sOjV9GOXx7Mbc",
+    "accesstoken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjMwNzg1ODgsInN1YiI6IjJmMTQxZGQ0LTkzZWYtNGYzZS05MjI5LTY2YjUwNDc5ODQ3MyJ9.ZOu9eOuj7nqO218wSSQV-Odq9fCYteeMJpZ46J_Li24",
+    "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjMwODI0MzAsInN1YiI6ImJmNjVhMWZhLTM2MTctNDY1OS04OWQ2LWE0ZGFlODU0ZWFlMyJ9.G6RgGe38vVhFM-DY6Sq_37gVi0u3a7NfkZM3d28vvAM",
     "firebasecloudmessagingid": "1"
   }
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
@@ -21,12 +22,37 @@ import (
 	"github.com/daniarmas/api_go/tlscert"
 	"github.com/daniarmas/api_go/utils"
 	"github.com/getsentry/sentry-go"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/rs/cors"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
 	"google.golang.org/api/option"
 )
+
+func CustomMatcher(key string) (string, bool) {
+	switch key {
+	case "x-user-id":
+		return key, true
+	case "Access-Token":
+		return key, true
+	case "Device-Id":
+		return key, true
+	case "Platform":
+		return key, true
+	case "Firebase-Cloud-Messaging-Id":
+		return key, true
+	case "Model":
+		return key, true
+	case "Authorization":
+		return key, true
+	case "System-Version":
+		return key, true
+	default:
+		return runtime.DefaultHeaderMatcher(key)
+	}
+}
 
 func main() {
 	// Sentry
@@ -47,6 +73,102 @@ func main() {
 	if err != nil {
 		log.Fatalf("sentry.Init: %s", err)
 	}
+	// Starting API REST
+	go func() {
+		// mux
+		mux := runtime.NewServeMux(runtime.WithIncomingHeaderMatcher(CustomMatcher))
+		if _, err := os.Stat("mool-for-shopping-firebase-adminsdk-4vkol-f4cc371851.json"); err == nil {
+			fmt.Printf("File exists\n")
+		} else {
+			fmt.Printf("File does not exist\n")
+		}
+		// Configurations
+		cfg, err := config.New()
+		if err != nil {
+			log.Fatal("cannot load config:", err)
+		}
+		// Mool for shopping - Firebase Client
+		// opt := []option.ClientOption{option.WithCredentialsJSON([]byte(cfg.MoolShoppingFirebase))}
+		opt := option.WithCredentialsFile("mool-for-shopping-firebase-adminsdk-4vkol-f4cc371851.json")
+		moolShoppingApp, err := firebase.NewApp(context.Background(), nil, opt)
+		if err != nil && cfg.Environment != "development" {
+			log.Fatalf("error initializing app: %v", err)
+		}
+		// Obtain a messaging.Client from the App.
+		ctx := context.Background()
+		moolShoppingClient, err := moolShoppingApp.Messaging(ctx)
+		if err != nil && cfg.Environment != "development" {
+			log.Fatalf("error getting Mool Shopping Firebase Messaging Client: %v\n", err)
+		}
+		// Redis
+		rdb := rdb.New(cfg)
+		// Standard Library Database Connection
+		stDb, err := sql.Open("pgx",
+			cfg.DBDsn)
+		if err != nil {
+			log.Fatal(err)
+		}
+		// defer stDb.Close()
+		// Database GORM
+		sqlDb, err := sqldb.New(cfg)
+		if err != nil {
+			log.Fatalf("Error connecting to database: %v", err)
+			return
+		}
+		// ObjectStorageServer
+		s3, err := s3.New(cfg)
+		if err != nil {
+			log.Fatalf("Error connecting to minio: %v", err)
+		}
+		// Datasource
+		datasource := datasource.New(sqlDb.Gorm, cfg, s3)
+		// Repository
+		repository := repository.New(sqlDb.Gorm, cfg, datasource, rdb)
+		itemService := usecase.NewItemService(repository, cfg, stDb, sqlDb)
+		authenticationService := usecase.NewAuthenticationService(repository, cfg, sqlDb, moolShoppingClient)
+		businessService := usecase.NewBusinessService(repository, cfg, stDb, sqlDb)
+		userService := usecase.NewUserService(repository, cfg, rdb, sqlDb)
+		cartItemService := usecase.NewCartItemService(repository, cfg, sqlDb)
+		orderService := usecase.NewOrderService(repository, sqlDb, cfg)
+		objectStorageService := usecase.NewObjectStorageService(repository, sqlDb, cfg)
+		applicationService := usecase.NewApplicationService(repository, sqlDb)
+		paymentMethodService := usecase.NewPaymentMethodService(repository, cfg, rdb, sqlDb)
+		permissionService := usecase.NewPermissionService(repository, sqlDb)
+		pb.RegisterItemServiceHandlerServer(context.Background(), mux, app.NewItemServer(itemService))
+		pb.RegisterAuthenticationServiceHandlerServer(context.Background(), mux, app.NewAuthenticationServer(authenticationService))
+		pb.RegisterBusinessServiceHandlerServer(context.Background(), mux, app.NewBusinessServer(
+			businessService,
+		))
+		pb.RegisterUserServiceHandlerServer(context.Background(), mux, app.NewUserServer(
+			userService,
+		))
+		pb.RegisterCartItemServiceHandlerServer(context.Background(), mux, app.NewCartItemServer(
+			cartItemService,
+		))
+		pb.RegisterOrderServiceHandlerServer(context.Background(), mux, app.NewOrderServer(
+			orderService,
+		))
+		pb.RegisterObjectStorageServiceHandlerServer(context.Background(), mux, app.NewObjectStorageServer(
+			objectStorageService,
+		))
+		pb.RegisterApplicationServiceHandlerServer(context.Background(), mux, app.NewApplicationServer(
+			applicationService,
+		))
+		pb.RegisterPaymentMethodServiceHandlerServer(context.Background(), mux, app.NewPaymentMethodServer(
+			paymentMethodService,
+		))
+		pb.RegisterPermissionServiceHandlerServer(context.Background(), mux, app.NewPermissionServer(
+			permissionService,
+		))
+		// http server
+		// cors.Default() setup the middleware with default options being
+		// all origins accepted with simple methods (GET, POST). See
+		// documentation below for more options.
+		handler := cors.AllowAll().Handler(mux)
+		port := fmt.Sprintf(":%s", cfg.ApiRestPort)
+		log.Infof("Rest Server started on %s ", cfg.ApiRestPort)
+		http.ListenAndServe(port, handler)
+	}()
 	// Configurations
 	cfg, err := config.New()
 	if err != nil {

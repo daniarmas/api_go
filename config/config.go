@@ -12,6 +12,7 @@ type Config struct {
 	DBPort                             string `mapstructure:"DB_PORT"`
 	DBHost                             string `mapstructure:"DB_HOST"`
 	ApiPort                            string `mapstructure:"API_PORT"`
+	ApiRestPort                        string `mapstructure:"API_REST_PORT"`
 	PrometheusPushgateway              string `mapstructure:"PROMETHEUS_PUSHGATEWAY"`
 	JwtSecret                          string `mapstructure:"JWT_SECRET"`
 	ObjectStorageServerUseSsl          string `mapstructure:"OBJECT_STORAGE_SERVER_USE_SSL"`
