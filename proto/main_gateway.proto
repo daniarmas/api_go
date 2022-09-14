@@ -912,8 +912,9 @@ message Business {
   repeated BusinessCollection businessCollections = 28;
   string businessCategory = 29;
   BusinessSchedule businessSchedule = 30;
-  google.protobuf.Timestamp createTime = 31;
-  google.protobuf.Timestamp updateTime = 32;
+  google.protobuf.Timestamp nowTime = 31;
+  google.protobuf.Timestamp createTime = 32;
+  google.protobuf.Timestamp updateTime = 33;
 }
 
 message Item {
