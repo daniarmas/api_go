@@ -892,7 +892,7 @@ message Business {
   string thumbnail = 8;
   string thumbnailUrl = 9;
   string blurHash = 10;
-  bool isOpen = 11;
+  bool openFlag = 11;
   string deliveryPriceCup = 12;
   repeated double polygon = 13;
   Point coordinates = 14;

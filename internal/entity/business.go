@@ -41,6 +41,7 @@ type Business struct {
 	BusinessCollection    []BusinessCollection `gorm:"foreignKey:BusinessId"`
 	BusinessSchedule      BusinessSchedule     `gorm:"foreignKey:BusinessId"`
 	Status                string               `gorm:"column:status"`
+	OpenFlag              bool                 `gorm:"column:open_flag"`
 	Municipality          []Municipality       `gorm:"many2many:union_business_and_municipality;"`
 	CreateTime            time.Time            `gorm:"column:create_time"`
 	UpdateTime            time.Time            `gorm:"column:update_time"`

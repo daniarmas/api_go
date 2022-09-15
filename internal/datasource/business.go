@@ -59,7 +59,7 @@ func (b *businessDatasource) BusinessIsInRange(tx *gorm.DB, coordinates ewkb.Poi
 
 func (b *businessDatasource) GetBusiness(tx *gorm.DB, where *entity.Business) (*entity.Business, error) {
 	var res *entity.Business
-	selectField := &[]string{"id", "name", "address", "high_quality_photo", "low_quality_photo", "thumbnail", "blurhash", "time_margin_order_month", "time_margin_order_day", "time_margin_order_hour", "time_margin_order_minute", "delivery_price_cup", "to_pick_up", "home_delivery", "ST_AsEWKB(coordinates) AS coordinates", "province_id", "municipality_id", "business_brand_id", "enabled_flag", "create_time", "update_time", "cursor"}
+	selectField := &[]string{"id", "name", "open_flag", "address", "high_quality_photo", "low_quality_photo", "thumbnail", "blurhash", "time_margin_order_month", "time_margin_order_day", "time_margin_order_hour", "time_margin_order_minute", "delivery_price_cup", "to_pick_up", "home_delivery", "ST_AsEWKB(coordinates) AS coordinates", "province_id", "municipality_id", "business_brand_id", "enabled_flag", "create_time", "update_time", "cursor"}
 	result := tx.Select(*selectField).Where(where).Take(&res)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
@@ -132,7 +132,7 @@ func (b *businessDatasource) Feed(tx *gorm.DB, coordinates ewkb.Point, limit int
 func (b *businessDatasource) GetBusinessWithDistance(tx *gorm.DB, where *entity.Business, userCoordinates ewkb.Point) (*entity.Business, error) {
 	var businessResult *entity.Business
 	distance := fmt.Sprintf(`ST_Distance("coordinates", ST_GeomFromText('POINT(%v %v)', 4326)) AS "distance"`, userCoordinates.Point.Coords()[1], userCoordinates.Point.Coords()[0])
-	query := fmt.Sprintf("SELECT business.id, business.name, business_category.name as business_category, business.business_brand_id, business.municipality_id, business.province_id, business.thumbnail, business.blurhash, business.address, business.high_quality_photo, business.time_margin_order_month, business.time_margin_order_day, business.time_margin_order_hour, business.time_margin_order_minute, business.low_quality_photo, business.delivery_price_cup, business.home_delivery, business.to_pick_up, business.cursor, ST_AsEWKB(business.coordinates) AS coordinates, %v FROM business INNER JOIN business_category ON business.business_category_id=business_category.id WHERE business.id = '%v' ORDER BY business.cursor asc LIMIT 1;", distance, where.ID)
+	query := fmt.Sprintf("SELECT business.id, business.name, business.open_flag, business_category.name as business_category, business.business_brand_id, business.municipality_id, business.province_id, business.thumbnail, business.blurhash, business.address, business.high_quality_photo, business.time_margin_order_month, business.time_margin_order_day, business.time_margin_order_hour, business.time_margin_order_minute, business.low_quality_photo, business.delivery_price_cup, business.home_delivery, business.to_pick_up, business.cursor, ST_AsEWKB(business.coordinates) AS coordinates, %v FROM business INNER JOIN business_category ON business.business_category_id=business_category.id WHERE business.id = '%v' ORDER BY business.cursor asc LIMIT 1;", distance, where.ID)
 	err := tx.Raw(query).Scan(&businessResult).Error
 	if err != nil {
 		return nil, err
