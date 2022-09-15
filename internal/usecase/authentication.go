@@ -39,14 +39,14 @@ type AuthenticationService interface {
 }
 
 type authenticationService struct {
-	dao                repository.Repository
-	config             *config.Config
-	sqldb              *sqldb.Sql
-	moolShoppingClient *messaging.Client
+	dao                   repository.Repository
+	config                *config.Config
+	sqldb                 *sqldb.Sql
+	fcmMoolShoppingClient *messaging.Client
 }
 
-func NewAuthenticationService(dao repository.Repository, config *config.Config, sqldb *sqldb.Sql, moolShoppingClient *messaging.Client) AuthenticationService {
-	return &authenticationService{dao: dao, config: config, sqldb: sqldb, moolShoppingClient: moolShoppingClient}
+func NewAuthenticationService(dao repository.Repository, config *config.Config, sqldb *sqldb.Sql, fcmMoolShoppingClient *messaging.Client) AuthenticationService {
+	return &authenticationService{dao: dao, config: config, sqldb: sqldb, fcmMoolShoppingClient: fcmMoolShoppingClient}
 }
 
 func (v *authenticationService) SendPushNotification(ctx context.Context, req *pb.SendPushNotificationRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
@@ -65,7 +65,7 @@ func (v *authenticationService) SendPushNotification(ctx context.Context, req *p
 	}
 	// Send a message to the device corresponding to the provided
 	// registration token.
-	_, err := v.moolShoppingClient.Send(ctx, message)
+	_, err := v.fcmMoolShoppingClient.Send(ctx, message)
 	if err != nil {
 		log.Errorf(err.Error())
 		return nil, err
@@ -178,8 +178,8 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 	var configuration *entity.UserConfiguration
 	var app *entity.Application
 	var authToken *entity.AuthorizationToken
-	// var actualDevice *entity.Device
-	// var signOutDevice *entity.Device
+	var actualDevice *entity.Device
+	var signOutDevice *entity.Device
 	var existsUpcomingOrders *bool
 	var (
 		jwtRefreshToken       *datasource.JsonWebTokenMetadata
@@ -232,17 +232,17 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 				return err
 			}
 			if deleteRefreshTokenRes != nil && len(*deleteRefreshTokenRes) != 0 {
-				_, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenRepository().DeleteAuthorizationToken(ctx, tx, &entity.AuthorizationToken{RefreshTokenId: (*deleteRefreshTokenRes)[0].ID}, nil)
+				deleteAuthorizationTokenRes, deleteAuthorizationTokenErr := v.dao.NewAuthorizationTokenRepository().DeleteAuthorizationToken(ctx, tx, &entity.AuthorizationToken{RefreshTokenId: (*deleteRefreshTokenRes)[0].ID}, nil)
 				if deleteAuthorizationTokenErr != nil {
 					return deleteAuthorizationTokenErr
 				}
-				// if authToken != nil && req.Logout {
-				// deviceId := *deleteAuthorizationTokenRes
-				// signOutDevice, err = v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{ID: deviceId[0].ID})
-				// if err != nil && err.Error() != "record not found" {
-				// 	return err
-				// }
-				// }
+				if authToken != nil && req.Logout {
+					deviceId := *deleteAuthorizationTokenRes
+					signOutDevice, err = v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{ID: deviceId[0].DeviceId})
+					if err != nil && err.Error() != "record not found" {
+						return err
+					}
+				}
 			}
 		}
 		//
@@ -349,31 +349,30 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		thumbnailUrl = v.config.UsersBulkName + "/" + user.Thumbnail
 
 	}
-	// if authToken != nil && req.Logout {
-	// 	bodyMsg := fmt.Sprintf("Se ha iniciado una nueva sesión en un dispositivo " + actualDevice.Model)
-	// 	// See documentation on defining a message payload.
-	// 	message := &messaging.Message{
-	// 		Notification: &messaging.Notification{
-	// 			Title: "Inició de sesión",
-	// 			Body:  bodyMsg,
-	// 		},
-	// 		Data: map[string]string{
-	// 			"res_id": "",
-	// 			"res":    "session",
-	// 			"verb":   "create",
-	// 		},
-	// 		Token: signOutDevice.FirebaseCloudMessagingId,
-	// 	}
-
-	// 	// Send a message to the device corresponding to the provided
-	// 	// registration token.
-	// 	response, err := v.moolShoppingClient.Send(ctx, message)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	// Response is a message ID string.
-	// 	fmt.Println("Successfully sent message:", response)
-	// }
+	if authToken != nil && req.Logout {
+		bodyMsg := fmt.Sprintf("Se ha iniciado una nueva sesión en un dispositivo " + actualDevice.Model)
+		// See documentation on defining a message payload.
+		message := &messaging.Message{
+			Notification: &messaging.Notification{
+				Title: "Inició de sesión",
+				Body:  bodyMsg,
+			},
+			Data: map[string]string{
+				"res_id": "",
+				"res":    "session",
+				"verb":   "create",
+			},
+			Token: signOutDevice.FirebaseCloudMessagingId,
+		}
+		// Send a message to the device corresponding to the provided
+		// registration token.
+		response, err := v.fcmMoolShoppingClient.Send(ctx, message)
+		if err != nil {
+			return nil, err
+		}
+		// Response is a message ID string.
+		fmt.Println("Successfully sent message:", response)
+	}
 	err = smtp.SendSignInMail(req.Email, time.Now(), v.config, md)
 	if err != nil {
 		log.Errorf(err.Error())
