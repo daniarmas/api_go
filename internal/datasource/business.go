@@ -121,7 +121,7 @@ func (b *businessDatasource) Feed(tx *gorm.DB, coordinates ewkb.Point, limit int
 	} else {
 		where = fmt.Sprintf("WHERE cursor > %v AND province_id = '%v' AND municipality_id = '%v' AND %v", cursor, provinceId, municipalityId, delivery)
 	}
-	query := fmt.Sprintf("SELECT id, name, address, high_quality_photo, low_quality_photo, blurhash, delivery_price_cup, home_delivery, to_pick_up, business_brand_id, province_id, municipality_id, cursor FROM business %v ORDER BY cursor asc LIMIT 6;", where)
+	query := fmt.Sprintf("SELECT id, name, address, open_flag, high_quality_photo, low_quality_photo, blurhash, delivery_price_cup, home_delivery, to_pick_up, business_brand_id, province_id, municipality_id, cursor FROM business %v ORDER BY cursor asc LIMIT 6;", where)
 	err := tx.Raw(query).Scan(&businessResult).Error
 	if err != nil {
 		return nil, err

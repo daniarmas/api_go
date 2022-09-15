@@ -973,6 +973,7 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 					BusinessBrandId:       e.BusinessBrandId.String(),
 					ProvinceId:            e.ProvinceId.String(),
 					MunicipalityId:        e.MunicipalityId.String(),
+					OpenFlag:              e.OpenFlag,
 					Cursor:                int32(e.Cursor),
 				})
 			}
