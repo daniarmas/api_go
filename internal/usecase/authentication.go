@@ -181,12 +181,13 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 	var actualDevice *entity.Device
 	var signOutDevice *entity.Device
 	var existsUpcomingOrders *bool
+	var err error
 	var (
 		jwtRefreshToken       *datasource.JsonWebTokenMetadata
 		jwtAuthorizationToken *datasource.JsonWebTokenMetadata
 	)
-	err := v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
-		actualDevice, err := v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier})
+	err = v.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
+		actualDevice, err = v.dao.NewDeviceRepository().GetDevice(ctx, tx, &entity.Device{DeviceIdentifier: *md.DeviceIdentifier})
 		if err != nil && err.Error() != "record not found" {
 			return err
 		} else if actualDevice == nil {
@@ -350,7 +351,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 
 	}
 	if authToken != nil && req.Logout {
-		bodyMsg := fmt.Sprintf("Se ha iniciado una nueva sesión en un dispositivo " + actualDevice.Model)
+		bodyMsg := "Su sesión ha sido cerrada. Se ha iniciado una nueva sesión en un nuevo dispositivo"
 		// See documentation on defining a message payload.
 		message := &messaging.Message{
 			Notification: &messaging.Notification{
