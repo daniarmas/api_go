@@ -5,7 +5,7 @@
     "host": "localhost",
     "port": 22211,
     "accesstoken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjM0NDY3NzksInN1YiI6IjE3OWQ3NDgzLTRlYWMtNDczOC1hYWVmLWRmNGJhMDhiMDg0YiJ9.EZGliIBoliVG0zhk4wr-BSTfdAZlGRvxbkc3eNVc8cs",
-    "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjE3MzAxNTIsInN1YiI6ImUwNjYwZWMwLTdmODQtNDVkNC05Mzg0LWU2OWVlNTYyZDNhYyJ9.IrxYft28wraSpKkVzDn6xEr3XBZkGSlPuy9fMA-81NE",
+    "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjM0NDk2ODQsInN1YiI6IjBiMmJiNDQwLTUzOGItNGRiMS1iMjMyLTgzNjdiMGY5MDViNiJ9.i3XFOUazva_sPH9Fhf4oSPReZaNX89t52O-JGN8zUPE",
     "firebasecloudmessagingid": "cLxvvk4JTLOatI9RAeNy32:APA91bE8cqW-Ibitnhp0YAQSnNt6F68QLCrQKe3CtlK4BS-4BFUDomYJra1M3hcKpxtsM8_uIqHXoqSBaUGSpTUEoJinbOqGCQImA7aPn7RkZSk_N_n5cxrUkZ8lRzBNwvpbvMxMN3_0"
   }
 }

@@ -368,7 +368,7 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 		} else if err != nil {
 			return err
 		}
-		business, err := i.dao.NewBusinessRepository().GetBusiness(tx, &entity.Business{ID: item.ID})
+		business, err := i.dao.NewBusinessRepository().GetBusiness(tx, &entity.Business{ID: item.BusinessId})
 		if err != nil {
 			return err
 		}
