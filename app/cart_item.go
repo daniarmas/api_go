@@ -108,6 +108,8 @@ func (m *CartItemServer) EmptyAndAddCartItem(ctx context.Context, req *pb.EmptyA
 				},
 			)
 			st = ds
+		case "business is closed":
+			st = status.New(codes.FailedPrecondition, "Business is closed")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":

@@ -105,6 +105,13 @@ func (i *cartItemService) EmptyAndAddCartItem(ctx context.Context, req *pb.Empty
 		} else if err != nil {
 			return err
 		}
+		business, err := i.dao.NewBusinessRepository().GetBusiness(tx, &entity.Business{ID: item.BusinessId})
+		if err != nil {
+			return err
+		}
+		if !business.OpenFlag {
+			return errors.New("business is closed")
+		}
 		var result *entity.CartItem
 		cartItemRes, err := i.dao.NewCartItemRepository().GetCartItem(tx, &entity.CartItem{ItemId: &itemId})
 		if err != nil && err.Error() != "record not found" {
