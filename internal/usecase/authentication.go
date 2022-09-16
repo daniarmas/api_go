@@ -361,7 +361,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 			Data: map[string]string{
 				"res_id": "",
 				"res":    "session",
-				"verb":   "create",
+				"verb":   "delete",
 			},
 			Token: signOutDevice.FirebaseCloudMessagingId,
 		}
