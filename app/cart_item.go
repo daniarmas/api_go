@@ -269,6 +269,8 @@ func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemReq
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "item not found":
 			st = status.New(codes.NotFound, "Item not found")
+		case "business is closed":
+			st = status.New(codes.FailedPrecondition, "Business is closed")
 		case "no_availability":
 			st = status.New(codes.InvalidArgument, "No availability")
 			ds, _ := st.WithDetails(

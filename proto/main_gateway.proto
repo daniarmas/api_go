@@ -944,8 +944,9 @@ message Item {
   string businessCollectionId = 24;
   bool isInRange = 25;
   string businessName = 27;
-  google.protobuf.Timestamp createTime = 28;
-  google.protobuf.Timestamp updateTime = 29;
+  bool openFlag = 28;
+  google.protobuf.Timestamp createTime = 29;
+  google.protobuf.Timestamp updateTime = 30;
 }
 
 message Application {
