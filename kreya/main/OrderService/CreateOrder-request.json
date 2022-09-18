@@ -7,6 +7,9 @@
     "latitude": 1.23,
     "longitude": 1.23
   },
-  "startOrderTime": "2022-08-28T13:40:07.222121Z",
-  "endOrderTime": "2022-08-28T14:00:07.222121Z",
+  "phone": "2",
+  "userAddressId": "1a8771a2-5b5f-4fb9-a937-09d2033ab7a5",
+  "businessPaymentMethodId": "3a1a886c-0116-44fc-acd9-58e4a3192be2",
+  "startOrderTime": "2022-09-18T17:40:07.222121Z",
+  "endOrderTime": "2022-09-18T18:00:07.222121Z",
 }

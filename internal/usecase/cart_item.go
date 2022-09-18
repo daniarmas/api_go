@@ -408,7 +408,7 @@ func (i *cartItemService) AddCartItem(ctx context.Context, req *pb.AddCartItemRe
 			cartItemExists, err := i.dao.NewCartItemRepository().GetCartItem(tx, &entity.CartItem{UserId: authorizationTokenRes.UserId})
 			if err != nil && err.Error() != "record not found" {
 				return err
-			} else if cartItemExists != nil && *cartItemExists.BusinessId != *item.BusinessId {
+ 			} else if cartItemExists != nil && *cartItemExists.BusinessId != *item.BusinessId {
 				return errors.New("the items in the cart can only be from one business")
 			}
 			result, err = i.dao.NewCartItemRepository().CreateCartItem(tx, &entity.CartItem{Name: item.Name, PriceCup: item.PriceCup, Quantity: req.Quantity, ItemId: item.ID, UserId: authorizationTokenRes.UserId, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: item.BusinessId, Thumbnail: item.Thumbnail, BlurHash: item.BlurHash})
