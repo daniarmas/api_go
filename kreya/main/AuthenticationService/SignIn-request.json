@@ -1,5 +1,10 @@
 {
+<<<<<<< HEAD
   "email": "user2@mool.cu",
   "code": "352469",
+=======
+  "email": "user1@mool.cu",
+  "code": "194233",
+>>>>>>> 2429b6d714c1b7b381a5778952df7ffb824bcb99
   "logout": true
 }
