@@ -8,11 +8,8 @@ ENV CGO_ENABLED 0
 ENV GOOS linux
 WORKDIR /app
 
-COPY go.mod ./
-COPY go.sum ./
-RUN go mod download
-
 COPY . .
+RUN go mod download
 
 RUN CGO_ENABLED=0 go install -ldflags "-s -w -extldflags '-static'" github.com/go-delve/delve/cmd/dlv
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -gcflags "all=-N -l" cmd/mool/main.go
