@@ -17,12 +17,10 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -gcflags "all=-N -l" cmd/mool
 ##
 ## Deploy
 ##
-FROM gcr.io/distroless/base-debian10
+# FROM gcr.io/distroless/base-debian10
+FROM gcr.io/distroless/base:debug
 
 WORKDIR /app
-
-# Now copy the static shell into base image.
-COPY --from=build /bin/bash /bin/bash
 
 COPY --from=build /app/main /app/main
 COPY --from=build ./app/app.env /app/
