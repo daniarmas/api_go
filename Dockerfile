@@ -32,4 +32,4 @@ EXPOSE 2345
 
 USER nonroot:nonroot
 
-ENTRYPOINT ["/dlv"]
+ENTRYPOINT ["/app/dlv"]
