@@ -36,3 +36,4 @@ EXPOSE 2345
 USER nonroot:nonroot
 
 ENTRYPOINT ["/bin/sh"]
+## New
