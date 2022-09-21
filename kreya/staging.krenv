@@ -4,8 +4,8 @@
   "globalContent": {
     "host": "api.staging.mool.cu",
     "port": 30211,
-    "accesstoken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjUzNjAwMDAsInN1YiI6ImI1OTVkYjhkLTVjMWYtNDFmNy1hNzY2LTg4NjQ5NjRkYTA4NCJ9.Iq3_s62RWldKH22WlHvY8bah3INqPPrc_yklONEsbxM",
-    "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjM0NDg5MjQsInN1YiI6IjY0NGE2OWJmLWI0NzItNGJlZS05YTM1LTMzY2NmNzg5NDgyMCJ9.Uci8fC5HNxXm1wkU0TbVqrOBg8Jg0Hkm-Z8fHpqV6ck",
+    "accesstoken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjM3OTc1NjksInN1YiI6ImVmNmY5M2UwLTE2YzMtNDQ0MC1hMjlmLWNmMTdiMTdlOTk5NCJ9.a9e25ev39_ijK6_P9oPvLlg8adtLc7WbjA4ICohg7UA",
+    "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjM3OTc3MDksInN1YiI6IjMyMjJlYmQ5LTM2ZDAtNDVmMy05MmY1LTgyMTlkNTA0ZTZmMiJ9.VerEMZtMVcGpupmFVSSLp8WWOAkOVsqTmzPi2q4gkHU",
     "firebasecloudmessagingid": "1"
   }
 }

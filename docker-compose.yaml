@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   cockroach:
-    image: docker.uclv.cu/cockroachdb/cockroach:latest-v21.1
+    image: cr.lanave.io/cockroachdb/cockroach:latest-v21.1
     container_name: cockroach
     volumes:
       - cockroach:/cockroach/cockroach-data
@@ -23,7 +23,7 @@ services:
   pgweb:
     container_name: pgweb
     restart: always
-    image: sosedoff/pgweb:0.11.9
+    image: cr.lanave.io/sosedoff/pgweb:0.11.9
     ports: 
       - "8085:8081" 
     links: 
@@ -32,40 +32,6 @@ services:
       - DATABASE_URL=postgres://root:root@cockroach:26257/postgres?sslmode=disable
     depends_on:
       - cockroach
-  # gendocu:
-  #   container_name: gendocu
-  #   restart: always
-  #   image: docker.uclv.cu/gendocu/grpc-docs
-  #   ports: 
-  #     - "8085:8080" 
-  #   volumes:
-  #     - ./proto:/input
-  #     - gendocu:/output
-  # db:
-  #   image: docker.uclv.cu/postgis/postgis:13-3.1-alpine 
-  #   container_name: ownpostgis
-  #   volumes:
-  #     - postgres:/var/lib/postgresql/data
-  #   ports:
-  #     - 5432:5432
-  #   restart: always
-  #   environment:
-  #     POSTGRES_HOST_AUTH_METHOD: scram-sha-256
-  #     POSTGRES_DB: postgres
-  #     POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --auth-local=scram-sha-256
-  #     POSTGRES_USER: postgres
-  #     POSTGRES_PASSWORD: postgres
-  # pgadmin4:
-  #   image: dpage/pgadmin4
-  #   container_name: pgadmin4
-  #   volumes:
-  #     - pgadmin4:/var/lib/pgadmin
-  #   restart: always
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: admin@admin.net
-  #     PGADMIN_DEFAULT_PASSWORD: admin
-  #   ports:
-  #     - 8080:80
   # minio:
   #   image: docker.uclv.cu/minio/minio:RELEASE.2022-01-08T03-11-54Z
   #   container_name: minio
@@ -85,7 +51,7 @@ services:
   #     timeout: 20s
   #     retries: 3
   createbuckets:
-    image: docker.uclv.cu/minio/mc:RELEASE.2022-04-16T21-11-21Z
+    image: cr.lanave.io/minio/mc:RELEASE.2022-04-16T21-11-21Z
     # depends_on:
     #   minio:
     #     condition: service_healthy

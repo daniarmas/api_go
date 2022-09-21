@@ -4,8 +4,8 @@
   "globalContent": {
     "host": "localhost",
     "port": 22211,
-    "accesstoken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjM0NDY3NzksInN1YiI6IjE3OWQ3NDgzLTRlYWMtNDczOC1hYWVmLWRmNGJhMDhiMDg0YiJ9.EZGliIBoliVG0zhk4wr-BSTfdAZlGRvxbkc3eNVc8cs",
-    "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjM0NDk2ODQsInN1YiI6IjBiMmJiNDQwLTUzOGItNGRiMS1iMjMyLTgzNjdiMGY5MDViNiJ9.i3XFOUazva_sPH9Fhf4oSPReZaNX89t52O-JGN8zUPE",
+    "accesstoken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjM1OTM1NjQsInN1YiI6IjdkZGUyZjE4LTNmZmItNGVjOS05N2U2LTQ5MzVkNTVkMTRiMSJ9.5wAKjBmLg6fE7eGl0nWSn0QvJpcH0OuzbHlDti3kqfE",
+    "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjM1OTM2MjksInN1YiI6IjkyZDRkMzI2LWNlYzEtNDUwZS04M2Q5LWQ3N2MyYzg4ZmI2MSJ9.hXreTdnVsa8AbQWtZ8UKFreQxvte8AxKwtpd3A8_rus",
     "firebasecloudmessagingid": "cLxvvk4JTLOatI9RAeNy32:APA91bE8cqW-Ibitnhp0YAQSnNt6F68QLCrQKe3CtlK4BS-4BFUDomYJra1M3hcKpxtsM8_uIqHXoqSBaUGSpTUEoJinbOqGCQImA7aPn7RkZSk_N_n5cxrUkZ8lRzBNwvpbvMxMN3_0"
   }
 }
