@@ -22,7 +22,7 @@ FROM gcr.io/distroless/base-debian10
 WORKDIR /app
 
 # Now copy the static shell into base image.
-COPY --from=build /bin/sh /bin/sh
+COPY --from=build /bin/bash /bin/bash
 
 COPY --from=build /app/main /app/main
 COPY --from=build ./app/app.env /app/
