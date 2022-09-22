@@ -339,10 +339,14 @@ func (i *userService) CreateUserAddress(ctx context.Context, req *pb.CreateUserA
 		if len(*listAddressRes) == 10 {
 			return errors.New("only can have 10 user_address")
 		}
-		provinceId := uuid.MustParse(req.UserAddress.ProvinceId)
-		municipalityId := uuid.MustParse(req.UserAddress.MunicipalityId)
 		location := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.UserAddress.Coordinates.Latitude, req.UserAddress.Coordinates.Longitude}).SetSRID(4326)}
-		createUserAddressRes, err := i.dao.NewUserAddressRepository().CreateUserAddress(tx, &entity.UserAddress{Selected: req.UserAddress.Selected, Name: req.UserAddress.Name, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, UserId: userRes.ID, ProvinceId: &provinceId, MunicipalityId: &municipalityId, Coordinates: location})
+		muncipalityRes, err := i.dao.NewMunicipalityRepository().GetMunicipalityByCoordinate(tx, location)
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("municipality not found")
+		} else if err != nil {
+			return err
+		}
+		createUserAddressRes, err := i.dao.NewUserAddressRepository().CreateUserAddress(tx, &entity.UserAddress{Selected: req.UserAddress.Selected, Name: req.UserAddress.Name, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, UserId: userRes.ID, ProvinceId: muncipalityRes.ProvinceId, MunicipalityId: muncipalityRes.ID, Coordinates: location})
 		if err != nil {
 			return err
 		}

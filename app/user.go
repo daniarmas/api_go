@@ -319,43 +319,13 @@ func (m *UserServer) DeleteUserAddress(ctx context.Context, req *pb.DeleteUserAd
 }
 
 func (m *UserServer) CreateUserAddress(ctx context.Context, req *pb.CreateUserAddressRequest) (*pb.UserAddress, error) {
-	var invalidCoordinates, invalidNumber, invalidAddress, invalidName, invalidProvinceId, invalidMunicipalityId *epb.BadRequest_FieldViolation
+	var invalidCoordinates, invalidNumber, invalidAddress, invalidName *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
 	if md.Authorization == nil {
 		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
-	}
-	if req.UserAddress.ProvinceId == "" {
-		invalidArgs = true
-		invalidProvinceId = &epb.BadRequest_FieldViolation{
-			Field:       "UserAddress.ProvinceId",
-			Description: "The UserAddress.ProvinceId field is required",
-		}
-	} else if req.UserAddress.ProvinceId != "" {
-		if !utils.IsValidUUID(&req.UserAddress.ProvinceId) {
-			invalidArgs = true
-			invalidProvinceId = &epb.BadRequest_FieldViolation{
-				Field:       "UserAddress.ProvinceId",
-				Description: "The UserAddress.ProvinceId is not a valid uuid v4",
-			}
-		}
-	}
-	if req.UserAddress.MunicipalityId == "" {
-		invalidArgs = true
-		invalidMunicipalityId = &epb.BadRequest_FieldViolation{
-			Field:       "UserAddress.MunicipalityId",
-			Description: "The UserAddress.MunicipalityId field is required",
-		}
-	} else if req.UserAddress.MunicipalityId != "" {
-		if !utils.IsValidUUID(&req.UserAddress.MunicipalityId) {
-			invalidArgs = true
-			invalidMunicipalityId = &epb.BadRequest_FieldViolation{
-				Field:       "UserAddress.MunicipalityId",
-				Description: "The UserAddress.MunicipalityId is not a valid uuid v4",
-			}
-		}
 	}
 	if req.UserAddress.Name == "" {
 		invalidArgs = true
@@ -409,16 +379,6 @@ func (m *UserServer) CreateUserAddress(ctx context.Context, req *pb.CreateUserAd
 		if invalidAddress != nil {
 			st, _ = st.WithDetails(
 				invalidAddress,
-			)
-		}
-		if invalidMunicipalityId != nil {
-			st, _ = st.WithDetails(
-				invalidMunicipalityId,
-			)
-		}
-		if invalidProvinceId != nil {
-			st, _ = st.WithDetails(
-				invalidProvinceId,
 			)
 		}
 		if invalidName != nil {
