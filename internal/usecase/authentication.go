@@ -456,14 +456,18 @@ func (v *authenticationService) SignUp(ctx context.Context, req *pb.SignUpReques
 		}
 		trueValue := true
 		falseValue := false
-		municipalityId := uuid.MustParse(req.UserAddress.MunicipalityId)
-		provinceId := uuid.MustParse(req.UserAddress.ProvinceId)
 		coordinates := ewkb.Point{Point: geom.NewPoint(geom.XY).MustSetCoords([]float64{req.UserAddress.Coordinates.Latitude, req.UserAddress.Coordinates.Longitude}).SetSRID(4326)}
+		muncipalityRes, err := v.dao.NewMunicipalityRepository().GetMunicipalityByCoordinate(tx, coordinates)
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("municipality not found")
+		} else if err != nil {
+			return err
+		}
 		createUserRes, err = v.dao.NewUserRepository().CreateUser(ctx, tx, &entity.User{Email: req.Email, IsLegalAge: true, FullName: req.FullName, UserConfiguration: entity.UserConfiguration{PaymentMethod: "PaymentMethodTypeCash", DataSaving: &falseValue, HighQualityImagesWifi: &trueValue, HighQualityImagesData: &trueValue}})
 		if err != nil {
 			return err
 		}
-		createUserAddressRes, err = v.dao.NewUserAddressRepository().CreateUserAddress(tx, &entity.UserAddress{Selected: true, Name: req.UserAddress.Name, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, ProvinceId: &provinceId, MunicipalityId: &municipalityId, Coordinates: coordinates, UserId: createUserRes.ID})
+		createUserAddressRes, err = v.dao.NewUserAddressRepository().CreateUserAddress(tx, &entity.UserAddress{Selected: true, Name: req.UserAddress.Name, Address: req.UserAddress.Address, Number: req.UserAddress.Number, Instructions: req.UserAddress.Instructions, ProvinceId: muncipalityRes.ProvinceId, MunicipalityId: muncipalityRes.ID, Coordinates: coordinates, UserId: createUserRes.ID})
 		if err != nil {
 			return err
 		}
