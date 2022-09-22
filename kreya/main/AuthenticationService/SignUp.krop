@@ -4,7 +4,7 @@
     "metadata": [
       {
         "key": "Device-Id",
-        "value": "10"
+        "value": "105"
       },
       {
         "key": "Access-Token",
@@ -16,7 +16,7 @@
       },
       {
         "key": "System-Version",
-        "value": "14"
+        "value": "14.1"
       },
       {
         "key": "Model",
