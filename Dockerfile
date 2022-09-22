@@ -11,7 +11,7 @@ WORKDIR /app
 COPY . .
 RUN go mod download
 
-RUN CGO_ENABLED=0 go install -ldflags "-s -w -extldflags '-static'" github.com/go-delve/delve/cmd/dlv@master
+# RUN CGO_ENABLED=0 go install -ldflags "-s -w -extldflags '-static'" github.com/go-delve/delve/cmd/dlv@master
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -gcflags "all=-N -l" cmd/mool/main.go
 
 ##
@@ -25,7 +25,7 @@ WORKDIR /app
 COPY --from=build /app/main /app/main
 COPY --from=build ./app/app.env /app/
 COPY --from=build /app/grpc_health_probe /app/grpc_health_probe
-COPY --from=build /go/bin/dlv /app/dlv
+# COPY --from=build /go/bin/dlv /app/dlv
 
 EXPOSE 22210
 EXPOSE 22211
@@ -33,4 +33,4 @@ EXPOSE 2345
 
 USER nonroot:nonroot
 
-ENTRYPOINT ["/app/dlv"]
+ENTRYPOINT ["/app/main"]
