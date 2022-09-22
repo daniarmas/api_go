@@ -68,7 +68,7 @@ func (i *itemService) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest,
 			return err
 		}
 		id := uuid.MustParse(req.Item.Id)
-		getItemRes, err := i.dao.NewItemRepository().GetItem(ctx, tx, &entity.Item{ID: &id})
+		getItemRes, err := i.dao.NewItemRepository().GetItem(ctx, tx, &entity.ItemBusiness{ID: &id})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("item not found")
 		} else if err != nil {
@@ -128,7 +128,7 @@ func (i *itemService) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest,
 				return err
 			}
 		}
-		updateItemRes, err := i.dao.NewItemRepository().UpdateItem(ctx, tx, &entity.Item{ID: &id}, &entity.Item{Name: req.Item.Name, Description: req.Item.Description, PriceCup: req.Item.PriceCup, Availability: int64(req.Item.Availability), HighQualityPhoto: req.Item.HighQualityPhoto, LowQualityPhoto: req.Item.LowQualityPhoto, Thumbnail: req.Item.Thumbnail, BlurHash: req.Item.BlurHash})
+		updateItemRes, err := i.dao.NewItemRepository().UpdateItem(ctx, tx, &entity.ItemBusiness{ID: &id}, &entity.ItemBusiness{Name: req.Item.Name, Description: req.Item.Description, PriceCup: req.Item.PriceCup, Availability: int64(req.Item.Availability), HighQualityPhoto: req.Item.HighQualityPhoto, LowQualityPhoto: req.Item.LowQualityPhoto, Thumbnail: req.Item.Thumbnail, BlurHash: req.Item.BlurHash})
 		if err != nil {
 			return err
 		}
@@ -184,7 +184,7 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 			return err
 		}
 		id := uuid.MustParse(req.Id)
-		getItemRes, err := i.dao.NewItemRepository().GetItem(ctx, tx, &entity.Item{ID: &id})
+		getItemRes, err := i.dao.NewItemRepository().GetItem(ctx, tx, &entity.ItemBusiness{ID: &id})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("item not found")
 		} else if err != nil {
@@ -208,7 +208,7 @@ func (i *itemService) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest,
 		} else if getCartItemRes != nil {
 			return errors.New("item in the cart")
 		}
-		_, err = i.dao.NewItemRepository().DeleteItem(ctx, tx, &entity.Item{ID: &id}, nil)
+		_, err = i.dao.NewItemRepository().DeleteItem(ctx, tx, &entity.ItemBusiness{ID: &id}, nil)
 		if err != nil {
 			return err
 		}
@@ -301,7 +301,7 @@ func (i *itemService) CreateItem(ctx context.Context, req *pb.CreateItemRequest,
 			return err
 		}
 		businessCollectionId := uuid.MustParse(req.Item.BusinessCollectionId)
-		itemRes, err := i.dao.NewItemRepository().CreateItem(ctx, tx, &entity.Item{Name: req.Item.Name, Description: req.Item.Description, PriceCup: req.Item.PriceCup, CostCup: req.Item.CostCup, ProfitCup: req.Item.ProfitCup, PriceUsd: req.Item.PriceUsd, ProfitUsd: req.Item.ProfitUsd, CostUsd: req.Item.CostUsd, Availability: int64(req.Item.Availability), BusinessId: &businessId, BusinessCollectionId: &businessCollectionId, HighQualityPhoto: req.Item.HighQualityPhoto, LowQualityPhoto: req.Item.LowQualityPhoto, Thumbnail: req.Item.Thumbnail, BlurHash: req.Item.BlurHash, ProvinceId: businessRes.ProvinceId, MunicipalityId: businessRes.MunicipalityId, AvailableFlag: req.Item.AvailableFlag, EnabledFlag: req.Item.EnabledFlag})
+		itemRes, err := i.dao.NewItemRepository().CreateItem(ctx, tx, &entity.ItemBusiness{Name: req.Item.Name, Description: req.Item.Description, PriceCup: req.Item.PriceCup, CostCup: req.Item.CostCup, ProfitCup: req.Item.ProfitCup, PriceUsd: req.Item.PriceUsd, ProfitUsd: req.Item.ProfitUsd, CostUsd: req.Item.CostUsd, Availability: int64(req.Item.Availability), BusinessId: &businessId, BusinessCollectionId: &businessCollectionId, HighQualityPhoto: req.Item.HighQualityPhoto, LowQualityPhoto: req.Item.LowQualityPhoto, Thumbnail: req.Item.Thumbnail, BlurHash: req.Item.BlurHash, ProvinceId: businessRes.ProvinceId, MunicipalityId: businessRes.MunicipalityId, AvailableFlag: req.Item.AvailableFlag, EnabledFlag: req.Item.EnabledFlag})
 		if err != nil {
 			return err
 		}
@@ -321,7 +321,7 @@ func (i *itemService) ListItem(ctx context.Context, req *pb.ListItemRequest, md 
 		if err != nil {
 			return err
 		}
-		where := entity.Item{}
+		where := entity.ItemBusiness{}
 		var nextPage time.Time
 		if req.NextPage == nil || (req.NextPage.Nanos == 0 && req.NextPage.Seconds == 0) {
 			nextPage = time.Now()
@@ -390,7 +390,7 @@ func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *u
 			return err
 		}
 		id := uuid.MustParse(req.Id)
-		item, err := i.dao.NewItemRepository().GetItem(ctx, tx, &entity.Item{ID: &id})
+		item, err := i.dao.NewItemRepository().GetItem(ctx, tx, &entity.ItemBusiness{ID: &id})
 		if err != nil && err.Error() == "record not found" {
 			return errors.New("item not found")
 		} else if err != nil {
@@ -413,6 +413,7 @@ func (i *itemService) GetItem(ctx context.Context, req *pb.GetItemRequest, md *u
 			ThumbnailUrl:         i.config.ItemsBulkName + "/" + item.Thumbnail,
 			BlurHash:             item.BlurHash,
 			Cursor:               item.Cursor,
+			OpenFlag:             item.BusinessOpenFlag,
 			CreateTime:           timestamppb.New(item.CreateTime),
 			UpdateTime:           timestamppb.New(item.UpdateTime),
 		}
@@ -431,7 +432,7 @@ func (i *itemService) SearchItem(ctx context.Context, req *pb.SearchItemRequest,
 		if err != nil {
 			return err
 		}
-		var searchItemRes *[]entity.Item
+		var searchItemRes *[]entity.ItemBusiness
 		if req.SearchMunicipalityType.String() == "More" {
 			searchItemRes, err = i.dao.NewItemRepository().SearchItem(ctx, tx, req.Name, req.ProvinceId, req.MunicipalityId, int64(req.NextPage), false, 10)
 			if err != nil {
@@ -510,7 +511,7 @@ func (i *itemService) SearchItemByBusiness(ctx context.Context, req *pb.SearchIt
 		if err != nil {
 			return err
 		}
-		var searchItemByBusinessRes *[]entity.Item
+		var searchItemByBusinessRes *[]entity.ItemBusiness
 		searchItemByBusinessRes, err = i.dao.NewItemRepository().SearchItemByBusiness(ctx, tx, req.Name, int64(req.NextPage), req.BusinessId)
 		if err != nil {
 			return err

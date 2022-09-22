@@ -892,7 +892,7 @@ message Business {
   string thumbnail = 8;
   string thumbnailUrl = 9;
   string blurHash = 10;
-  bool isOpen = 11;
+  bool openFlag = 11;
   string deliveryPriceCup = 12;
   repeated double polygon = 13;
   Point coordinates = 14;
@@ -944,8 +944,9 @@ message Item {
   string businessCollectionId = 24;
   bool isInRange = 25;
   string businessName = 27;
-  google.protobuf.Timestamp createTime = 28;
-  google.protobuf.Timestamp updateTime = 29;
+  bool openFlag = 28;
+  google.protobuf.Timestamp createTime = 29;
+  google.protobuf.Timestamp updateTime = 30;
 }
 
 message Application {

@@ -1,7 +1,0 @@
-{
-  "paymentMethod": {
-    "type": "PaymentMethodTypeEnzona",
-    "address": "123211312981930",
-    "enabled": true,
-  }
-}

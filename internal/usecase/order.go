@@ -368,7 +368,7 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 				(*itemsRes)[index].Availability += int64(item.Quantity)
 			}
 			for _, item := range *itemsRes {
-				_, err := i.dao.NewItemRepository().UpdateItem(ctx, tx, &entity.Item{ID: item.ID}, &item)
+				_, err := i.dao.NewItemRepository().UpdateItem(ctx, tx, &entity.ItemBusiness{ID: item.ID}, &item)
 				if err != nil {
 					return err
 				}

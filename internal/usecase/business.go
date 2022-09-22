@@ -973,6 +973,7 @@ func (v *businessService) Feed(ctx context.Context, req *pb.FeedRequest, meta *u
 					BusinessBrandId:       e.BusinessBrandId.String(),
 					ProvinceId:            e.ProvinceId.String(),
 					MunicipalityId:        e.MunicipalityId.String(),
+					OpenFlag:              e.OpenFlag,
 					Cursor:                int32(e.Cursor),
 				})
 			}
@@ -1049,7 +1050,7 @@ func (v *businessService) GetBusiness(ctx context.Context, req *pb.GetBusinessRe
 	lowQualityPhotoUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.LowQualityPhoto
 	thumbnailUrl = v.config.BusinessAvatarBulkName + "/" + businessRes.Thumbnail
 	nowTime := time.Now().UTC()
-	return &pb.Business{Id: businessRes.ID.String(), Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, LowQualityPhoto: businessRes.LowQualityPhoto, Thumbnail: businessRes.Thumbnail, BlurHash: businessRes.BlurHash, ToPickUp: businessRes.ToPickUp, DeliveryPriceCup: businessRes.DeliveryPriceCup, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.Coords()[1], Longitude: businessRes.Coordinates.Coords()[0]}, HighQualityPhotoUrl: highQualityPhotoUrl, LowQualityPhotoUrl: lowQualityPhotoUrl, ThumbnailUrl: thumbnailUrl, BusinessCollections: itemsCategoryResponse, NowTime: timestamppb.New(nowTime), BusinessSchedule: &pb.BusinessSchedule{
+	return &pb.Business{Id: businessRes.ID.String(), OpenFlag: businessRes.OpenFlag, Name: businessRes.Name, Address: businessRes.Address, HighQualityPhoto: businessRes.HighQualityPhoto, LowQualityPhoto: businessRes.LowQualityPhoto, Thumbnail: businessRes.Thumbnail, BlurHash: businessRes.BlurHash, ToPickUp: businessRes.ToPickUp, DeliveryPriceCup: businessRes.DeliveryPriceCup, HomeDelivery: businessRes.HomeDelivery, ProvinceId: businessRes.ProvinceId.String(), MunicipalityId: businessRes.MunicipalityId.String(), BusinessBrandId: businessRes.BusinessBrandId.String(), Coordinates: &pb.Point{Latitude: businessRes.Coordinates.Coords()[1], Longitude: businessRes.Coordinates.Coords()[0]}, HighQualityPhotoUrl: highQualityPhotoUrl, LowQualityPhotoUrl: lowQualityPhotoUrl, ThumbnailUrl: thumbnailUrl, BusinessCollections: itemsCategoryResponse, NowTime: timestamppb.New(nowTime), BusinessSchedule: &pb.BusinessSchedule{
 		Id:                         schedule.ID.String(),
 		FirstOpeningTimeSunday:     timestamppb.New(schedule.FirstOpeningTimeSunday),
 		FirstClosingTimeSunday:     timestamppb.New(schedule.FirstClosingTimeSunday),

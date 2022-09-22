@@ -108,6 +108,8 @@ func (m *CartItemServer) EmptyAndAddCartItem(ctx context.Context, req *pb.EmptyA
 				},
 			)
 			st = ds
+		case "business is closed":
+			st = status.New(codes.FailedPrecondition, "Business is closed")
 		case "authorization token expired":
 			st = status.New(codes.Unauthenticated, "Authorization token expired")
 		case "authorization token contains an invalid number of segments", "authorization token signature is invalid":
@@ -269,6 +271,8 @@ func (m *CartItemServer) AddCartItem(ctx context.Context, req *pb.AddCartItemReq
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "item not found":
 			st = status.New(codes.NotFound, "Item not found")
+		case "business is closed":
+			st = status.New(codes.FailedPrecondition, "Business is closed")
 		case "no_availability":
 			st = status.New(codes.InvalidArgument, "No availability")
 			ds, _ := st.WithDetails(

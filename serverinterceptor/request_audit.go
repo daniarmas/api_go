@@ -120,7 +120,7 @@ func logRequest(start time.Time, requestMethod string, userAgents []string, ip n
 	// Unknown, DeadlineExceeded, ResourceExhausted, Internal, Unavailable, DataLoss
 	// (ResourceExhausted is somewhere in between, from user quota exhausted to OOM, rather have it on error for now)
 	default:
-		log.Error("gRPC call errored")
+		log.Error("gRPC call errored -- ", err.Error())
 	}
 }
 
