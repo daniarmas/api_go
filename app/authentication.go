@@ -397,8 +397,6 @@ func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest
 		invalidAddress        *epb.BadRequest_FieldViolation
 		invalidNumber         *epb.BadRequest_FieldViolation
 		invalidCoordinates    *epb.BadRequest_FieldViolation
-		invalidProvinceId     *epb.BadRequest_FieldViolation
-		invalidMunicipalityId *epb.BadRequest_FieldViolation
 	)
 	var invalidArgs bool
 	var st *status.Status
@@ -421,36 +419,6 @@ func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest
 			invalidCoordinates = &epb.BadRequest_FieldViolation{
 				Field:       "userAddress.Coordinates.Longitude",
 				Description: "The userAddress.Coordinates.Longitude field is required",
-			}
-		}
-	}
-	if req.UserAddress.ProvinceId == "" {
-		invalidArgs = true
-		invalidProvinceId = &epb.BadRequest_FieldViolation{
-			Field:       "userAddress.provinceId",
-			Description: "The userAddress.provinceId field is required",
-		}
-	} else if req.UserAddress.ProvinceId != "" {
-		if !utils.IsValidUUID(&req.UserAddress.ProvinceId) {
-			invalidArgs = true
-			invalidProvinceId = &epb.BadRequest_FieldViolation{
-				Field:       "userAddress.provinceId",
-				Description: "The userAddress.provinceId field is not a valid uuid v4",
-			}
-		}
-	}
-	if req.UserAddress.MunicipalityId == "" {
-		invalidArgs = true
-		invalidMunicipalityId = &epb.BadRequest_FieldViolation{
-			Field:       "userAddress.municipalityId",
-			Description: "The userAddress.municipalityId field is required",
-		}
-	} else if req.UserAddress.MunicipalityId != "" {
-		if !utils.IsValidUUID(&req.UserAddress.MunicipalityId) {
-			invalidArgs = true
-			invalidMunicipalityId = &epb.BadRequest_FieldViolation{
-				Field:       "userAddress.municipalityId",
-				Description: "The userAddress.municipalityId field is not a valid uuid v4",
 			}
 		}
 	}
@@ -548,16 +516,6 @@ func (m *AuthenticationServer) SignUp(ctx context.Context, req *pb.SignUpRequest
 		if invalidNumber != nil {
 			st, _ = st.WithDetails(
 				invalidNumber,
-			)
-		}
-		if invalidMunicipalityId != nil {
-			st, _ = st.WithDetails(
-				invalidMunicipalityId,
-			)
-		}
-		if invalidProvinceId != nil {
-			st, _ = st.WithDetails(
-				invalidProvinceId,
 			)
 		}
 		return nil, st.Err()
