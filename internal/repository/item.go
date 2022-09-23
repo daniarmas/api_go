@@ -96,54 +96,9 @@ func (v *itemRepository) CreateItem(ctx context.Context, tx *gorm.DB, data *enti
 }
 
 func (i *itemRepository) ListItem(ctx context.Context, tx *gorm.DB, where *entity.ItemBusiness, cursor time.Time) (*[]entity.ItemBusiness, error) {
-	// Get from database
 	dbRes, dbErr := Datasource.NewItemDatasource().ListItem(tx, where, cursor)
 	if dbErr != nil {
 		return nil, dbErr
-	} else {
-		// Delete in cache
-		go func() {
-			ctx := context.Background()
-			rdbPipe := Rdb.Pipeline()
-			for _, item := range *dbRes {
-				cacheId := "item:" + item.ID.String()
-				cacheErr := rdbPipe.HSet(ctx, cacheId, []string{
-					"id", item.ID.String(),
-					"name", item.Name,
-					"business_name", item.BusinessName,
-					"description", item.Description,
-					"thumbnail", item.Thumbnail,
-					"high_quality_photo", item.HighQualityPhoto,
-					"low_quality_photo", item.LowQualityPhoto,
-					"blurhash", item.BlurHash,
-					"cost_cup", item.CostCup,
-					"price_cup", item.PriceCup,
-					"profit_cup", item.ProfitCup,
-					"cost_usd", item.CostUsd,
-					"price_usd", item.PriceCup,
-					"profit_usd", item.ProfitUsd,
-					"cursor", strconv.FormatInt(int64(item.Cursor), 10),
-					"enabled_flag", strconv.FormatBool(item.EnabledFlag),
-					"available_flag", strconv.FormatBool(item.AvailableFlag),
-					"availability", strconv.FormatInt(item.Availability, 10),
-					"province_id", item.ProvinceId.String(),
-					"municipality_id", item.MunicipalityId.String(),
-					"business_id", item.BusinessId.String(),
-					"business_collection_id", item.BusinessCollectionId.String(),
-					"create_time", item.CreateTime.Format(time.RFC3339),
-					"update_time", item.UpdateTime.Format(time.RFC3339),
-				}).Err()
-				if cacheErr != nil {
-					log.Error(cacheErr)
-				} else {
-					rdbPipe.Expire(ctx, cacheId, time.Second*15)
-				}
-			}
-			_, err := rdbPipe.Exec(ctx)
-			if err != nil {
-				log.Error(err)
-			}
-		}()
 	}
 	return dbRes, nil
 }
@@ -153,51 +108,6 @@ func (i *itemRepository) ListItemInIds(ctx context.Context, tx *gorm.DB, ids []u
 	dbRes, dbErr := Datasource.NewItemDatasource().ListItemInIds(tx, ids)
 	if dbErr != nil {
 		return nil, dbErr
-	} else {
-		// Delete in cache
-		go func() {
-			ctx := context.Background()
-			rdbPipe := Rdb.Pipeline()
-			for _, item := range *dbRes {
-				cacheId := "item:" + item.ID.String()
-				cacheErr := rdbPipe.HSet(ctx, cacheId, []string{
-					"id", item.ID.String(),
-					"name", item.Name,
-					"business_name", item.BusinessName,
-					"description", item.Description,
-					"thumbnail", item.Thumbnail,
-					"high_quality_photo", item.HighQualityPhoto,
-					"low_quality_photo", item.LowQualityPhoto,
-					"blurhash", item.BlurHash,
-					"cost_cup", item.CostCup,
-					"price_cup", item.PriceCup,
-					"profit_cup", item.ProfitCup,
-					"cost_usd", item.CostUsd,
-					"price_usd", item.PriceCup,
-					"profit_usd", item.ProfitUsd,
-					"cursor", strconv.FormatInt(int64(item.Cursor), 10),
-					"business_open_flag", strconv.FormatBool(item.BusinessOpenFlag),
-					"enabled_flag", strconv.FormatBool(item.EnabledFlag),
-					"available_flag", strconv.FormatBool(item.AvailableFlag),
-					"availability", strconv.FormatInt(item.Availability, 10),
-					"province_id", item.ProvinceId.String(),
-					"municipality_id", item.MunicipalityId.String(),
-					"business_id", item.BusinessId.String(),
-					"business_collection_id", item.BusinessCollectionId.String(),
-					"create_time", item.CreateTime.Format(time.RFC3339),
-					"update_time", item.UpdateTime.Format(time.RFC3339),
-				}).Err()
-				if cacheErr != nil {
-					log.Error(cacheErr)
-				} else {
-					rdbPipe.Expire(ctx, cacheId, time.Second*15)
-				}
-			}
-			_, err := rdbPipe.Exec(ctx)
-			if err != nil {
-				log.Error(err)
-			}
-		}()
 	}
 	return dbRes, nil
 }
