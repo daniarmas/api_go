@@ -66,7 +66,7 @@ func (m *ItemServer) ListItem(ctx context.Context, req *pb.ListItemRequest) (*pb
 }
 
 func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.Item, error) {
-	var invalidId, invalidLocation *epb.BadRequest_FieldViolation
+	var invalidId *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
@@ -85,37 +85,11 @@ func (m *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.I
 			}
 		}
 	}
-	if req.Location == nil {
-		invalidArgs = true
-		invalidLocation = &epb.BadRequest_FieldViolation{
-			Field:       "location",
-			Description: "The location field is required",
-		}
-	} else if req.Location != nil {
-		if req.Location.Latitude == 0 {
-			invalidArgs = true
-			invalidLocation = &epb.BadRequest_FieldViolation{
-				Field:       "location.latitude",
-				Description: "The location.latitude field is required",
-			}
-		} else if req.Location.Longitude == 0 {
-			invalidArgs = true
-			invalidLocation = &epb.BadRequest_FieldViolation{
-				Field:       "location.longitude",
-				Description: "The location.longitude field is required",
-			}
-		}
-	}
 	if invalidArgs {
 		st = status.New(codes.InvalidArgument, "Invalid Arguments")
 		if invalidId != nil {
 			st, _ = st.WithDetails(
 				invalidId,
-			)
-		}
-		if invalidLocation != nil {
-			st, _ = st.WithDetails(
-				invalidLocation,
 			)
 		}
 		return nil, st.Err()

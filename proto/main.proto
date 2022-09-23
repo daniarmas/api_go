@@ -582,8 +582,7 @@ message AddCartItemRequest {
 
 message EmptyAndAddCartItemRequest {
   string itemId = 1;
-  Point location = 2;
-  int32 quantity = 3;
+  int32 quantity = 2;
 }
 
 message SearchItemRequest {
@@ -624,7 +623,6 @@ message ListItemResponse {
 
 message GetItemRequest {
   string id = 1;
-  Point location = 2;
 }
 
 message FeedRequest {
