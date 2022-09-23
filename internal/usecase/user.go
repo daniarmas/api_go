@@ -597,7 +597,7 @@ func (i *userService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest,
 			if req.Code == "" {
 				return errors.New("missing code")
 			}
-			verificationCode, err := i.dao.NewVerificationCodeRepository().GetVerificationCode(ctx, tx, &entity.VerificationCode{Email: userRes.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "ChangeUserEmail"})
+			verificationCode, err := i.dao.NewVerificationCodeRepository().GetVerificationCode(ctx, tx, &entity.VerificationCode{Email: req.User.Email, Code: req.Code, DeviceIdentifier: *md.DeviceIdentifier, Type: "ChangeUserEmail"})
 			if err != nil && err.Error() == "record not found" {
 				return errors.New("verification code not found")
 			} else if err != nil {
