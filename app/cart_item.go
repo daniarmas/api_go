@@ -13,7 +13,7 @@ import (
 )
 
 func (m *CartItemServer) EmptyAndAddCartItem(ctx context.Context, req *pb.EmptyAndAddCartItemRequest) (*pb.CartItem, error) {
-	var invalidItemId, invalidLocation, invalidQuantity *epb.BadRequest_FieldViolation
+	var invalidItemId, invalidQuantity *epb.BadRequest_FieldViolation
 	var invalidArgs bool
 	var st *status.Status
 	md := utils.GetMetadata(ctx)
@@ -26,27 +26,6 @@ func (m *CartItemServer) EmptyAndAddCartItem(ctx context.Context, req *pb.EmptyA
 		invalidQuantity = &epb.BadRequest_FieldViolation{
 			Field:       "Quantity",
 			Description: "The Quantity value must be greater than 0",
-		}
-	}
-	if req.Location == nil {
-		invalidArgs = true
-		invalidLocation = &epb.BadRequest_FieldViolation{
-			Field:       "Location",
-			Description: "The Location field is required",
-		}
-	} else if req.Location != nil {
-		if req.Location.Latitude == 0 {
-			invalidArgs = true
-			invalidLocation = &epb.BadRequest_FieldViolation{
-				Field:       "Location.Latitude",
-				Description: "The Location.Latitude field is required",
-			}
-		} else if req.Location.Longitude == 0 {
-			invalidArgs = true
-			invalidLocation = &epb.BadRequest_FieldViolation{
-				Field:       "Location.Longitude",
-				Description: "The Location.Longitude field is required",
-			}
 		}
 	}
 	if req.ItemId == "" {
@@ -66,11 +45,6 @@ func (m *CartItemServer) EmptyAndAddCartItem(ctx context.Context, req *pb.EmptyA
 	}
 	if invalidArgs {
 		st = status.New(codes.InvalidArgument, "Invalid Arguments")
-		if invalidLocation != nil {
-			st, _ = st.WithDetails(
-				invalidLocation,
-			)
-		}
 		if invalidQuantity != nil {
 			st, _ = st.WithDetails(
 				invalidQuantity,
