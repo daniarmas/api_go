@@ -368,7 +368,7 @@ func (v *authenticationService) SignIn(ctx context.Context, req *pb.SignInReques
 		// Send a message to the device corresponding to the provided
 		// registration token.
 		response, err := v.fcmMoolShoppingClient.Send(ctx, message)
-		if err != nil {
+		if err != nil && v.config.Environment != "development" && v.config.Environment != "staging" {
 			return nil, err
 		}
 		// Response is a message ID string.
