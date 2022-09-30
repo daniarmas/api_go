@@ -160,6 +160,7 @@ func main() {
 		pb.RegisterPermissionServiceHandlerServer(context.Background(), mux, app.NewPermissionServer(
 			permissionService,
 		))
+		pb.RegisterApplicationServiceHandlerServer(context.Background(), mux, app.NewApplicationServer(applicationService))
 		// http server
 		// cors.Default() setup the middleware with default options being
 		// all origins accepted with simple methods (GET, POST). See

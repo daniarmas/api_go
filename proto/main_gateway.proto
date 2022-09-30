@@ -69,9 +69,22 @@ service AuthenticationService {
 }
 
 service ApplicationService {
-  rpc CreateApplication (CreateApplicationRequest) returns (Application) {}
-  rpc ListApplication (ListApplicationRequest) returns (ListApplicationResponse) {}
-  rpc DeleteApplication (DeleteApplicationRequest) returns (google.protobuf.Empty) {}
+  rpc CreateApplication (CreateApplicationRequest) returns (Application) {
+      option (google.api.http) = {
+            post: "/api/v1/application"
+            body: "*"
+      };
+  }
+  rpc ListApplication (ListApplicationRequest) returns (ListApplicationResponse) {
+      option (google.api.http) = {
+            get: "/api/v1/application"
+      };
+  }
+  rpc DeleteApplication (DeleteApplicationRequest) returns (google.protobuf.Empty) {
+      option (google.api.http) = {
+            delete: "/api/v1/application/{id}"
+      };
+  }
 }
 
 service PermissionService {
