@@ -2066,14 +2066,6 @@ func request_PaymentMethodService_ListPaymentMethod_0(ctx context.Context, marsh
 	var protoReq ListPaymentMethodRequest
 	var metadata runtime.ServerMetadata
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-
 	msg, err := client.ListPaymentMethod(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
@@ -2082,14 +2074,6 @@ func request_PaymentMethodService_ListPaymentMethod_0(ctx context.Context, marsh
 func local_request_PaymentMethodService_ListPaymentMethod_0(ctx context.Context, marshaler runtime.Marshaler, server PaymentMethodServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ListPaymentMethodRequest
 	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
 
 	msg, err := server.ListPaymentMethod(ctx, &protoReq)
 	return msg, metadata, err
@@ -2106,6 +2090,23 @@ func request_PaymentMethodService_UpdatePaymentMethod_0(ctx context.Context, mar
 	}
 	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
 	msg, err := client.UpdatePaymentMethod(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -2125,6 +2126,23 @@ func local_request_PaymentMethodService_UpdatePaymentMethod_0(ctx context.Contex
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
 	msg, err := server.UpdatePaymentMethod(ctx, &protoReq)
 	return msg, metadata, err
 
@@ -2134,12 +2152,21 @@ func request_PaymentMethodService_DeletePaymentMethod_0(ctx context.Context, mar
 	var protoReq DeletePaymentMethodRequest
 	var metadata runtime.ServerMetadata
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
 	msg, err := client.DeletePaymentMethod(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -2151,12 +2178,21 @@ func local_request_PaymentMethodService_DeletePaymentMethod_0(ctx context.Contex
 	var protoReq DeletePaymentMethodRequest
 	var metadata runtime.ServerMetadata
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
 	msg, err := server.DeletePaymentMethod(ctx, &protoReq)
@@ -3793,7 +3829,7 @@ func RegisterPaymentMethodServiceHandlerServer(ctx context.Context, mux *runtime
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/main.PaymentMethodService/CreatePaymentMethod", runtime.WithHTTPPathPattern("/main.PaymentMethodService/CreatePaymentMethod"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/main.PaymentMethodService/CreatePaymentMethod", runtime.WithHTTPPathPattern("/api/v1/payment-method"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -3810,7 +3846,7 @@ func RegisterPaymentMethodServiceHandlerServer(ctx context.Context, mux *runtime
 
 	})
 
-	mux.Handle("POST", pattern_PaymentMethodService_ListPaymentMethod_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_PaymentMethodService_ListPaymentMethod_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -3818,7 +3854,7 @@ func RegisterPaymentMethodServiceHandlerServer(ctx context.Context, mux *runtime
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/main.PaymentMethodService/ListPaymentMethod", runtime.WithHTTPPathPattern("/main.PaymentMethodService/ListPaymentMethod"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/main.PaymentMethodService/ListPaymentMethod", runtime.WithHTTPPathPattern("/api/v1/payment-method"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -3835,7 +3871,7 @@ func RegisterPaymentMethodServiceHandlerServer(ctx context.Context, mux *runtime
 
 	})
 
-	mux.Handle("POST", pattern_PaymentMethodService_UpdatePaymentMethod_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PUT", pattern_PaymentMethodService_UpdatePaymentMethod_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -3843,7 +3879,7 @@ func RegisterPaymentMethodServiceHandlerServer(ctx context.Context, mux *runtime
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/main.PaymentMethodService/UpdatePaymentMethod", runtime.WithHTTPPathPattern("/main.PaymentMethodService/UpdatePaymentMethod"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/main.PaymentMethodService/UpdatePaymentMethod", runtime.WithHTTPPathPattern("/api/v1/payment-method/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -3860,7 +3896,7 @@ func RegisterPaymentMethodServiceHandlerServer(ctx context.Context, mux *runtime
 
 	})
 
-	mux.Handle("POST", pattern_PaymentMethodService_DeletePaymentMethod_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_PaymentMethodService_DeletePaymentMethod_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -3868,7 +3904,7 @@ func RegisterPaymentMethodServiceHandlerServer(ctx context.Context, mux *runtime
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/main.PaymentMethodService/DeletePaymentMethod", runtime.WithHTTPPathPattern("/main.PaymentMethodService/DeletePaymentMethod"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/main.PaymentMethodService/DeletePaymentMethod", runtime.WithHTTPPathPattern("/api/v1/payment-method/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5885,7 +5921,7 @@ func RegisterPaymentMethodServiceHandlerClient(ctx context.Context, mux *runtime
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/main.PaymentMethodService/CreatePaymentMethod", runtime.WithHTTPPathPattern("/main.PaymentMethodService/CreatePaymentMethod"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/main.PaymentMethodService/CreatePaymentMethod", runtime.WithHTTPPathPattern("/api/v1/payment-method"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5901,13 +5937,13 @@ func RegisterPaymentMethodServiceHandlerClient(ctx context.Context, mux *runtime
 
 	})
 
-	mux.Handle("POST", pattern_PaymentMethodService_ListPaymentMethod_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_PaymentMethodService_ListPaymentMethod_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/main.PaymentMethodService/ListPaymentMethod", runtime.WithHTTPPathPattern("/main.PaymentMethodService/ListPaymentMethod"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/main.PaymentMethodService/ListPaymentMethod", runtime.WithHTTPPathPattern("/api/v1/payment-method"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5923,13 +5959,13 @@ func RegisterPaymentMethodServiceHandlerClient(ctx context.Context, mux *runtime
 
 	})
 
-	mux.Handle("POST", pattern_PaymentMethodService_UpdatePaymentMethod_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PUT", pattern_PaymentMethodService_UpdatePaymentMethod_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/main.PaymentMethodService/UpdatePaymentMethod", runtime.WithHTTPPathPattern("/main.PaymentMethodService/UpdatePaymentMethod"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/main.PaymentMethodService/UpdatePaymentMethod", runtime.WithHTTPPathPattern("/api/v1/payment-method/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5945,13 +5981,13 @@ func RegisterPaymentMethodServiceHandlerClient(ctx context.Context, mux *runtime
 
 	})
 
-	mux.Handle("POST", pattern_PaymentMethodService_DeletePaymentMethod_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_PaymentMethodService_DeletePaymentMethod_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/main.PaymentMethodService/DeletePaymentMethod", runtime.WithHTTPPathPattern("/main.PaymentMethodService/DeletePaymentMethod"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/main.PaymentMethodService/DeletePaymentMethod", runtime.WithHTTPPathPattern("/api/v1/payment-method/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5993,13 +6029,13 @@ func RegisterPaymentMethodServiceHandlerClient(ctx context.Context, mux *runtime
 }
 
 var (
-	pattern_PaymentMethodService_CreatePaymentMethod_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"main.PaymentMethodService", "CreatePaymentMethod"}, ""))
+	pattern_PaymentMethodService_CreatePaymentMethod_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "payment-method"}, ""))
 
-	pattern_PaymentMethodService_ListPaymentMethod_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"main.PaymentMethodService", "ListPaymentMethod"}, ""))
+	pattern_PaymentMethodService_ListPaymentMethod_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "payment-method"}, ""))
 
-	pattern_PaymentMethodService_UpdatePaymentMethod_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"main.PaymentMethodService", "UpdatePaymentMethod"}, ""))
+	pattern_PaymentMethodService_UpdatePaymentMethod_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "payment-method", "id"}, ""))
 
-	pattern_PaymentMethodService_DeletePaymentMethod_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"main.PaymentMethodService", "DeletePaymentMethod"}, ""))
+	pattern_PaymentMethodService_DeletePaymentMethod_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "payment-method", "id"}, ""))
 
 	pattern_PaymentMethodService_ListBusinessPaymentMethod_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"main.PaymentMethodService", "ListBusinessPaymentMethod"}, ""))
 )
