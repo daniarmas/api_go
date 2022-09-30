@@ -112,20 +112,20 @@ func (m *ApplicationServer) CreateApplication(ctx context.Context, req *pb.Creat
 		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
-	if req.Application.Name == "" {
+	if req.Application == nil || req.Application.Name == "" {
 		invalidArgs = true
 		invalidName = &epb.BadRequest_FieldViolation{
 			Field:       "Application.Name",
 			Description: "The Application.Name field is required",
 		}
 	}
-	if req.Application.Version == "" {
+	if req.Application == nil || req.Application.Version == "" {
 		invalidArgs = true
 		invalidVersion = &epb.BadRequest_FieldViolation{
 			Field:       "Application.Version",
 			Description: "The Application.Version field is required",
 		}
-	} else if req.Application.Version != "" {
+	} else if req.Application == nil || req.Application.Version != "" {
 		if !utils.RegexpSemanticVersion(&req.Application.Version) {
 			invalidArgs = true
 			invalidVersion = &epb.BadRequest_FieldViolation{
