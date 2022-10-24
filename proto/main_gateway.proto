@@ -69,9 +69,22 @@ service AuthenticationService {
 }
 
 service ApplicationService {
-  rpc CreateApplication (CreateApplicationRequest) returns (Application) {}
-  rpc ListApplication (ListApplicationRequest) returns (ListApplicationResponse) {}
-  rpc DeleteApplication (DeleteApplicationRequest) returns (google.protobuf.Empty) {}
+  rpc CreateApplication (CreateApplicationRequest) returns (Application) {
+      option (google.api.http) = {
+            post: "/api/v1/application"
+            body: "*"
+      };
+  }
+  rpc ListApplication (ListApplicationRequest) returns (ListApplicationResponse) {
+      option (google.api.http) = {
+            get: "/api/v1/application"
+      };
+  }
+  rpc DeleteApplication (DeleteApplicationRequest) returns (google.protobuf.Empty) {
+      option (google.api.http) = {
+            delete: "/api/v1/application/{id}"
+      };
+  }
 }
 
 service PermissionService {
@@ -145,10 +158,28 @@ service CartItemService {
 }
 
 service PaymentMethodService {
-  rpc CreatePaymentMethod (CreatePaymentMethodRequest) returns (PaymentMethod) {}
-  rpc ListPaymentMethod (ListPaymentMethodRequest) returns (ListPaymentMethodResponse) {}
-  rpc UpdatePaymentMethod (UpdatePaymentMethodRequest) returns (PaymentMethod) {}
-  rpc DeletePaymentMethod (DeletePaymentMethodRequest) returns (google.protobuf.Empty) {}
+  rpc CreatePaymentMethod (CreatePaymentMethodRequest) returns (PaymentMethod) {
+      option (google.api.http) = {
+            post: "/api/v1/payment-method"
+            body: "*"
+      };
+  }
+  rpc ListPaymentMethod (ListPaymentMethodRequest) returns (ListPaymentMethodResponse) {
+      option (google.api.http) = {
+            get: "/api/v1/payment-method"
+      };
+  }
+  rpc UpdatePaymentMethod (UpdatePaymentMethodRequest) returns (PaymentMethod) {
+      option (google.api.http) = {
+            put: "/api/v1/payment-method/{id}"
+            body: "*"
+      };
+  }
+  rpc DeletePaymentMethod (DeletePaymentMethodRequest) returns (google.protobuf.Empty) {
+      option (google.api.http) = {
+            delete: "/api/v1/payment-method/{id}"
+      };
+  }
 
   rpc ListBusinessPaymentMethod (ListBusinessPaymentMethodRequest) returns (ListBusinessPaymentMethodResponse) {}
 }

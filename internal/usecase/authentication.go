@@ -643,7 +643,7 @@ func (v *authenticationService) CheckSession(ctx context.Context, md *utils.Clie
 					Instructions:   item.Instructions,
 					ProvinceId:     item.ProvinceId.String(),
 					MunicipalityId: item.MunicipalityId.String(),
-					Coordinates:    &pb.Point{Latitude: item.Coordinates.Coords()[0], Longitude: item.Coordinates.Coords()[1]},
+					Coordinates:    &pb.Point{Latitude: item.Coordinates.Coords()[1], Longitude: item.Coordinates.Coords()[0]},
 					UserId:         item.UserId.String(),
 					CreateTime:     timestamppb.New(item.CreateTime),
 					UpdateTime:     timestamppb.New(item.UpdateTime),

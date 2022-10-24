@@ -220,6 +220,10 @@ func (i *orderService) GetOrder(ctx context.Context, req *pb.GetOrderRequest, md
 		res = pb.Order{
 			Id:                order.ID.String(),
 			BusinessName:      order.BusinessName,
+			Status:            *utils.ParseOrderStatusType(&order.Status),
+			OrderType:         *utils.ParseOrderType(&order.OrderType),
+			Coordinates:       &pb.Point{Latitude: order.Coordinates.Coords()[1], Longitude: order.Coordinates.Coords()[0]},
+			ItemsQuantity:     order.ItemsQuantity,
 			ShortId:           order.ShortId,
 			Number:            order.Number,
 			Address:           order.Address,
@@ -488,15 +492,15 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		}
 		// If the order is for delivery, check if the location is in the delivery range of the business
 		location := userAddress.Coordinates
-		if req.OrderType == pb.OrderType_OrderTypeHomeDelivery {
-			isInRange, err := i.dao.NewBusinessRepository().BusinessIsInRange(tx, location, businessRes.ID)
-			if err != nil {
-				return err
-			}
-			if !*isInRange {
-				return errors.New("business not in range")
-			}
-		}
+		// if req.OrderType == pb.OrderType_OrderTypeHomeDelivery {
+		// 	isInRange, err := i.dao.NewBusinessRepository().BusinessIsInRange(tx, location, businessRes.ID)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	if !*isInRange {
+		// 		return errors.New("business not in range")
+		// 	}
+		// }
 		var zeroTime time.Time
 		switch weekday {
 		case "Sunday":
