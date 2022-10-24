@@ -222,7 +222,7 @@ func (i *orderService) GetOrder(ctx context.Context, req *pb.GetOrderRequest, md
 			BusinessName:      order.BusinessName,
 			Status:            *utils.ParseOrderStatusType(&order.Status),
 			OrderType:         *utils.ParseOrderType(&order.OrderType),
-			Coordinates:       &pb.Point{Latitude: order.Coordinates.Coords()[1], Longitude: order.Coordinates.Coords()[0]},
+			Coordinates:       &pb.Point{Latitude: order.Coordinates.Coords()[0], Longitude: order.Coordinates.Coords()[1]},
 			ItemsQuantity:     order.ItemsQuantity,
 			ShortId:           order.ShortId,
 			Number:            order.Number,
