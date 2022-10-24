@@ -23,8 +23,18 @@ type PaymentMethod struct {
 	DeleteTime gorm.DeletedAt `gorm:"index;column:delete_time"`
 }
 
-func (r *PaymentMethod) BeforeCreate(tx *gorm.DB) (err error) {
-	r.CreateTime = time.Now().UTC()
-	r.UpdateTime = time.Now().UTC()
+func (i *PaymentMethod) BeforeCreate(tx *gorm.DB) (err error) {
+	var nullTime time.Time
+	if i.CreateTime == nullTime {
+		i.CreateTime = time.Now().UTC()
+	}
+	if i.UpdateTime == nullTime {
+		i.UpdateTime = time.Now().UTC()
+	}
+	return
+}
+
+func (u *PaymentMethod) BeforeUpdate(tx *gorm.DB) (err error) {
+	u.UpdateTime = time.Now().UTC()
 	return
 }
