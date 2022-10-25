@@ -775,17 +775,18 @@ message Order {
   string instructions = 7;
   string cancelReasons = 8;
   Point coordinates = 9;
-  string priceCup = 10;
-  string businessId = 11;
-  string userId = 12;
-  string businessName = 13;
-  string businessThumbnail = 14;
-  int32 itemsQuantity = 15;
-  repeated OrderedItem orderedItems = 16;
-  google.protobuf.Timestamp startOrderTime = 17;
-  google.protobuf.Timestamp endOrderTime = 18;
-  google.protobuf.Timestamp createTime = 19;
-  google.protobuf.Timestamp updateTime = 20;
+  string deliveryPriceCup = 10;
+  string priceCup = 11;
+  string businessId = 12;
+  string userId = 13;
+  string businessName = 14;
+  string businessThumbnail = 15;
+  int32 itemsQuantity = 16;
+  repeated OrderedItem orderedItems = 17;
+  google.protobuf.Timestamp startOrderTime = 18;
+  google.protobuf.Timestamp endOrderTime = 19;
+  google.protobuf.Timestamp createTime = 20;
+  google.protobuf.Timestamp updateTime = 21;
 }
 
 message User {

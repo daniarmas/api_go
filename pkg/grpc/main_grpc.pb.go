@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.21.6
-// source: main_gateway.proto
+// source: main.proto
 
 package grpc
 
@@ -426,7 +426,7 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "main_gateway.proto",
+	Metadata: "main.proto",
 }
 
 // ApplicationServiceClient is the client API for ApplicationService service.
@@ -584,7 +584,7 @@ var ApplicationService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "main_gateway.proto",
+	Metadata: "main.proto",
 }
 
 // PermissionServiceClient is the client API for PermissionService service.
@@ -778,7 +778,7 @@ var PermissionService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "main_gateway.proto",
+	Metadata: "main.proto",
 }
 
 // BusinessServiceClient is the client API for BusinessService service.
@@ -1334,7 +1334,7 @@ var BusinessService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "main_gateway.proto",
+	Metadata: "main.proto",
 }
 
 // ItemServiceClient is the client API for ItemService service.
@@ -1636,7 +1636,7 @@ var ItemService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "main_gateway.proto",
+	Metadata: "main.proto",
 }
 
 // UserServiceClient is the client API for UserService service.
@@ -2010,7 +2010,7 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "main_gateway.proto",
+	Metadata: "main.proto",
 }
 
 // OrderServiceClient is the client API for OrderService service.
@@ -2276,7 +2276,7 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "main_gateway.proto",
+	Metadata: "main.proto",
 }
 
 // CartItemServiceClient is the client API for CartItemService service.
@@ -2542,7 +2542,7 @@ var CartItemService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "main_gateway.proto",
+	Metadata: "main.proto",
 }
 
 // PaymentMethodServiceClient is the client API for PaymentMethodService service.
@@ -2772,7 +2772,7 @@ var PaymentMethodService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "main_gateway.proto",
+	Metadata: "main.proto",
 }
 
 // ObjectStorageServiceClient is the client API for ObjectStorageService service.
@@ -2858,5 +2858,5 @@ var ObjectStorageService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "main_gateway.proto",
+	Metadata: "main.proto",
 }
