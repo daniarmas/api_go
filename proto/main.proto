@@ -90,6 +90,7 @@ service OrderService {
   rpc UpdateOrder (UpdateOrderRequest) returns (Order) {}
   rpc ListOrderedItem (ListOrderedItemRequest) returns (ListOrderedItemResponse) {}
   rpc GetCheckoutInfo (GetCheckoutInfoRequest) returns (GetCheckoutInfoResponse) {}
+  rpc CancelOrder (CancelOrderRequest) returns (google.protobuf.Empty) {}
 }
 
 service CartItemService {
@@ -480,6 +481,10 @@ message GetBannedUserResponse {
 
 message UpdateOrderRequest {
   Order order = 1;
+}
+
+message CancelOrderRequest {
+  string id = 1;
 }
 
 message CreateOrderRequest {           
