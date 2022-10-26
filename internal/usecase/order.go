@@ -264,12 +264,16 @@ func (i *orderService) GetOrder(ctx context.Context, req *pb.GetOrderRequest, md
 				UpdateTime: timestamppb.New(item.UpdateTime),
 			})
 		}
+		var coordinates *pb.Point
+		if order.Coordinates.Point != nil {
+			coordinates = &pb.Point{Latitude: order.Coordinates.Coords()[1], Longitude: order.Coordinates.Coords()[0]}
+		}
 		res = pb.Order{
 			Id:                order.ID.String(),
 			BusinessName:      order.BusinessName,
 			Status:            *utils.ParseOrderStatusType(&order.Status),
 			OrderType:         *utils.ParseOrderType(&order.OrderType),
-			Coordinates:       &pb.Point{Latitude: order.Coordinates.Coords()[0], Longitude: order.Coordinates.Coords()[1]},
+			Coordinates:       coordinates,
 			ItemsQuantity:     order.ItemsQuantity,
 			ShortId:           order.ShortId,
 			Number:            order.Number,
@@ -834,6 +838,10 @@ func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, 
 		}
 		ordersResponse := make([]*pb.Order, 0, len(*ordersRes))
 		for _, item := range *ordersRes {
+			var coordinates *pb.Point
+			if item.Coordinates.Point != nil {
+				coordinates = &pb.Point{Latitude: item.Coordinates.Coords()[1], Longitude: item.Coordinates.Coords()[0]}
+			}
 			ordersResponse = append(ordersResponse, &pb.Order{
 				Id:            item.ID.String(),
 				ShortId:       item.ShortId,
@@ -848,7 +856,7 @@ func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, 
 				EndOrderTime:      timestamppb.New(item.EndOrderTime),
 				Status:            *utils.ParseOrderStatusType(&item.Status),
 				OrderType:         *utils.ParseOrderType(&item.OrderType),
-				Coordinates:       &pb.Point{Latitude: item.Coordinates.Coords()[1], Longitude: item.Coordinates.Coords()[0]},
+				Coordinates:       coordinates,
 				BusinessId:        item.BusinessId.String(),
 				BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + item.BusinessThumbnail,
 				DeliveryPriceCup:  item.DeliveryPriceCup,
