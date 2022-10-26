@@ -17,6 +17,7 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/ewkb"
+	gp "google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 )
@@ -28,6 +29,7 @@ type OrderService interface {
 	CreateOrder(ctx context.Context, req *pb.CreateOrderRequest, md *utils.ClientMetadata) (*pb.Order, error)
 	UpdateOrder(ctx context.Context, req *pb.UpdateOrderRequest, md *utils.ClientMetadata) (*pb.Order, error)
 	ListOrderedItemWithItem(ctx context.Context, req *pb.ListOrderedItemRequest, md *utils.ClientMetadata) (*pb.ListOrderedItemResponse, error)
+	CancelOrder(ctx context.Context, req *pb.CancelOrderRequest, md *utils.ClientMetadata) (*gp.Empty, error)
 }
 
 type orderService struct {
@@ -38,6 +40,51 @@ type orderService struct {
 
 func NewOrderService(dao repository.Repository, sqldb *sqldb.Sql, config *config.Config) OrderService {
 	return &orderService{dao: dao, sqldb: sqldb, config: config}
+}
+
+func (i *orderService) CancelOrder(ctx context.Context, req *pb.CancelOrderRequest, md *utils.ClientMetadata) (*gp.Empty, error) {
+	id := uuid.MustParse(req.Id)
+	err := i.sqldb.Gorm.Transaction(func(tx *gorm.DB) error {
+		_, err := i.dao.NewApplicationRepository().CheckApplication(ctx, tx, *md.AccessToken)
+		if err != nil {
+			return err
+		}
+		jwtAuthorizationToken := &datasource.JsonWebTokenMetadata{Token: md.Authorization}
+		err = repository.Datasource.NewJwtTokenDatasource().ParseJwtAuthorizationToken(jwtAuthorizationToken)
+		if err != nil {
+			switch err.Error() {
+			case "Token is expired":
+				return errors.New("authorization token expired")
+			case "signature is invalid":
+				return errors.New("authorization token signature is invalid")
+			case "token contains an invalid number of segments":
+				return errors.New("authorization token contains an invalid number of segments")
+			default:
+				return err
+			}
+		}
+		_, err = i.dao.NewAuthorizationTokenRepository().GetAuthorizationToken(ctx, tx, &entity.AuthorizationToken{ID: jwtAuthorizationToken.TokenId})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("unauthenticated user")
+		} else if err != nil {
+			return err
+		}
+		updateOrderRes, err := i.dao.NewOrderRepository().UpdateOrder(tx, &entity.Order{ID: &id}, &entity.Order{Status: pb.OrderStatusType_OrderStatusTypeCancelled.String(), CancelReasons: req.CancelReasons})
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("order not found")
+		} else if err != nil {
+			return err
+		}
+		_, err = i.dao.NewOrderLifecycleRepository().CreateOrderLifecycle(tx, &entity.OrderLifecycle{Status: pb.OrderStatusType_OrderStatusTypeCancelled.String(), OrderId: &id, CreateTime: updateOrderRes.UpdateTime})
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &gp.Empty{}, nil
 }
 
 func (i *orderService) GetCheckoutInfo(ctx context.Context, req *pb.GetCheckoutInfoRequest, md *utils.ClientMetadata) (*pb.GetCheckoutInfoResponse, error) {
