@@ -100,7 +100,9 @@ func (i *userAddressDatasource) UpdateUserAddressByUserId(tx *gorm.DB, where *en
 func (i *userAddressDatasource) GetUserAddress(tx *gorm.DB, where *entity.UserAddress) (*entity.UserAddress, error) {
 	var res entity.UserAddress
 	result := tx.Raw(`SELECT "id", "name", "selected", "address", "number", ST_AsEWKB(coordinates) AS coordinates, "instructions", "user_id", "province_id", "municipality_id", "create_time", "update_time" FROM "user_address" WHERE id = ? LIMIT 1`, where.ID).Scan(&res)
-	if result.Error != nil {
+	if res.ID == nil {
+		return nil, errors.New("record not found")
+	} else if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
 		} else {

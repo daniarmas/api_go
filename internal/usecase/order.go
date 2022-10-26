@@ -236,6 +236,7 @@ func (i *orderService) GetOrder(ctx context.Context, req *pb.GetOrderRequest, md
 			OrderedItems:      orderedItems,
 			CreateTime:        timestamppb.New(order.CreateTime),
 			UpdateTime:        timestamppb.New(order.UpdateTime),
+			DeliveryPriceCup:  order.DeliveryPriceCup,
 			StartOrderTime:    timestamppb.New(order.StartOrderTime),
 			EndOrderTime:      timestamppb.New(order.EndOrderTime),
 		}
@@ -399,7 +400,7 @@ func (i *orderService) UpdateOrder(ctx context.Context, req *pb.UpdateOrderReque
 		if err != nil {
 			return err
 		}
-		res = &pb.Order{Id: updateOrderRes.ID.String(), BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + updateOrderRes.BusinessThumbnail, Status: *utils.ParseOrderStatusType(&updateOrderRes.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.OrderType), PriceCup: updateOrderRes.PriceCup, BusinessId: updateOrderRes.BusinessId.String(), UserId: updateOrderRes.UserId.String(), Coordinates: &pb.Point{Latitude: updateOrderRes.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Coordinates.FlatCoords()[1]}, StartOrderTime: timestamppb.New(updateOrderRes.StartOrderTime), EndOrderTime: timestamppb.New(updateOrderRes.EndOrderTime), CreateTime: timestamppb.New(updateOrderRes.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.UpdateTime), Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions, ShortId: updateOrderRes.ShortId, CancelReasons: updateOrderRes.CancelReasons, BusinessName: updateOrderRes.BusinessName, ItemsQuantity: updateOrderRes.ItemsQuantity}
+		res = &pb.Order{Id: updateOrderRes.ID.String(), DeliveryPriceCup: updateOrderRes.DeliveryPriceCup, BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + updateOrderRes.BusinessThumbnail, Status: *utils.ParseOrderStatusType(&updateOrderRes.Status), OrderType: *utils.ParseOrderType(&updateOrderRes.OrderType), PriceCup: updateOrderRes.PriceCup, BusinessId: updateOrderRes.BusinessId.String(), UserId: updateOrderRes.UserId.String(), Coordinates: &pb.Point{Latitude: updateOrderRes.Coordinates.FlatCoords()[0], Longitude: updateOrderRes.Coordinates.FlatCoords()[1]}, StartOrderTime: timestamppb.New(updateOrderRes.StartOrderTime), EndOrderTime: timestamppb.New(updateOrderRes.EndOrderTime), CreateTime: timestamppb.New(updateOrderRes.CreateTime), UpdateTime: timestamppb.New(updateOrderRes.UpdateTime), Number: updateOrderRes.Number, Address: updateOrderRes.Address, Instructions: updateOrderRes.Instructions, ShortId: updateOrderRes.ShortId, CancelReasons: updateOrderRes.CancelReasons, BusinessName: updateOrderRes.BusinessName, ItemsQuantity: updateOrderRes.ItemsQuantity}
 		return nil
 	})
 	if err != nil {
@@ -445,7 +446,7 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		listCartItemRes, err := i.dao.NewCartItemRepository().ListCartItemAll(tx, &entity.CartItem{UserId: authorizationTokenRes.UserId})
 		if err != nil {
 			return err
-		} else if listCartItemRes == nil {
+		} else if listCartItemRes == nil || len(*listCartItemRes) == 0 {
 			return errors.New("cart items not found")
 		}
 		var cartItems []uuid.UUID
@@ -679,10 +680,12 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		}
 		businessPaymentMethodId := uuid.MustParse(req.BusinessPaymentMethodId)
 		businessPaymentMethod, err := i.dao.NewBusinessPaymentMethodRepository().GetBusinessPaymentMethod(ctx, tx, &entity.BusinessPaymentMethod{ID: &businessPaymentMethodId})
-		if err != nil {
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("business payment method not found")
+		} else if err != nil {
 			return err
 		}
-		createOrderRes, err := i.dao.NewOrderRepository().CreateOrder(tx, &entity.Order{ItemsQuantity: quantity, BusinessThumbnail: businessRes.Thumbnail, OrderType: req.OrderType.String(), UserId: authorizationTokenRes.UserId, StartOrderTime: req.StartOrderTime.AsTime().UTC(), EndOrderTime: req.EndOrderTime.AsTime().UTC(), Coordinates: location, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: (*listCartItemRes)[0].BusinessId, PriceCup: price_cup.String(), CreateTime: createTime, UpdateTime: createTime, Number: userAddress.Number, Address: userAddress.Address, Instructions: req.Instructions, BusinessName: businessRes.Name, Status: "OrderStatusTypeOrdered", Phone: req.Phone, PaymentMethodType: businessPaymentMethod.Type})
+		createOrderRes, err := i.dao.NewOrderRepository().CreateOrder(tx, &entity.Order{ItemsQuantity: quantity, BusinessThumbnail: businessRes.Thumbnail, OrderType: req.OrderType.String(), UserId: authorizationTokenRes.UserId, StartOrderTime: req.StartOrderTime.AsTime().UTC(), EndOrderTime: req.EndOrderTime.AsTime().UTC(), Coordinates: location, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: (*listCartItemRes)[0].BusinessId, PriceCup: price_cup.String(), CreateTime: createTime, UpdateTime: createTime, Number: userAddress.Number, Address: userAddress.Address, Instructions: req.Instructions, BusinessName: businessRes.Name, Status: "OrderStatusTypeOrdered", Phone: req.Phone, PaymentMethodType: businessPaymentMethod.Type, DeliveryPriceCup: businessRes.DeliveryPriceCup})
 		if err != nil {
 			return err
 		}
@@ -702,7 +705,7 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		if err != nil {
 			return err
 		}
-		res = &pb.Order{BusinessName: businessRes.Name, BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + createOrderRes.BusinessThumbnail, ItemsQuantity: quantity, Status: *utils.ParseOrderStatusType(&createOrderRes.Status), OrderType: *utils.ParseOrderType(&createOrderRes.OrderType), Number: createOrderRes.Number, BusinessId: createOrderRes.BusinessId.String(), UserId: createOrderRes.UserId.String(), StartOrderTime: timestamppb.New(createOrderRes.StartOrderTime), EndOrderTime: timestamppb.New(createOrderRes.EndOrderTime), Coordinates: &pb.Point{Latitude: createOrderRes.Coordinates.FlatCoords()[0], Longitude: createOrderRes.Coordinates.FlatCoords()[1]}, PriceCup: price_cup.String(), CreateTime: timestamppb.New(createOrderRes.CreateTime), UpdateTime: timestamppb.New(createOrderRes.UpdateTime), Address: createOrderRes.Address, Instructions: createOrderRes.Instructions, Id: createOrderRes.ID.String(), ShortId: createOrderRes.ShortId}
+		res = &pb.Order{BusinessName: businessRes.Name, BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + createOrderRes.BusinessThumbnail, ItemsQuantity: quantity, Status: *utils.ParseOrderStatusType(&createOrderRes.Status), OrderType: *utils.ParseOrderType(&createOrderRes.OrderType), Number: createOrderRes.Number, BusinessId: createOrderRes.BusinessId.String(), UserId: createOrderRes.UserId.String(), StartOrderTime: timestamppb.New(createOrderRes.StartOrderTime), EndOrderTime: timestamppb.New(createOrderRes.EndOrderTime), Coordinates: &pb.Point{Latitude: createOrderRes.Coordinates.FlatCoords()[0], Longitude: createOrderRes.Coordinates.FlatCoords()[1]}, PriceCup: price_cup.String(), CreateTime: timestamppb.New(createOrderRes.CreateTime), UpdateTime: timestamppb.New(createOrderRes.UpdateTime), Address: createOrderRes.Address, Instructions: createOrderRes.Instructions, Id: createOrderRes.ID.String(), ShortId: createOrderRes.ShortId, DeliveryPriceCup: createOrderRes.DeliveryPriceCup}
 		return nil
 	})
 	if err != nil {
@@ -781,6 +784,7 @@ func (i *orderService) ListOrder(ctx context.Context, req *pb.ListOrderRequest, 
 				Coordinates:       &pb.Point{Latitude: item.Coordinates.Coords()[1], Longitude: item.Coordinates.Coords()[0]},
 				BusinessId:        item.BusinessId.String(),
 				BusinessThumbnail: i.config.BusinessAvatarBulkName + "/" + item.BusinessThumbnail,
+				DeliveryPriceCup:  item.DeliveryPriceCup,
 				CreateTime:        timestamppb.New(item.CreateTime),
 				UpdateTime:        timestamppb.New(item.UpdateTime),
 			})

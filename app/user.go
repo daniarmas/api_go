@@ -410,6 +410,8 @@ func (m *UserServer) CreateUserAddress(ctx context.Context, req *pb.CreateUserAd
 			st = status.New(codes.Unauthenticated, "Authorization token invalid")
 		case "only can have 10 user_address":
 			st = status.New(codes.ResourceExhausted, "UserAddress limit reached")
+		case "municipality not found":
+			st = status.New(codes.NotFound, "Municipality not found")
 		default:
 			st = status.New(codes.Internal, "Internal server error")
 		}
