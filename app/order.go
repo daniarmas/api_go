@@ -290,6 +290,10 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 			st = status.New(codes.InvalidArgument, "Business closed")
 		case "cart items not found":
 			st = status.New(codes.InvalidArgument, "Cart items not found")
+		case "user address not found":
+			st = status.New(codes.NotFound, "User address not found")
+		case "business payment method not found":
+			st = status.New(codes.NotFound, "Business payment method not found")
 		case "business not in range":
 			st = status.New(codes.InvalidArgument, "Business not in range")
 		default:

@@ -680,7 +680,9 @@ func (i *orderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		}
 		businessPaymentMethodId := uuid.MustParse(req.BusinessPaymentMethodId)
 		businessPaymentMethod, err := i.dao.NewBusinessPaymentMethodRepository().GetBusinessPaymentMethod(ctx, tx, &entity.BusinessPaymentMethod{ID: &businessPaymentMethodId})
-		if err != nil {
+		if err != nil && err.Error() == "record not found" {
+			return errors.New("business payment method not found")
+		} else if err != nil {
 			return err
 		}
 		createOrderRes, err := i.dao.NewOrderRepository().CreateOrder(tx, &entity.Order{ItemsQuantity: quantity, BusinessThumbnail: businessRes.Thumbnail, OrderType: req.OrderType.String(), UserId: authorizationTokenRes.UserId, StartOrderTime: req.StartOrderTime.AsTime().UTC(), EndOrderTime: req.EndOrderTime.AsTime().UTC(), Coordinates: location, AuthorizationTokenId: authorizationTokenRes.ID, BusinessId: (*listCartItemRes)[0].BusinessId, PriceCup: price_cup.String(), CreateTime: createTime, UpdateTime: createTime, Number: userAddress.Number, Address: userAddress.Address, Instructions: req.Instructions, BusinessName: businessRes.Name, Status: "OrderStatusTypeOrdered", Phone: req.Phone, PaymentMethodType: businessPaymentMethod.Type, DeliveryPriceCup: businessRes.DeliveryPriceCup})
