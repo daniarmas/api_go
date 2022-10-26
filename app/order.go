@@ -196,13 +196,13 @@ func (m *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 		st = status.New(codes.Unauthenticated, "Unauthenticated user")
 		return nil, st.Err()
 	}
-	if req.UserAddressId == "" {
+	if req.UserAddressId == "" && req.OrderType == pb.OrderType_OrderTypeHomeDelivery {
 		invalidArgs = true
 		invalidUserAddressId = &epb.BadRequest_FieldViolation{
 			Field:       "userAddressId",
 			Description: "The userAddressId field is required",
 		}
-	} else if req.UserAddressId != "" {
+	} else if req.UserAddressId != "" && req.OrderType == pb.OrderType_OrderTypeHomeDelivery {
 		if !utils.IsValidUUID(&req.UserAddressId) {
 			invalidArgs = true
 			invalidUserAddressId = &epb.BadRequest_FieldViolation{

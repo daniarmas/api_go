@@ -48,7 +48,9 @@ func (i *orderDatasource) ExistsUpcomingOrders(tx *gorm.DB, userId uuid.UUID) (*
 func (i *orderDatasource) GetOrder(tx *gorm.DB, where *entity.Order) (*entity.Order, error) {
 	var res entity.Order
 	result := tx.Raw(`SELECT "id", "delivery_price_cup", "short_id", "business_name", "business_thumbnail", "items_quantity", "status", "order_type", "price_cup", "number", "address", "business_id", ST_AsEWKB(coordinates) AS coordinates, "user_id", "authorization_token_id", "start_order_time", "end_order_time", "create_time", "update_time", "instructions", "cancel_reasons" FROM "order" WHERE id = ? LIMIT 1`, where.ID).Scan(&res)
-	if result.Error != nil {
+	if res.ID == nil {
+		return nil, errors.New("record not found")
+	} else if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
 		} else {
@@ -73,14 +75,22 @@ func (i *orderDatasource) UpdateOrder(tx *gorm.DB, where *entity.Order, data *en
 }
 
 func (i *orderDatasource) CreateOrder(tx *gorm.DB, data *entity.Order) (*entity.Order, error) {
-	point := fmt.Sprintf("POINT(%v %v)", data.Coordinates.Point.Coords()[1], data.Coordinates.Point.Coords()[0])
+	var point string
+	if data.Coordinates.Point != nil {
+		point = fmt.Sprintf("POINT(%v %v)", data.Coordinates.Point.Coords()[1], data.Coordinates.Point.Coords()[0])
+	}
 	var time = time.Now().UTC()
 	shortId, err := shortid.Generate()
 	if err != nil {
 		return nil, err
 	}
 	var res entity.Order
-	result := tx.Raw(`INSERT INTO "order" ("id", "delivery_price_cup", "business_thumbnail", "status", "business_name", "items_quantity", "authorization_token_id", "business_id", "coordinates", "start_order_time", "end_order_time", "order_type", "number", "address", "instructions", "price_cup", "user_id", "create_time", "update_time", "short_id", "payment_method_type", "phone") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ST_GeomFromText(?, 4326), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING "id", "delivery_price_cup", "business_thumbnail", "short_id", "business_name", "items_quantity", "status", "order_type", "price_cup", "number", "address", "business_id", ST_AsEWKB(coordinates) AS coordinates, "user_id", "authorization_token_id", "start_order_time", "end_order_time", "instructions", "cancel_reasons", "create_time", "update_time", "payment_method_type", "phone"`, uuid.New().String(), data.DeliveryPriceCup, data.BusinessThumbnail, data.Status, data.BusinessName, data.ItemsQuantity, data.AuthorizationTokenId, data.BusinessId, point, data.StartOrderTime, data.EndOrderTime, data.OrderType, data.Number, data.Address, data.Instructions, data.PriceCup, data.UserId, time, time, shortId, data.PaymentMethodType, data.Phone).Scan(&res)
+	var result *gorm.DB
+	if data.Coordinates.Point != nil {
+		result = tx.Raw(`INSERT INTO "order" ("id", "delivery_price_cup", "business_thumbnail", "status", "business_name", "items_quantity", "authorization_token_id", "business_id", "coordinates", "start_order_time", "end_order_time", "order_type", "number", "address", "instructions", "price_cup", "user_id", "create_time", "update_time", "short_id", "payment_method_type", "phone") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ST_GeomFromText(?, 4326), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING "id", "delivery_price_cup", "business_thumbnail", "short_id", "business_name", "items_quantity", "status", "order_type", "price_cup", "number", "address", "business_id", ST_AsEWKB(coordinates) AS coordinates, "user_id", "authorization_token_id", "start_order_time", "end_order_time", "instructions", "cancel_reasons", "create_time", "update_time", "payment_method_type", "phone"`, uuid.New().String(), data.DeliveryPriceCup, data.BusinessThumbnail, data.Status, data.BusinessName, data.ItemsQuantity, data.AuthorizationTokenId, data.BusinessId, point, data.StartOrderTime, data.EndOrderTime, data.OrderType, data.Number, data.Address, data.Instructions, data.PriceCup, data.UserId, time, time, shortId, data.PaymentMethodType, data.Phone).Scan(&res)
+	} else {
+		result = tx.Raw(`INSERT INTO "order" ("id", "delivery_price_cup", "business_thumbnail", "status", "business_name", "items_quantity", "authorization_token_id", "business_id", "start_order_time", "end_order_time", "order_type", "instructions", "price_cup", "user_id", "create_time", "update_time", "short_id", "payment_method_type", "phone") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING "id", "delivery_price_cup", "business_thumbnail", "short_id", "business_name", "items_quantity", "status", "order_type", "price_cup", "number", "address", "business_id", ST_AsEWKB(coordinates) AS coordinates, "user_id", "authorization_token_id", "start_order_time", "end_order_time", "instructions", "cancel_reasons", "create_time", "update_time", "payment_method_type", "phone"`, uuid.New().String(), data.DeliveryPriceCup, data.BusinessThumbnail, data.Status, data.BusinessName, data.ItemsQuantity, data.AuthorizationTokenId, data.BusinessId, data.StartOrderTime, data.EndOrderTime, data.OrderType, data.Instructions, data.PriceCup, data.UserId, time, time, shortId, data.PaymentMethodType, data.Phone).Scan(&res)
+	}
 	if result.Error != nil {
 		return nil, result.Error
 	}
