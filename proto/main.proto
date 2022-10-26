@@ -485,6 +485,7 @@ message UpdateOrderRequest {
 
 message CancelOrderRequest {
   string id = 1;
+  string cancelReasons = 2;
 }
 
 message CreateOrderRequest {           

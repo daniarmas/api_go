@@ -64,7 +64,9 @@ func (i *orderDatasource) UpdateOrder(tx *gorm.DB, where *entity.Order, data *en
 	var res entity.Order
 	var time = time.Now().UTC()
 	result := tx.Raw(`UPDATE "order" SET "status"=?,"update_time"=?,"cancel_reasons"=? WHERE "order"."id" = ? AND "order"."delete_time" IS NULL RETURNING "id", "short_id", "items_quantity", "status", "order_type", "price_cup", "number", "address", "business_id", ST_AsEWKB(coordinates) AS coordinates, "user_id", "authorization_token_id", "start_order_time", "end_order_time", "create_time", "update_time", "instructions", "cancel_reasons", "business_name"`, data.Status, time, data.CancelReasons, where.ID).Scan(&res)
-	if result.Error != nil {
+	if res.ID == nil {
+		return nil, errors.New("record not found")
+	} else if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("record not found")
 		} else {
